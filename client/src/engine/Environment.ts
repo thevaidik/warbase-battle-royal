@@ -117,7 +117,7 @@ export class EnvironmentManager {
                     mesh.useVertexColors = false; 
 
                     try {
-                        new PhysicsAggregate(mesh, PhysicsShapeType.MESH, { mass: 0, friction: 0.5, restitution: 0 }, this.scene);
+                        new PhysicsAggregate(mesh, PhysicsShapeType.MESH, { mass: 0, friction: 0.0, restitution: 0 }, this.scene);
                     } catch (e) {
                         console.warn(`Failed to create physics for ${mesh.name}:`, e);
                     }

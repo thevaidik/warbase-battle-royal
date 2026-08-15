@@ -1529,6 +1529,21 @@ export namespace warbase {
         /** GameState players. */
         players: { [k: string]: warbase.PlayerState.$Properties };
 
+        /** GameState roomMode. */
+        roomMode: string;
+
+        /** GameState roomState. */
+        roomState: string;
+
+        /** GameState scoreTeamA. */
+        scoreTeamA: number;
+
+        /** GameState scoreTeamB. */
+        scoreTeamB: number;
+
+        /** GameState winnerId. */
+        winnerId: string;
+
         /**
          * Creates a new GameState instance using the specified properties.
          * @param [properties] Properties to set
@@ -1616,6 +1631,21 @@ export namespace warbase {
             /** GameState players */
             players?: ({ [k: string]: warbase.PlayerState.$Properties }|null);
 
+            /** GameState roomMode */
+            roomMode?: (string|null);
+
+            /** GameState roomState */
+            roomState?: (string|null);
+
+            /** GameState scoreTeamA */
+            scoreTeamA?: (number|null);
+
+            /** GameState scoreTeamB */
+            scoreTeamB?: (number|null);
+
+            /** GameState winnerId */
+            winnerId?: (string|null);
+
             /** Unknown fields preserved while decoding when enabled */
             $unknowns?: Uint8Array[];
         }
@@ -1687,6 +1717,9 @@ export namespace warbase {
 
         /** PlayerState weaponId. */
         weaponId: string;
+
+        /** PlayerState team. */
+        team: string;
 
         /**
          * Creates a new PlayerState instance using the specified properties.
@@ -1816,6 +1849,9 @@ export namespace warbase {
 
             /** PlayerState weaponId */
             weaponId?: (string|null);
+
+            /** PlayerState team */
+            team?: (string|null);
 
             /** Unknown fields preserved while decoding when enabled */
             $unknowns?: Uint8Array[];

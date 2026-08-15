@@ -864,6 +864,11 @@ func (*ServerMessage_ServerEvent) isServerMessage_Message() {}
 type GameState struct {
 	state         protoimpl.MessageState  `protogen:"open.v1"`
 	Players       map[string]*PlayerState `protobuf:"bytes,1,rep,name=players,proto3" json:"players,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	RoomMode      string                  `protobuf:"bytes,2,opt,name=room_mode,json=roomMode,proto3" json:"room_mode,omitempty"`
+	RoomState     string                  `protobuf:"bytes,3,opt,name=room_state,json=roomState,proto3" json:"room_state,omitempty"`
+	ScoreTeamA    int32                   `protobuf:"varint,4,opt,name=score_team_a,json=scoreTeamA,proto3" json:"score_team_a,omitempty"`
+	ScoreTeamB    int32                   `protobuf:"varint,5,opt,name=score_team_b,json=scoreTeamB,proto3" json:"score_team_b,omitempty"`
+	WinnerId      string                  `protobuf:"bytes,6,opt,name=winner_id,json=winnerId,proto3" json:"winner_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -905,6 +910,41 @@ func (x *GameState) GetPlayers() map[string]*PlayerState {
 	return nil
 }
 
+func (x *GameState) GetRoomMode() string {
+	if x != nil {
+		return x.RoomMode
+	}
+	return ""
+}
+
+func (x *GameState) GetRoomState() string {
+	if x != nil {
+		return x.RoomState
+	}
+	return ""
+}
+
+func (x *GameState) GetScoreTeamA() int32 {
+	if x != nil {
+		return x.ScoreTeamA
+	}
+	return 0
+}
+
+func (x *GameState) GetScoreTeamB() int32 {
+	if x != nil {
+		return x.ScoreTeamB
+	}
+	return 0
+}
+
+func (x *GameState) GetWinnerId() string {
+	if x != nil {
+		return x.WinnerId
+	}
+	return ""
+}
+
 type PlayerState struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	X             float32                `protobuf:"fixed32,1,opt,name=x,proto3" json:"x,omitempty"`
@@ -922,6 +962,7 @@ type PlayerState struct {
 	PlatformId    string                 `protobuf:"bytes,13,opt,name=platform_id,json=platformId,proto3" json:"platform_id,omitempty"`
 	Ping          int32                  `protobuf:"varint,14,opt,name=ping,proto3" json:"ping,omitempty"`
 	WeaponId      string                 `protobuf:"bytes,15,opt,name=weapon_id,json=weaponId,proto3" json:"weapon_id,omitempty"`
+	Team          string                 `protobuf:"bytes,16,opt,name=team,proto3" json:"team,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1057,6 +1098,13 @@ func (x *PlayerState) GetPing() int32 {
 func (x *PlayerState) GetWeaponId() string {
 	if x != nil {
 		return x.WeaponId
+	}
+	return ""
+}
+
+func (x *PlayerState) GetTeam() string {
+	if x != nil {
+		return x.Team
 	}
 	return ""
 }
@@ -1620,12 +1668,20 @@ const file_packets_proto_rawDesc = "" +
 	"\n" +
 	"game_state\x18\x01 \x01(\v2\x12.warbase.GameStateH\x00R\tgameState\x129\n" +
 	"\fserver_event\x18\x02 \x01(\v2\x14.warbase.ServerEventH\x00R\vserverEventB\t\n" +
-	"\amessage\"\x98\x01\n" +
+	"\amessage\"\xb5\x02\n" +
 	"\tGameState\x129\n" +
-	"\aplayers\x18\x01 \x03(\v2\x1f.warbase.GameState.PlayersEntryR\aplayers\x1aP\n" +
+	"\aplayers\x18\x01 \x03(\v2\x1f.warbase.GameState.PlayersEntryR\aplayers\x12\x1b\n" +
+	"\troom_mode\x18\x02 \x01(\tR\broomMode\x12\x1d\n" +
+	"\n" +
+	"room_state\x18\x03 \x01(\tR\troomState\x12 \n" +
+	"\fscore_team_a\x18\x04 \x01(\x05R\n" +
+	"scoreTeamA\x12 \n" +
+	"\fscore_team_b\x18\x05 \x01(\x05R\n" +
+	"scoreTeamB\x12\x1b\n" +
+	"\twinner_id\x18\x06 \x01(\tR\bwinnerId\x1aP\n" +
 	"\fPlayersEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12*\n" +
-	"\x05value\x18\x02 \x01(\v2\x14.warbase.PlayerStateR\x05value:\x028\x01\"\xc6\x02\n" +
+	"\x05value\x18\x02 \x01(\v2\x14.warbase.PlayerStateR\x05value:\x028\x01\"\xda\x02\n" +
 	"\vPlayerState\x12\f\n" +
 	"\x01x\x18\x01 \x01(\x02R\x01x\x12\f\n" +
 	"\x01y\x18\x02 \x01(\x02R\x01y\x12\f\n" +
@@ -1643,7 +1699,8 @@ const file_packets_proto_rawDesc = "" +
 	"\vplatform_id\x18\r \x01(\tR\n" +
 	"platformId\x12\x12\n" +
 	"\x04ping\x18\x0e \x01(\x05R\x04ping\x12\x1b\n" +
-	"\tweapon_id\x18\x0f \x01(\tR\bweaponId\"\xfb\x02\n" +
+	"\tweapon_id\x18\x0f \x01(\tR\bweaponId\x12\x12\n" +
+	"\x04team\x18\x10 \x01(\tR\x04team\"\xfb\x02\n" +
 	"\vServerEvent\x121\n" +
 	"\arespawn\x18\x01 \x01(\v2\x15.warbase.RespawnEventH\x00R\arespawn\x12.\n" +
 	"\x04fire\x18\x02 \x01(\v2\x18.warbase.ServerFireEventH\x00R\x04fire\x12A\n" +

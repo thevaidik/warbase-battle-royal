@@ -87,6 +87,11 @@ message ServerMessage {
 
 message GameState {
     map<string, PlayerState> players = 1;
+    string room_mode = 2;
+    string room_state = 3;
+    int32 score_team_a = 4;
+    int32 score_team_b = 5;
+    string winner_id = 6;
 }
 
 message PlayerState {
@@ -105,6 +110,7 @@ message PlayerState {
     string platform_id = 13;
     int32 ping = 14;
     string weapon_id = 15;
+    string team = 16;
 }
 
 message ServerEvent {

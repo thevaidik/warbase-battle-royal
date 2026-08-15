@@ -1,21 +1,23 @@
 /*eslint-disable block-scoped-var, id-length, no-control-regex, no-magic-numbers, no-mixed-operators, no-prototype-builtins, no-redeclare, no-shadow, no-var, sort-vars, default-case, jsdoc/require-param*/
-import $protobuf from "protobufjs/minimal.js";
+"use strict";
+
+var $protobuf = require("protobufjs/minimal");
 
 // Common aliases
-const $Reader = $protobuf.Reader, $Writer = $protobuf.Writer, $util = $protobuf.util;
-const $Object = $util.global.Object, $undefined = $util.global.undefined, $Error = $util.global.Error, $TypeError = $util.global.TypeError, $Number = $util.global.Number, $String = $util.global.String, $isFinite = $util.global.isFinite, $Boolean = $util.global.Boolean, $parseInt = $util.global.parseInt, $BigInt = $util.global.BigInt;
+var $Reader = $protobuf.Reader, $Writer = $protobuf.Writer, $util = $protobuf.util;
+var $Object = $util.global.Object, $undefined = $util.global.undefined, $Error = $util.global.Error, $TypeError = $util.global.TypeError, $Number = $util.global.Number, $String = $util.global.String, $isFinite = $util.global.isFinite, $Boolean = $util.global.Boolean, $parseInt = $util.global.parseInt, $BigInt = $util.global.BigInt;
 
 // Exported root namespace
-const $root = $protobuf.roots["default"] || ($protobuf.roots["default"] = {});
+var $root = $protobuf.roots["default"] || ($protobuf.roots["default"] = {});
 
-export const warbase = $root.warbase = (() => {
+$root.warbase = (function() {
 
     /**
      * Namespace warbase.
      * @exports warbase
      * @namespace
      */
-    const warbase = {};
+    var warbase = {};
 
     warbase.ClientEvent = (function() {
 
@@ -67,9 +69,9 @@ export const warbase = $root.warbase = (() => {
          * @param {warbase.ClientEvent.$Properties=} [properties] Properties to set
          * @property {Array.<Uint8Array>} [$unknowns] Unknown fields preserved while decoding when enabled
          */
-        const ClientEvent = function (properties) {
+        var ClientEvent = function (properties) {
             if (properties)
-                for (let keys = $Object.keys(properties), i = 0; i < keys.length; ++i)
+                for (var keys = $Object.keys(properties), i = 0; i < keys.length; ++i)
                     if (properties[keys[i]] != null && keys[i] !== "__proto__")
                         this[keys[i]] = properties[keys[i]];
         };
@@ -139,7 +141,7 @@ export const warbase = $root.warbase = (() => {
         ClientEvent.prototype.ping = null;
 
         // OneOf field names bound to virtual getters and setters
-        let $oneOfFields;
+        var $oneOfFields;
 
         /**
          * ClientEvent event.
@@ -201,7 +203,7 @@ export const warbase = $root.warbase = (() => {
             if (message.ping != null && $Object.hasOwnProperty.call(message, "ping"))
                 $root.warbase.PingEvent.encode(message.ping, writer.uint32(/* id 8, wireType 2 =*/66).fork(), _depth + 1).ldelim();
             if (message.$unknowns != null && $Object.hasOwnProperty.call(message, "$unknowns"))
-                for (let i = 0; i < message.$unknowns.length; ++i)
+                for (var i = 0; i < message.$unknowns.length; ++i)
                     writer.raw(message.$unknowns[i]);
             return writer;
         };
@@ -237,15 +239,15 @@ export const warbase = $root.warbase = (() => {
                 _depth = 0;
             if (_depth > $Reader.recursionLimit)
                 throw $Error("max depth exceeded");
-            let end = length === $undefined ? reader.len : reader.pos + length, message = _target || new $root.warbase.ClientEvent();
+            var end = length === $undefined ? reader.len : reader.pos + length, message = _target || new $root.warbase.ClientEvent();
             while (reader.pos < end) {
-                let start = reader.pos;
-                let tag = reader.tag();
+                var start = reader.pos;
+                var tag = reader.tag();
                 if (tag === _end) {
                     _end = $undefined;
                     break;
                 }
-                let wireType = tag & 7;
+                var wireType = tag & 7;
                 switch (tag >>>= 3) {
                 case 1: {
                         if (wireType !== 2)
@@ -346,11 +348,11 @@ export const warbase = $root.warbase = (() => {
                 _depth = 0;
             if (_depth > $util.recursionLimit)
                 return "max depth exceeded";
-            let properties = {};
+            var properties = {};
             if (message.stateUpdate != null && $Object.hasOwnProperty.call(message, "stateUpdate")) {
                 properties.event = 1;
                 {
-                    let error = $root.warbase.PlayerStateUpdate.verify(message.stateUpdate, _depth + 1);
+                    var error = $root.warbase.PlayerStateUpdate.verify(message.stateUpdate, _depth + 1);
                     if (error)
                         return "stateUpdate." + error;
                 }
@@ -360,7 +362,7 @@ export const warbase = $root.warbase = (() => {
                     return "event: multiple values";
                 properties.event = 1;
                 {
-                    let error = $root.warbase.HitEvent.verify(message.hit, _depth + 1);
+                    var error = $root.warbase.HitEvent.verify(message.hit, _depth + 1);
                     if (error)
                         return "hit." + error;
                 }
@@ -370,7 +372,7 @@ export const warbase = $root.warbase = (() => {
                     return "event: multiple values";
                 properties.event = 1;
                 {
-                    let error = $root.warbase.FireEvent.verify(message.fire, _depth + 1);
+                    var error = $root.warbase.FireEvent.verify(message.fire, _depth + 1);
                     if (error)
                         return "fire." + error;
                 }
@@ -380,7 +382,7 @@ export const warbase = $root.warbase = (() => {
                     return "event: multiple values";
                 properties.event = 1;
                 {
-                    let error = $root.warbase.ReloadEvent.verify(message.reload, _depth + 1);
+                    var error = $root.warbase.ReloadEvent.verify(message.reload, _depth + 1);
                     if (error)
                         return "reload." + error;
                 }
@@ -390,7 +392,7 @@ export const warbase = $root.warbase = (() => {
                     return "event: multiple values";
                 properties.event = 1;
                 {
-                    let error = $root.warbase.SwitchWeaponEvent.verify(message.switchWeapon, _depth + 1);
+                    var error = $root.warbase.SwitchWeaponEvent.verify(message.switchWeapon, _depth + 1);
                     if (error)
                         return "switchWeapon." + error;
                 }
@@ -400,7 +402,7 @@ export const warbase = $root.warbase = (() => {
                     return "event: multiple values";
                 properties.event = 1;
                 {
-                    let error = $root.warbase.RespawnRequestEvent.verify(message.respawnRequest, _depth + 1);
+                    var error = $root.warbase.RespawnRequestEvent.verify(message.respawnRequest, _depth + 1);
                     if (error)
                         return "respawnRequest." + error;
                 }
@@ -410,7 +412,7 @@ export const warbase = $root.warbase = (() => {
                     return "event: multiple values";
                 properties.event = 1;
                 {
-                    let error = $root.warbase.ThrowGrenadeEvent.verify(message.throwGrenade, _depth + 1);
+                    var error = $root.warbase.ThrowGrenadeEvent.verify(message.throwGrenade, _depth + 1);
                     if (error)
                         return "throwGrenade." + error;
                 }
@@ -420,7 +422,7 @@ export const warbase = $root.warbase = (() => {
                     return "event: multiple values";
                 properties.event = 1;
                 {
-                    let error = $root.warbase.PingEvent.verify(message.ping, _depth + 1);
+                    var error = $root.warbase.PingEvent.verify(message.ping, _depth + 1);
                     if (error)
                         return "ping." + error;
                 }
@@ -445,7 +447,7 @@ export const warbase = $root.warbase = (() => {
                 _depth = 0;
             if (_depth > $util.recursionLimit)
                 throw $Error("max depth exceeded");
-            let message = new $root.warbase.ClientEvent();
+            var message = new $root.warbase.ClientEvent();
             if (object.stateUpdate != null) {
                 if (!$util.isObject(object.stateUpdate))
                     throw $TypeError(".warbase.ClientEvent.stateUpdate: object expected");
@@ -505,7 +507,7 @@ export const warbase = $root.warbase = (() => {
                 _depth = 0;
             if (_depth > $util.recursionLimit)
                 throw $Error("max depth exceeded");
-            let object = {};
+            var object = {};
             if (message.stateUpdate != null && $Object.hasOwnProperty.call(message, "stateUpdate")) {
                 object.stateUpdate = $root.warbase.PlayerStateUpdate.toObject(message.stateUpdate, options, _depth + 1);
                 if (options.oneofs)
@@ -617,9 +619,9 @@ export const warbase = $root.warbase = (() => {
          * @param {warbase.PlayerStateUpdate.$Properties=} [properties] Properties to set
          * @property {Array.<Uint8Array>} [$unknowns] Unknown fields preserved while decoding when enabled
          */
-        const PlayerStateUpdate = function (properties) {
+        var PlayerStateUpdate = function (properties) {
             if (properties)
-                for (let keys = $Object.keys(properties), i = 0; i < keys.length; ++i)
+                for (var keys = $Object.keys(properties), i = 0; i < keys.length; ++i)
                     if (properties[keys[i]] != null && keys[i] !== "__proto__")
                         this[keys[i]] = properties[keys[i]];
         };
@@ -767,7 +769,7 @@ export const warbase = $root.warbase = (() => {
             if (message.weaponId != null && $Object.hasOwnProperty.call(message, "weaponId") && message.weaponId !== "")
                 writer.uint32(/* id 11, wireType 2 =*/90).string(message.weaponId);
             if (message.$unknowns != null && $Object.hasOwnProperty.call(message, "$unknowns"))
-                for (let i = 0; i < message.$unknowns.length; ++i)
+                for (var i = 0; i < message.$unknowns.length; ++i)
                     writer.raw(message.$unknowns[i]);
             return writer;
         };
@@ -803,15 +805,15 @@ export const warbase = $root.warbase = (() => {
                 _depth = 0;
             if (_depth > $Reader.recursionLimit)
                 throw $Error("max depth exceeded");
-            let end = length === $undefined ? reader.len : reader.pos + length, message = _target || new $root.warbase.PlayerStateUpdate(), value;
+            var end = length === $undefined ? reader.len : reader.pos + length, message = _target || new $root.warbase.PlayerStateUpdate(), value;
             while (reader.pos < end) {
-                let start = reader.pos;
-                let tag = reader.tag();
+                var start = reader.pos;
+                var tag = reader.tag();
                 if (tag === _end) {
                     _end = $undefined;
                     break;
                 }
-                let wireType = tag & 7;
+                var wireType = tag & 7;
                 switch (tag >>>= 3) {
                 case 1: {
                         if (wireType !== 5)
@@ -1008,7 +1010,7 @@ export const warbase = $root.warbase = (() => {
                 _depth = 0;
             if (_depth > $util.recursionLimit)
                 throw $Error("max depth exceeded");
-            let message = new $root.warbase.PlayerStateUpdate();
+            var message = new $root.warbase.PlayerStateUpdate();
             if (object.x != null)
                 if (!$Object.is($Number(object.x), 0))
                     message.x = $Number(object.x);
@@ -1061,7 +1063,7 @@ export const warbase = $root.warbase = (() => {
                 _depth = 0;
             if (_depth > $util.recursionLimit)
                 throw $Error("max depth exceeded");
-            let object = {};
+            var object = {};
             if (options.defaults) {
                 object.x = 0;
                 object.y = 0;
@@ -1159,9 +1161,9 @@ export const warbase = $root.warbase = (() => {
          * @param {warbase.HitEvent.$Properties=} [properties] Properties to set
          * @property {Array.<Uint8Array>} [$unknowns] Unknown fields preserved while decoding when enabled
          */
-        const HitEvent = function (properties) {
+        var HitEvent = function (properties) {
             if (properties)
-                for (let keys = $Object.keys(properties), i = 0; i < keys.length; ++i)
+                for (var keys = $Object.keys(properties), i = 0; i < keys.length; ++i)
                     if (properties[keys[i]] != null && keys[i] !== "__proto__")
                         this[keys[i]] = properties[keys[i]];
         };
@@ -1219,7 +1221,7 @@ export const warbase = $root.warbase = (() => {
             if (message.damage != null && $Object.hasOwnProperty.call(message, "damage") && message.damage !== 0)
                 writer.uint32(/* id 2, wireType 0 =*/16).int32(message.damage);
             if (message.$unknowns != null && $Object.hasOwnProperty.call(message, "$unknowns"))
-                for (let i = 0; i < message.$unknowns.length; ++i)
+                for (var i = 0; i < message.$unknowns.length; ++i)
                     writer.raw(message.$unknowns[i]);
             return writer;
         };
@@ -1255,15 +1257,15 @@ export const warbase = $root.warbase = (() => {
                 _depth = 0;
             if (_depth > $Reader.recursionLimit)
                 throw $Error("max depth exceeded");
-            let end = length === $undefined ? reader.len : reader.pos + length, message = _target || new $root.warbase.HitEvent(), value;
+            var end = length === $undefined ? reader.len : reader.pos + length, message = _target || new $root.warbase.HitEvent(), value;
             while (reader.pos < end) {
-                let start = reader.pos;
-                let tag = reader.tag();
+                var start = reader.pos;
+                var tag = reader.tag();
                 if (tag === _end) {
                     _end = $undefined;
                     break;
                 }
-                let wireType = tag & 7;
+                var wireType = tag & 7;
                 switch (tag >>>= 3) {
                 case 1: {
                         if (wireType !== 2)
@@ -1352,7 +1354,7 @@ export const warbase = $root.warbase = (() => {
                 _depth = 0;
             if (_depth > $util.recursionLimit)
                 throw $Error("max depth exceeded");
-            let message = new $root.warbase.HitEvent();
+            var message = new $root.warbase.HitEvent();
             if (object.targetId != null)
                 if (typeof object.targetId !== "string" || object.targetId.length)
                     message.targetId = $String(object.targetId);
@@ -1378,7 +1380,7 @@ export const warbase = $root.warbase = (() => {
                 _depth = 0;
             if (_depth > $util.recursionLimit)
                 throw $Error("max depth exceeded");
-            let object = {};
+            var object = {};
             if (options.defaults) {
                 object.targetId = "";
                 object.damage = 0;
@@ -1457,9 +1459,9 @@ export const warbase = $root.warbase = (() => {
          * @param {warbase.FireEvent.$Properties=} [properties] Properties to set
          * @property {Array.<Uint8Array>} [$unknowns] Unknown fields preserved while decoding when enabled
          */
-        const FireEvent = function (properties) {
+        var FireEvent = function (properties) {
             if (properties)
-                for (let keys = $Object.keys(properties), i = 0; i < keys.length; ++i)
+                for (var keys = $Object.keys(properties), i = 0; i < keys.length; ++i)
                     if (properties[keys[i]] != null && keys[i] !== "__proto__")
                         this[keys[i]] = properties[keys[i]];
         };
@@ -1597,7 +1599,7 @@ export const warbase = $root.warbase = (() => {
             if (message.hitWall != null && $Object.hasOwnProperty.call(message, "hitWall") && message.hitWall !== false)
                 writer.uint32(/* id 10, wireType 0 =*/80).bool(message.hitWall);
             if (message.$unknowns != null && $Object.hasOwnProperty.call(message, "$unknowns"))
-                for (let i = 0; i < message.$unknowns.length; ++i)
+                for (var i = 0; i < message.$unknowns.length; ++i)
                     writer.raw(message.$unknowns[i]);
             return writer;
         };
@@ -1633,15 +1635,15 @@ export const warbase = $root.warbase = (() => {
                 _depth = 0;
             if (_depth > $Reader.recursionLimit)
                 throw $Error("max depth exceeded");
-            let end = length === $undefined ? reader.len : reader.pos + length, message = _target || new $root.warbase.FireEvent(), value;
+            var end = length === $undefined ? reader.len : reader.pos + length, message = _target || new $root.warbase.FireEvent(), value;
             while (reader.pos < end) {
-                let start = reader.pos;
-                let tag = reader.tag();
+                var start = reader.pos;
+                var tag = reader.tag();
                 if (tag === _end) {
                     _end = $undefined;
                     break;
                 }
-                let wireType = tag & 7;
+                var wireType = tag & 7;
                 switch (tag >>>= 3) {
                 case 1: {
                         if (wireType !== 5)
@@ -1826,7 +1828,7 @@ export const warbase = $root.warbase = (() => {
                 _depth = 0;
             if (_depth > $util.recursionLimit)
                 throw $Error("max depth exceeded");
-            let message = new $root.warbase.FireEvent();
+            var message = new $root.warbase.FireEvent();
             if (object.originX != null)
                 if (!$Object.is($Number(object.originX), 0))
                     message.originX = $Number(object.originX);
@@ -1876,7 +1878,7 @@ export const warbase = $root.warbase = (() => {
                 _depth = 0;
             if (_depth > $util.recursionLimit)
                 throw $Error("max depth exceeded");
-            let object = {};
+            var object = {};
             if (options.defaults) {
                 object.originX = 0;
                 object.originY = 0;
@@ -1969,9 +1971,9 @@ export const warbase = $root.warbase = (() => {
          * @param {warbase.ReloadEvent.$Properties=} [properties] Properties to set
          * @property {Array.<Uint8Array>} [$unknowns] Unknown fields preserved while decoding when enabled
          */
-        const ReloadEvent = function (properties) {
+        var ReloadEvent = function (properties) {
             if (properties)
-                for (let keys = $Object.keys(properties), i = 0; i < keys.length; ++i)
+                for (var keys = $Object.keys(properties), i = 0; i < keys.length; ++i)
                     if (properties[keys[i]] != null && keys[i] !== "__proto__")
                         this[keys[i]] = properties[keys[i]];
         };
@@ -2009,7 +2011,7 @@ export const warbase = $root.warbase = (() => {
             if (_depth > $util.recursionLimit)
                 throw $Error("max depth exceeded");
             if (message.$unknowns != null && $Object.hasOwnProperty.call(message, "$unknowns"))
-                for (let i = 0; i < message.$unknowns.length; ++i)
+                for (var i = 0; i < message.$unknowns.length; ++i)
                     writer.raw(message.$unknowns[i]);
             return writer;
         };
@@ -2045,10 +2047,10 @@ export const warbase = $root.warbase = (() => {
                 _depth = 0;
             if (_depth > $Reader.recursionLimit)
                 throw $Error("max depth exceeded");
-            let end = length === $undefined ? reader.len : reader.pos + length, message = _target || new $root.warbase.ReloadEvent();
+            var end = length === $undefined ? reader.len : reader.pos + length, message = _target || new $root.warbase.ReloadEvent();
             while (reader.pos < end) {
-                let start = reader.pos;
-                let tag = reader.tag();
+                var start = reader.pos;
+                var tag = reader.tag();
                 if (tag === _end) {
                     _end = $undefined;
                     break;
@@ -2189,9 +2191,9 @@ export const warbase = $root.warbase = (() => {
          * @param {warbase.SwitchWeaponEvent.$Properties=} [properties] Properties to set
          * @property {Array.<Uint8Array>} [$unknowns] Unknown fields preserved while decoding when enabled
          */
-        const SwitchWeaponEvent = function (properties) {
+        var SwitchWeaponEvent = function (properties) {
             if (properties)
-                for (let keys = $Object.keys(properties), i = 0; i < keys.length; ++i)
+                for (var keys = $Object.keys(properties), i = 0; i < keys.length; ++i)
                     if (properties[keys[i]] != null && keys[i] !== "__proto__")
                         this[keys[i]] = properties[keys[i]];
         };
@@ -2239,7 +2241,7 @@ export const warbase = $root.warbase = (() => {
             if (message.weaponId != null && $Object.hasOwnProperty.call(message, "weaponId") && message.weaponId !== "")
                 writer.uint32(/* id 1, wireType 2 =*/10).string(message.weaponId);
             if (message.$unknowns != null && $Object.hasOwnProperty.call(message, "$unknowns"))
-                for (let i = 0; i < message.$unknowns.length; ++i)
+                for (var i = 0; i < message.$unknowns.length; ++i)
                     writer.raw(message.$unknowns[i]);
             return writer;
         };
@@ -2275,15 +2277,15 @@ export const warbase = $root.warbase = (() => {
                 _depth = 0;
             if (_depth > $Reader.recursionLimit)
                 throw $Error("max depth exceeded");
-            let end = length === $undefined ? reader.len : reader.pos + length, message = _target || new $root.warbase.SwitchWeaponEvent(), value;
+            var end = length === $undefined ? reader.len : reader.pos + length, message = _target || new $root.warbase.SwitchWeaponEvent(), value;
             while (reader.pos < end) {
-                let start = reader.pos;
-                let tag = reader.tag();
+                var start = reader.pos;
+                var tag = reader.tag();
                 if (tag === _end) {
                     _end = $undefined;
                     break;
                 }
-                let wireType = tag & 7;
+                var wireType = tag & 7;
                 switch (tag >>>= 3) {
                 case 1: {
                         if (wireType !== 2)
@@ -2360,7 +2362,7 @@ export const warbase = $root.warbase = (() => {
                 _depth = 0;
             if (_depth > $util.recursionLimit)
                 throw $Error("max depth exceeded");
-            let message = new $root.warbase.SwitchWeaponEvent();
+            var message = new $root.warbase.SwitchWeaponEvent();
             if (object.weaponId != null)
                 if (typeof object.weaponId !== "string" || object.weaponId.length)
                     message.weaponId = $String(object.weaponId);
@@ -2383,7 +2385,7 @@ export const warbase = $root.warbase = (() => {
                 _depth = 0;
             if (_depth > $util.recursionLimit)
                 throw $Error("max depth exceeded");
-            let object = {};
+            var object = {};
             if (options.defaults)
                 object.weaponId = "";
             if (message.weaponId != null && $Object.hasOwnProperty.call(message, "weaponId"))
@@ -2448,9 +2450,9 @@ export const warbase = $root.warbase = (() => {
          * @param {warbase.RespawnRequestEvent.$Properties=} [properties] Properties to set
          * @property {Array.<Uint8Array>} [$unknowns] Unknown fields preserved while decoding when enabled
          */
-        const RespawnRequestEvent = function (properties) {
+        var RespawnRequestEvent = function (properties) {
             if (properties)
-                for (let keys = $Object.keys(properties), i = 0; i < keys.length; ++i)
+                for (var keys = $Object.keys(properties), i = 0; i < keys.length; ++i)
                     if (properties[keys[i]] != null && keys[i] !== "__proto__")
                         this[keys[i]] = properties[keys[i]];
         };
@@ -2488,7 +2490,7 @@ export const warbase = $root.warbase = (() => {
             if (_depth > $util.recursionLimit)
                 throw $Error("max depth exceeded");
             if (message.$unknowns != null && $Object.hasOwnProperty.call(message, "$unknowns"))
-                for (let i = 0; i < message.$unknowns.length; ++i)
+                for (var i = 0; i < message.$unknowns.length; ++i)
                     writer.raw(message.$unknowns[i]);
             return writer;
         };
@@ -2524,10 +2526,10 @@ export const warbase = $root.warbase = (() => {
                 _depth = 0;
             if (_depth > $Reader.recursionLimit)
                 throw $Error("max depth exceeded");
-            let end = length === $undefined ? reader.len : reader.pos + length, message = _target || new $root.warbase.RespawnRequestEvent();
+            var end = length === $undefined ? reader.len : reader.pos + length, message = _target || new $root.warbase.RespawnRequestEvent();
             while (reader.pos < end) {
-                let start = reader.pos;
-                let tag = reader.tag();
+                var start = reader.pos;
+                var tag = reader.tag();
                 if (tag === _end) {
                     _end = $undefined;
                     break;
@@ -2673,9 +2675,9 @@ export const warbase = $root.warbase = (() => {
          * @param {warbase.ThrowGrenadeEvent.$Properties=} [properties] Properties to set
          * @property {Array.<Uint8Array>} [$unknowns] Unknown fields preserved while decoding when enabled
          */
-        const ThrowGrenadeEvent = function (properties) {
+        var ThrowGrenadeEvent = function (properties) {
             if (properties)
-                for (let keys = $Object.keys(properties), i = 0; i < keys.length; ++i)
+                for (var keys = $Object.keys(properties), i = 0; i < keys.length; ++i)
                     if (properties[keys[i]] != null && keys[i] !== "__proto__")
                         this[keys[i]] = properties[keys[i]];
         };
@@ -2773,7 +2775,7 @@ export const warbase = $root.warbase = (() => {
             if (message.vz != null && $Object.hasOwnProperty.call(message, "vz") && !$Object.is(message.vz, 0))
                 writer.uint32(/* id 6, wireType 5 =*/53).float(message.vz);
             if (message.$unknowns != null && $Object.hasOwnProperty.call(message, "$unknowns"))
-                for (let i = 0; i < message.$unknowns.length; ++i)
+                for (var i = 0; i < message.$unknowns.length; ++i)
                     writer.raw(message.$unknowns[i]);
             return writer;
         };
@@ -2809,15 +2811,15 @@ export const warbase = $root.warbase = (() => {
                 _depth = 0;
             if (_depth > $Reader.recursionLimit)
                 throw $Error("max depth exceeded");
-            let end = length === $undefined ? reader.len : reader.pos + length, message = _target || new $root.warbase.ThrowGrenadeEvent(), value;
+            var end = length === $undefined ? reader.len : reader.pos + length, message = _target || new $root.warbase.ThrowGrenadeEvent(), value;
             while (reader.pos < end) {
-                let start = reader.pos;
-                let tag = reader.tag();
+                var start = reader.pos;
+                var tag = reader.tag();
                 if (tag === _end) {
                     _end = $undefined;
                     break;
                 }
-                let wireType = tag & 7;
+                var wireType = tag & 7;
                 switch (tag >>>= 3) {
                 case 1: {
                         if (wireType !== 5)
@@ -2954,7 +2956,7 @@ export const warbase = $root.warbase = (() => {
                 _depth = 0;
             if (_depth > $util.recursionLimit)
                 throw $Error("max depth exceeded");
-            let message = new $root.warbase.ThrowGrenadeEvent();
+            var message = new $root.warbase.ThrowGrenadeEvent();
             if (object.px != null)
                 if (!$Object.is($Number(object.px), 0))
                     message.px = $Number(object.px);
@@ -2992,7 +2994,7 @@ export const warbase = $root.warbase = (() => {
                 _depth = 0;
             if (_depth > $util.recursionLimit)
                 throw $Error("max depth exceeded");
-            let object = {};
+            var object = {};
             if (options.defaults) {
                 object.px = 0;
                 object.py = 0;
@@ -3074,9 +3076,9 @@ export const warbase = $root.warbase = (() => {
          * @param {warbase.ServerPongEvent.$Properties=} [properties] Properties to set
          * @property {Array.<Uint8Array>} [$unknowns] Unknown fields preserved while decoding when enabled
          */
-        const ServerPongEvent = function (properties) {
+        var ServerPongEvent = function (properties) {
             if (properties)
-                for (let keys = $Object.keys(properties), i = 0; i < keys.length; ++i)
+                for (var keys = $Object.keys(properties), i = 0; i < keys.length; ++i)
                     if (properties[keys[i]] != null && keys[i] !== "__proto__")
                         this[keys[i]] = properties[keys[i]];
         };
@@ -3124,7 +3126,7 @@ export const warbase = $root.warbase = (() => {
             if (message.clientTime != null && $Object.hasOwnProperty.call(message, "clientTime") && (typeof message.clientTime === "object" ? message.clientTime.low || message.clientTime.high : message.clientTime !== 0))
                 writer.uint32(/* id 1, wireType 0 =*/8).int64(message.clientTime);
             if (message.$unknowns != null && $Object.hasOwnProperty.call(message, "$unknowns"))
-                for (let i = 0; i < message.$unknowns.length; ++i)
+                for (var i = 0; i < message.$unknowns.length; ++i)
                     writer.raw(message.$unknowns[i]);
             return writer;
         };
@@ -3160,15 +3162,15 @@ export const warbase = $root.warbase = (() => {
                 _depth = 0;
             if (_depth > $Reader.recursionLimit)
                 throw $Error("max depth exceeded");
-            let end = length === $undefined ? reader.len : reader.pos + length, message = _target || new $root.warbase.ServerPongEvent(), value;
+            var end = length === $undefined ? reader.len : reader.pos + length, message = _target || new $root.warbase.ServerPongEvent(), value;
             while (reader.pos < end) {
-                let start = reader.pos;
-                let tag = reader.tag();
+                var start = reader.pos;
+                var tag = reader.tag();
                 if (tag === _end) {
                     _end = $undefined;
                     break;
                 }
-                let wireType = tag & 7;
+                var wireType = tag & 7;
                 switch (tag >>>= 3) {
                 case 1: {
                         if (wireType !== 0)
@@ -3245,7 +3247,7 @@ export const warbase = $root.warbase = (() => {
                 _depth = 0;
             if (_depth > $util.recursionLimit)
                 throw $Error("max depth exceeded");
-            let message = new $root.warbase.ServerPongEvent();
+            var message = new $root.warbase.ServerPongEvent();
             if (object.clientTime != null)
                 if (typeof object.clientTime === "object" ? object.clientTime.low || object.clientTime.high : $Number(object.clientTime) !== 0)
                     if ($util.Long)
@@ -3275,10 +3277,10 @@ export const warbase = $root.warbase = (() => {
                 _depth = 0;
             if (_depth > $util.recursionLimit)
                 throw $Error("max depth exceeded");
-            let object = {};
+            var object = {};
             if (options.defaults)
                 if ($util.Long) {
-                    let long = new $util.Long(0, 0, false);
+                    var long = new $util.Long(0, 0, false);
                     object.clientTime = options.longs === $String ? long.toString() : options.longs === $Number ? long.toNumber() : typeof $BigInt !== "undefined" && options.longs === $BigInt ? long.toBigInt() : long;
                 } else
                     object.clientTime = options.longs === $String ? "0" : typeof $BigInt !== "undefined" && options.longs === $BigInt ? $BigInt("0") : 0;
@@ -3350,9 +3352,9 @@ export const warbase = $root.warbase = (() => {
          * @param {warbase.PingEvent.$Properties=} [properties] Properties to set
          * @property {Array.<Uint8Array>} [$unknowns] Unknown fields preserved while decoding when enabled
          */
-        const PingEvent = function (properties) {
+        var PingEvent = function (properties) {
             if (properties)
-                for (let keys = $Object.keys(properties), i = 0; i < keys.length; ++i)
+                for (var keys = $Object.keys(properties), i = 0; i < keys.length; ++i)
                     if (properties[keys[i]] != null && keys[i] !== "__proto__")
                         this[keys[i]] = properties[keys[i]];
         };
@@ -3400,7 +3402,7 @@ export const warbase = $root.warbase = (() => {
             if (message.clientTime != null && $Object.hasOwnProperty.call(message, "clientTime") && (typeof message.clientTime === "object" ? message.clientTime.low || message.clientTime.high : message.clientTime !== 0))
                 writer.uint32(/* id 1, wireType 0 =*/8).int64(message.clientTime);
             if (message.$unknowns != null && $Object.hasOwnProperty.call(message, "$unknowns"))
-                for (let i = 0; i < message.$unknowns.length; ++i)
+                for (var i = 0; i < message.$unknowns.length; ++i)
                     writer.raw(message.$unknowns[i]);
             return writer;
         };
@@ -3436,15 +3438,15 @@ export const warbase = $root.warbase = (() => {
                 _depth = 0;
             if (_depth > $Reader.recursionLimit)
                 throw $Error("max depth exceeded");
-            let end = length === $undefined ? reader.len : reader.pos + length, message = _target || new $root.warbase.PingEvent(), value;
+            var end = length === $undefined ? reader.len : reader.pos + length, message = _target || new $root.warbase.PingEvent(), value;
             while (reader.pos < end) {
-                let start = reader.pos;
-                let tag = reader.tag();
+                var start = reader.pos;
+                var tag = reader.tag();
                 if (tag === _end) {
                     _end = $undefined;
                     break;
                 }
-                let wireType = tag & 7;
+                var wireType = tag & 7;
                 switch (tag >>>= 3) {
                 case 1: {
                         if (wireType !== 0)
@@ -3521,7 +3523,7 @@ export const warbase = $root.warbase = (() => {
                 _depth = 0;
             if (_depth > $util.recursionLimit)
                 throw $Error("max depth exceeded");
-            let message = new $root.warbase.PingEvent();
+            var message = new $root.warbase.PingEvent();
             if (object.clientTime != null)
                 if (typeof object.clientTime === "object" ? object.clientTime.low || object.clientTime.high : $Number(object.clientTime) !== 0)
                     if ($util.Long)
@@ -3551,10 +3553,10 @@ export const warbase = $root.warbase = (() => {
                 _depth = 0;
             if (_depth > $util.recursionLimit)
                 throw $Error("max depth exceeded");
-            let object = {};
+            var object = {};
             if (options.defaults)
                 if ($util.Long) {
-                    let long = new $util.Long(0, 0, false);
+                    var long = new $util.Long(0, 0, false);
                     object.clientTime = options.longs === $String ? long.toString() : options.longs === $Number ? long.toNumber() : typeof $BigInt !== "undefined" && options.longs === $BigInt ? long.toBigInt() : long;
                 } else
                     object.clientTime = options.longs === $String ? "0" : typeof $BigInt !== "undefined" && options.longs === $BigInt ? $BigInt("0") : 0;
@@ -3634,9 +3636,9 @@ export const warbase = $root.warbase = (() => {
          * @param {warbase.ServerMessage.$Properties=} [properties] Properties to set
          * @property {Array.<Uint8Array>} [$unknowns] Unknown fields preserved while decoding when enabled
          */
-        const ServerMessage = function (properties) {
+        var ServerMessage = function (properties) {
             if (properties)
-                for (let keys = $Object.keys(properties), i = 0; i < keys.length; ++i)
+                for (var keys = $Object.keys(properties), i = 0; i < keys.length; ++i)
                     if (properties[keys[i]] != null && keys[i] !== "__proto__")
                         this[keys[i]] = properties[keys[i]];
         };
@@ -3658,7 +3660,7 @@ export const warbase = $root.warbase = (() => {
         ServerMessage.prototype.serverEvent = null;
 
         // OneOf field names bound to virtual getters and setters
-        let $oneOfFields;
+        var $oneOfFields;
 
         /**
          * ServerMessage message.
@@ -3708,7 +3710,7 @@ export const warbase = $root.warbase = (() => {
             if (message.serverEvent != null && $Object.hasOwnProperty.call(message, "serverEvent"))
                 $root.warbase.ServerEvent.encode(message.serverEvent, writer.uint32(/* id 2, wireType 2 =*/18).fork(), _depth + 1).ldelim();
             if (message.$unknowns != null && $Object.hasOwnProperty.call(message, "$unknowns"))
-                for (let i = 0; i < message.$unknowns.length; ++i)
+                for (var i = 0; i < message.$unknowns.length; ++i)
                     writer.raw(message.$unknowns[i]);
             return writer;
         };
@@ -3744,15 +3746,15 @@ export const warbase = $root.warbase = (() => {
                 _depth = 0;
             if (_depth > $Reader.recursionLimit)
                 throw $Error("max depth exceeded");
-            let end = length === $undefined ? reader.len : reader.pos + length, message = _target || new $root.warbase.ServerMessage();
+            var end = length === $undefined ? reader.len : reader.pos + length, message = _target || new $root.warbase.ServerMessage();
             while (reader.pos < end) {
-                let start = reader.pos;
-                let tag = reader.tag();
+                var start = reader.pos;
+                var tag = reader.tag();
                 if (tag === _end) {
                     _end = $undefined;
                     break;
                 }
-                let wireType = tag & 7;
+                var wireType = tag & 7;
                 switch (tag >>>= 3) {
                 case 1: {
                         if (wireType !== 2)
@@ -3811,11 +3813,11 @@ export const warbase = $root.warbase = (() => {
                 _depth = 0;
             if (_depth > $util.recursionLimit)
                 return "max depth exceeded";
-            let properties = {};
+            var properties = {};
             if (message.gameState != null && $Object.hasOwnProperty.call(message, "gameState")) {
                 properties.message = 1;
                 {
-                    let error = $root.warbase.GameState.verify(message.gameState, _depth + 1);
+                    var error = $root.warbase.GameState.verify(message.gameState, _depth + 1);
                     if (error)
                         return "gameState." + error;
                 }
@@ -3825,7 +3827,7 @@ export const warbase = $root.warbase = (() => {
                     return "message: multiple values";
                 properties.message = 1;
                 {
-                    let error = $root.warbase.ServerEvent.verify(message.serverEvent, _depth + 1);
+                    var error = $root.warbase.ServerEvent.verify(message.serverEvent, _depth + 1);
                     if (error)
                         return "serverEvent." + error;
                 }
@@ -3850,7 +3852,7 @@ export const warbase = $root.warbase = (() => {
                 _depth = 0;
             if (_depth > $util.recursionLimit)
                 throw $Error("max depth exceeded");
-            let message = new $root.warbase.ServerMessage();
+            var message = new $root.warbase.ServerMessage();
             if (object.gameState != null) {
                 if (!$util.isObject(object.gameState))
                     throw $TypeError(".warbase.ServerMessage.gameState: object expected");
@@ -3880,7 +3882,7 @@ export const warbase = $root.warbase = (() => {
                 _depth = 0;
             if (_depth > $util.recursionLimit)
                 throw $Error("max depth exceeded");
-            let object = {};
+            var object = {};
             if (message.gameState != null && $Object.hasOwnProperty.call(message, "gameState")) {
                 object.gameState = $root.warbase.GameState.toObject(message.gameState, options, _depth + 1);
                 if (options.oneofs)
@@ -3928,6 +3930,11 @@ export const warbase = $root.warbase = (() => {
          * Properties of a GameState.
          * @typedef {Object} warbase.GameState.$Properties
          * @property {Object.<string,warbase.PlayerState.$Properties>|null} [players] GameState players
+         * @property {string|null} [roomMode] GameState roomMode
+         * @property {string|null} [roomState] GameState roomState
+         * @property {number|null} [scoreTeamA] GameState scoreTeamA
+         * @property {number|null} [scoreTeamB] GameState scoreTeamB
+         * @property {string|null} [winnerId] GameState winnerId
          * @property {Array.<Uint8Array>} [$unknowns] Unknown fields preserved while decoding when enabled
          */
 
@@ -3952,10 +3959,10 @@ export const warbase = $root.warbase = (() => {
          * @param {warbase.GameState.$Properties=} [properties] Properties to set
          * @property {Array.<Uint8Array>} [$unknowns] Unknown fields preserved while decoding when enabled
          */
-        const GameState = function (properties) {
+        var GameState = function (properties) {
             this.players = {};
             if (properties)
-                for (let keys = $Object.keys(properties), i = 0; i < keys.length; ++i)
+                for (var keys = $Object.keys(properties), i = 0; i < keys.length; ++i)
                     if (properties[keys[i]] != null && keys[i] !== "__proto__")
                         this[keys[i]] = properties[keys[i]];
         };
@@ -3967,6 +3974,46 @@ export const warbase = $root.warbase = (() => {
          * @instance
          */
         GameState.prototype.players = $util.emptyObject;
+
+        /**
+         * GameState roomMode.
+         * @member {string} roomMode
+         * @memberof warbase.GameState
+         * @instance
+         */
+        GameState.prototype.roomMode = "";
+
+        /**
+         * GameState roomState.
+         * @member {string} roomState
+         * @memberof warbase.GameState
+         * @instance
+         */
+        GameState.prototype.roomState = "";
+
+        /**
+         * GameState scoreTeamA.
+         * @member {number} scoreTeamA
+         * @memberof warbase.GameState
+         * @instance
+         */
+        GameState.prototype.scoreTeamA = 0;
+
+        /**
+         * GameState scoreTeamB.
+         * @member {number} scoreTeamB
+         * @memberof warbase.GameState
+         * @instance
+         */
+        GameState.prototype.scoreTeamB = 0;
+
+        /**
+         * GameState winnerId.
+         * @member {string} winnerId
+         * @memberof warbase.GameState
+         * @instance
+         */
+        GameState.prototype.winnerId = "";
 
         /**
          * Creates a new GameState instance using the specified properties.
@@ -4001,12 +4048,22 @@ export const warbase = $root.warbase = (() => {
             if (_depth > $util.recursionLimit)
                 throw $Error("max depth exceeded");
             if (message.players != null && $Object.hasOwnProperty.call(message, "players"))
-                for (let keys = $Object.keys(message.players), i = 0; i < keys.length; ++i) {
+                for (var keys = $Object.keys(message.players), i = 0; i < keys.length; ++i) {
                     writer.uint32(/* id 1, wireType 2 =*/10).fork().uint32(/* id 1, wireType 2 =*/10).string(keys[i]);
                     $root.warbase.PlayerState.encode(message.players[keys[i]], writer.uint32(/* id 2, wireType 2 =*/18).fork(), _depth + 1).ldelim().ldelim();
                 }
+            if (message.roomMode != null && $Object.hasOwnProperty.call(message, "roomMode") && message.roomMode !== "")
+                writer.uint32(/* id 2, wireType 2 =*/18).string(message.roomMode);
+            if (message.roomState != null && $Object.hasOwnProperty.call(message, "roomState") && message.roomState !== "")
+                writer.uint32(/* id 3, wireType 2 =*/26).string(message.roomState);
+            if (message.scoreTeamA != null && $Object.hasOwnProperty.call(message, "scoreTeamA") && message.scoreTeamA !== 0)
+                writer.uint32(/* id 4, wireType 0 =*/32).int32(message.scoreTeamA);
+            if (message.scoreTeamB != null && $Object.hasOwnProperty.call(message, "scoreTeamB") && message.scoreTeamB !== 0)
+                writer.uint32(/* id 5, wireType 0 =*/40).int32(message.scoreTeamB);
+            if (message.winnerId != null && $Object.hasOwnProperty.call(message, "winnerId") && message.winnerId !== "")
+                writer.uint32(/* id 6, wireType 2 =*/50).string(message.winnerId);
             if (message.$unknowns != null && $Object.hasOwnProperty.call(message, "$unknowns"))
-                for (let i = 0; i < message.$unknowns.length; ++i)
+                for (var i = 0; i < message.$unknowns.length; ++i)
                     writer.raw(message.$unknowns[i]);
             return writer;
         };
@@ -4042,26 +4099,26 @@ export const warbase = $root.warbase = (() => {
                 _depth = 0;
             if (_depth > $Reader.recursionLimit)
                 throw $Error("max depth exceeded");
-            let end = length === $undefined ? reader.len : reader.pos + length, message = _target || new $root.warbase.GameState(), key, value;
+            var end = length === $undefined ? reader.len : reader.pos + length, message = _target || new $root.warbase.GameState(), key, value;
             while (reader.pos < end) {
-                let start = reader.pos;
-                let tag = reader.tag();
+                var start = reader.pos;
+                var tag = reader.tag();
                 if (tag === _end) {
                     _end = $undefined;
                     break;
                 }
-                let wireType = tag & 7;
+                var wireType = tag & 7;
                 switch (tag >>>= 3) {
                 case 1: {
                         if (wireType !== 2)
                             break;
                         if (message.players === $util.emptyObject)
                             message.players = {};
-                        let end2 = reader.uint32() + reader.pos;
+                        var end2 = reader.uint32() + reader.pos;
                         key = "";
                         value = null;
                         while (reader.pos < end2) {
-                            let tag2 = reader.tag();
+                            var tag2 = reader.tag();
                             wireType = tag2 & 7;
                             switch (tag2 >>>= 3) {
                             case 1:
@@ -4080,6 +4137,51 @@ export const warbase = $root.warbase = (() => {
                         if (key === "__proto__")
                             $util.makeProp(message.players, key);
                         message.players[key] = value || new $root.warbase.PlayerState();
+                        continue;
+                    }
+                case 2: {
+                        if (wireType !== 2)
+                            break;
+                        if ((value = reader.stringVerify()).length)
+                            message.roomMode = value;
+                        else
+                            delete message.roomMode;
+                        continue;
+                    }
+                case 3: {
+                        if (wireType !== 2)
+                            break;
+                        if ((value = reader.stringVerify()).length)
+                            message.roomState = value;
+                        else
+                            delete message.roomState;
+                        continue;
+                    }
+                case 4: {
+                        if (wireType !== 0)
+                            break;
+                        if (value = reader.int32())
+                            message.scoreTeamA = value;
+                        else
+                            delete message.scoreTeamA;
+                        continue;
+                    }
+                case 5: {
+                        if (wireType !== 0)
+                            break;
+                        if (value = reader.int32())
+                            message.scoreTeamB = value;
+                        else
+                            delete message.scoreTeamB;
+                        continue;
+                    }
+                case 6: {
+                        if (wireType !== 2)
+                            break;
+                        if ((value = reader.stringVerify()).length)
+                            message.winnerId = value;
+                        else
+                            delete message.winnerId;
                         continue;
                     }
                 }
@@ -4128,13 +4230,28 @@ export const warbase = $root.warbase = (() => {
             if (message.players != null && $Object.hasOwnProperty.call(message, "players")) {
                 if (!$util.isObject(message.players))
                     return "players: object expected";
-                let key = $Object.keys(message.players);
-                for (let i = 0; i < key.length; ++i) {
-                    let error = $root.warbase.PlayerState.verify(message.players[key[i]], _depth + 1);
+                var key = $Object.keys(message.players);
+                for (var i = 0; i < key.length; ++i) {
+                    var error = $root.warbase.PlayerState.verify(message.players[key[i]], _depth + 1);
                     if (error)
                         return "players." + error;
                 }
             }
+            if (message.roomMode != null && $Object.hasOwnProperty.call(message, "roomMode"))
+                if (!$util.isString(message.roomMode))
+                    return "roomMode: string expected";
+            if (message.roomState != null && $Object.hasOwnProperty.call(message, "roomState"))
+                if (!$util.isString(message.roomState))
+                    return "roomState: string expected";
+            if (message.scoreTeamA != null && $Object.hasOwnProperty.call(message, "scoreTeamA"))
+                if (!$util.isInteger(message.scoreTeamA))
+                    return "scoreTeamA: integer expected";
+            if (message.scoreTeamB != null && $Object.hasOwnProperty.call(message, "scoreTeamB"))
+                if (!$util.isInteger(message.scoreTeamB))
+                    return "scoreTeamB: integer expected";
+            if (message.winnerId != null && $Object.hasOwnProperty.call(message, "winnerId"))
+                if (!$util.isString(message.winnerId))
+                    return "winnerId: string expected";
             return null;
         };
 
@@ -4155,12 +4272,12 @@ export const warbase = $root.warbase = (() => {
                 _depth = 0;
             if (_depth > $util.recursionLimit)
                 throw $Error("max depth exceeded");
-            let message = new $root.warbase.GameState();
+            var message = new $root.warbase.GameState();
             if (object.players) {
                 if (!$util.isObject(object.players))
                     throw $TypeError(".warbase.GameState.players: object expected");
                 message.players = {};
-                for (let keys = $Object.keys(object.players), i = 0; i < keys.length; ++i) {
+                for (var keys = $Object.keys(object.players), i = 0; i < keys.length; ++i) {
                     if (keys[i] === "__proto__")
                         $util.makeProp(message.players, keys[i]);
                     if (!$util.isObject(object.players[keys[i]]))
@@ -4168,6 +4285,21 @@ export const warbase = $root.warbase = (() => {
                     message.players[keys[i]] = $root.warbase.PlayerState.fromObject(object.players[keys[i]], _depth + 1);
                 }
             }
+            if (object.roomMode != null)
+                if (typeof object.roomMode !== "string" || object.roomMode.length)
+                    message.roomMode = $String(object.roomMode);
+            if (object.roomState != null)
+                if (typeof object.roomState !== "string" || object.roomState.length)
+                    message.roomState = $String(object.roomState);
+            if (object.scoreTeamA != null)
+                if ($Number(object.scoreTeamA) !== 0)
+                    message.scoreTeamA = object.scoreTeamA | 0;
+            if (object.scoreTeamB != null)
+                if ($Number(object.scoreTeamB) !== 0)
+                    message.scoreTeamB = object.scoreTeamB | 0;
+            if (object.winnerId != null)
+                if (typeof object.winnerId !== "string" || object.winnerId.length)
+                    message.winnerId = $String(object.winnerId);
             return message;
         };
 
@@ -4187,18 +4319,35 @@ export const warbase = $root.warbase = (() => {
                 _depth = 0;
             if (_depth > $util.recursionLimit)
                 throw $Error("max depth exceeded");
-            let object = {};
+            var object = {};
             if (options.objects || options.defaults)
                 object.players = {};
-            let keys2;
+            if (options.defaults) {
+                object.roomMode = "";
+                object.roomState = "";
+                object.scoreTeamA = 0;
+                object.scoreTeamB = 0;
+                object.winnerId = "";
+            }
+            var keys2;
             if (message.players && (keys2 = $Object.keys(message.players)).length) {
                 object.players = {};
-                for (let j = 0; j < keys2.length; ++j) {
+                for (var j = 0; j < keys2.length; ++j) {
                     if (keys2[j] === "__proto__")
                         $util.makeProp(object.players, keys2[j]);
                     object.players[keys2[j]] = $root.warbase.PlayerState.toObject(message.players[keys2[j]], options, _depth + 1);
                 }
             }
+            if (message.roomMode != null && $Object.hasOwnProperty.call(message, "roomMode"))
+                object.roomMode = message.roomMode;
+            if (message.roomState != null && $Object.hasOwnProperty.call(message, "roomState"))
+                object.roomState = message.roomState;
+            if (message.scoreTeamA != null && $Object.hasOwnProperty.call(message, "scoreTeamA"))
+                object.scoreTeamA = message.scoreTeamA;
+            if (message.scoreTeamB != null && $Object.hasOwnProperty.call(message, "scoreTeamB"))
+                object.scoreTeamB = message.scoreTeamB;
+            if (message.winnerId != null && $Object.hasOwnProperty.call(message, "winnerId"))
+                object.winnerId = message.winnerId;
             return object;
         };
 
@@ -4250,6 +4399,7 @@ export const warbase = $root.warbase = (() => {
          * @property {string|null} [platformId] PlayerState platformId
          * @property {number|null} [ping] PlayerState ping
          * @property {string|null} [weaponId] PlayerState weaponId
+         * @property {string|null} [team] PlayerState team
          * @property {Array.<Uint8Array>} [$unknowns] Unknown fields preserved while decoding when enabled
          */
 
@@ -4274,9 +4424,9 @@ export const warbase = $root.warbase = (() => {
          * @param {warbase.PlayerState.$Properties=} [properties] Properties to set
          * @property {Array.<Uint8Array>} [$unknowns] Unknown fields preserved while decoding when enabled
          */
-        const PlayerState = function (properties) {
+        var PlayerState = function (properties) {
             if (properties)
-                for (let keys = $Object.keys(properties), i = 0; i < keys.length; ++i)
+                for (var keys = $Object.keys(properties), i = 0; i < keys.length; ++i)
                     if (properties[keys[i]] != null && keys[i] !== "__proto__")
                         this[keys[i]] = properties[keys[i]];
         };
@@ -4402,6 +4552,14 @@ export const warbase = $root.warbase = (() => {
         PlayerState.prototype.weaponId = "";
 
         /**
+         * PlayerState team.
+         * @member {string} team
+         * @memberof warbase.PlayerState
+         * @instance
+         */
+        PlayerState.prototype.team = "";
+
+        /**
          * Creates a new PlayerState instance using the specified properties.
          * @function create
          * @memberof warbase.PlayerState
@@ -4463,8 +4621,10 @@ export const warbase = $root.warbase = (() => {
                 writer.uint32(/* id 14, wireType 0 =*/112).int32(message.ping);
             if (message.weaponId != null && $Object.hasOwnProperty.call(message, "weaponId") && message.weaponId !== "")
                 writer.uint32(/* id 15, wireType 2 =*/122).string(message.weaponId);
+            if (message.team != null && $Object.hasOwnProperty.call(message, "team") && message.team !== "")
+                writer.uint32(/* id 16, wireType 2 =*/130).string(message.team);
             if (message.$unknowns != null && $Object.hasOwnProperty.call(message, "$unknowns"))
-                for (let i = 0; i < message.$unknowns.length; ++i)
+                for (var i = 0; i < message.$unknowns.length; ++i)
                     writer.raw(message.$unknowns[i]);
             return writer;
         };
@@ -4500,15 +4660,15 @@ export const warbase = $root.warbase = (() => {
                 _depth = 0;
             if (_depth > $Reader.recursionLimit)
                 throw $Error("max depth exceeded");
-            let end = length === $undefined ? reader.len : reader.pos + length, message = _target || new $root.warbase.PlayerState(), value;
+            var end = length === $undefined ? reader.len : reader.pos + length, message = _target || new $root.warbase.PlayerState(), value;
             while (reader.pos < end) {
-                let start = reader.pos;
-                let tag = reader.tag();
+                var start = reader.pos;
+                var tag = reader.tag();
                 if (tag === _end) {
                     _end = $undefined;
                     break;
                 }
-                let wireType = tag & 7;
+                var wireType = tag & 7;
                 switch (tag >>>= 3) {
                 case 1: {
                         if (wireType !== 5)
@@ -4645,6 +4805,15 @@ export const warbase = $root.warbase = (() => {
                             delete message.weaponId;
                         continue;
                     }
+                case 16: {
+                        if (wireType !== 2)
+                            break;
+                        if ((value = reader.stringVerify()).length)
+                            message.team = value;
+                        else
+                            delete message.team;
+                        continue;
+                    }
                 }
                 reader.skipType(wireType, _depth, tag);
                 if (!reader.discardUnknown) {
@@ -4733,6 +4902,9 @@ export const warbase = $root.warbase = (() => {
             if (message.weaponId != null && $Object.hasOwnProperty.call(message, "weaponId"))
                 if (!$util.isString(message.weaponId))
                     return "weaponId: string expected";
+            if (message.team != null && $Object.hasOwnProperty.call(message, "team"))
+                if (!$util.isString(message.team))
+                    return "team: string expected";
             return null;
         };
 
@@ -4753,7 +4925,7 @@ export const warbase = $root.warbase = (() => {
                 _depth = 0;
             if (_depth > $util.recursionLimit)
                 throw $Error("max depth exceeded");
-            let message = new $root.warbase.PlayerState();
+            var message = new $root.warbase.PlayerState();
             if (object.x != null)
                 if (!$Object.is($Number(object.x), 0))
                     message.x = $Number(object.x);
@@ -4799,6 +4971,9 @@ export const warbase = $root.warbase = (() => {
             if (object.weaponId != null)
                 if (typeof object.weaponId !== "string" || object.weaponId.length)
                     message.weaponId = $String(object.weaponId);
+            if (object.team != null)
+                if (typeof object.team !== "string" || object.team.length)
+                    message.team = $String(object.team);
             return message;
         };
 
@@ -4818,7 +4993,7 @@ export const warbase = $root.warbase = (() => {
                 _depth = 0;
             if (_depth > $util.recursionLimit)
                 throw $Error("max depth exceeded");
-            let object = {};
+            var object = {};
             if (options.defaults) {
                 object.x = 0;
                 object.y = 0;
@@ -4835,6 +5010,7 @@ export const warbase = $root.warbase = (() => {
                 object.platformId = "";
                 object.ping = 0;
                 object.weaponId = "";
+                object.team = "";
             }
             if (message.x != null && $Object.hasOwnProperty.call(message, "x"))
                 object.x = options.json && !$isFinite(message.x) ? $String(message.x) : message.x;
@@ -4866,6 +5042,8 @@ export const warbase = $root.warbase = (() => {
                 object.ping = message.ping;
             if (message.weaponId != null && $Object.hasOwnProperty.call(message, "weaponId"))
                 object.weaponId = message.weaponId;
+            if (message.team != null && $Object.hasOwnProperty.call(message, "team"))
+                object.team = message.team;
             return object;
         };
 
@@ -4943,9 +5121,9 @@ export const warbase = $root.warbase = (() => {
          * @param {warbase.ServerEvent.$Properties=} [properties] Properties to set
          * @property {Array.<Uint8Array>} [$unknowns] Unknown fields preserved while decoding when enabled
          */
-        const ServerEvent = function (properties) {
+        var ServerEvent = function (properties) {
             if (properties)
-                for (let keys = $Object.keys(properties), i = 0; i < keys.length; ++i)
+                for (var keys = $Object.keys(properties), i = 0; i < keys.length; ++i)
                     if (properties[keys[i]] != null && keys[i] !== "__proto__")
                         this[keys[i]] = properties[keys[i]];
         };
@@ -4999,7 +5177,7 @@ export const warbase = $root.warbase = (() => {
         ServerEvent.prototype.pong = null;
 
         // OneOf field names bound to virtual getters and setters
-        let $oneOfFields;
+        var $oneOfFields;
 
         /**
          * ServerEvent event.
@@ -5057,7 +5235,7 @@ export const warbase = $root.warbase = (() => {
             if (message.pong != null && $Object.hasOwnProperty.call(message, "pong"))
                 $root.warbase.ServerPongEvent.encode(message.pong, writer.uint32(/* id 6, wireType 2 =*/50).fork(), _depth + 1).ldelim();
             if (message.$unknowns != null && $Object.hasOwnProperty.call(message, "$unknowns"))
-                for (let i = 0; i < message.$unknowns.length; ++i)
+                for (var i = 0; i < message.$unknowns.length; ++i)
                     writer.raw(message.$unknowns[i]);
             return writer;
         };
@@ -5093,15 +5271,15 @@ export const warbase = $root.warbase = (() => {
                 _depth = 0;
             if (_depth > $Reader.recursionLimit)
                 throw $Error("max depth exceeded");
-            let end = length === $undefined ? reader.len : reader.pos + length, message = _target || new $root.warbase.ServerEvent();
+            var end = length === $undefined ? reader.len : reader.pos + length, message = _target || new $root.warbase.ServerEvent();
             while (reader.pos < end) {
-                let start = reader.pos;
-                let tag = reader.tag();
+                var start = reader.pos;
+                var tag = reader.tag();
                 if (tag === _end) {
                     _end = $undefined;
                     break;
                 }
-                let wireType = tag & 7;
+                var wireType = tag & 7;
                 switch (tag >>>= 3) {
                 case 1: {
                         if (wireType !== 2)
@@ -5188,11 +5366,11 @@ export const warbase = $root.warbase = (() => {
                 _depth = 0;
             if (_depth > $util.recursionLimit)
                 return "max depth exceeded";
-            let properties = {};
+            var properties = {};
             if (message.respawn != null && $Object.hasOwnProperty.call(message, "respawn")) {
                 properties.event = 1;
                 {
-                    let error = $root.warbase.RespawnEvent.verify(message.respawn, _depth + 1);
+                    var error = $root.warbase.RespawnEvent.verify(message.respawn, _depth + 1);
                     if (error)
                         return "respawn." + error;
                 }
@@ -5202,7 +5380,7 @@ export const warbase = $root.warbase = (() => {
                     return "event: multiple values";
                 properties.event = 1;
                 {
-                    let error = $root.warbase.ServerFireEvent.verify(message.fire, _depth + 1);
+                    var error = $root.warbase.ServerFireEvent.verify(message.fire, _depth + 1);
                     if (error)
                         return "fire." + error;
                 }
@@ -5212,7 +5390,7 @@ export const warbase = $root.warbase = (() => {
                     return "event: multiple values";
                 properties.event = 1;
                 {
-                    let error = $root.warbase.HitConfirmedEvent.verify(message.hitConfirmed, _depth + 1);
+                    var error = $root.warbase.HitConfirmedEvent.verify(message.hitConfirmed, _depth + 1);
                     if (error)
                         return "hitConfirmed." + error;
                 }
@@ -5222,7 +5400,7 @@ export const warbase = $root.warbase = (() => {
                     return "event: multiple values";
                 properties.event = 1;
                 {
-                    let error = $root.warbase.KillConfirmedEvent.verify(message.killConfirmed, _depth + 1);
+                    var error = $root.warbase.KillConfirmedEvent.verify(message.killConfirmed, _depth + 1);
                     if (error)
                         return "killConfirmed." + error;
                 }
@@ -5232,7 +5410,7 @@ export const warbase = $root.warbase = (() => {
                     return "event: multiple values";
                 properties.event = 1;
                 {
-                    let error = $root.warbase.ServerThrowGrenadeEvent.verify(message.throwGrenade, _depth + 1);
+                    var error = $root.warbase.ServerThrowGrenadeEvent.verify(message.throwGrenade, _depth + 1);
                     if (error)
                         return "throwGrenade." + error;
                 }
@@ -5242,7 +5420,7 @@ export const warbase = $root.warbase = (() => {
                     return "event: multiple values";
                 properties.event = 1;
                 {
-                    let error = $root.warbase.ServerPongEvent.verify(message.pong, _depth + 1);
+                    var error = $root.warbase.ServerPongEvent.verify(message.pong, _depth + 1);
                     if (error)
                         return "pong." + error;
                 }
@@ -5267,7 +5445,7 @@ export const warbase = $root.warbase = (() => {
                 _depth = 0;
             if (_depth > $util.recursionLimit)
                 throw $Error("max depth exceeded");
-            let message = new $root.warbase.ServerEvent();
+            var message = new $root.warbase.ServerEvent();
             if (object.respawn != null) {
                 if (!$util.isObject(object.respawn))
                     throw $TypeError(".warbase.ServerEvent.respawn: object expected");
@@ -5317,7 +5495,7 @@ export const warbase = $root.warbase = (() => {
                 _depth = 0;
             if (_depth > $util.recursionLimit)
                 throw $Error("max depth exceeded");
-            let object = {};
+            var object = {};
             if (message.respawn != null && $Object.hasOwnProperty.call(message, "respawn")) {
                 object.respawn = $root.warbase.RespawnEvent.toObject(message.respawn, options, _depth + 1);
                 if (options.oneofs)
@@ -5411,9 +5589,9 @@ export const warbase = $root.warbase = (() => {
          * @param {warbase.RespawnEvent.$Properties=} [properties] Properties to set
          * @property {Array.<Uint8Array>} [$unknowns] Unknown fields preserved while decoding when enabled
          */
-        const RespawnEvent = function (properties) {
+        var RespawnEvent = function (properties) {
             if (properties)
-                for (let keys = $Object.keys(properties), i = 0; i < keys.length; ++i)
+                for (var keys = $Object.keys(properties), i = 0; i < keys.length; ++i)
                     if (properties[keys[i]] != null && keys[i] !== "__proto__")
                         this[keys[i]] = properties[keys[i]];
         };
@@ -5481,7 +5659,7 @@ export const warbase = $root.warbase = (() => {
             if (message.z != null && $Object.hasOwnProperty.call(message, "z") && !$Object.is(message.z, 0))
                 writer.uint32(/* id 3, wireType 5 =*/29).float(message.z);
             if (message.$unknowns != null && $Object.hasOwnProperty.call(message, "$unknowns"))
-                for (let i = 0; i < message.$unknowns.length; ++i)
+                for (var i = 0; i < message.$unknowns.length; ++i)
                     writer.raw(message.$unknowns[i]);
             return writer;
         };
@@ -5517,15 +5695,15 @@ export const warbase = $root.warbase = (() => {
                 _depth = 0;
             if (_depth > $Reader.recursionLimit)
                 throw $Error("max depth exceeded");
-            let end = length === $undefined ? reader.len : reader.pos + length, message = _target || new $root.warbase.RespawnEvent(), value;
+            var end = length === $undefined ? reader.len : reader.pos + length, message = _target || new $root.warbase.RespawnEvent(), value;
             while (reader.pos < end) {
-                let start = reader.pos;
-                let tag = reader.tag();
+                var start = reader.pos;
+                var tag = reader.tag();
                 if (tag === _end) {
                     _end = $undefined;
                     break;
                 }
-                let wireType = tag & 7;
+                var wireType = tag & 7;
                 switch (tag >>>= 3) {
                 case 1: {
                         if (wireType !== 5)
@@ -5626,7 +5804,7 @@ export const warbase = $root.warbase = (() => {
                 _depth = 0;
             if (_depth > $util.recursionLimit)
                 throw $Error("max depth exceeded");
-            let message = new $root.warbase.RespawnEvent();
+            var message = new $root.warbase.RespawnEvent();
             if (object.x != null)
                 if (!$Object.is($Number(object.x), 0))
                     message.x = $Number(object.x);
@@ -5655,7 +5833,7 @@ export const warbase = $root.warbase = (() => {
                 _depth = 0;
             if (_depth > $util.recursionLimit)
                 throw $Error("max depth exceeded");
-            let object = {};
+            var object = {};
             if (options.defaults) {
                 object.x = 0;
                 object.y = 0;
@@ -5738,9 +5916,9 @@ export const warbase = $root.warbase = (() => {
          * @param {warbase.ServerFireEvent.$Properties=} [properties] Properties to set
          * @property {Array.<Uint8Array>} [$unknowns] Unknown fields preserved while decoding when enabled
          */
-        const ServerFireEvent = function (properties) {
+        var ServerFireEvent = function (properties) {
             if (properties)
-                for (let keys = $Object.keys(properties), i = 0; i < keys.length; ++i)
+                for (var keys = $Object.keys(properties), i = 0; i < keys.length; ++i)
                     if (properties[keys[i]] != null && keys[i] !== "__proto__")
                         this[keys[i]] = properties[keys[i]];
         };
@@ -5888,7 +6066,7 @@ export const warbase = $root.warbase = (() => {
             if (message.hitWall != null && $Object.hasOwnProperty.call(message, "hitWall") && message.hitWall !== false)
                 writer.uint32(/* id 11, wireType 0 =*/88).bool(message.hitWall);
             if (message.$unknowns != null && $Object.hasOwnProperty.call(message, "$unknowns"))
-                for (let i = 0; i < message.$unknowns.length; ++i)
+                for (var i = 0; i < message.$unknowns.length; ++i)
                     writer.raw(message.$unknowns[i]);
             return writer;
         };
@@ -5924,15 +6102,15 @@ export const warbase = $root.warbase = (() => {
                 _depth = 0;
             if (_depth > $Reader.recursionLimit)
                 throw $Error("max depth exceeded");
-            let end = length === $undefined ? reader.len : reader.pos + length, message = _target || new $root.warbase.ServerFireEvent(), value;
+            var end = length === $undefined ? reader.len : reader.pos + length, message = _target || new $root.warbase.ServerFireEvent(), value;
             while (reader.pos < end) {
-                let start = reader.pos;
-                let tag = reader.tag();
+                var start = reader.pos;
+                var tag = reader.tag();
                 if (tag === _end) {
                     _end = $undefined;
                     break;
                 }
-                let wireType = tag & 7;
+                var wireType = tag & 7;
                 switch (tag >>>= 3) {
                 case 1: {
                         if (wireType !== 2)
@@ -6129,7 +6307,7 @@ export const warbase = $root.warbase = (() => {
                 _depth = 0;
             if (_depth > $util.recursionLimit)
                 throw $Error("max depth exceeded");
-            let message = new $root.warbase.ServerFireEvent();
+            var message = new $root.warbase.ServerFireEvent();
             if (object.shooterId != null)
                 if (typeof object.shooterId !== "string" || object.shooterId.length)
                     message.shooterId = $String(object.shooterId);
@@ -6182,7 +6360,7 @@ export const warbase = $root.warbase = (() => {
                 _depth = 0;
             if (_depth > $util.recursionLimit)
                 throw $Error("max depth exceeded");
-            let object = {};
+            var object = {};
             if (options.defaults) {
                 object.shooterId = "";
                 object.originX = 0;
@@ -6278,9 +6456,9 @@ export const warbase = $root.warbase = (() => {
          * @param {warbase.HitConfirmedEvent.$Properties=} [properties] Properties to set
          * @property {Array.<Uint8Array>} [$unknowns] Unknown fields preserved while decoding when enabled
          */
-        const HitConfirmedEvent = function (properties) {
+        var HitConfirmedEvent = function (properties) {
             if (properties)
-                for (let keys = $Object.keys(properties), i = 0; i < keys.length; ++i)
+                for (var keys = $Object.keys(properties), i = 0; i < keys.length; ++i)
                     if (properties[keys[i]] != null && keys[i] !== "__proto__")
                         this[keys[i]] = properties[keys[i]];
         };
@@ -6318,7 +6496,7 @@ export const warbase = $root.warbase = (() => {
             if (_depth > $util.recursionLimit)
                 throw $Error("max depth exceeded");
             if (message.$unknowns != null && $Object.hasOwnProperty.call(message, "$unknowns"))
-                for (let i = 0; i < message.$unknowns.length; ++i)
+                for (var i = 0; i < message.$unknowns.length; ++i)
                     writer.raw(message.$unknowns[i]);
             return writer;
         };
@@ -6354,10 +6532,10 @@ export const warbase = $root.warbase = (() => {
                 _depth = 0;
             if (_depth > $Reader.recursionLimit)
                 throw $Error("max depth exceeded");
-            let end = length === $undefined ? reader.len : reader.pos + length, message = _target || new $root.warbase.HitConfirmedEvent();
+            var end = length === $undefined ? reader.len : reader.pos + length, message = _target || new $root.warbase.HitConfirmedEvent();
             while (reader.pos < end) {
-                let start = reader.pos;
-                let tag = reader.tag();
+                var start = reader.pos;
+                var tag = reader.tag();
                 if (tag === _end) {
                     _end = $undefined;
                     break;
@@ -6497,9 +6675,9 @@ export const warbase = $root.warbase = (() => {
          * @param {warbase.KillConfirmedEvent.$Properties=} [properties] Properties to set
          * @property {Array.<Uint8Array>} [$unknowns] Unknown fields preserved while decoding when enabled
          */
-        const KillConfirmedEvent = function (properties) {
+        var KillConfirmedEvent = function (properties) {
             if (properties)
-                for (let keys = $Object.keys(properties), i = 0; i < keys.length; ++i)
+                for (var keys = $Object.keys(properties), i = 0; i < keys.length; ++i)
                     if (properties[keys[i]] != null && keys[i] !== "__proto__")
                         this[keys[i]] = properties[keys[i]];
         };
@@ -6537,7 +6715,7 @@ export const warbase = $root.warbase = (() => {
             if (_depth > $util.recursionLimit)
                 throw $Error("max depth exceeded");
             if (message.$unknowns != null && $Object.hasOwnProperty.call(message, "$unknowns"))
-                for (let i = 0; i < message.$unknowns.length; ++i)
+                for (var i = 0; i < message.$unknowns.length; ++i)
                     writer.raw(message.$unknowns[i]);
             return writer;
         };
@@ -6573,10 +6751,10 @@ export const warbase = $root.warbase = (() => {
                 _depth = 0;
             if (_depth > $Reader.recursionLimit)
                 throw $Error("max depth exceeded");
-            let end = length === $undefined ? reader.len : reader.pos + length, message = _target || new $root.warbase.KillConfirmedEvent();
+            var end = length === $undefined ? reader.len : reader.pos + length, message = _target || new $root.warbase.KillConfirmedEvent();
             while (reader.pos < end) {
-                let start = reader.pos;
-                let tag = reader.tag();
+                var start = reader.pos;
+                var tag = reader.tag();
                 if (tag === _end) {
                     _end = $undefined;
                     break;
@@ -6723,9 +6901,9 @@ export const warbase = $root.warbase = (() => {
          * @param {warbase.ServerThrowGrenadeEvent.$Properties=} [properties] Properties to set
          * @property {Array.<Uint8Array>} [$unknowns] Unknown fields preserved while decoding when enabled
          */
-        const ServerThrowGrenadeEvent = function (properties) {
+        var ServerThrowGrenadeEvent = function (properties) {
             if (properties)
-                for (let keys = $Object.keys(properties), i = 0; i < keys.length; ++i)
+                for (var keys = $Object.keys(properties), i = 0; i < keys.length; ++i)
                     if (properties[keys[i]] != null && keys[i] !== "__proto__")
                         this[keys[i]] = properties[keys[i]];
         };
@@ -6833,7 +7011,7 @@ export const warbase = $root.warbase = (() => {
             if (message.vz != null && $Object.hasOwnProperty.call(message, "vz") && !$Object.is(message.vz, 0))
                 writer.uint32(/* id 7, wireType 5 =*/61).float(message.vz);
             if (message.$unknowns != null && $Object.hasOwnProperty.call(message, "$unknowns"))
-                for (let i = 0; i < message.$unknowns.length; ++i)
+                for (var i = 0; i < message.$unknowns.length; ++i)
                     writer.raw(message.$unknowns[i]);
             return writer;
         };
@@ -6869,15 +7047,15 @@ export const warbase = $root.warbase = (() => {
                 _depth = 0;
             if (_depth > $Reader.recursionLimit)
                 throw $Error("max depth exceeded");
-            let end = length === $undefined ? reader.len : reader.pos + length, message = _target || new $root.warbase.ServerThrowGrenadeEvent(), value;
+            var end = length === $undefined ? reader.len : reader.pos + length, message = _target || new $root.warbase.ServerThrowGrenadeEvent(), value;
             while (reader.pos < end) {
-                let start = reader.pos;
-                let tag = reader.tag();
+                var start = reader.pos;
+                var tag = reader.tag();
                 if (tag === _end) {
                     _end = $undefined;
                     break;
                 }
-                let wireType = tag & 7;
+                var wireType = tag & 7;
                 switch (tag >>>= 3) {
                 case 1: {
                         if (wireType !== 2)
@@ -7026,7 +7204,7 @@ export const warbase = $root.warbase = (() => {
                 _depth = 0;
             if (_depth > $util.recursionLimit)
                 throw $Error("max depth exceeded");
-            let message = new $root.warbase.ServerThrowGrenadeEvent();
+            var message = new $root.warbase.ServerThrowGrenadeEvent();
             if (object.shooterId != null)
                 if (typeof object.shooterId !== "string" || object.shooterId.length)
                     message.shooterId = $String(object.shooterId);
@@ -7067,7 +7245,7 @@ export const warbase = $root.warbase = (() => {
                 _depth = 0;
             if (_depth > $util.recursionLimit)
                 throw $Error("max depth exceeded");
-            let object = {};
+            var object = {};
             if (options.defaults) {
                 object.shooterId = "";
                 object.px = 0;
@@ -7125,6 +7303,4 @@ export const warbase = $root.warbase = (() => {
     return warbase;
 })();
 
-export {
-  $root as default
-};
+module.exports = $root;

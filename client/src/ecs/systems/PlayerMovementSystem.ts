@@ -32,6 +32,8 @@ function moveTowards(current: number, target: number, maxDelta: number): number 
 const playerQuery = defineQuery([PlayerTag, InputComponent, PlayerComponent]);
 
 const _groundRay = new Ray(Vector3.Zero(), new Vector3(0, -1, 0), 0.95);
+const _stepRayLow = new Ray(Vector3.Zero(), new Vector3(0, 0, 1), 0.6);
+const _stepRayHigh = new Ray(Vector3.Zero(), new Vector3(0, 0, 1), 0.6);
 const _tempForward = new Vector3();
 const _tempRight = new Vector3();
 const _targetVel = new Vector3();
@@ -163,6 +165,27 @@ export function playerMovementSystem(dt: number, scene: any) {
         const newZ = newLocalZ + _platformVel.z;
         let newY = _currentVel.y;
 
+        // Auto-step for stairs: Dual raycast stepping
+        if (isGrounded && _localDir.length() > 0 && _currentVel.y < 0.5) {
+            const moveDir = _targetVel.clone().normalize();
+            
+            _stepRayLow.direction.copyFrom(moveDir);
+            _stepRayHigh.direction.copyFrom(moveDir);
+            
+            _stepRayLow.origin.copyFrom(mesh.position);
+            _stepRayLow.origin.y -= 0.8; // 0.1 units above bottom of capsule
+            
+            _stepRayHigh.origin.copyFrom(mesh.position);
+            _stepRayHigh.origin.y -= 0.3; // 0.6 units above bottom (max step height)
+            
+            const lowHit = scene.pickWithRay(_stepRayLow, (m: any) => m !== mesh && !m.isDescendantOf(mesh));
+            const highHit = scene.pickWithRay(_stepRayHigh, (m: any) => m !== mesh && !m.isDescendantOf(mesh));
+            
+            if (lowHit?.hit && !highHit?.hit) {
+                newY = 2.5; // Upward nudge to slide over the step
+            }
+        }
+
         if (InputComponent.jump[eid] && (isGrounded || PlayerComponent.coyoteTimer[eid] > 0) && PlayerComponent.jumpCooldownTimer[eid] <= 0) {
             newY = JUMP_IMPULSE;
             PlayerComponent.isGrounded[eid] = 0;
@@ -178,17 +201,7 @@ export function playerMovementSystem(dt: number, scene: any) {
         const targetCamY = PlayerComponent.isCrouching[eid] ? CROUCH_CAM_Y : STAND_CAM_Y;
         camera.position.y = Scalar.Lerp(camera.position.y, targetCamY, CROUCH_LERP_SPEED * dt);
 
-        if (isGrounded && _localDir.length() > 0) {
-            const freq = isSprinting ? 2.8 : 2.0;
-            const ampY = isSprinting ? 0.008 : 0.006; // Reduced sprint bob
-            const ampX = isSprinting ? 0.007 : 0.005; // Reduced sprint bob
-            const time = performance.now() * 0.001;
-            
-            camera.position.y += Math.sin(time * Math.PI * 2 * freq) * ampY;
-            camera.position.x = Math.cos(time * Math.PI * freq) * ampX;
-        } else {
-            camera.position.x = Scalar.Lerp(camera.position.x, 0, 10 * dt);
-        }
+        camera.position.x = Scalar.Lerp(camera.position.x, 0, 10 * dt);
 
         // Always clear jump intent at the end of the frame so it doesn't get stuck if pressed mid-air
         InputComponent.jump[eid] = 0;

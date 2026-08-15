@@ -119,6 +119,7 @@ func (app *application) createRoomHandler(w http.ResponseWriter, r *http.Request
 	var input struct {
 		Name string `json:"name"`
 		Map  string `json:"map"`
+		Mode string `json:"mode"`
 	}
 
 	err := app.readJSON(w, r, &input)
@@ -132,7 +133,7 @@ func (app *application) createRoomHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	room := app.match.CreateRoom(input.Name, input.Map)
+	room := app.match.CreateRoom(input.Name, input.Map, input.Mode)
 
 	err = app.writeJSON(w, http.StatusCreated, envelope{"room_id": room.ID}, nil)
 	if err != nil {

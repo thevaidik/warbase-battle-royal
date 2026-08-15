@@ -241,13 +241,14 @@ async function createScene(engine: Engine | WebGPUEngine, canvas: HTMLCanvasElem
                     console.log("[GFX] PrePassRenderer enabled");
                 }
                 ssaoPipeline = new SSAO2RenderingPipeline("ssao", scene, {
-                    ssaoRatio: 0.5,
+                    ssaoRatio: 1.0,
                     blurRatio: 1.0
                 }, camera ? [camera] : undefined);
-                ssaoPipeline.radius = 1.2; // Back to normal
-                ssaoPipeline.totalStrength = 1.0; // Back to normal
+                ssaoPipeline.radius = 2.0;
+                ssaoPipeline.totalStrength = 0.5;
                 ssaoPipeline.samples = 16;
                 ssaoPipeline.maxZ = 250;
+                ssaoPipeline.expensiveBlur = true;
                 console.log("[GFX] SSAO pipeline CREATED and attached.");
             } catch (e) {
                 console.error("[GFX] SSAO CREATION FAILED:", e);
@@ -420,8 +421,69 @@ async function startGame(engine: Engine | WebGPUEngine, canvas: HTMLCanvasElemen
         let respawnTimerActive = false;
         let respawnInterval: any = null;
 
-        networkManager.onStateReceived = (globalState) => {
+        networkManager.onStateReceived = (globalStateData) => {
+            const globalState = globalStateData.players;
             multiplayerEntities.updateNetworkState(globalState, username);
+
+            // Update Top Score HUD
+            const topScoreHUD = document.getElementById("topScoreHUD");
+            const hudModeText = document.getElementById("hudModeText");
+            const scoreA = document.getElementById("scoreA");
+            const scoreB = document.getElementById("scoreB");
+            
+            if (topScoreHUD && hudModeText && scoreA && scoreB) {
+                topScoreHUD.style.display = "flex";
+                if (globalStateData.roomMode === "TDM") {
+                    hudModeText.innerText = "TEAM DEATHMATCH";
+                    
+                    if (scoreA.innerText !== String(globalStateData.scoreTeamA).padStart(2, '0')) {
+                        scoreA.innerText = String(globalStateData.scoreTeamA).padStart(2, '0');
+                        scoreA.classList.remove('bump');
+                        void scoreA.offsetWidth;
+                        scoreA.classList.add('bump');
+                    }
+                    
+                    if (scoreB.innerText !== String(globalStateData.scoreTeamB).padStart(2, '0')) {
+                        scoreB.innerText = String(globalStateData.scoreTeamB).padStart(2, '0');
+                        scoreB.classList.remove('bump');
+                        void scoreB.offsetWidth;
+                        scoreB.classList.add('bump');
+                    }
+                } else {
+                    hudModeText.innerText = "FREE FOR ALL";
+                    let maxKills = 0;
+                    for (const id in globalState) {
+                        if (globalState[id].kills > maxKills) maxKills = globalState[id].kills;
+                    }
+                    if (scoreA.innerText !== String(maxKills).padStart(2, '0')) {
+                        scoreA.innerText = String(maxKills).padStart(2, '0');
+                        scoreA.classList.remove('bump');
+                        void scoreA.offsetWidth;
+                        scoreA.classList.add('bump');
+                    }
+                    scoreB.innerText = "30";
+                }
+            }
+
+            // Match Finished overlay
+            const matchFinishedScreen = document.getElementById("matchFinishedScreen");
+            const matchWinnerText = document.getElementById("matchWinnerText");
+            if (globalStateData.roomState === "FINISHED") {
+                if (matchFinishedScreen && matchWinnerText) {
+                    matchFinishedScreen.style.display = "flex";
+                    matchWinnerText.classList.remove('win-team-a', 'win-team-b');
+                    if (globalStateData.roomMode === "TDM") {
+                        matchWinnerText.innerText = `TEAM ${globalStateData.winnerId} WINS!`;
+                        if (globalStateData.winnerId === 'A') matchWinnerText.classList.add('win-team-a');
+                        else if (globalStateData.winnerId === 'B') matchWinnerText.classList.add('win-team-b');
+                    } else {
+                        matchWinnerText.innerText = `${globalStateData.winnerId} WINS!`;
+                        matchWinnerText.classList.add('win-team-a');
+                    }
+                }
+            } else {
+                if (matchFinishedScreen) matchFinishedScreen.style.display = "none";
+            }
             
             // Update local health UI
             const myState = globalState[username];
@@ -486,12 +548,24 @@ async function startGame(engine: Engine | WebGPUEngine, canvas: HTMLCanvasElemen
 
                     for (const [id, p] of sortedPlayers) {
                         const safeId = escapeHTML(id);
+                        
+                        let teamClass = "";
+                        let teamTag = "";
+                        
+                        if (globalStateData.roomMode === "TDM" && p.team && p.team !== "NONE") {
+                            teamClass = p.team === "A" ? "team-a-row" : "team-b-row";
+                            teamTag = p.team === "A" ? ' <span style="color: #4da6ff; font-size: 11px;">[TEAM A]</span>' : ' <span style="color: #ff2a4b; font-size: 11px;">[TEAM B]</span>';
+                        }
+                        
+                        const rowClass = `player-row ${teamClass} ${id === username ? 'local-player-row' : ''}`;
+                        const deadStyle = p.isDead ? 'opacity: 0.5; color: #ff4444;' : '';
+                        
                         html += `
-                            <tr style="border-bottom: 1px solid rgba(255,255,255,0.08); color: ${p.isDead ? '#ff4444' : 'white'}">
-                                <td style="padding: 10px; font-weight: 600;">${id === username ? safeId + ' <span style="color: #60a5fa;">(YOU)</span>' : safeId} ${p.isDead ? '<span style="color: #ff4444; font-size: 11px;">[DEAD]</span>' : ''}</td>
-                                <td style="padding: 10px; text-align: center; color: #fff;">${p.kills || 0}</td>
-                                <td style="padding: 10px; text-align: center; color: rgba(255,255,255,0.6);">${p.deaths || 0}</td>
-                                <td style="padding: 10px; text-align: right; color: #4ade80; font-family: 'Share Tech Mono', monospace;">${p.ping || 0}ms</td>
+                            <tr class="${rowClass}" style="${deadStyle}">
+                                <td>${id === username ? safeId + ' <span style="color: #ffffff; font-size: 11px; opacity: 0.7;">(YOU)</span>' : safeId}${teamTag} ${p.isDead ? '<span style="color: #ff4444; font-size: 11px;">[DEAD]</span>' : ''}</td>
+                                <td style="text-align: center;">${p.kills || 0}</td>
+                                <td style="text-align: center; color: rgba(255,255,255,0.6);">${p.deaths || 0}</td>
+                                <td style="text-align: right; color: #4ade80;">${p.ping || 0}ms</td>
                             </tr>
                         `;
                     }

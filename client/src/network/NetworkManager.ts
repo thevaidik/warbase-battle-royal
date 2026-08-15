@@ -18,13 +18,23 @@ export interface PlayerState {
     platformId?: string;
     ping: number;
     weaponId?: string;
+    team: string;
+}
+
+export interface GameStateData {
+    players: Record<string, PlayerState>;
+    roomMode: string;
+    roomState: string;
+    scoreTeamA: number;
+    scoreTeamB: number;
+    winnerId: string;
 }
 
 export class NetworkManager {
     private ws!: WebSocket;
     public username: string;
     public room: string;
-    public onStateReceived: (state: Record<string, PlayerState>) => void = () => {};
+    public onStateReceived: (state: GameStateData) => void = () => {};
     public onHitConfirmed: () => void = () => {};
     public onKillConfirmed: () => void = () => {};
     public onRespawn: (x: number, y: number, z: number) => void = () => {};
@@ -134,10 +144,18 @@ export class NetworkManager {
                             isDead: p.isDead ?? false,
                             platformId: p.platformId ?? undefined,
                             ping: p.ping ?? 0,
-                            weaponId: p.weaponId ?? undefined
+                            weaponId: p.weaponId ?? undefined,
+                            team: p.team ?? ""
                         };
                     }
-                    this.onStateReceived(state);
+                    this.onStateReceived({
+                        players: state,
+                        roomMode: serverMsg.gameState.roomMode ?? "FFA",
+                        roomState: serverMsg.gameState.roomState ?? "PLAYING",
+                        scoreTeamA: serverMsg.gameState.scoreTeamA ?? 0,
+                        scoreTeamB: serverMsg.gameState.scoreTeamB ?? 0,
+                        winnerId: serverMsg.gameState.winnerId ?? ""
+                    });
                 } else if (serverMsg.message === "serverEvent" && serverMsg.serverEvent) {
                     const evt = serverMsg.serverEvent;
                     if (evt.event === "respawn" && evt.respawn) {

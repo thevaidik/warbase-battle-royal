@@ -37,16 +37,24 @@ type Room struct {
 	Sessions        map[*GameSession]bool
 	EmptySince      time.Time
 	IsPermanent     bool
+	Mode            string
+	State           string
+	ScoreTeamA      int32
+	ScoreTeamB      int32
+	WinnerID        string
+	StateTimer      time.Time
 }
 
-func NewRoom(id string, name string, mapName string) *Room {
+func NewRoom(id string, name string, mapName string, mode string) *Room {
 	return &Room{
 		ID:              id,
 		Name:            name,
 		MapName:         mapName,
+		Mode:            mode,
+		State:           "PLAYING",
 		PlayerEntities:  make([]Player, 0, 128),
 		PlayerIndices:   make(map[string]int),
-		CachedGameState: &GameState{Players: make(map[string]*PlayerState)},
+		CachedGameState: &GameState{Players: make(map[string]*PlayerState), RoomMode: mode, RoomState: "PLAYING"},
 		CachedServerMsg: &ServerMessage{},
 		Sessions:        make(map[*GameSession]bool),
 		EmptySince:      time.Now(),
@@ -83,15 +91,15 @@ func NewMatch() *Match {
 
 func (m *Match) seedDefaultRoomsLocked() {
 	defaults := []struct {
-		id, name, mapName string
+		id, name, mapName, mode string
 	}{
-		{"industrial-public", "Industrial Zone (Public)", "industrial"},
-		{"village-public", "Village Outpost (Public)", "village"},
-		{"arena-public", "Game Arena (Public)", "arena"},
+		{"industrial-public", "Industrial Zone (Public)", "industrial", "TDM"},
+		{"village-public", "Village Outpost (Public)", "village", "FFA"},
+		{"arena-public", "Game Arena (Public)", "arena", "FFA"},
 	}
 	for _, d := range defaults {
 		if _, exists := m.rooms[d.id]; !exists {
-			r := NewRoom(d.id, d.name, d.mapName)
+			r := NewRoom(d.id, d.name, d.mapName, d.mode)
 			r.IsPermanent = true
 			m.rooms[d.id] = r
 		}
@@ -102,12 +110,16 @@ type RoomInfo struct {
 	ID         string `json:"id"`
 	Name       string `json:"name"`
 	MapName    string `json:"map"`
+	Mode       string `json:"mode"`
 	PlayerCount int   `json:"playerCount"`
 }
 
-func (m *Match) CreateRoom(name string, mapName string) *Room {
+func (m *Match) CreateRoom(name string, mapName string, mode string) *Room {
 	id := uuid.New().String()
-	room := NewRoom(id, name, mapName)
+	if mode == "" {
+		mode = "FFA"
+	}
+	room := NewRoom(id, name, mapName, mode)
 	
 	m.roomsMutex.Lock()
 	m.rooms[id] = room
@@ -130,6 +142,7 @@ func (m *Match) ListActiveRooms() []RoomInfo {
 			ID:          room.ID,
 			Name:        room.Name,
 			MapName:     room.MapName,
+			Mode:        room.Mode,
 			PlayerCount: int(room.playerCount.Load()),
 		})
 	}
@@ -226,7 +239,7 @@ func (m *Match) Run() {
 					mapName = "arena"
 				}
 				roomName := "Custom Match (" + session.RoomID[:min(8, len(session.RoomID))] + ")"
-				room = NewRoom(session.RoomID, roomName, mapName)
+				room = NewRoom(session.RoomID, roomName, mapName, "FFA")
 				m.rooms[session.RoomID] = room
 			}
 			room.Sessions[session] = true
@@ -298,6 +311,26 @@ func (m *Match) Run() {
 					idx, ok := room.PlayerIndices[message.SenderID]
 					if !ok {
 						newPlayer := NewPlayer(message.SenderID)
+						// Assign Team for TDM
+						if room.Mode == "TDM" {
+							teamACount := 0
+							teamBCount := 0
+							for i := range room.PlayerEntities {
+								if room.PlayerEntities[i].State.Team == "A" {
+									teamACount++
+								} else if room.PlayerEntities[i].State.Team == "B" {
+									teamBCount++
+								}
+							}
+							if teamACount <= teamBCount {
+								newPlayer.State.Team = "A"
+							} else {
+								newPlayer.State.Team = "B"
+							}
+						} else {
+							newPlayer.State.Team = "NONE"
+						}
+						
 						room.PlayerEntities = append(room.PlayerEntities, *newPlayer)
 						idx = len(room.PlayerEntities) - 1
 						room.PlayerIndices[message.SenderID] = idx
@@ -351,6 +384,12 @@ func (m *Match) Run() {
 					if okTarget && okShooter {
 						target := &room.PlayerEntities[targetIdx]
 						shooter := &room.PlayerEntities[shooterIdx]
+
+						if room.Mode == "TDM" && shooter.State.Team == target.State.Team && shooter.State.Team != "NONE" {
+							// Friendly fire disabled
+							continue
+						}
+
 						isKill, err := shooter.ValidateAndApplyHit(target, int(event.Hit.Damage))
 						if err != nil {
 							log.Printf("Hit Invalid: %s", err.Error())
@@ -358,6 +397,39 @@ func (m *Match) Run() {
 						if err == nil {
 							// Valid hit! Send feedback to shooter
 							if isKill {
+								// Check win condition
+								if room.Mode == "FFA" {
+									if shooter.State.Kills >= 30 {
+										room.State = "FINISHED"
+										room.WinnerID = shooter.ID
+										room.StateTimer = time.Now().Add(10 * time.Second)
+										room.CachedGameState.RoomState = room.State
+										room.CachedGameState.WinnerId = room.WinnerID
+									}
+								} else if room.Mode == "TDM" {
+									if shooter.State.Team == "A" {
+										room.ScoreTeamA++
+										room.CachedGameState.ScoreTeamA = room.ScoreTeamA
+										if room.ScoreTeamA >= 60 {
+											room.State = "FINISHED"
+											room.WinnerID = "A"
+											room.StateTimer = time.Now().Add(10 * time.Second)
+											room.CachedGameState.RoomState = room.State
+											room.CachedGameState.WinnerId = room.WinnerID
+										}
+									} else if shooter.State.Team == "B" {
+										room.ScoreTeamB++
+										room.CachedGameState.ScoreTeamB = room.ScoreTeamB
+										if room.ScoreTeamB >= 60 {
+											room.State = "FINISHED"
+											room.WinnerID = "B"
+											room.StateTimer = time.Now().Add(10 * time.Second)
+											room.CachedGameState.RoomState = room.State
+											room.CachedGameState.WinnerId = room.WinnerID
+										}
+									}
+								}
+
 								// It was a lethal shot
 								m.sendDirectEventLocked(room, shooter.ID, &ServerMessage{
 									Message: &ServerMessage_ServerEvent{
@@ -534,6 +606,57 @@ func (m *Match) Run() {
 					continue
 				}
 
+				// Check match state
+				if room.State == "FINISHED" && now.After(room.StateTimer) {
+					// Reset the match
+					room.State = "PLAYING"
+					room.ScoreTeamA = 0
+					room.ScoreTeamB = 0
+					room.WinnerID = ""
+					room.CachedGameState.RoomState = room.State
+					room.CachedGameState.ScoreTeamA = 0
+					room.CachedGameState.ScoreTeamB = 0
+					room.CachedGameState.WinnerId = ""
+
+					// Reset all players
+					for i := range room.PlayerEntities {
+						player := &room.PlayerEntities[i]
+						player.State.Kills = 0
+						player.State.Deaths = 0
+						player.State.Health = 100
+						player.State.IsDead = false
+						player.State.Animation = "idle"
+						player.IsReloading = false
+						if player.ActiveWeapon.ID != "" {
+							player.AmmoCount = player.ActiveWeapon.MagSize
+							player.AmmoStore[player.ActiveWeapon.ID] = player.AmmoCount
+						}
+						player.DeathTime = time.Time{}
+
+						// Force Respawn
+						newX := (rand.Float64() * 6) - 3
+						newZ := (rand.Float64() * 6) - 3
+						player.State.X = float32(newX)
+						player.State.Y = 10
+						player.State.Z = float32(newZ)
+						
+						respawnEvt := &ServerMessage{
+							Message: &ServerMessage_ServerEvent{
+								ServerEvent: &ServerEvent{
+									Event: &ServerEvent_Respawn{
+										Respawn: &RespawnEvent{
+											X: float32(newX),
+											Y: 10,
+											Z: float32(newZ),
+										},
+									},
+								},
+							},
+						}
+						m.sendDirectEventLocked(room, player.ID, respawnEvt)
+					}
+				}
+
 				// Resolve naturally completed reloads
 				for i := range room.PlayerEntities {
 					player := &room.PlayerEntities[i]
@@ -573,7 +696,7 @@ func (m *Match) Run() {
 				for _, id := range emptyRooms {
 					room, ok := m.rooms[id]
 					// Final check in case someone joined between RUnlock and Lock
-					if ok && room.playerCount.Load() == 0 && time.Since(room.EmptySince) > 30*time.Second {
+					if ok && room.playerCount.Load() == 0 && time.Since(room.EmptySince) > 1*time.Minute {
 						delete(m.rooms, id)
 						log.Printf("Garbage collected empty room: %s", id)
 					}
