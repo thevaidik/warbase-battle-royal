@@ -9,6 +9,7 @@ final class RealityViewMaps {
     var weaponM2010: ModelEntity?
     var weaponPistol: ModelEntity?
     var soldier: RealityKit.Entity?
+    var soldierAnims: [String: RealityKit.AnimationResource] = [:]
     var floor: Entity?
 
     func clearAll() {

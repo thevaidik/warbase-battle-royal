@@ -30,15 +30,44 @@ struct LobbyView: View {
     // MARK: - Background
 
     private var background: some View {
-        LinearGradient(
-            gradient: Gradient(colors: [
-                Color(red: 0.06, green: 0.06, blue: 0.08),
-                Color(red: 0.10, green: 0.10, blue: 0.12),
-                Color(red: 0.04, green: 0.04, blue: 0.06)
-            ]),
-            startPoint: .topLeading,
-            endPoint: .bottomTrailing
-        )
+        ZStack {
+            LinearGradient(
+                gradient: Gradient(colors: [
+                    Color(red: 0.06, green: 0.06, blue: 0.08),
+                    Color(red: 0.10, green: 0.10, blue: 0.12),
+                    Color(red: 0.04, green: 0.04, blue: 0.06)
+                ]),
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            // Tactical grid
+            Canvas { ctx, size in
+                let step: CGFloat = 44
+                ctx.stroke(Path { p in
+                    var xx: CGFloat = 0
+                    while xx < size.width { p.move(to: CGPoint(x: xx, y: 0)); p.addLine(to: CGPoint(x: xx, y: size.height)); xx += step }
+                    var yy: CGFloat = 0
+                    while yy < size.height { p.move(to: CGPoint(x: 0, y: yy)); p.addLine(to: CGPoint(x: size.width, y: yy)); yy += step }
+                }, with: .color(.white.opacity(0.025)), lineWidth: 1)
+            }
+            // Red corner accents
+            VStack {
+                HStack {
+                    Rectangle().fill(Color.red.opacity(0.35)).frame(width: 40, height: 2).padding(.leading, 0)
+                    Spacer()
+                    Rectangle().fill(Color.red.opacity(0.35)).frame(width: 40, height: 2)
+                }
+                Spacer()
+                HStack {
+                    Rectangle().fill(Color.red.opacity(0.35)).frame(width: 40, height: 2)
+                    Spacer()
+                    Rectangle().fill(Color.red.opacity(0.35)).frame(width: 40, height: 2)
+                }
+            }
+            .padding(30)
+            // Vignette
+            RadialGradient(colors: [.clear, .black.opacity(0.55)], center: .center, startRadius: 200, endRadius: 800)
+        }
         .ignoresSafeArea()
     }
 
@@ -259,10 +288,8 @@ struct LobbyView: View {
     private func mapCard(name: String, label: String, available: Bool) -> some View {
         Button(action: { guard available else { return }; viewModel.selectedMap = name }) {
             VStack(spacing: 8) {
-                Rectangle()
-                    .fill(available ? Color.white.opacity(0.08) : Color.white.opacity(0.03))
-                    .frame(width: 160, height: 100).cornerRadius(8)
-                    .overlay(RoundedRectangle(cornerRadius: 8).stroke(viewModel.selectedMap == name ? Color.red : Color.white.opacity(0.1), lineWidth: 1))
+                MapThumbnail(kind: name, selected: viewModel.selectedMap == name, available: available)
+                    .frame(width: 160, height: 100)
                 Text(label)
                     .font(.system(size: 11, weight: .bold, design: .monospaced))
                     .foregroundColor(available ? .white : .gray.opacity(0.4))
@@ -339,5 +366,69 @@ struct LobbyView: View {
                 .font(.system(size: 12, weight: .bold, design: .monospaced))
                 .foregroundColor(.white)
         }
+    }
+}
+
+
+// MARK: - Procedural map thumbnails
+
+struct MapThumbnail: View {
+    let kind: String
+    let selected: Bool
+    let available: Bool
+
+    var body: some View {
+        ZStack {
+            Color(red: 0.08, green: 0.09, blue: 0.11)
+            Canvas { ctx, size in
+                let c: Color = available ? .white.opacity(0.55) : .white.opacity(0.15)
+                var p = Path()
+                let w = size.width, h = size.height, g = h * 0.78 // ground line
+                switch kind {
+                case "village":
+                    // little houses: two roof triangles + walls
+                    p.move(to: CGPoint(x: w*0.10, y: g)); p.addLine(to: CGPoint(x: w*0.10, y: h*0.45))
+                    p.addLine(to: CGPoint(x: w*0.24, y: h*0.28)); p.addLine(to: CGPoint(x: w*0.38, y: h*0.45));
+                    p.addLine(to: CGPoint(x: w*0.38, y: g))
+                    p.move(to: CGPoint(x: w*0.46, y: g)); p.addLine(to: CGPoint(x: w*0.46, y: h*0.52));
+                    p.addLine(to: CGPoint(x: w*0.58, y: h*0.36)); p.addLine(to: CGPoint(x: w*0.70, y: h*0.52));
+                    p.addLine(to: CGPoint(x: w*0.70, y: g))
+                    // church spire
+                    p.move(to: CGPoint(x: w*0.82, y: g)); p.addLine(to: CGPoint(x: w*0.82, y: h*0.30)); p.addLine(to: CGPoint(x: w*0.90, y: h*0.18)); p.addLine(to: CGPoint(x: w*0.94, y: h*0.30))
+                case "arena":
+                    // concentric ring arena
+                    let cx = w/2, cy = h*0.52
+                    for (i, r) in [w*0.36, w*0.24, w*0.12].enumerated() {
+                        let rect = CGRect(x: cx-r, y: cy-r*0.55, width: r*2, height: r*1.1)
+                        p.addEllipse(in: rect)
+                        if i == 1 { p.addEllipse(in: rect.insetBy(dx: w*0.05, dy: w*0.03)) }
+                    }
+                default:
+                    // industrial: crates + silos skyline
+                    p.addRect(CGRect(x: w*0.08, y: g-h*0.30, width: w*0.14, height: h*0.30))
+                    p.addRect(CGRect(x: w*0.26, y: g-h*0.48, width: w*0.14, height: h*0.48))
+                    p.addRect(CGRect(x: w*0.44, y: g-h*0.22, width: w*0.14, height: h*0.22))
+                    // silo with dome
+                    p.addRect(CGRect(x: w*0.66, y: g-h*0.55, width: w*0.13, height: h*0.55))
+                    p.addEllipse(in: CGRect(x: w*0.66, y: g-h*0.65, width: w*0.13, height: h*0.20))
+                    // crane mast
+                    p.move(to: CGPoint(x: w*0.88, y: g)); p.addLine(to: CGPoint(x: w*0.88, y: h*0.15)); p.addLine(to: CGPoint(x: w*0.70, y: h*0.15))
+                }
+                // ground line for all
+                p.move(to: CGPoint(x: 0, y: g)); p.addLine(to: CGPoint(x: w, y: g))
+                ctx.stroke(p, with: .color(c), lineWidth: 1.5)
+            }
+            .padding(6)
+            if selected {
+                RoundedRectangle(cornerRadius: 8).stroke(Color.red, lineWidth: 1.5)
+            } else {
+                RoundedRectangle(cornerRadius: 8).stroke(Color.white.opacity(0.1), lineWidth: 1)
+            }
+            if !available {
+                Color.black.opacity(0.45)
+                Image(systemName: "lock.fill").foregroundColor(.gray.opacity(0.7)).font(.system(size: 16))
+            }
+        }
+        .cornerRadius(8)
     }
 }

@@ -46,10 +46,30 @@ final class RealityPlayerSystem {
             } else {
                 soldier.scale = SIMD3<Float>(repeating: 0.9)
             }
-            soldier.position = [0, -0.9, 0]
-            let idleAnim = soldier.availableAnimations.first(where: { ($0.name ?? "").lowercased().contains("idle") }) ?? soldier.availableAnimations.first
-            if let anim = idleAnim {
-                soldier.playAnimation(anim.repeat(), transitionDuration: 0.2)
+            // In-scene skinning renders the raw Z-up skeleton frame (the loader's
+            // upAxis wrapper does not affect posed skinning), so rotate the node
+            // ourselves: model-up (+Z raw) -> world +Y.
+            soldier.orientation = simd_quatf(angle: .pi, axis: [0, 1, 0]) * simd_quatf(angle: -.pi / 2, axis: [1, 0, 0])
+            // visualBounds reports the BIND pose, but the animated skeleton
+            // (hips locked at raw (0.355,-1.693,-1.221)) renders 1.22m below and
+            // offset from the node under rotY(pi)*rotX(-pi/2). Counter-offset so
+            // the RENDERED feet land at capsule bottom (-0.9):
+            //   hips_render = (-0.355, -1.221, -1.693), feet = hips - 0.81 leg
+            soldier.position = SIMD3<Float>(0.355, 1.131, 1.693)
+            // Bind per-action clips from external USDZs (AnimatedSoldier only
+            // embeds 'Dying' — never use availableAnimations here!)
+            for clipName in ["Rifle_Idle", "Rifle_Run", "Rifle_Jump", "Firing_Rifle",
+                             "Firing_walk_Rifle", "Strafe_Left", "Strafe_Right",
+                             "Walking_Backwards", "Dying"] {
+                if let u = Bundle.main.url(forResource: clipName, withExtension: "usdz"),
+                   let clip = try? await RealityKit.Entity.load(contentsOf: u),
+                   let res = clip.availableAnimations.first {
+                    viewMaps.soldierAnims[clipName] = res
+                }
+            }
+            NSLog("[WB-R] clips bound: %@", viewMaps.soldierAnims.keys.sorted().joined(separator: ","))
+            if let idle = viewMaps.soldierAnims["Rifle_Idle"] {
+                soldier.playAnimation(idle.repeat(), transitionDuration: 0.2)
             }
             player.addChild(soldier)
             viewMaps.soldier = soldier
@@ -62,7 +82,7 @@ final class RealityPlayerSystem {
 
         let anchor = RealityKit.Entity()
         anchor.name = "cameraAnchor"
-        anchor.position = [0, 0.6, 0]
+        anchor.position = [0, 1.5, 1.7]
         let camEntity = RealityKit.Entity()
         var cam = PerspectiveCameraComponent()
         cam.fieldOfViewInDegrees = 75
@@ -72,22 +92,30 @@ final class RealityPlayerSystem {
         viewMaps.cameraAnchor = anchor
         viewMaps.cameraEntity = camEntity
 
-        // FPS weapon viewmodel: swayRoot (camera child) + 3 weapons, scale 0.08 (web initWeapons)
-        let swayRoot = RealityKit.Entity()
-        swayRoot.name = "swayRoot"
-        anchor.addChild(swayRoot)
-        let ak = RealityWeapons.ak47()
-        ak.position = [0.08, -0.12, -0.38]
-        swayRoot.addChild(ak)
-        let m2010 = RealityWeapons.m2010()
-        m2010.position = [0.08, -0.12, -0.38]
-        m2010.isEnabled = false
-        swayRoot.addChild(m2010)
-        let pistol = RealityWeapons.pistol()
-        pistol.position = [0.08, -0.12, -0.38]
-        pistol.isEnabled = false
-        swayRoot.addChild(pistol)
-        viewMaps.swayRoot = swayRoot; viewMaps.weaponAK = ak; viewMaps.weaponM2010 = m2010; viewMaps.weaponPistol = pistol
+        // Third-person weapon: parented to the SOLDIER so it hangs at the body
+        // (right-hand/chest area) instead of floating in front of the camera.
+        if let soldier = viewMaps.soldier {
+            let swayRoot = RealityKit.Entity()
+            swayRoot.name = "swayRoot"
+            soldier.addChild(swayRoot)
+            let ak = RealityWeapons.ak47()
+            // Soldier local space: rendered body is offset by (0.355,1.131,1.693);
+            // hands sit ~1.3m above feet and ~0.3m right of body center.
+            ak.position = [0.05, 1.35, 1.45]
+            ak.scale = SIMD3<Float>(repeating: 0.17)
+            swayRoot.addChild(ak)
+            let m2010 = RealityWeapons.m2010()
+            m2010.position = [0.05, 1.35, 1.45]
+            m2010.scale = SIMD3<Float>(repeating: 0.69)
+            m2010.isEnabled = false
+            swayRoot.addChild(m2010)
+            let pistol = RealityWeapons.pistol()
+            pistol.position = [0.05, 1.35, 1.45]
+            pistol.scale = SIMD3<Float>(repeating: 0.63)
+            pistol.isEnabled = false
+            swayRoot.addChild(pistol)
+            viewMaps.swayRoot = swayRoot; viewMaps.weaponAK = ak; viewMaps.weaponM2010 = m2010; viewMaps.weaponPistol = pistol
+        }
         return player
     }
 }

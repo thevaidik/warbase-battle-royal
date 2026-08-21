@@ -4,6 +4,7 @@ import simd
 
 // Mirrors client/src/ecs/systems/PlayerMovementSystem.ts exactly
 final class RealityPlayerMovementSystem {
+    var localPlayerId: Int = 0
     private let WALK_SPEED: Float = 4.5
     private let SPRINT_SPEED: Float = 5.5
     private let CROUCH_SPEED: Float = 2.0
@@ -30,17 +31,26 @@ final class RealityPlayerMovementSystem {
     private var currentVelZ: Float = 0
     private var currentFOV: Float = 75
     private var currentCamY: Float = 0.6
-    private var currentAnim: String = ""
+    var currentAnim: String = ""
 
     private func moveTowards(_ current: Float, _ target: Float, _ maxDelta: Float) -> Float {
         if abs(target - current) <= maxDelta { return target }
         return current + (target > current ? maxDelta : -maxDelta)
     }
 
+    private func isInSubtree(_ entity: RealityKit.Entity, root: RealityKit.Entity) -> Bool {
+        var cur: RealityKit.Entity? = entity
+        while let e = cur {
+            if e === root { return true }
+            cur = e.parent
+        }
+        return false
+    }
+
     func update(deltaTime: Float, world: World, viewMaps: RealityViewMaps, scene: RealityKit.Scene? = nil) {
         guard let player = viewMaps.player,
               let camEntity = viewMaps.cameraEntity else { return }
-        guard let entity = world.entities.first?.value,
+        guard let entity = world.entities[localPlayerId],
               var input = entity.getComponent(InputState.self),
               var pState = entity.getComponent(PlayerComponentState.self) else { return }
 
@@ -50,9 +60,23 @@ final class RealityPlayerMovementSystem {
         pState.jumpCooldownTimer = max(0, pState.jumpCooldownTimer - dt)
         pState.coyoteTimer = max(0, pState.coyoteTimer - dt)
 
-        // Ground check - feet at 0, capsule center 0.9 (web ray 0.95 down)
+        // Ground check via raycast
         let wasGrounded = pState.isGrounded
-        let isGrounded = player.position.y <= 0.95
+        var isGrounded = false
+        var groundY: Float = -100
+        if let sc = player.scene {
+            // Cast from ABOVE the head: if the capsule sinks slightly into the
+            // terrain skin, an origin at capsule level is below the top surface
+            // and only sees deeper floor layers -> player rests underground.
+            let origin = player.position + [0, 1.2, 0]
+            let hits = sc.raycast(origin: origin, direction: [0,-1,0], length: 4, query: .all, mask: .all)
+            if let h = hits.first(where: { !isInSubtree($0.entity, root: player) }) {
+                groundY = h.position.y
+                // Require falling: otherwise the launch frame of a jump gets
+                // instantly re-grounded and the jump is killed in 1 frame.
+                isGrounded = verticalVel <= 0.1 && (player.position.y - 0.9) <= groundY + 0.15
+            }
+        }
         pState.isGrounded = isGrounded
 
         // Void fall (web:68-73)
@@ -131,7 +155,7 @@ final class RealityPlayerMovementSystem {
         // Vertical (gravity + jump, web:189-194)
         if isGrounded {
             verticalVel = 0
-            if player.position.y < 0.9 { player.position.y = 0.9 }
+            player.position.y = groundY + 0.9
         } else {
             verticalVel += GRAVITY * dt
         }
@@ -151,7 +175,7 @@ final class RealityPlayerMovementSystem {
             let dir = normalize(horiz)
             let dist = horizLen * dt + 0.45
             let hits = scene.raycast(origin: origin, direction: dir, length: dist, query: .all, mask: .all)
-            if let hit = hits.first(where: { $0.entity !== player }) {
+            if let hit = hits.first(where: { !isInSubtree($0.entity, root: player) }) {
                 if hit.distance < dist {
                     currentVelX = 0
                     currentVelZ = 0
@@ -162,12 +186,8 @@ final class RealityPlayerMovementSystem {
         }
         player.position += vel * dt
 
-        // Camera height lerp (web:200-204)
-        let targetCamY = pState.isCrouching ? CROUCH_CAM_Y : STAND_CAM_Y
-        currentCamY += (targetCamY - currentCamY) * min(1, CROUCH_LERP_SPEED * dt)
-        if let camAnchor = viewMaps.cameraAnchor {
-            camAnchor.position = SIMD3<Float>(0, currentCamY, 0)
-        }
+        // Third-person camera anchor stays at [0, 1.6, 4.0] set in initPlayer.
+        // (Old first-person crouch-height lerp removed.)
 
         // Animations (same names as web anim_data.json)
         if let soldier = viewMaps.soldier {
@@ -181,16 +201,19 @@ final class RealityPlayerMovementSystem {
                 else { targetAnim = "Rifle Run" }
             } else { targetAnim = "Rifle Idle" }
             if targetAnim != currentAnim {
-                let anim = soldier.availableAnimations.first(where: { ($0.name ?? "").lowercased().contains(targetAnim.lowercased()) })
-                    ?? soldier.availableAnimations.first(where: { ($0.name ?? "").lowercased().contains("idle") })
-                    ?? soldier.availableAnimations.first
-                if let a = anim {
+                let key = targetAnim.replacingOccurrences(of: " ", with: "_")
+                let res = viewMaps.soldierAnims[key] ?? viewMaps.soldierAnims["Rifle_Idle"]
+                if let a = res {
                     soldier.stopAllAnimations()
                     soldier.playAnimation(a.repeat(), transitionDuration: 0.2)
                     currentAnim = targetAnim
                 }
             }
         }
+
+        // Pin soldier node against animation-baked node tracks
+        viewMaps.soldier?.orientation = simd_quatf(angle: .pi, axis: [0, 1, 0]) * simd_quatf(angle: -.pi / 2, axis: [1, 0, 0])
+        viewMaps.soldier?.position = SIMD3<Float>(0.355, 1.131, 1.693)
 
         input.jump = false
         entity.addComponent(input)

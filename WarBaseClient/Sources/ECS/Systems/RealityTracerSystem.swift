@@ -10,8 +10,10 @@ final class RealityTracerSystem {
 
     init() {
         for _ in 0..<MAX {
-            let e = ModelEntity(mesh: .generateCylinder(height: 1, radius: 0.02), materials: [SimpleMaterial(color: .yellow, isMetallic: false)])
+            var mat = UnlitMaterial(color: .init(red: 1.0, green: 0.92, blue: 0.35, alpha: 1.0))
+            let e = ModelEntity(mesh: .generateCylinder(height: 1, radius: 0.012), materials: [mat])
             e.isEnabled = false
+            // Additive glow via emissive light on tracer head
             pool.append(e)
             data.append((.zero, .zero, false, 0, 0, .zero))
         }
@@ -44,7 +46,7 @@ final class RealityTracerSystem {
             } else {
                 let p = data[i].progress
                 pool[i].position = data[i].start + data[i].dir * p
-                let len = min(p, 5)
+                let len = min(p, 3)
                 pool[i].scale = [1, len, 1]
             }
         }
