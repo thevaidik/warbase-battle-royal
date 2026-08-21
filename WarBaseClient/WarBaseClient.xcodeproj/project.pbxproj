@@ -7,74 +7,84 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		0334C512E228C3908E01B5BB /* CityBlueprint.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3EA70AD4D5941B81DECEE54F /* CityBlueprint.swift */; };
-		088D84D02603CD63D5101F0D /* PlayerSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE18AA1F0ECC692C93947FFC /* PlayerSystem.swift */; };
 		11392963AA7E3641A41558FC /* Platform.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC4D53D0BA693D0B632B542C /* Platform.swift */; };
-		16CC5B69B50F1A09592DE0F7 /* M2010Builder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1066EFBA60216C54887B1B17 /* M2010Builder.swift */; };
-		204E8F1F4CD06BC3F6E2864D /* BotController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 415B4220D7DFED5461762C4E /* BotController.swift */; };
-		323C6E14FF8391E5D7F65956 /* EnvironmentManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F14A2E733A6806004CE47CAF /* EnvironmentManager.swift */; };
-		40CF23425594132154185524 /* WeaponSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = D27BA2716508161A183C4703 /* WeaponSystem.swift */; };
+		1FE7BDADD84FB39632FB000F /* LobbyViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9489EE8280BB9B827BE75A56 /* LobbyViewModel.swift */; };
+		23248BCF9B94D26FB62E1A03 /* RealityGameView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 960E61A2916863ED73247365 /* RealityGameView.swift */; };
+		2B47A269F2B97CEA72E48F34 /* RealityDecalSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F5C2A57E37AED982409D78F /* RealityDecalSystem.swift */; };
+		34E32469530A84D1DC12B60A /* RealityTracerSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = D52267311B9AC274157017BB /* RealityTracerSystem.swift */; };
+		3F09F660399AEE120701CD43 /* RealityWeapons.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4838AD826C19BAC429808091 /* RealityWeapons.swift */; };
 		4366E44548B09B3783CC0E54 /* AnimatedSoldier.usdz in Resources */ = {isa = PBXBuildFile; fileRef = 5DB8D9127801B09D2FB83BCE /* AnimatedSoldier.usdz */; };
 		4A58192F95DE747E5864C6D5 /* SwiftProtobuf in Frameworks */ = {isa = PBXBuildFile; productRef = 4ED3C9901D8DC71C94B32100 /* SwiftProtobuf */; };
 		4D290AE1AF5200192C0B6C04 /* ScopeOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD810B6EFB6BC869549B2BF2 /* ScopeOverlay.swift */; };
-		502980C152A669CF774FB04F /* ImpactSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 520C879824CE0717FA98282A /* ImpactSystem.swift */; };
-		531B5CA0F575A0DCD26DA5D8 /* PhysicsSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C6E6AF992B41E47DF4CA960 /* PhysicsSystem.swift */; };
-		5C1F77FB12E38DA88D6D8028 /* MapBlueprint.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAD0B0CF51B84BB1D3EA66CF /* MapBlueprint.swift */; };
+		52EA97B845F81FEE1E9D2F92 /* RealityPlayerSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5F2A9E3C4441D7CC297FDA0 /* RealityPlayerSystem.swift */; };
+		5485CDDD3D527171D204A9C7 /* LobbyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B378A9E6ACFEB18E1175B36 /* LobbyView.swift */; };
+		5960C6CE75337976C3E8E47D /* GameViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C02962F20AE7057B4A2ACAB5 /* GameViewModel.swift */; };
+		5B4797B58B09ACE9FAE7EAC7 /* InputManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A67755D78276D04D3CE0459 /* InputManager.swift */; };
 		5E887999E63D369C290EE4C1 /* WeaponPreview3D.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4C65FC331A7F5B3BE893124 /* WeaponPreview3D.swift */; };
+		6AB69FB49CC85BBFC3743AD5 /* GameContainerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0DF1C330199EC5A28C59D83 /* GameContainerView.swift */; };
 		6FBD19FABEC376816F521D84 /* World.swift in Sources */ = {isa = PBXBuildFile; fileRef = EED5A91DECC4CC254A576ED1 /* World.swift */; };
 		71C38F17389B877D03C41B82 /* NetworkManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B8E7F6E5DACF292421779599 /* NetworkManager.swift */; };
 		788288F7BC5063F11C161543 /* packets.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCE02098FFC5C3DB4BE72D5B /* packets.pb.swift */; };
-		7ADD9F750244100A952C283D /* GrenadeSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D43A5E0C22BBDEC0DD5C3B2 /* GrenadeSystem.swift */; };
-		8BB2FDF85CDA994112D38E18 /* ViewMaps.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEABF20151797E06B6E43206 /* ViewMaps.swift */; };
+		7A89AEEB11197EB93B25FBBA /* RealityKeyCapture.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEE67D37C716307516894ED7 /* RealityKeyCapture.swift */; };
+		83B9F3D9D392DE45941A1AA4 /* PauseMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D1B82C6140CB5F6DE60CE12 /* PauseMenuView.swift */; };
+		8FC434725F4B0F08DE212623 /* RealityGrenadeSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D57562E660897DFCAC60183 /* RealityGrenadeSystem.swift */; };
+		93582912070EF99DCBAA9B33 /* RealityPlayerMovementSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 005ED2ED709988529C78C4B1 /* RealityPlayerMovementSystem.swift */; };
+		95A1A8716C92B5711681D100 /* HUDView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8960B74199290B913FBE2942 /* HUDView.swift */; };
 		98997A2CD9F2EADD7F46AA5F /* WarBaseApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C5992B4C2C91CF2C436DE93 /* WarBaseApp.swift */; };
 		A2D6D233D6C8689FAF76B3D2 /* Entity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 40872CD0691A73DECFF523D8 /* Entity.swift */; };
-		A77B0991F15271072333755A /* PistolBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15FFB22B6E23F574DEAD05F8 /* PistolBuilder.swift */; };
-		AE63586377737B48800E3F58 /* GameSceneView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE82C9B5ED8CABE027EBA297 /* GameSceneView.swift */; };
+		A7E44450F05082EEA6F266FC /* RealityMultiplayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDD9447F3FCB1257C628F6CD /* RealityMultiplayer.swift */; };
 		AF833FEE3B86E00973B7CC6C /* WeaponConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4FF72B227D5CA5A32DD619C5 /* WeaponConfig.swift */; };
-		B17F9B8AB7566E3D01CDFF7B /* TracerSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE94D4C44723B7A07B6955D2 /* TracerSystem.swift */; };
-		B9447503C8526CD2BEDDE490 /* BulletForceCityBlueprint.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74F7E4BAB77E69CCFEA9B210 /* BulletForceCityBlueprint.swift */; };
 		BF490F5E04F5F7E2854CEAD7 /* Components.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCC5CA9BBD7713BB916685CD /* Components.swift */; };
+		CFA822DC40A2E0C6ED360672 /* industrial.usdz in Resources */ = {isa = PBXBuildFile; fileRef = C952CD0CC6719873D9B6E366 /* industrial.usdz */; };
+		D50D14F6AAD8C4D8BFE59B9B /* venice_sunset_1k.hdr in Resources */ = {isa = PBXBuildFile; fileRef = D349B8004F5A7DF66C6047B1 /* venice_sunset_1k.hdr */; };
+		DCEF339A0ABC5CF572DCC80F /* RealityImpactSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = DAC41EF3ACFEEDBE8CD0FB21 /* RealityImpactSystem.swift */; };
 		DE0CE9FCDD9EA3E27FB41C1D /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A12A48B7502F62634D79EA1 /* ContentView.swift */; };
-		E0AB00E172AD3A7EF23BC1A0 /* MainMenuScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = 568A1BC53C3419CAA194CAF9 /* MainMenuScene.swift */; };
-		E35BEF8BC774F32947363831 /* PlayerMovementSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45C85AAF6189208ED0B00860 /* PlayerMovementSystem.swift */; };
-		E4610A4D0DB8F4E4529012FC /* DecalSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 334C94E9DDE71AE24E262DEA /* DecalSystem.swift */; };
-		E506608E26C3FAA1B0316533 /* MultiplayerEntities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 35C5734CD1339B385A7CE111 /* MultiplayerEntities.swift */; };
-		EC9F440870EA0D244D3CFBE8 /* AK47Builder.swift in Sources */ = {isa = PBXBuildFile; fileRef = D43AEB00D67876334A278D61 /* AK47Builder.swift */; };
+		E3B9FD9C12493E453DD92945 /* ScoreboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0EA0A39F74E430B517BB3DCF /* ScoreboardView.swift */; };
+		E58D8228A930AA150E329831 /* LoadingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07560D51A3B47BEBF4867265 /* LoadingView.swift */; };
+		F3AC9EE8F9CB5B30475ED2A3 /* RealityWeaponSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E7C3D635C174FED01296FB4 /* RealityWeaponSystem.swift */; };
+		F88A557492EF75EDC5DBFE94 /* anim_data.json in Resources */ = {isa = PBXBuildFile; fileRef = 6E85ABEEFC69F781DAED85E9 /* anim_data.json */; };
+		F9FC54835A4655757F56CCB5 /* MobileControlsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80CE6B67AB0D06370322BF92 /* MobileControlsView.swift */; };
+		FD41CE6E6A03B2B9D7B5DD5A /* RealityViewMaps.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3659E03205EABB1B7A492BBF /* RealityViewMaps.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		1066EFBA60216C54887B1B17 /* M2010Builder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = M2010Builder.swift; sourceTree = "<group>"; };
-		15FFB22B6E23F574DEAD05F8 /* PistolBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PistolBuilder.swift; sourceTree = "<group>"; };
-		334C94E9DDE71AE24E262DEA /* DecalSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DecalSystem.swift; sourceTree = "<group>"; };
-		35C5734CD1339B385A7CE111 /* MultiplayerEntities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultiplayerEntities.swift; sourceTree = "<group>"; };
-		3EA70AD4D5941B81DECEE54F /* CityBlueprint.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CityBlueprint.swift; sourceTree = "<group>"; };
+		005ED2ED709988529C78C4B1 /* RealityPlayerMovementSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RealityPlayerMovementSystem.swift; sourceTree = "<group>"; };
+		07560D51A3B47BEBF4867265 /* LoadingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadingView.swift; sourceTree = "<group>"; };
+		0D57562E660897DFCAC60183 /* RealityGrenadeSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RealityGrenadeSystem.swift; sourceTree = "<group>"; };
+		0E7C3D635C174FED01296FB4 /* RealityWeaponSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RealityWeaponSystem.swift; sourceTree = "<group>"; };
+		0EA0A39F74E430B517BB3DCF /* ScoreboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScoreboardView.swift; sourceTree = "<group>"; };
+		1B378A9E6ACFEB18E1175B36 /* LobbyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LobbyView.swift; sourceTree = "<group>"; };
+		2D1B82C6140CB5F6DE60CE12 /* PauseMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PauseMenuView.swift; sourceTree = "<group>"; };
+		3659E03205EABB1B7A492BBF /* RealityViewMaps.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RealityViewMaps.swift; sourceTree = "<group>"; };
 		40872CD0691A73DECFF523D8 /* Entity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Entity.swift; sourceTree = "<group>"; };
-		415B4220D7DFED5461762C4E /* BotController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BotController.swift; sourceTree = "<group>"; };
-		45C85AAF6189208ED0B00860 /* PlayerMovementSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerMovementSystem.swift; sourceTree = "<group>"; };
-		4C6E6AF992B41E47DF4CA960 /* PhysicsSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhysicsSystem.swift; sourceTree = "<group>"; };
-		4D43A5E0C22BBDEC0DD5C3B2 /* GrenadeSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrenadeSystem.swift; sourceTree = "<group>"; };
+		4838AD826C19BAC429808091 /* RealityWeapons.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RealityWeapons.swift; sourceTree = "<group>"; };
 		4FF72B227D5CA5A32DD619C5 /* WeaponConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeaponConfig.swift; sourceTree = "<group>"; };
-		520C879824CE0717FA98282A /* ImpactSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImpactSystem.swift; sourceTree = "<group>"; };
-		568A1BC53C3419CAA194CAF9 /* MainMenuScene.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainMenuScene.swift; sourceTree = "<group>"; };
+		5A67755D78276D04D3CE0459 /* InputManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputManager.swift; sourceTree = "<group>"; };
 		5C5992B4C2C91CF2C436DE93 /* WarBaseApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WarBaseApp.swift; sourceTree = "<group>"; };
 		5DB8D9127801B09D2FB83BCE /* AnimatedSoldier.usdz */ = {isa = PBXFileReference; lastKnownFileType = file.usdz; path = AnimatedSoldier.usdz; sourceTree = "<group>"; };
-		74F7E4BAB77E69CCFEA9B210 /* BulletForceCityBlueprint.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BulletForceCityBlueprint.swift; sourceTree = "<group>"; };
+		5F5C2A57E37AED982409D78F /* RealityDecalSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RealityDecalSystem.swift; sourceTree = "<group>"; };
+		6E85ABEEFC69F781DAED85E9 /* anim_data.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = anim_data.json; sourceTree = "<group>"; };
+		80CE6B67AB0D06370322BF92 /* MobileControlsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobileControlsView.swift; sourceTree = "<group>"; };
+		8960B74199290B913FBE2942 /* HUDView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HUDView.swift; sourceTree = "<group>"; };
+		9489EE8280BB9B827BE75A56 /* LobbyViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LobbyViewModel.swift; sourceTree = "<group>"; };
+		960E61A2916863ED73247365 /* RealityGameView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RealityGameView.swift; sourceTree = "<group>"; };
 		9A12A48B7502F62634D79EA1 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		A4C65FC331A7F5B3BE893124 /* WeaponPreview3D.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeaponPreview3D.swift; sourceTree = "<group>"; };
 		AC4D53D0BA693D0B632B542C /* Platform.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Platform.swift; sourceTree = "<group>"; };
-		AE82C9B5ED8CABE027EBA297 /* GameSceneView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameSceneView.swift; sourceTree = "<group>"; };
 		B8E7F6E5DACF292421779599 /* NetworkManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkManager.swift; sourceTree = "<group>"; };
 		BD810B6EFB6BC869549B2BF2 /* ScopeOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScopeOverlay.swift; sourceTree = "<group>"; };
-		BEABF20151797E06B6E43206 /* ViewMaps.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewMaps.swift; sourceTree = "<group>"; };
-		CE94D4C44723B7A07B6955D2 /* TracerSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TracerSystem.swift; sourceTree = "<group>"; };
-		D27BA2716508161A183C4703 /* WeaponSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeaponSystem.swift; sourceTree = "<group>"; };
-		D43AEB00D67876334A278D61 /* AK47Builder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AK47Builder.swift; sourceTree = "<group>"; };
+		C02962F20AE7057B4A2ACAB5 /* GameViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameViewModel.swift; sourceTree = "<group>"; };
+		C952CD0CC6719873D9B6E366 /* industrial.usdz */ = {isa = PBXFileReference; lastKnownFileType = file.usdz; path = industrial.usdz; sourceTree = "<group>"; };
+		D349B8004F5A7DF66C6047B1 /* venice_sunset_1k.hdr */ = {isa = PBXFileReference; path = venice_sunset_1k.hdr; sourceTree = "<group>"; };
+		D52267311B9AC274157017BB /* RealityTracerSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RealityTracerSystem.swift; sourceTree = "<group>"; };
+		DAC41EF3ACFEEDBE8CD0FB21 /* RealityImpactSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RealityImpactSystem.swift; sourceTree = "<group>"; };
 		DCC5CA9BBD7713BB916685CD /* Components.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Components.swift; sourceTree = "<group>"; };
 		DCE02098FFC5C3DB4BE72D5B /* packets.pb.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = packets.pb.swift; sourceTree = "<group>"; };
-		EAD0B0CF51B84BB1D3EA66CF /* MapBlueprint.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapBlueprint.swift; sourceTree = "<group>"; };
-		EE18AA1F0ECC692C93947FFC /* PlayerSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerSystem.swift; sourceTree = "<group>"; };
+		DDD9447F3FCB1257C628F6CD /* RealityMultiplayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RealityMultiplayer.swift; sourceTree = "<group>"; };
 		EED5A91DECC4CC254A576ED1 /* World.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = World.swift; sourceTree = "<group>"; };
-		F14A2E733A6806004CE47CAF /* EnvironmentManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnvironmentManager.swift; sourceTree = "<group>"; };
+		EEE67D37C716307516894ED7 /* RealityKeyCapture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RealityKeyCapture.swift; sourceTree = "<group>"; };
+		F0DF1C330199EC5A28C59D83 /* GameContainerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameContainerView.swift; sourceTree = "<group>"; };
+		F5F2A9E3C4441D7CC297FDA0 /* RealityPlayerSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RealityPlayerSystem.swift; sourceTree = "<group>"; };
 		F7D7BDFFC7112EF7BF320423 /* WarBaseClient.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = WarBaseClient.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -111,7 +121,7 @@
 			children = (
 				DCC5CA9BBD7713BB916685CD /* Components.swift */,
 				40872CD0691A73DECFF523D8 /* Entity.swift */,
-				BEABF20151797E06B6E43206 /* ViewMaps.swift */,
+				3659E03205EABB1B7A492BBF /* RealityViewMaps.swift */,
 				EED5A91DECC4CC254A576ED1 /* World.swift */,
 				B5D4E5553C9FFD7D360B5BD5 /* Systems */,
 			);
@@ -121,12 +131,9 @@
 		34D221F082704603CE706253 /* Engine */ = {
 			isa = PBXGroup;
 			children = (
-				74F7E4BAB77E69CCFEA9B210 /* BulletForceCityBlueprint.swift */,
-				3EA70AD4D5941B81DECEE54F /* CityBlueprint.swift */,
-				F14A2E733A6806004CE47CAF /* EnvironmentManager.swift */,
-				AE82C9B5ED8CABE027EBA297 /* GameSceneView.swift */,
-				568A1BC53C3419CAA194CAF9 /* MainMenuScene.swift */,
-				EAD0B0CF51B84BB1D3EA66CF /* MapBlueprint.swift */,
+				5A67755D78276D04D3CE0459 /* InputManager.swift */,
+				960E61A2916863ED73247365 /* RealityGameView.swift */,
+				EEE67D37C716307516894ED7 /* RealityKeyCapture.swift */,
 			);
 			path = Engine;
 			sourceTree = "<group>";
@@ -134,11 +141,15 @@
 		5E601BC5C8D728F479AF7949 /* Sources */ = {
 			isa = PBXGroup;
 			children = (
+				6E85ABEEFC69F781DAED85E9 /* anim_data.json */,
 				5DB8D9127801B09D2FB83BCE /* AnimatedSoldier.usdz */,
-				415B4220D7DFED5461762C4E /* BotController.swift */,
 				9A12A48B7502F62634D79EA1 /* ContentView.swift */,
+				C02962F20AE7057B4A2ACAB5 /* GameViewModel.swift */,
+				C952CD0CC6719873D9B6E366 /* industrial.usdz */,
+				9489EE8280BB9B827BE75A56 /* LobbyViewModel.swift */,
 				DCE02098FFC5C3DB4BE72D5B /* packets.pb.swift */,
 				AC4D53D0BA693D0B632B542C /* Platform.swift */,
+				D349B8004F5A7DF66C6047B1 /* venice_sunset_1k.hdr */,
 				5C5992B4C2C91CF2C436DE93 /* WarBaseApp.swift */,
 				22D1A6DE175049E84334EE50 /* ECS */,
 				34D221F082704603CE706253 /* Engine */,
@@ -152,8 +163,8 @@
 		989885E3162C738129036188 /* Network */ = {
 			isa = PBXGroup;
 			children = (
-				35C5734CD1339B385A7CE111 /* MultiplayerEntities.swift */,
 				B8E7F6E5DACF292421779599 /* NetworkManager.swift */,
+				DDD9447F3FCB1257C628F6CD /* RealityMultiplayer.swift */,
 			);
 			path = Network;
 			sourceTree = "<group>";
@@ -161,12 +172,11 @@
 		B5D4E5553C9FFD7D360B5BD5 /* Systems */ = {
 			isa = PBXGroup;
 			children = (
-				334C94E9DDE71AE24E262DEA /* DecalSystem.swift */,
-				520C879824CE0717FA98282A /* ImpactSystem.swift */,
-				4C6E6AF992B41E47DF4CA960 /* PhysicsSystem.swift */,
-				45C85AAF6189208ED0B00860 /* PlayerMovementSystem.swift */,
-				EE18AA1F0ECC692C93947FFC /* PlayerSystem.swift */,
-				CE94D4C44723B7A07B6955D2 /* TracerSystem.swift */,
+				5F5C2A57E37AED982409D78F /* RealityDecalSystem.swift */,
+				DAC41EF3ACFEEDBE8CD0FB21 /* RealityImpactSystem.swift */,
+				005ED2ED709988529C78C4B1 /* RealityPlayerMovementSystem.swift */,
+				F5F2A9E3C4441D7CC297FDA0 /* RealityPlayerSystem.swift */,
+				D52267311B9AC274157017BB /* RealityTracerSystem.swift */,
 			);
 			path = Systems;
 			sourceTree = "<group>";
@@ -174,7 +184,14 @@
 		CE4292CC8C5E8E30F8ADC9FB /* UI */ = {
 			isa = PBXGroup;
 			children = (
+				F0DF1C330199EC5A28C59D83 /* GameContainerView.swift */,
+				8960B74199290B913FBE2942 /* HUDView.swift */,
+				07560D51A3B47BEBF4867265 /* LoadingView.swift */,
+				1B378A9E6ACFEB18E1175B36 /* LobbyView.swift */,
+				80CE6B67AB0D06370322BF92 /* MobileControlsView.swift */,
+				2D1B82C6140CB5F6DE60CE12 /* PauseMenuView.swift */,
 				BD810B6EFB6BC869549B2BF2 /* ScopeOverlay.swift */,
+				0EA0A39F74E430B517BB3DCF /* ScoreboardView.swift */,
 				A4C65FC331A7F5B3BE893124 /* WeaponPreview3D.swift */,
 			);
 			path = UI;
@@ -183,12 +200,10 @@
 		F281080B554E0EAA46D5E350 /* Weapons */ = {
 			isa = PBXGroup;
 			children = (
-				D43AEB00D67876334A278D61 /* AK47Builder.swift */,
-				4D43A5E0C22BBDEC0DD5C3B2 /* GrenadeSystem.swift */,
-				1066EFBA60216C54887B1B17 /* M2010Builder.swift */,
-				15FFB22B6E23F574DEAD05F8 /* PistolBuilder.swift */,
+				0D57562E660897DFCAC60183 /* RealityGrenadeSystem.swift */,
+				4838AD826C19BAC429808091 /* RealityWeapons.swift */,
+				0E7C3D635C174FED01296FB4 /* RealityWeaponSystem.swift */,
 				4FF72B227D5CA5A32DD619C5 /* WeaponConfig.swift */,
-				D27BA2716508161A183C4703 /* WeaponSystem.swift */,
 			);
 			path = Weapons;
 			sourceTree = "<group>";
@@ -223,7 +238,12 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
-				LastUpgradeCheck = 1430;
+				LastUpgradeCheck = 1600;
+				TargetAttributes = {
+					0284D3C45BE3DD710AB6CBE6 = {
+						DevelopmentTeam = 7RWMCRQ389;
+					};
+				};
 			};
 			buildConfigurationList = C516127534AF5231694D1414 /* Build configuration list for PBXProject "WarBaseClient" */;
 			developmentRegion = en;
@@ -253,6 +273,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				4366E44548B09B3783CC0E54 /* AnimatedSoldier.usdz in Resources */,
+				F88A557492EF75EDC5DBFE94 /* anim_data.json in Resources */,
+				CFA822DC40A2E0C6ED360672 /* industrial.usdz in Resources */,
+				D50D14F6AAD8C4D8BFE59B9B /* venice_sunset_1k.hdr in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -263,35 +286,37 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				EC9F440870EA0D244D3CFBE8 /* AK47Builder.swift in Sources */,
-				204E8F1F4CD06BC3F6E2864D /* BotController.swift in Sources */,
-				B9447503C8526CD2BEDDE490 /* BulletForceCityBlueprint.swift in Sources */,
-				0334C512E228C3908E01B5BB /* CityBlueprint.swift in Sources */,
 				BF490F5E04F5F7E2854CEAD7 /* Components.swift in Sources */,
 				DE0CE9FCDD9EA3E27FB41C1D /* ContentView.swift in Sources */,
-				E4610A4D0DB8F4E4529012FC /* DecalSystem.swift in Sources */,
 				A2D6D233D6C8689FAF76B3D2 /* Entity.swift in Sources */,
-				323C6E14FF8391E5D7F65956 /* EnvironmentManager.swift in Sources */,
-				AE63586377737B48800E3F58 /* GameSceneView.swift in Sources */,
-				7ADD9F750244100A952C283D /* GrenadeSystem.swift in Sources */,
-				502980C152A669CF774FB04F /* ImpactSystem.swift in Sources */,
-				16CC5B69B50F1A09592DE0F7 /* M2010Builder.swift in Sources */,
-				E0AB00E172AD3A7EF23BC1A0 /* MainMenuScene.swift in Sources */,
-				5C1F77FB12E38DA88D6D8028 /* MapBlueprint.swift in Sources */,
-				E506608E26C3FAA1B0316533 /* MultiplayerEntities.swift in Sources */,
+				6AB69FB49CC85BBFC3743AD5 /* GameContainerView.swift in Sources */,
+				5960C6CE75337976C3E8E47D /* GameViewModel.swift in Sources */,
+				95A1A8716C92B5711681D100 /* HUDView.swift in Sources */,
+				5B4797B58B09ACE9FAE7EAC7 /* InputManager.swift in Sources */,
+				E58D8228A930AA150E329831 /* LoadingView.swift in Sources */,
+				5485CDDD3D527171D204A9C7 /* LobbyView.swift in Sources */,
+				1FE7BDADD84FB39632FB000F /* LobbyViewModel.swift in Sources */,
+				F9FC54835A4655757F56CCB5 /* MobileControlsView.swift in Sources */,
 				71C38F17389B877D03C41B82 /* NetworkManager.swift in Sources */,
-				531B5CA0F575A0DCD26DA5D8 /* PhysicsSystem.swift in Sources */,
-				A77B0991F15271072333755A /* PistolBuilder.swift in Sources */,
+				83B9F3D9D392DE45941A1AA4 /* PauseMenuView.swift in Sources */,
 				11392963AA7E3641A41558FC /* Platform.swift in Sources */,
-				E35BEF8BC774F32947363831 /* PlayerMovementSystem.swift in Sources */,
-				088D84D02603CD63D5101F0D /* PlayerSystem.swift in Sources */,
+				2B47A269F2B97CEA72E48F34 /* RealityDecalSystem.swift in Sources */,
+				23248BCF9B94D26FB62E1A03 /* RealityGameView.swift in Sources */,
+				8FC434725F4B0F08DE212623 /* RealityGrenadeSystem.swift in Sources */,
+				DCEF339A0ABC5CF572DCC80F /* RealityImpactSystem.swift in Sources */,
+				7A89AEEB11197EB93B25FBBA /* RealityKeyCapture.swift in Sources */,
+				A7E44450F05082EEA6F266FC /* RealityMultiplayer.swift in Sources */,
+				93582912070EF99DCBAA9B33 /* RealityPlayerMovementSystem.swift in Sources */,
+				52EA97B845F81FEE1E9D2F92 /* RealityPlayerSystem.swift in Sources */,
+				34E32469530A84D1DC12B60A /* RealityTracerSystem.swift in Sources */,
+				FD41CE6E6A03B2B9D7B5DD5A /* RealityViewMaps.swift in Sources */,
+				F3AC9EE8F9CB5B30475ED2A3 /* RealityWeaponSystem.swift in Sources */,
+				3F09F660399AEE120701CD43 /* RealityWeapons.swift in Sources */,
 				4D290AE1AF5200192C0B6C04 /* ScopeOverlay.swift in Sources */,
-				B17F9B8AB7566E3D01CDFF7B /* TracerSystem.swift in Sources */,
-				8BB2FDF85CDA994112D38E18 /* ViewMaps.swift in Sources */,
+				E3B9FD9C12493E453DD92945 /* ScoreboardView.swift in Sources */,
 				98997A2CD9F2EADD7F46AA5F /* WarBaseApp.swift in Sources */,
 				AF833FEE3B86E00973B7CC6C /* WeaponConfig.swift in Sources */,
 				5E887999E63D369C290EE4C1 /* WeaponPreview3D.swift in Sources */,
-				40CF23425594132154185524 /* WeaponSystem.swift in Sources */,
 				6FBD19FABEC376816F521D84 /* World.swift in Sources */,
 				788288F7BC5063F11C161543 /* packets.pb.swift in Sources */,
 			);
@@ -304,17 +329,12 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_IDENTITY = "iPhone Developer";
-				DEVELOPMENT_TEAM = 7RWMCRQ389;
-				INFOPLIST_FILE = Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				COMBINE_HIDPI_IMAGES = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
-					"@executable_path/Frameworks",
+					"@executable_path/../Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.warbase.WarBaseClient;
-				SDKROOT = iphoneos;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				SDKROOT = macosx;
 			};
 			name = Debug;
 		};
@@ -351,8 +371,10 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "Apple Development";
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = 7RWMCRQ389;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
@@ -369,11 +391,14 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				INFOPLIST_FILE = Info.plist;
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.warbase.WarBaseClient;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = iphoneos;
+				SDKROOT = macosx;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -413,8 +438,10 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "Apple Development";
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = 7RWMCRQ389;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
@@ -425,10 +452,13 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				INFOPLIST_FILE = Info.plist;
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.warbase.WarBaseClient;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = iphoneos;
+				SDKROOT = macosx;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_VERSION = 5.0;
@@ -439,17 +469,12 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_IDENTITY = "iPhone Developer";
-				DEVELOPMENT_TEAM = 7RWMCRQ389;
-				INFOPLIST_FILE = Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				COMBINE_HIDPI_IMAGES = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
-					"@executable_path/Frameworks",
+					"@executable_path/../Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.warbase.WarBaseClient;
-				SDKROOT = iphoneos;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				SDKROOT = macosx;
 			};
 			name = Release;
 		};
@@ -482,7 +507,7 @@
 			repositoryURL = "https://github.com/apple/swift-protobuf.git";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 1.25.2;
+				minimumVersion = 1.28.0;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */

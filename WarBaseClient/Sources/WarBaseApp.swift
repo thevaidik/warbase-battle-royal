@@ -2,7 +2,8 @@ import SwiftUI
 
 @main
 struct WarBaseApp: App {
-    var body: some Scene {
+    init() { NSLog("[WB-R] WarBaseApp init") }
+    var body: some SwiftUI.Scene {
         WindowGroup {
             ContentView()
         }

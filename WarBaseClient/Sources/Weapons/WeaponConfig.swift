@@ -1,5 +1,5 @@
 import Foundation
-import SceneKit
+import simd
 
 
 public struct WeaponConfig {
@@ -23,8 +23,8 @@ public struct WeaponConfig {
     public var adsSpreadMult: Float
     public var adsRecoilMult: Float
     
-    public var hipPosition: SCNVector3
-    public var adsPosition: SCNVector3
+    public var hipPosition: SIMD3<Float>
+    public var adsPosition: SIMD3<Float>
     
     public var isAuto: Bool
 }
@@ -47,8 +47,8 @@ public let WEAPON_CONFIGS: [String: WeaponConfig] = [
         adsTime: 0.2,
         adsSpreadMult: 0.4,
         adsRecoilMult: 0.7,
-        hipPosition: SCNVector3(0.3, -0.3, 0.6),
-        adsPosition: SCNVector3(0, -0.15, 0.4),
+        hipPosition: SIMD3<Float>(0.3, -0.3, 0.6),
+        adsPosition: SIMD3<Float>(0, -0.15, 0.4),
         isAuto: true
     ),
     "Pistol": WeaponConfig(
@@ -68,8 +68,8 @@ public let WEAPON_CONFIGS: [String: WeaponConfig] = [
         adsTime: 0.12,
         adsSpreadMult: 0.2,
         adsRecoilMult: 0.5,
-        hipPosition: SCNVector3(0.2, -0.2, 0.5),
-        adsPosition: SCNVector3(0, -0.1, 0.35),
+        hipPosition: SIMD3<Float>(0.2, -0.2, 0.5),
+        adsPosition: SIMD3<Float>(0, -0.1, 0.35),
         isAuto: false
     ),
     "M2010": WeaponConfig(
@@ -89,8 +89,8 @@ public let WEAPON_CONFIGS: [String: WeaponConfig] = [
         adsTime: 0.3,
         adsSpreadMult: 0.05,
         adsRecoilMult: 0.3,
-        hipPosition: SCNVector3(0.12, -0.15, 0.25),
-        adsPosition: SCNVector3(0, -0.135, 0.35),
+        hipPosition: SIMD3<Float>(0.12, -0.15, 0.25),
+        adsPosition: SIMD3<Float>(0, -0.135, 0.35),
         isAuto: false
     )
 ]

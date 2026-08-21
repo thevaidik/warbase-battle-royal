@@ -1,5 +1,6 @@
 import Foundation
 import Combine
+import simd
 
 public struct NetworkPlayerState {
     public var id: String
@@ -44,10 +45,36 @@ public class NetworkManager: ObservableObject {
     public var onHitConfirmed: ((String, Float) -> Void)?
     public var onKillConfirmed: ((String) -> Void)?
     public var onRespawn: (() -> Void)?
-    public var onFireReceived: ((String, [Float], [Float]) -> Void)?
+    public var onFireReceived: ((String, [Float], [Float], [Float], Bool) -> Void)?
     public var onGrenadeReceived: ((String, [Float], [Float]) -> Void)?
     
     public init() {}
+    
+    deinit {
+        disconnect()
+    }
+
+    public func disconnect() {
+        pingTimer?.invalidate()
+        pingTimer = nil
+        webSocket?.cancel(with: .goingAway, reason: nil)
+        webSocket = nil
+        reconnectAttempts = maxReconnectAttempts
+        onStateReceived = nil
+        onHitConfirmed = nil
+        onKillConfirmed = nil
+        onRespawn = nil
+        onFireReceived = nil
+        onGrenadeReceived = nil
+        gameState = nil
+    }
+    
+    public func connect(username: String = "Player", room: String = "default", host: String = "localhost:8081") {
+        let cleanUser = username.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "Player"
+        let cleanRoom = room.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "default"
+        guard let url = URL(string: "ws://\(host)/connect?user=\(cleanUser)&room=\(cleanRoom)&cid=\(UUID().uuidString)") else { return }
+        connect(url: url)
+    }
     
     public func connect(url: URL) {
         let session = URLSession(configuration: .default)
@@ -55,6 +82,7 @@ public class NetworkManager: ObservableObject {
         webSocket?.resume()
         receiveMessage()
         
+        pingTimer?.invalidate()
         pingTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
             self?.sendPing()
         }
@@ -148,7 +176,7 @@ public class NetworkManager: ObservableObject {
                 switch evt.event {
                 case .fire(let f):
                     DispatchQueue.main.async {
-                        self.onFireReceived?(f.shooterID, [f.originX, f.originY, f.originZ], [f.hitX, f.hitY, f.hitZ])
+                        self.onFireReceived?(f.shooterID, [f.originX, f.originY, f.originZ], [f.hitX, f.hitY, f.hitZ], [f.normalX, f.normalY, f.normalZ], f.hitWall)
                     }
                 case .hitConfirmed(_):
                     DispatchQueue.main.async {
@@ -211,21 +239,19 @@ public class NetworkManager: ObservableObject {
         send(clientEvent)
     }
     
-    public func sendFire(position: [Float], direction: [Float]) {
+    public func sendFire(origin: SIMD3<Float>, hit: SIMD3<Float>, normal: SIMD3<Float>, hitWall: Bool) {
         var clientEvent = Warbase_ClientEvent()
         var fireEvent = Warbase_FireEvent()
-        fireEvent.originX = position[0]
-        fireEvent.originY = position[1]
-        fireEvent.originZ = position[2]
-        
-        let endX = position[0] + direction[0]
-        let endY = position[1] + direction[1]
-        let endZ = position[2] + direction[2]
-        
-        fireEvent.hitX = endX
-        fireEvent.hitY = endY
-        fireEvent.hitZ = endZ
-        
+        fireEvent.originX = origin.x
+        fireEvent.originY = origin.y
+        fireEvent.originZ = origin.z
+        fireEvent.hitX = hit.x
+        fireEvent.hitY = hit.y
+        fireEvent.hitZ = hit.z
+        fireEvent.normalX = normal.x
+        fireEvent.normalY = normal.y
+        fireEvent.normalZ = normal.z
+        fireEvent.hitWall = hitWall
         clientEvent.fire = fireEvent
         send(clientEvent)
     }

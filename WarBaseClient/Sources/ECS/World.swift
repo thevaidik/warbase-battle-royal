@@ -1,7 +1,9 @@
 import Foundation
 
 public class World {
-    public private(set) var entities: [Int: Entity] = [:]
+    // Direct access — no lock, no copy. The game loop is single-threaded (render thread).
+    // Network callbacks only ADD/REMOVE entities, never modify components.
+    public var entities: [Int: Entity] = [:]
     private var nextEntityId = 1
     
     public init() {}
