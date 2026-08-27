@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  warbase-server:
+    build: 
+      context: .
+      dockerfile: server-swift/Dockerfile
+    container_name: warbase-server
+    restart: unless-stopped
+    ports:
+      - "8081:8081"
+    environment:
+      - ENV=production
+      - PORT=8081
