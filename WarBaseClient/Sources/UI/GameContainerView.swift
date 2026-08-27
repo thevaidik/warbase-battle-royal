@@ -6,6 +6,7 @@ struct GameContainerView: View {
     let roomID: String
     let selectedMap: String
     let selectedClass: String
+    let serverHost: String
     let networkManager: NetworkManager
 
     @ObservedObject var gameVM: GameViewModel
@@ -19,6 +20,7 @@ struct GameContainerView: View {
                 roomID: roomID,
                 selectedMap: selectedMap,
                 selectedClass: selectedClass,
+                serverHost: serverHost,
                 networkManager: networkManager,
                 gameVM: gameVM
             )
@@ -26,6 +28,9 @@ struct GameContainerView: View {
 
             // HUD
             HUDView(viewModel: gameVM)
+                .allowsHitTesting(false)
+
+            ScopeOverlay(isVisible: $gameVM.isScoped)
                 .allowsHitTesting(false)
 
             // iOS Touch Controls (Virtual Joystick, Look Area, Action Triggers)
@@ -73,6 +78,9 @@ struct GameContainerView: View {
             #if os(macOS)
             InputManager.lockCursor()
             #endif
+        }
+        .onDisappear {
+            InputManager.remove()
         }
     }
 }

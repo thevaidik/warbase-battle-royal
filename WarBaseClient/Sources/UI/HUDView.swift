@@ -49,7 +49,8 @@ struct HUDView: View {
         VStack(alignment: .leading, spacing: 4) {
             HStack(spacing: 6) {
                 Image(systemName: "heart.fill")
-                    .foregroundColor(viewModel.health > 30 ? .red : .red.opacity(0.8))
+                    .foregroundColor(viewModel.health > 30 ? .red : .red)
+                    .opacity(viewModel.health > 30 ? 1.0 : 0.6)
                 Text("\(viewModel.health)")
                     .font(.system(size: 22, weight: .black, design: .monospaced))
                     .foregroundColor(viewModel.health > 30 ? .white : .red)

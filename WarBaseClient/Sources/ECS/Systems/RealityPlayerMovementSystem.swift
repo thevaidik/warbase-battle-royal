@@ -56,6 +56,21 @@ final class RealityPlayerMovementSystem {
 
         let dt = deltaTime
 
+        // Dead freeze (web: death anim)
+        if pState.isDead {
+            let stillDead = (viewMaps.soldier?.isEnabled ?? true)
+            if currentAnim != "Dying", let soldier = viewMaps.soldier {
+                let res = viewMaps.soldierAnims["Dying"] ?? viewMaps.soldierAnims["Rifle_Idle"]
+                if let a = res { soldier.stopAllAnimations(); soldier.playAnimation(a, transitionDuration: 0.2); currentAnim = "Dying" }
+            }
+            // zero velocity via physics
+            var m = player.components[PhysicsMotionComponent.self] ?? PhysicsMotionComponent()
+            m.linearVelocity = .zero; m.angularVelocity = .zero; player.components.set(m)
+            currentVelX = 0; currentVelZ = 0; verticalVel = 0
+            entity.addComponent(pState)
+            return
+        }
+
         // Timers (web:56-57)
         pState.jumpCooldownTimer = max(0, pState.jumpCooldownTimer - dt)
         pState.coyoteTimer = max(0, pState.coyoteTimer - dt)
@@ -98,6 +113,8 @@ final class RealityPlayerMovementSystem {
         pState.yaw -= input.mouseDeltaX * currentSens
         pState.pitch -= input.mouseDeltaY * currentSens
         pState.pitch = max(-Float.pi/2.1, min(Float.pi/2.1, pState.pitch))
+        assert(!pState.yaw.isNaN && !pState.pitch.isNaN, "NaN yaw/pitch")
+        if pState.yaw.isNaN { pState.yaw = 0 } ; if pState.pitch.isNaN { pState.pitch = 0 }
         player.orientation = simd_quatf(angle: pState.yaw, axis: [0,1,0])
         camEntity.orientation = simd_quatf(angle: pState.pitch, axis: [1,0,0])
         input.mouseDeltaX = 0
@@ -152,13 +169,7 @@ final class RealityPlayerMovementSystem {
         currentVelX = moveTowards(currentVelX, targetVel.x, accel * dt)
         currentVelZ = moveTowards(currentVelZ, targetVel.z, accel * dt)
 
-        // Vertical (gravity + jump, web:189-194)
-        if isGrounded {
-            verticalVel = 0
-            player.position.y = groundY + 0.9
-        } else {
-            verticalVel += GRAVITY * dt
-        }
+        // Vertical handled after auto-step via physics
         if input.jump && (isGrounded || pState.coyoteTimer > 0) && pState.jumpCooldownTimer <= 0 {
             verticalVel = JUMP_IMPULSE
             pState.isGrounded = false
@@ -166,25 +177,42 @@ final class RealityPlayerMovementSystem {
             pState.jumpCooldownTimer = JUMP_COOLDOWN
         }
 
-        // Wall collision: raycast forward to prevent phasing through map
-        var vel = SIMD3<Float>(currentVelX, verticalVel, currentVelZ)
-        let horiz = SIMD3<Float>(vel.x, 0, vel.z)
-        let horizLen = length(horiz)
-        if horizLen > 0.001, let scene = player.scene {
-            let origin = player.position + SIMD3<Float>(0, 0.9, 0)
-            let dir = normalize(horiz)
-            let dist = horizLen * dt + 0.45
-            let hits = scene.raycast(origin: origin, direction: dir, length: dist, query: .all, mask: .all)
-            if let hit = hits.first(where: { !isInSubtree($0.entity, root: player) }) {
-                if hit.distance < dist {
-                    currentVelX = 0
-                    currentVelZ = 0
-                    vel.x = 0
-                    vel.z = 0
+        // Auto-step for stairs (web parity: dual low/high rays, 2.5 upward nudge)
+        if isGrounded && dirLen > 0 && verticalVel < 0.5, let scene = player.scene {
+            let moveDir = normalize(SIMD3<Float>(targetVel.x, 0, targetVel.z))
+            if length(moveDir) > 0.001 {
+                let lowOrigin = player.position + SIMD3<Float>(0, -0.8, 0)
+                let highOrigin = player.position + SIMD3<Float>(0, -0.3, 0)
+                let lowHits = scene.raycast(origin: lowOrigin, direction: moveDir, length: 0.6, query: .all, mask: .all)
+                let highHits = scene.raycast(origin: highOrigin, direction: moveDir, length: 0.6, query: .all, mask: .all)
+                let lowHit = lowHits.first(where: { !isInSubtree($0.entity, root: player) })
+                let highHit = highHits.first(where: { !isInSubtree($0.entity, root: player) })
+                if lowHit != nil && highHit == nil {
+                    verticalVel = 2.5
                 }
             }
         }
-        player.position += vel * dt
+
+        // Physics-driven movement — RealityKit dynamic capsule (web: body.setLinearVelocity)
+        var vel = SIMD3<Float>(currentVelX, verticalVel, currentVelZ)
+        // platform velocity (web: isGrounded + ray pick physicsBody ANIMATED)
+        // RealityKit: if ground entity is animated, add its linearVelocity (stub 0 for now)
+        var motion = player.components[PhysicsMotionComponent.self] ?? PhysicsMotionComponent()
+        motion.linearVelocity = vel
+        motion.angularVelocity = .zero
+        player.components.set(motion)
+        // keep visual position in sync — physics will integrate, but we also snap grounded Y like web
+        if isGrounded {
+            verticalVel = 0
+            // gentle snap to ground like web's mesh.position.y = groundY + 0.9 is now handled by physics contact; keep tiny nudge
+            if abs(player.position.y - (groundY + 0.9)) > 0.08 {
+                player.position.y = groundY + 0.9
+                motion.linearVelocity.y = 0
+                player.components.set(motion)
+            }
+        } else {
+            verticalVel += GRAVITY * dt
+        }
 
         // Third-person camera anchor stays at [0, 1.6, 4.0] set in initPlayer.
         // (Old first-person crouch-height lerp removed.)
@@ -211,9 +239,27 @@ final class RealityPlayerMovementSystem {
             }
         }
 
+        // Spring-arm wall avoidance
+        if let anchor = viewMaps.cameraAnchor, let sc = player.scene {
+            let desiredLocal: SIMD3<Float> = [0.6, 1.5, 1.6]
+            let yawRot = simd_quatf(angle: pState.yaw, axis: [0,1,0])
+            let desiredWorld = player.position + yawRot.act(desiredLocal)
+            let headWorld = player.position + SIMD3<Float>(0, 1.2, 0)
+            let toCam = desiredWorld - headWorld
+            let d = length(toCam)
+            if d > 0.2 {
+                let dir = toCam / d
+                let hits = sc.raycast(origin: headWorld, direction: dir, length: d, query: .all, mask: .all).filter { !isInSubtree($0.entity, root: player) }
+                if let h = hits.min(by: { $0.distance < $1.distance }), h.distance < d - 0.15 {
+                    let clamped: Float = max(Float(0.6), h.distance - 0.25)
+                    anchor.position = desiredLocal * (clamped / d)
+                } else { anchor.position = desiredLocal }
+            }
+        }
+
         // Pin soldier node against animation-baked node tracks
         viewMaps.soldier?.orientation = simd_quatf(angle: .pi, axis: [0, 1, 0]) * simd_quatf(angle: -.pi / 2, axis: [1, 0, 0])
-        viewMaps.soldier?.position = SIMD3<Float>(0.355, 1.131, 1.693)
+        viewMaps.soldier?.position = SIMD3<Float>(0.6, 1.131, 1.693)
 
         input.jump = false
         entity.addComponent(input)

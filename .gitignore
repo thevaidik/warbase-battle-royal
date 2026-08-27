@@ -2,6 +2,11 @@ node_modules/
 .DS_Store
 dist/
 build/
+.build/
+.swiftpm/
+*.xcuserstate
+xcuserdata/
+DerivedData/
 *.exe
 *.exe~
 *.dll
@@ -12,3 +17,4 @@ build/
 mixamo/
 ./dist
 .aider*
+

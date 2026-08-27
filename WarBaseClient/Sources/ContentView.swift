@@ -20,6 +20,7 @@ public struct ContentView: View {
                     roomID: lobbyVM.roomID,
                     selectedMap: lobbyVM.selectedMap,
                     selectedClass: lobbyVM.selectedClass,
+                    serverHost: lobbyVM.serverHost,
                     networkManager: networkManager,
                     gameVM: gameVM,
                     lobbyVM: lobbyVM,
@@ -28,7 +29,7 @@ public struct ContentView: View {
             } else {
                 LobbyView(
                     viewModel: lobbyVM,
-                    onlineCount: networkManager.gameState?.players.count ?? 1,
+                    onlineCount: lobbyVM.onlinePlayersCount,
                     onDeploy: deploy
                 )
             }
@@ -67,10 +68,11 @@ public struct ContentView: View {
 
     private func installTabMonitor() {
         #if os(macOS)
-        tabMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event -> NSEvent? in
-            if event.keyCode == 48 { // TAB
-                DispatchQueue.main.async {
-                    gameVM.showScoreboard.toggle()
+        tabMonitor = NSEvent.addLocalMonitorForEvents(matching: [.keyDown, .keyUp]) { [weak gameVM] event -> NSEvent? in
+            if event.keyCode == 48 { // TAB — hold to show scoreboard
+                DispatchQueue.main.async { [weak gameVM] in
+                    guard let vm = gameVM else { return }
+                    vm.showScoreboard = (event.type == .keyDown)
                 }
                 return nil
             }

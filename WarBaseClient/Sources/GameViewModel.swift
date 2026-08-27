@@ -27,8 +27,9 @@ final class GameViewModel: ObservableObject {
     @Published var players: [NetworkPlayerState] = []
 
     // MARK: - Weapon display
-    var weaponName: String = "AK-47"
-    var maxAmmo: Int = 30
+    @Published var weaponName: String = "AK-47"
+    @Published var maxAmmo: Int = 30
+    @Published var isScoped: Bool = false
 
     // MARK: - Callbacks
     var onHitConfirmed: (() -> Void)?
@@ -62,10 +63,11 @@ final class GameViewModel: ObservableObject {
                 }
             }
         }
-        networkManager.onRespawn = { [weak self] in
+        networkManager.onRespawn = { [weak self] x, y, z in
             DispatchQueue.main.async {
                 self?.isDead = false
                 self?.health = 100
+                self?.respawnTime = 3
             }
         }
         networkManager.onStateReceived = { [weak self] state in

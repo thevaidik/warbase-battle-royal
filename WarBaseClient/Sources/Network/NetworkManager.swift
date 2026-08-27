@@ -40,12 +40,14 @@ public class NetworkManager: ObservableObject {
     private let maxReconnectAttempts = 10
     
     @Published public var gameState: GameStateData?
+    public var currentPing: Int = 0  // RTT ms, mirrored from web
     
     public var onStateReceived: ((GameStateData) -> Void)?
     public var onHitConfirmed: ((String, Float) -> Void)?
     public var onKillConfirmed: ((String) -> Void)?
-    public var onRespawn: (() -> Void)?
-    public var onFireReceived: ((String, [Float], [Float], [Float], Bool) -> Void)?
+    public var onRespawn: ((Float, Float, Float) -> Void)?
+    // distinct args like web: (id, ox,oy,oz, hx,hy,hz, nx,ny,nz, wall)
+    public var onFireReceived: ((String, SIMD3<Float>, SIMD3<Float>, SIMD3<Float>, Bool) -> Void)?
     public var onGrenadeReceived: ((String, [Float], [Float]) -> Void)?
     
     public init() {}
@@ -69,14 +71,27 @@ public class NetworkManager: ObservableObject {
         gameState = nil
     }
     
-    public func connect(username: String = "Player", room: String = "default", host: String = "localhost:8081") {
+    public func connect(username: String = "Player", room: String = "default", host: String = "war.nxtlap.com") {
         let cleanUser = username.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "Player"
         let cleanRoom = room.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "default"
-        guard let url = URL(string: "ws://\(host)/connect?user=\(cleanUser)&room=\(cleanRoom)&cid=\(UUID().uuidString)") else { return }
+        let scheme: String = {
+            if let url = URL(string: host), let sc = url.scheme, sc == "ws" || sc == "wss" { return sc }
+            // web parity: ws for localhost/127.0.0.1, wss otherwise
+            let isLocal = host.hasPrefix("localhost") || host.hasPrefix("127.") || host.contains("://localhost") || host.contains("://127.")
+            return isLocal ? "ws" : "wss"
+        }()
+        // sticky CID like web sessionStorage — survives reconnects
+        let cid: String = {
+            if let saved = UserDefaults.standard.string(forKey: "warbase_client_id") { return saved }
+            let fresh = UUID().uuidString; UserDefaults.standard.set(fresh, forKey: "warbase_client_id"); return fresh
+        }()
+        guard let url = URL(string: "\(scheme)://\(host)/connect?user=\(cleanUser)&room=\(cleanRoom)&cid=\(cid)") else { return }
         connect(url: url)
     }
     
     public func connect(url: URL) {
+        lastConnectURL = url
+        reconnectAttempts = 0
         let session = URLSession(configuration: .default)
         webSocket = session.webSocketTask(with: url)
         webSocket?.resume()
@@ -108,15 +123,25 @@ public class NetworkManager: ObservableObject {
         }
     }
     
+    private var lastConnectURL: URL?
     private func handleDisconnect() {
         pingTimer?.invalidate()
-        if reconnectAttempts < maxReconnectAttempts {
-            let delay = min(pow(2.0, Double(reconnectAttempts)), 10.0)
-            reconnectAttempts += 1
-            DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
-                // Reconnect logic (omit for brevity)
-            }
+        pingTimer = nil
+        guard reconnectAttempts < maxReconnectAttempts, let url = lastConnectURL else { return }
+        let delay = min(pow(2.0, Double(reconnectAttempts)), 10.0)
+        reconnectAttempts += 1
+        DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self] in
+            guard let self else { return }
+            self.reconnect(url: url)
         }
+    }
+    private func reconnect(url: URL) {
+        let session = URLSession(configuration: .default)
+        webSocket = session.webSocketTask(with: url)
+        webSocket?.resume()
+        receiveMessage()
+        pingTimer?.invalidate()
+        pingTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in self?.sendPing() }
     }
     
     private func sendPing() {
@@ -176,23 +201,26 @@ public class NetworkManager: ObservableObject {
                 switch evt.event {
                 case .fire(let f):
                     DispatchQueue.main.async {
-                        self.onFireReceived?(f.shooterID, [f.originX, f.originY, f.originZ], [f.hitX, f.hitY, f.hitZ], [f.normalX, f.normalY, f.normalZ], f.hitWall)
+                        self.onFireReceived?(f.shooterID, SIMD3<Float>(f.originX, f.originY, f.originZ), SIMD3<Float>(f.hitX, f.hitY, f.hitZ), SIMD3<Float>(f.normalX, f.normalY, f.normalZ), f.hitWall)
                     }
                 case .hitConfirmed(_):
                     DispatchQueue.main.async {
-                        self.onHitConfirmed?("target", 0) // Simplify for now
+                        self.onHitConfirmed?("target", 0)
                     }
                 case .killConfirmed(_):
                     DispatchQueue.main.async {
-                        self.onKillConfirmed?("target") // Simplify for now
+                        self.onKillConfirmed?("target")
                     }
+                case .pong(let pong):
+                    let rtt = Int(Date().timeIntervalSince1970 * 1000) - Int(pong.clientTime)
+                    DispatchQueue.main.async { self.currentPing = max(0, rtt) }
                 case .throwGrenade(let g):
                     DispatchQueue.main.async {
                         self.onGrenadeReceived?(g.shooterID, [g.px, g.py, g.pz], [g.vx, g.vy, g.vz])
                     }
-                case .respawn(_):
+                case .respawn(let r):
                     DispatchQueue.main.async {
-                        self.onRespawn?()
+                        self.onRespawn?(r.x, r.y, r.z)
                     }
                 default:
                     break
@@ -233,6 +261,7 @@ public class NetworkManager: ObservableObject {
         update.rw = state.rw.isNaN ? 1 : state.rw
         update.animation = state.anim
         update.platformID = state.platformId
+        update.ping = Int32(currentPing)
         update.weaponID = state.weaponId
         
         clientEvent.stateUpdate = update
@@ -270,12 +299,12 @@ public class NetworkManager: ObservableObject {
         send(clientEvent)
     }
     
-    public func sendHit(targetId: String, damage: Float, hitZone: String) {
+    public func sendHit(targetId: String, damage: Float, hitZone: String? = nil) {
+        // proto HitEvent has no zone — zone only used locally for headshot mult
         var clientEvent = Warbase_ClientEvent()
         var hitEvent = Warbase_HitEvent()
         hitEvent.targetID = targetId
         hitEvent.damage = Int32(damage)
-        
         clientEvent.hit = hitEvent
         send(clientEvent)
     }

@@ -1,0 +1,158 @@
+syntax = "proto3";
+
+package warbase;
+
+option go_package = "warbase-server/internal/engine;engine";
+
+// --------------------------
+// CLIENT -> SERVER MESSAGES
+// --------------------------
+
+message ClientEvent {
+    oneof event {
+        PlayerStateUpdate state_update = 1;
+        HitEvent hit = 2;
+        FireEvent fire = 3;
+        ReloadEvent reload = 4;
+        SwitchWeaponEvent switch_weapon = 5;
+        RespawnRequestEvent respawn_request = 6;
+        ThrowGrenadeEvent throw_grenade = 7;
+        PingEvent ping = 8;
+    }
+}
+
+message PlayerStateUpdate {
+    float x = 1;
+    float y = 2;
+    float z = 3;
+    float rx = 4; // rotation quaternion x
+    float ry = 5; // rotation quaternion y
+    float rz = 6; // rotation quaternion z
+    float rw = 7; // rotation quaternion w
+    string animation = 8;
+    string platform_id = 9;
+    int32 ping = 10;
+    string weapon_id = 11;
+}
+
+message HitEvent {
+    string target_id = 1;
+    int32 damage = 2;
+}
+
+message FireEvent {
+    float origin_x = 1;
+    float origin_y = 2;
+    float origin_z = 3;
+    float hit_x = 4;
+    float hit_y = 5;
+    float hit_z = 6;
+    float normal_x = 7;
+    float normal_y = 8;
+    float normal_z = 9;
+    bool hit_wall = 10;
+}
+message ReloadEvent {}
+message SwitchWeaponEvent {
+    string weapon_id = 1;
+}
+message RespawnRequestEvent {}
+message ThrowGrenadeEvent {
+    float px = 1;
+    float py = 2;
+    float pz = 3;
+    float vx = 4;
+    float vy = 5;
+    float vz = 6;
+}
+
+message ServerPongEvent {
+    int64 client_time = 1;
+}
+
+message PingEvent {
+    int64 client_time = 1;
+}
+
+// --------------------------
+// SERVER -> CLIENT MESSAGES
+// --------------------------
+
+message ServerMessage {
+    oneof message {
+        GameState game_state = 1;
+        ServerEvent server_event = 2;
+    }
+}
+
+message GameState {
+    map<string, PlayerState> players = 1;
+    string room_mode = 2;
+    string room_state = 3;
+    int32 score_team_a = 4;
+    int32 score_team_b = 5;
+    string winner_id = 6;
+}
+
+message PlayerState {
+    float x = 1;
+    float y = 2;
+    float z = 3;
+    float rx = 4;
+    float ry = 5;
+    float rz = 6;
+    float rw = 7;
+    string animation = 8;
+    int32 health = 9;
+    int32 kills = 10;
+    int32 deaths = 11;
+    bool is_dead = 12;
+    string platform_id = 13;
+    int32 ping = 14;
+    string weapon_id = 15;
+    string team = 16;
+}
+
+message ServerEvent {
+    oneof event {
+        RespawnEvent respawn = 1;
+        ServerFireEvent fire = 2;
+        HitConfirmedEvent hit_confirmed = 3;
+        KillConfirmedEvent kill_confirmed = 4;
+        ServerThrowGrenadeEvent throw_grenade = 5;
+        ServerPongEvent pong = 6;
+    }
+}
+
+message RespawnEvent {
+    float x = 1;
+    float y = 2;
+    float z = 3;
+}
+
+message ServerFireEvent {
+    string shooter_id = 1;
+    float origin_x = 2;
+    float origin_y = 3;
+    float origin_z = 4;
+    float hit_x = 5;
+    float hit_y = 6;
+    float hit_z = 7;
+    float normal_x = 8;
+    float normal_y = 9;
+    float normal_z = 10;
+    bool hit_wall = 11;
+}
+
+message HitConfirmedEvent {}
+message KillConfirmedEvent {}
+
+message ServerThrowGrenadeEvent {
+    string shooter_id = 1;
+    float px = 2;
+    float py = 3;
+    float pz = 4;
+    float vx = 5;
+    float vy = 6;
+    float vz = 7;
+}

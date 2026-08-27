@@ -10,15 +10,17 @@ final class RealityViewMaps {
     var weaponPistol: ModelEntity?
     var soldier: RealityKit.Entity?
     var soldierAnims: [String: RealityKit.AnimationResource] = [:]
-    var floor: Entity?
+    var floor: RealityKit.Entity?
 
     func clearAll() {
         player?.removeFromParent()
+        // floor was missed — ghost collision after re-enter
+        floor?.removeFromParent()
         cameraAnchor?.removeFromParent()
         player = nil
         cameraEntity = nil
         cameraAnchor = nil
         swayRoot = nil; weaponAK = nil; weaponM2010 = nil; weaponPistol = nil
-        soldier = nil
+        soldier = nil; soldierAnims.removeAll(); floor = nil
     }
 }

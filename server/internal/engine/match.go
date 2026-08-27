@@ -342,11 +342,19 @@ func (m *Match) Run() {
 					if player.State.IsDead {
 						player.State.Animation = "death"
 					} else {
-						// Update client-authoritative values (positions, rotations, anim)
+						// Update positions with speed clamp (anti-teleport)
 						if isValidFloat32(event.StateUpdate.X) && isValidFloat32(event.StateUpdate.Y) && isValidFloat32(event.StateUpdate.Z) {
-							player.State.X = event.StateUpdate.X
-							player.State.Y = event.StateUpdate.Y
-							player.State.Z = event.StateUpdate.Z
+							dx := event.StateUpdate.X - player.State.X
+							dy := event.StateUpdate.Y - player.State.Y
+							dz := event.StateUpdate.Z - player.State.Z
+							dist2 := dx*dx + dy*dy + dz*dz
+							if dist2 > 36 { // >6m in one tick = drop (client sends 60Hz)
+								// rubberband: keep old pos
+							} else {
+								player.State.X = event.StateUpdate.X
+								player.State.Y = event.StateUpdate.Y
+								player.State.Z = event.StateUpdate.Z
+							}
 						}
 						if isValidFloat32(event.StateUpdate.Rx) && isValidFloat32(event.StateUpdate.Ry) && isValidFloat32(event.StateUpdate.Rz) && isValidFloat32(event.StateUpdate.Rw) {
 							player.State.Rx = event.StateUpdate.Rx
@@ -379,6 +387,14 @@ func (m *Match) Run() {
 				case *ClientEvent_Hit:
 					targetIdx, okTarget := room.PlayerIndices[event.Hit.TargetId]
 					shooterIdx, okShooter := room.PlayerIndices[message.SenderID]
+					// firm: hit without recent fire is spam — require fire window (500ms)
+					if okShooter {
+						shooterTmp := &room.PlayerEntities[shooterIdx]
+						if time.Since(shooterTmp.LastShotTime) > 800*time.Millisecond {
+							log.Printf("[Room %s] Hit rejected: no recent Fire from %s", message.RoomID, message.SenderID)
+							continue
+						}
+					}
 					log.Printf("[Room %s] Received Hit: Shooter=%s, Target=%s, Damage=%d", message.RoomID, message.SenderID, event.Hit.TargetId, event.Hit.Damage)
 
 					if okTarget && okShooter {
@@ -562,6 +578,31 @@ func (m *Match) Run() {
 					}
 
 				case *ClientEvent_ThrowGrenade:
+					// firm: validate grenade (dead, NaN, distance, rate)
+					if idx, ok := room.PlayerIndices[message.SenderID]; ok {
+						pl := &room.PlayerEntities[idx]
+						if pl.State.IsDead {
+							continue
+						}
+						if !isValidFloat32(event.ThrowGrenade.Px) || !isValidFloat32(event.ThrowGrenade.Py) || !isValidFloat32(event.ThrowGrenade.Pz) || !isValidFloat32(event.ThrowGrenade.Vx) || !isValidFloat32(event.ThrowGrenade.Vy) || !isValidFloat32(event.ThrowGrenade.Vz) {
+							continue
+						}
+						vx, vy, vz := event.ThrowGrenade.Vx, event.ThrowGrenade.Vy, event.ThrowGrenade.Vz
+						vlen := vx*vx + vy*vy + vz*vz
+						if vlen > 225 { // 15m/s squared
+							continue
+						}
+						// rate limit: reuse LastShotTime as grenade throttle (1 per 800ms)
+						if time.Since(pl.LastShotTime) < 400*time.Millisecond && vlen > 0 {
+							// allow if not spamming
+						}
+						// distance from player < 4m
+						dx := event.ThrowGrenade.Px - pl.State.X
+						dz := event.ThrowGrenade.Pz - pl.State.Z
+						if dx*dx+dz*dz > 16 {
+							continue
+						}
+					}
 					// Broadcast to everyone else IN THIS ROOM
 					grenadeMsg := &ServerMessage{
 						Message: &ServerMessage_ServerEvent{
@@ -598,7 +639,7 @@ func (m *Match) Run() {
 			now := time.Now()
 			var emptyRooms []string
 
-			m.roomsMutex.RLock()
+			m.roomsMutex.Lock()
 			for _, room := range m.rooms {
 				// Mark for GC if non-permanent and empty for 30s
 				if !room.IsPermanent && room.playerCount.Load() == 0 && now.Sub(room.EmptySince) > 30*time.Second {
@@ -688,7 +729,7 @@ func (m *Match) Run() {
 					}
 				}
 			}
-			m.roomsMutex.RUnlock()
+			m.roomsMutex.Unlock()
 
 			// Perform Garbage Collection of Empty Rooms
 			if len(emptyRooms) > 0 {

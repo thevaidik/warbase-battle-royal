@@ -59,6 +59,7 @@ public struct PlayerComponentState: Component {
     public var isGrounded: Bool = false
     public var isCrouching: Bool = false
     public var isSprinting: Bool = false
+    public var isDead: Bool = false
     
     public var jumpCooldownTimer: Float = 0
     public var coyoteTimer: Float = 0
@@ -71,7 +72,7 @@ public struct PlayerComponentState: Component {
 
 public struct WeaponState: Component {
     public var activeWeaponIndex: Int = 0
-    public var currentAmmo: Int = 0
+    public var currentAmmo: Int = 30  // AK-47 default mag; overwritten on weapon switch
     public var isReloading: Bool = false
     
     public var reloadTimer: Float = 0

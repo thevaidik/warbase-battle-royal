@@ -82,44 +82,31 @@ The game is now running locally! You can test it by opening `http://localhost:80
 We have a built-in animation viewer to test the `.glb` character animations (Idle, Running, Firing, Reloading, etc.). Once the server is running, you can view the animations at:
 `http://localhost:8081/test_anim.html`
 
-### 3. Share with Friends (Pinggy Tunneling)
+### 3. Share with Friends (Cloudflare Tunnel)
 
-To share the game over the internet, you need to expose your local port `8081`. 
+Your server runs Cloudflare Tunnel (`cloudflared`) on port `8081`. No port forwarding needed.
 
-**Option A: Pinggy (Recommended - No Installation Required)**
-
-You can run the tunnel either in the foreground or as a background process.
-
-**Foreground (Interactive UI)**
-Run this in a separate terminal tab to see a live dashboard with your URLs:
+**One-time on server:**
 ```bash
-ssh -p 443 -o StrictHostKeyChecking=accept-new -R0:localhost:8081 a.pinggy.io
+cloudflared tunnel create warbase
+cloudflared tunnel route dns warbase war.nxtlap.com
 ```
 
-**Background (Silent Tunnel)**
-If you want to run it in the background, you must use the `script` utility to fake a terminal. This prevents the SSH process from suspending itself and forces the URLs to write immediately without buffering:
-```bash
-# Clear any old suspended ssh tunnels
-killall ssh
-
-# Start the tunnel in the background
-nohup script -q /tmp/pinggy.log ssh -p 443 -o StrictHostKeyChecking=accept-new -R0:localhost:8081 a.pinggy.io >/dev/null 2>&1 &
-
-# Wait 3 seconds and print the generated URLs
-sleep 3
-cat /tmp/pinggy.log
-```
-The tunnel runs in the background and expires in 60 minutes. To stop it:
-```bash
-pkill -f "ssh.*pinggy"
+**`~/.cloudflared/config.yml`:**
+```yaml
+tunnel: warbase
+credentials-file: ~/.cloudflared/<id>.json
+ingress:
+  - hostname: war.nxtlap.com
+    service: http://localhost:8081
+  - service: http_status:404
 ```
 
-**Option B: Ngrok**
+**Run (systemd or manual):**
 ```bash
-ngrok http 8080
+cloudflared tunnel run warbase
+# Quick test without named tunnel:
+# cloudflared tunnel --url http://localhost:8081
 ```
 
-Share the provided URL with your friends. When they visit it, the game engine will load instantly, they can type a username, and join the match!
-
-> ⚠️ **Do NOT use `localtunnel` (`loca.lt`)**
-> Localtunnel injects a "Click to Continue" warning page on your first visit which breaks Babylon.js background asset loading. Use Pinggy instead.
+Share `https://war.nxtlap.com` — web players open it, macOS players connect to `war.nxtlap.com`.

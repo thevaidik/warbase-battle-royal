@@ -4,13 +4,14 @@ services:
   warbase-server:
     build: 
       context: ../
-      dockerfile: server/Dockerfile
+      dockerfile: server-swift/Dockerfile
     container_name: warbase-server
     restart: unless-stopped
     ports:
       - "8081:8081"
     environment:
       - ENV=production
+      - PORT=8081
 
   # Optional: You can run cloudflared directly in this stack to expose the server.
   # Just replace the token below with your actual Cloudflare Tunnel token.

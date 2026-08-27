@@ -12,11 +12,28 @@ import (
 	"github.com/gorilla/websocket"
 )
 
+var allowedOrigins = map[string]bool{
+	"war.nxtlap.com":     true,
+	"warbase.nxtlap.com": true,
+	"localhost:8081":     true,
+	"127.0.0.1:8081":     true,
+}
+
 var upgrader = websocket.Upgrader{
 	ReadBufferSize:  8192,
-	WriteBufferSize: 0, // Disable gorilla's write buffer — flush packets immediately
+	WriteBufferSize: 0,
 	CheckOrigin: func(r *http.Request) bool {
-		return true // Allow all for prototype
+		origin := r.Header.Get("Origin")
+		if origin == "" {
+			return true // native mac client has no Origin
+		}
+		// allow if origin host is allowed
+		for h := range allowedOrigins {
+			if origin == "https://"+h || origin == "http://"+h {
+				return true
+			}
+		}
+		return false
 	},
 }
 
@@ -36,13 +53,37 @@ func (app *application) healthcheckHandler(w http.ResponseWriter, r *http.Reques
 	}
 }
 
+func isValidUsername(s string) bool {
+	if len(s) < 3 || len(s) > 16 {
+		return false
+	}
+	for _, c := range s {
+		if !((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '_' || c == '-') {
+			return false
+		}
+	}
+	return true
+}
+
+func isValidRoom(s string) bool {
+	if len(s) == 0 || len(s) > 32 {
+		return false
+	}
+	for _, c := range s {
+		if !((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '_' || c == '-' || c == '.') {
+			return false
+		}
+	}
+	return true
+}
+
 func (app *application) connectToServerHandler(w http.ResponseWriter, r *http.Request) {
 	username := r.URL.Query().Get("user")
-	if username == "" {
+	if !isValidUsername(username) {
 		username = "Guest_" + strconv.Itoa(rand.Intn(10000))
 	}
 	room := r.URL.Query().Get("room")
-	if room == "" {
+	if !isValidRoom(room) {
 		room = "industrial"
 	}
 

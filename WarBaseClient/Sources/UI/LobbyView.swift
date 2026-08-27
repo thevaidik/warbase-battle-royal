@@ -17,6 +17,8 @@ struct LobbyView: View {
                 footerBar
             }
         }
+        .onAppear { viewModel.checkServer() }
+        .onChange(of: viewModel.serverHost) { _ in viewModel.checkServer() }
         .alert("EDIT CALLSIGN", isPresented: $viewModel.showCallsignEditor) {
             TextField("Callsign", text: $viewModel.editingCallsign)
                 .textFieldStyle(.plain)
@@ -210,38 +212,133 @@ struct LobbyView: View {
     // MARK: - Join Match Tab
 
     private var joinMatchTab: some View {
-        VStack(alignment: .leading, spacing: 20) {
+        VStack(alignment: .leading, spacing: 18) {
             HStack {
-                sectionHeader("MATCH BROWSER")
+                sectionHeader("MATCH BROWSER (\(viewModel.availableRooms.count) ACTIVE)")
                 Spacer()
-                Button(action: {}) {
-                    Text("REFRESH").font(.system(size: 11, weight: .bold, design: .monospaced)).foregroundColor(.red)
-                }.buttonStyle(.plain)
+                Button(action: { viewModel.fetchRooms() }) {
+                    HStack(spacing: 4) {
+                        if viewModel.isFetchingRooms {
+                            ProgressView().scaleEffect(0.6).frame(width: 12, height: 12)
+                        } else {
+                            Image(systemName: "arrow.clockwise")
+                        }
+                        Text("REFRESH")
+                    }
+                    .font(.system(size: 11, weight: .bold, design: .monospaced))
+                    .foregroundColor(.red)
+                }
+                .buttonStyle(.plain)
             }
+
+#if DEBUG
+            HStack {
+                Image(systemName: "link").foregroundColor(.gray)
+                TextField("Server (e.g. war.nxtlap.com or localhost:8081)", text: $viewModel.serverHost)
+                    .textFieldStyle(.plain).font(.system(size: 12, design: .monospaced))
+                    .autocorrectionDisabled(true)
+            }
+            .padding(10).background(Color.white.opacity(0.06)).cornerRadius(8)
+            .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.white.opacity(0.1), lineWidth: 1))
+#endif
+
+            if !viewModel.availableRooms.isEmpty {
+                ScrollView {
+                    VStack(spacing: 8) {
+                        ForEach(viewModel.availableRooms) { room in
+                            let isSelected = viewModel.roomID == room.id
+                            Button(action: {
+                                viewModel.roomID = room.id
+                                viewModel.selectedMap = room.map
+                            }) {
+                                HStack(spacing: 14) {
+                                    Circle()
+                                        .fill(isSelected ? Color.red : Color.green.opacity(0.8))
+                                        .frame(width: 8, height: 8)
+
+                                    VStack(alignment: .leading, spacing: 3) {
+                                        Text(room.name.uppercased())
+                                            .font(.system(size: 13, weight: .bold, design: .monospaced))
+                                            .foregroundColor(isSelected ? .white : .white.opacity(0.9))
+
+                                        HStack(spacing: 8) {
+                                            Text("MAP: \(room.map.uppercased())")
+                                                .font(.system(size: 10, weight: .medium, design: .monospaced))
+                                                .foregroundColor(.gray)
+                                            Text("•")
+                                                .font(.system(size: 8))
+                                                .foregroundColor(.gray.opacity(0.4))
+                                            Text("MODE: \((room.mode ?? "FFA").uppercased())")
+                                                .font(.system(size: 10, weight: .medium, design: .monospaced))
+                                                .foregroundColor(.gray)
+                                        }
+                                    }
+
+                                    Spacer()
+
+                                    HStack(spacing: 8) {
+                                        Text("\(room.playerCount)/16 PLAYERS")
+                                            .font(.system(size: 11, weight: .bold, design: .monospaced))
+                                            .foregroundColor(room.playerCount > 0 ? .green : .gray.opacity(0.6))
+                                            .padding(.horizontal, 8)
+                                            .padding(.vertical, 4)
+                                            .background(Color.white.opacity(0.04))
+                                            .cornerRadius(4)
+
+                                        Text(isSelected ? "READY" : "SELECT")
+                                            .font(.system(size: 10, weight: .black, design: .monospaced))
+                                            .foregroundColor(isSelected ? .white : .gray)
+                                            .padding(.horizontal, 10)
+                                            .padding(.vertical, 5)
+                                            .background(isSelected ? Color.red : Color.white.opacity(0.08))
+                                            .cornerRadius(4)
+                                    }
+                                }
+                                .padding(.horizontal, 14)
+                                .padding(.vertical, 12)
+                                .background(isSelected ? Color.red.opacity(0.12) : Color.white.opacity(0.04))
+                                .cornerRadius(8)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .stroke(isSelected ? Color.red.opacity(0.6) : Color.white.opacity(0.08), lineWidth: 1)
+                                )
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+                    .padding(.vertical, 2)
+                }
+                .frame(maxHeight: 200)
+            } else {
+                VStack(spacing: 10) {
+                    Spacer()
+                    Image(systemName: "globe").font(.system(size: 28)).foregroundColor(.gray.opacity(0.3))
+                    Text(viewModel.isFetchingRooms ? "Scanning active operations..." : "No active matches found")
+                        .font(.system(size: 13, design: .monospaced)).foregroundColor(.gray.opacity(0.6))
+                    Text("Create a match or enter a Room ID below").font(.system(size: 11, design: .monospaced)).foregroundColor(.gray.opacity(0.35))
+                    Spacer()
+                }
+                .frame(maxWidth: .infinity)
+                .frame(height: 140)
+                .background(Color.white.opacity(0.02))
+                .cornerRadius(8)
+            }
+
             HStack {
                 Image(systemName: "magnifyingglass").foregroundColor(.gray)
-                TextField("Enter Room ID...", text: $viewModel.roomID)
-                    .textFieldStyle(.plain).font(.system(size: 13, design: .monospaced))
+                TextField("Selected Room ID / Custom Room...", text: $viewModel.roomID)
+                    .textFieldStyle(.plain).font(.system(size: 12, design: .monospaced))
             }
-            .padding(12).background(Color.white.opacity(0.06)).cornerRadius(8)
+            .padding(10).background(Color.white.opacity(0.06)).cornerRadius(8)
             .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.white.opacity(0.1), lineWidth: 1))
 
-            VStack(spacing: 12) {
-                Spacer()
-                Image(systemName: "globe").font(.system(size: 32)).foregroundColor(.gray.opacity(0.3))
-                Text("No active matches found").font(.system(size: 14, design: .monospaced)).foregroundColor(.gray.opacity(0.5))
-                Text("Create a match or enter a Room ID to join").font(.system(size: 12, design: .monospaced)).foregroundColor(.gray.opacity(0.3))
-                Spacer()
-            }
-            .frame(maxWidth: .infinity)
-
             Button(action: onDeploy) {
-                Text("DEPLOY")
-                    .font(.system(size: 16, weight: .black, design: .monospaced))
-                    .foregroundColor(.white).tracking(4)
-                    .frame(maxWidth: .infinity).padding(.vertical, 14)
+                Text(viewModel.roomID.isEmpty ? "DEPLOY (DEFAULT)" : "DEPLOY TO \(viewModel.roomID.uppercased())")
+                    .font(.system(size: 15, weight: .black, design: .monospaced))
+                    .foregroundColor(.white).tracking(3)
+                    .frame(maxWidth: .infinity).padding(.vertical, 13)
                     .background(LinearGradient(colors: [.red, .red.opacity(0.7)], startPoint: .leading, endPoint: .trailing))
-                    .cornerRadius(8).shadow(color: .red.opacity(0.4), radius: 12, y: 4)
+                    .cornerRadius(8).shadow(color: .red.opacity(0.4), radius: 10, y: 3)
             }
             .buttonStyle(.plain)
         }
@@ -251,10 +348,10 @@ struct LobbyView: View {
     // MARK: - Create Match Tab
 
     private var createMatchTab: some View {
-        VStack(alignment: .leading, spacing: 24) {
+        VStack(alignment: .leading, spacing: 20) {
             HStack {
                 Image(systemName: "text.cursor").foregroundColor(.gray)
-                TextField("Match Name", text: $viewModel.createMatchName)
+                TextField("Match Name (e.g. Alpha Sector)", text: $viewModel.createMatchName)
                     .textFieldStyle(.plain).font(.system(size: 13, design: .monospaced))
             }
             .padding(12).background(Color.white.opacity(0.06)).cornerRadius(8)
@@ -263,8 +360,8 @@ struct LobbyView: View {
             sectionHeader("SELECT MAP")
             HStack(spacing: 16) {
                 mapCard(name: "industrial", label: "INDUSTRIAL ZONE", available: true)
-                mapCard(name: "village", label: "VILLAGE", available: false)
-                mapCard(name: "arena", label: "ARENA", available: false)
+                mapCard(name: "village", label: "VILLAGE", available: true)
+                mapCard(name: "arena", label: "ARENA", available: true)
             }
 
             sectionHeader("GAME MODE")
@@ -273,14 +370,30 @@ struct LobbyView: View {
                 modeCard(label: "TEAM DEATHMATCH", code: "TDM", color: .blue)
             }
 
-            Button(action: onDeploy) {
-                Text("INITIALIZE OPERATION")
-                    .font(.system(size: 14, weight: .black, design: .monospaced))
-                    .foregroundColor(.black).tracking(2)
-                    .frame(maxWidth: .infinity).padding(.vertical, 14)
-                    .background(Color.white).cornerRadius(8)
+            if let err = viewModel.createError {
+                Text(err)
+                    .font(.system(size: 11, design: .monospaced))
+                    .foregroundColor(.red)
+            }
+
+            Button(action: {
+                viewModel.createMatch {
+                    onDeploy()
+                }
+            }) {
+                HStack {
+                    if viewModel.isCreatingRoom {
+                        ProgressView().scaleEffect(0.8).frame(width: 16, height: 16)
+                    }
+                    Text(viewModel.isCreatingRoom ? "INITIALIZING..." : "INITIALIZE OPERATION")
+                        .font(.system(size: 14, weight: .black, design: .monospaced))
+                        .foregroundColor(.black).tracking(2)
+                }
+                .frame(maxWidth: .infinity).padding(.vertical, 14)
+                .background(Color.white).cornerRadius(8)
             }
             .buttonStyle(.plain)
+            .disabled(viewModel.isCreatingRoom)
         }
         .padding(30)
     }
@@ -319,11 +432,22 @@ struct LobbyView: View {
     private var footerBar: some View {
         HStack {
             HStack(spacing: 6) {
-                Circle().fill(Color.green).frame(width: 6, height: 6)
-                Text("\(onlineCount) ONLINE")
+                Circle().fill(viewModel.serverOnline ? Color.green : Color.red).frame(width: 6, height: 6)
+                Text(viewModel.serverOnline ? "\(onlineCount) ONLINE" : "OFFLINE")
                     .font(.system(size: 11, weight: .medium, design: .monospaced))
-                    .foregroundColor(.gray)
+                    .foregroundColor(viewModel.serverOnline ? .gray : .red.opacity(0.8))
             }
+            Text("•")
+                .foregroundColor(.gray.opacity(0.4))
+#if DEBUG
+            Text(viewModel.serverCheckedHost.isEmpty ? viewModel.serverHost : viewModel.serverCheckedHost)
+                .font(.system(size: 10, weight: .medium, design: .monospaced))
+                .foregroundColor(viewModel.serverOnline ? .gray.opacity(0.6) : .red.opacity(0.6))
+#else
+            Text(viewModel.serverCheckedHost.isEmpty ? "war.nxtlap.com" : viewModel.serverCheckedHost)
+                .font(.system(size: 10, weight: .medium, design: .monospaced))
+                .foregroundColor(viewModel.serverOnline ? .gray.opacity(0.6) : .red.opacity(0.6))
+#endif
             Spacer()
             Button(action: {
                 viewModel.editingCallsign = viewModel.callsign

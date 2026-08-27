@@ -21,6 +21,6 @@ public class World {
     
     public func clearAll() {
         entities.removeAll()
-        nextEntityId = 1
+        // keep nextEntityId monotonic to avoid id reuse after re-enter (M1 leak guard)
     }
 }

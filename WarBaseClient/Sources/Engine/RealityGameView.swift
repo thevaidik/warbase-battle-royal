@@ -14,6 +14,7 @@ final class RealityCoordinator: ObservableObject {
     var multiplayer = RealityMultiplayer()
     var lastTime: TimeInterval = 0
     var selectedClass: String = "ASSAULT"
+    var serverHost: String = "warbase.nxtlap.com"
     var coordinatorUsername: String = ""
     var coordinatorRoom: String = ""
     var networkManager: NetworkManager?
@@ -28,6 +29,7 @@ final class RealityCoordinator: ObservableObject {
     @Published var loadingStatus = "BOOTING ENGINE..."
     private var loadingSpinners: [RealityKit.Entity] = []
     var subs: [EventSubscription] = []
+    private var sceneEntities: [RealityKit.Entity] = []  // sun/ibl/floor/map for teardown
 
     func setup<C>(_ content: C) async where C: RealityViewContentProtocol {
         NSLog("[WB-R] RealityCoordinator setup start")
@@ -37,27 +39,32 @@ final class RealityCoordinator: ObservableObject {
         movementSystem.spawnPoint = [0,2,0]
 
         loadingStatus = "LOADING ENVIRONMENT..."
-        // Daytime lighting: HDR IBL + shadowed sun + subtle fill (no blowout)
+        // RealityKit-native noon: HDR IBL (true reflections) + crisp sun + even ambient (no hotspot)
         if let env = try? await EnvironmentResource.load(named: "venice_sunset_1k") {
             skybox = env
             let ibl = RealityKit.Entity()
             ibl.name = "imageBasedLight"
-            ibl.components.set(ImageBasedLightComponent(source: .single(env), intensityExponent: 0.6))
+            // 1.1 punchy but not blown; IBL gives HDR reflections on metal
+            ibl.components.set(ImageBasedLightComponent(source: .single(env), intensityExponent: 1.1))
             content.add(ibl)
+            sceneEntities.append(ibl)
         }
         let sun = DirectionalLight()
         sun.name = "sun"
-        sun.light = DirectionalLightComponent(color: .init(red: 1.0, green: 0.97, blue: 0.92, alpha: 1), intensity: 2000)
-        sun.shadow = DirectionalLightComponent.Shadow(shadowProjection: .automatic(maximumDistance: 120), depthBias: 0.01)
-        sun.position = [40, 60, 20]
-        sun.look(at: .zero, from: [40, 60, 20], relativeTo: nil)
+        // 5000 noon warm like industrial; 160 maxDistance covers arena
+        sun.light = DirectionalLightComponent(color: .init(red: 1.0, green: 0.96, blue: 0.88, alpha: 1), intensity: 5000)
+        sun.shadow = DirectionalLightComponent.Shadow(shadowProjection: .automatic(maximumDistance: 160), depthBias: 0.005)
+        sun.position = [60, 80, 30]
+        sun.look(at: .zero, from: [60, 80, 30], relativeTo: nil)
         content.add(sun)
-        // Subtle fill (was 60000 → blowout)
+        sceneEntities.append(sun)
+        // Even ambient via IBL is enough — keep very soft fill only for under-bridge
         let fill = RealityKit.Entity()
         fill.name = "ambientFill"
-        fill.components.set(PointLightComponent(color: .white, intensity: 800, attenuationRadius: 150))
-        fill.position = [0, 25, 0]
+        fill.components.set(PointLightComponent(color: .init(red: 1, green: 0.97, blue: 0.95, alpha: 1), intensity: 250, attenuationRadius: 220))
+        fill.position = [0, 18, 0]
         content.add(fill)
+        sceneEntities.append(fill)
 
         loadingStatus = "LOADING MAP..."
         // Map + safety floor first, then find spawn via downward raycast
@@ -75,6 +82,7 @@ final class RealityCoordinator: ObservableObject {
                 mapFloorY = mb.min.y - 2
                 NSLog("[WB-R] map visual bounds min=\(mb.min) max=\(mb.max)")
                 content.add(map)
+                sceneEntities.append(map)
             }
         }
         let floor = RealityKit.Entity()
@@ -83,9 +91,13 @@ final class RealityCoordinator: ObservableObject {
         floor.components.set(CollisionComponent(shapes: [.generateBox(width: 2000, height: 1, depth: 2000)]))
         floor.components.set(PhysicsBodyComponent(massProperties: .default, material: .generate(friction: 0.9, restitution: 0), mode: .static))
         content.add(floor)
+        sceneEntities.append(floor)
+        viewMaps.floor = floor
 
+        // Defer one frame so floor.scene is non-nil (was nil immediately after content.add)
+        try? await Task.sleep(nanoseconds: 100_000_000)
         // Raycast straight down from high above origin to land on real ground
-        if let scene = floor.scene {
+        if let scene = floor.scene ?? viewMaps.player?.scene {
             let probes: [SIMD2<Float>] = [[0,0],[5,0],[-5,0],[0,5],[0,-5],[8,8],[-8,-8],[12,0],[-12,0],[0,12],[0,-12],[15,15],[-15,-15]]
             var bestGroundY: Float = .infinity
             for (i, p2) in probes.enumerated() {
@@ -108,29 +120,105 @@ final class RealityCoordinator: ObservableObject {
         movementSystem.localPlayerId = playerSystem.localPlayerId
         movementSystem.spawnPoint = spawn
         content.add(player)
-        if let anchor = viewMaps.cameraAnchor {
-            // Visible sky dome (follows camera) so sky is never black
-            addSkyDome(to: anchor)
+        // Sky is HDR skybox from content.environment — no flat dome (was washing IBL reflections)
+        // firm H6: ESC -> pause (was never wired)
+        InputManager.onPauseToggle = { [weak self] in
+            DispatchQueue.main.async {
+                self?.gameVM?.showPauseMenu.toggle()
+                if let isOpen = self?.gameVM?.showPauseMenu {
+                    InputManager.setPauseMenuActive(isOpen)
+                    if isOpen { InputManager.unlockCursor() } else { InputManager.lockCursor() }
+                }
+            }
         }
         if let net = networkManager {
             let username = coordinatorUsername
             let room = coordinatorRoom
-            net.connect(username: username, room: room)
-            // Wire RealityWeaponSystem fire feedback
-            net.onHitConfirmed = { [weak self] _, _ in
+            let rawHost = serverHost.trimmingCharacters(in: .whitespacesAndNewlines)
+#if DEBUG
+            let host = rawHost.isEmpty ? (UserDefaults.standard.string(forKey: "warbase_host") ?? "warbase.nxtlap.com") : rawHost
+#else
+            let host = "warbase.nxtlap.com"
+#endif
+            net.connect(username: username, room: room, host: host)
+            // Chain callbacks so ContentView's GameViewModel wiring isn't lost (was overwritten)
+            let prevHit = net.onHitConfirmed
+            let prevKill = net.onKillConfirmed
+            net.onHitConfirmed = { [weak self] a, b in
+                prevHit?(a, b)
                 DispatchQueue.main.async { self?.gameVM?.crosshairColor = .red; DispatchQueue.main.asyncAfter(deadline: .now()+0.1) { self?.gameVM?.crosshairColor = .white } }
             }
             net.onKillConfirmed = { [weak self] targetId in
+                prevKill?(targetId)
                 DispatchQueue.main.async { self?.gameVM?.showKillFeed = true; self?.gameVM?.killFeedText = "KILLED \(targetId)" }
+            }
+            // Remote fire: mirror web triggerFire() — tracer + impact + flash
+            net.onFireReceived = { [weak self] shooterId, origin, hit, normal, hitWall in
+                guard let self else { return }
+                Task { @MainActor in
+                    self.multiplayer.triggerFire(id: shooterId, origin: origin, hitPoint: hit, normal: normal, hitWall: hitWall, content: content, tracer: self.tracerSystem, impact: self.impactSystem, decal: self.decalSystem)
+                }
+            }
+            let prevRespawn = net.onRespawn
+            net.onRespawn = { [weak self] x, y, z in
+                prevRespawn?(x, y, z)
+                guard let self else { return }
+                Task { @MainActor in
+                    if let pl = self.viewMaps.player {
+                        pl.position = SIMD3<Float>(x, y, z)
+                        var m = pl.components[PhysicsMotionComponent.self] ?? PhysicsMotionComponent()
+                        m.linearVelocity = .zero; m.angularVelocity = .zero; pl.components.set(m)
+                    }
+                    if let eid = self.playerSystem.localPlayerId as Int?, let ent = self.world.entities[eid], var ps = ent.getComponent(PlayerComponentState.self) {
+                        ps.isDead = false; ent.addComponent(ps)
+                    }
+                    self.movementSystem.spawnPoint = SIMD3<Float>(x, y, z)
+                    self.gameVM?.isDead = false; self.gameVM?.health = 100
+                }
+            }
+            net.onGrenadeReceived = { [weak self] shooterId, pos, vel in
+                guard let self else { return }
+                Task { @MainActor in
+                    // grenade visuals: spawn at pos with vel; reuse local grenade path
+                    if let sc = self.viewMaps.player?.scene {
+                        // find a content-like handle via scene; fallback to tracer scene
+                        let dummy: Any = content
+                        if let c = dummy as? any _RealityKit_SwiftUI.RealityViewContentProtocol {
+                            // GrenadeSystem needs content; use stored content handle via closure capture
+                            let g = RealityGrenadeSystem()
+                            g.throwGrenade(position: SIMD3<Float>(pos[0], pos[1], pos[2]), direction: SIMD3<Float>(vel[0], vel[1], vel[2]), content: c)
+                        }
+                    }
+                }
             }
             net.onStateReceived = { [weak self] state in
                 guard let self else { return }
                 Task { @MainActor in
-                    for (id, st) in state.players where id != username && self.multiplayer.players[id] == nil {
-                        let mesh = self.multiplayer.spawn(id: id, state: st)
+                    for (id, st) in state.players where id.lowercased() != username.lowercased() && self.multiplayer.players[id] == nil {
+                        let mesh = await self.multiplayer.spawn(id: id, state: st, viewMaps: self.viewMaps)
                         content.add(mesh)
                     }
                     self.multiplayer.updateNetworkState(gameState: state, localUsername: username)
+                    // Local HUD health/death/ping + ECS isDead (was missing)
+                    if let me = state.players[username] {
+                        self.gameVM?.setHealth(Int(me.health))
+                        if self.gameVM?.isDead != me.isDead { self.gameVM?.setDead(me.isDead) }
+                        self.gameVM?.setPing(Int(me.ping))
+                        // sync ECS isDead so movement/weapon freeze
+                        if let eid = self.playerSystem.localPlayerId as Int?, let ent = self.world.entities[eid], var ps = ent.getComponent(PlayerComponentState.self) {
+                            if ps.isDead != me.isDead {
+                                ps.isDead = me.isDead
+                                ent.addComponent(ps)
+                                if me.isDead {
+                                    self.gameVM?.respawnTime = 3
+                                } else {
+                                    self.gameVM?.respawnTime = 3
+                                }
+                            }
+                        } else if me.isDead && self.gameVM?.respawnTime == 3 {
+                            self.gameVM?.respawnTime = 3
+                        }
+                    }
                 }
             }
         }
@@ -152,6 +240,19 @@ final class RealityCoordinator: ObservableObject {
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { InputManager.setForward(true); NSLog("[WB-R] W down") }
             DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) { InputManager.setForward(false); NSLog("[WB-R] W up") }
         }
+    }
+
+    func teardown() {
+        for sub in subs { sub.cancel() }
+        subs.removeAll()
+        for e in sceneEntities { e.removeFromParent() }
+        sceneEntities.removeAll()
+        for e in loadingSpinners { e.removeFromParent() }
+        loadingSpinners.removeAll()
+        viewMaps.clearAll()
+        world.clearAll()
+        // reset lerp buffers
+        multiplayer.players.removeAll()
     }
 
     // Simple "RealityKit magic" loading scene: orbiting glowing wireframe crates
@@ -211,13 +312,95 @@ final class RealityCoordinator: ObservableObject {
            let scene = player.scene {
             let isAssault = wep.activeWeaponIndex == 0
             let t = CACurrentMediaTime()
-            weaponSystem.update(input: full, entity: e, weaponState: &wep, recoilState: &recoil, swayState: &sway, time: t, dt: delta, swayRoot: swayRoot, camera: camEntity, scene: scene, tracer: tracerSystem, impact: impactSystem, decal: decalSystem, network: networkManager, content: content, isAssault: isAssault)
+            // TPS: muzzle world = RightHand bone + forward (like web muzzlePoint parented to RightHand)
+            let muzzleWorld: SIMD3<Float> = { @MainActor in
+                // inline hand lookup - MainActor isolated, avoid nested nonisolated closure
+                var handNode: RealityKit.Entity? = nil
+                if let sol = viewMaps.soldier {
+                    for name in ["RightHand","mixamorig:RightHand"] {
+                        var q: [RealityKit.Entity] = [sol]
+                        var found: RealityKit.Entity? = nil
+                        while !q.isEmpty { let e = q.removeFirst(); if e.name == name { found = e; break }; q.append(contentsOf: e.children) }
+                        if found != nil { handNode = found; break }
+                    }
+                    if handNode == nil {
+                        for name in ["RightHand","hand_r"] {
+                            var q: [RealityKit.Entity] = [sol]
+                            var found: RealityKit.Entity? = nil
+                            while !q.isEmpty { let e = q.removeFirst(); if e.name.lowercased().contains(name.lowercased()) { found = e; break }; q.append(contentsOf: e.children) }
+                            if found != nil { handNode = found; break }
+                        }
+                    }
+                }
+                if let hand = handNode {
+                    let camFwd = normalize(-camEntity.orientation(relativeTo: nil).act(SIMD3<Float>(0,0,1)))
+                    let mpos = hand.position(relativeTo: nil) + camFwd * 0.42 + SIMD3<Float>(0, -0.02, 0)
+                    if frameCount % 120 == 0 { NSLog("[WB-R] MUZZLE hand=%@ cam=%@ muzzle=%@", "\(hand.position(relativeTo: nil))", "\(camEntity.position(relativeTo: nil))", "\(mpos)") }
+                    return mpos
+                }
+                // hand not found — try weapon tip (chest holder, still on body), then player
+                let candidates = [viewMaps.weaponAK, viewMaps.weaponM2010, viewMaps.weaponPistol].compactMap { $0 }
+                if let w = candidates.first(where: { $0.isEnabled }) ?? candidates.first {
+                    let tip: SIMD3<Float>
+                    if w.name == "ak47" { tip = [0, 0.1, 3.3] }
+                    else if w.name == "m2010" { tip = [0, 0.045, 1.28] }
+                    else if w.name == "pistol" { tip = [0, 0.03, 0.25] }
+                    else { tip = [0, 0, 0.6] }
+                    let mpos = w.convert(position: tip, to: nil)
+                    if frameCount % 120 == 0 { NSLog("[WB-R] MUZZLE weapon=%@ muzzle=%@", "\(w.name)", "\(mpos)") }
+                    return mpos
+                }
+                if let pl = viewMaps.player {
+                    let camFwd = normalize(-camEntity.orientation(relativeTo: nil).act(SIMD3<Float>(0,0,1)))
+                    let mpos = pl.position(relativeTo: nil) + SIMD3<Float>(0.25, 1.15, 0.25) + camFwd * 0.35
+                    if frameCount % 120 == 0 { NSLog("[WB-R] MUZZLE fallback player=%@ cam=%@ muzzle=%@", "\(pl.position)", "\(camEntity.position(relativeTo: nil))", "\(mpos)") }
+                    return mpos
+                }
+                // absolute last resort — still offset from body, not lens
+                return (viewMaps.player?.position ?? camEntity.position(relativeTo: nil)) + SIMD3<Float>(0.3, 1.15, 0)
+            }()
+
+                        weaponSystem.update(input: full, entity: e, weaponState: &wep, recoilState: &recoil, swayState: &sway, time: t, dt: delta, swayRoot: swayRoot, camera: camEntity, scene: scene, tracer: tracerSystem, impact: impactSystem, decal: decalSystem, network: networkManager, content: content, isAssault: isAssault, muzzlePos: muzzleWorld)
+            // Grenade throw (was completely missing — button did nothing)
+            if full.grenade, let pl = viewMaps.player {
+                let camFwd = normalize(-camEntity.orientation(relativeTo: nil).act(SIMD3<Float>(0,0,1)))
+                // origin from hand/body, not camera (like muzzle)
+                let origin: SIMD3<Float> = {
+                    if let sol = viewMaps.soldier {
+                        var q: [RealityKit.Entity] = [sol]
+                        var hand: RealityKit.Entity? = nil
+                        while !q.isEmpty { let ent = q.removeFirst(); if ent.name == "RightHand" || ent.name == "mixamorig:RightHand" { hand = ent; break }; q.append(contentsOf: ent.children) }
+                        if let h = hand { return h.position(relativeTo: nil) + camFwd * 0.35 }
+                    }
+                    return pl.position(relativeTo: nil) + SIMD3<Float>(0.3, 1.15, 0) + camFwd * 0.35
+                }()
+                let gsys = RealityGrenadeSystem()
+                gsys.throwGrenade(position: origin, direction: camFwd, content: content)
+                networkManager?.sendGrenade(position: [origin.x, origin.y, origin.z], velocity: [camFwd.x*8, camFwd.y*8+5, camFwd.z*8])
+            }
             e.addComponent(wep); e.addComponent(recoil); e.addComponent(sway)
+            // HUD sync (firm fix: was never wired)
+            gameVM?.setAmmo(wep.currentAmmo)
+            gameVM?.weaponName = wep.activeWeaponIndex == 1 ? "Pistol" : (isAssault ? "AK-47" : "M2010")
+            gameVM?.maxAmmo = wep.activeWeaponIndex == 1 ? 12 : (isAssault ? 30 : 5)
+            let isSniper = (!isAssault && wep.activeWeaponIndex == 0)
+            gameVM?.isScoped = isSniper && wep.adsProgress > 0.5
             let isAssaultSend = isAssault
             let snapInput = full; let snapWep = wep
             if CACurrentMediaTime() - lastTime >= 0.016 { lastTime = CACurrentMediaTime(); DispatchQueue.main.async { [weak self] in self?.sendNetworkState(input: snapInput, weaponState: snapWep, isAssault: isAssaultSend) } }
         }
-        multiplayer.interpolate(currentTime: CACurrentMediaTime())
+        multiplayer.interpolate(currentTime: CACurrentMediaTime(), viewMaps: viewMaps)
+        // Respawn countdown (web: 3s then RespawnRequest)
+        if let vm = gameVM, vm.isDead {
+            // simple frame-based 1s tick
+            if frameCount % 60 == 0 && vm.respawnTime > 0 {
+                vm.respawnTime -= 1
+                if vm.respawnTime <= 0 {
+                    networkManager?.sendRespawnRequest()
+                    vm.respawnTime = 3
+                }
+            }
+        }
         frameCount += 1
         if frameCount == 30, let soldier = viewMaps.soldier {
             // Bone world positions -> empirical orientation check
@@ -272,7 +455,7 @@ final class RealityCoordinator: ObservableObject {
             e.addComponent(full)
         }
         movementSystem.update(deltaTime: delta, world: world, viewMaps: viewMaps, scene: nil)
-        multiplayer.interpolate(currentTime: CACurrentMediaTime())
+        multiplayer.interpolate(currentTime: CACurrentMediaTime(), viewMaps: viewMaps)
         frameCount += 1
         if frameCount <= 10 || frameCount % 60 == 0, let player = viewMaps.player {
             let pos = player.position
@@ -286,33 +469,55 @@ final class RealityCoordinator: ObservableObject {
     // mesh, so box/convex shapes degenerate to its bounding box (players walk
     // on an invisible "ceiling"). generateStaticMesh gives real trimesh hits.
     private func addPerMeshCollision(to root: RealityKit.Entity) async {
+        // Collect first, then parallelize mesh generation
+        var meshes: [RealityKit.Entity] = []
         var stack: [RealityKit.Entity] = [root]
-        var count = 0
         while let e = stack.popLast() {
             stack.append(contentsOf: e.children)
-            guard let model = e.components[ModelComponent.self] else { continue }
-            var shapes: [ShapeResource] = []
-            if let shape = try? await ShapeResource.generateStaticMesh(from: model.mesh) {
-                shapes.append(shape)
-            }
-            if !shapes.isEmpty {
-                e.components.set(CollisionComponent(shapes: shapes))
-                count += shapes.count
-            }
+            if e.components[ModelComponent.self] != nil { meshes.append(e) }
         }
-        NSLog("[WB-R] static-mesh collision shapes: \(count)")
+        // Capture meshes nonisolated; avoid actor-isolated components capture in TaskGroup
+        let meshCopies: [(RealityKit.Entity, MeshResource)] = meshes.compactMap { e in
+            guard let m = e.components[ModelComponent.self]?.mesh else { return nil }
+            return (e, m)
+        }
+        let results = await withTaskGroup(of: (RealityKit.Entity, ShapeResource?).self) { group in
+            for (e, m) in meshCopies {
+                group.addTask {
+                    let shape = try? await ShapeResource.generateStaticMesh(from: m)
+                    return (e, shape)
+                }
+            }
+            var out: [(RealityKit.Entity, ShapeResource?)] = []
+            for await r in group { out.append(r) }
+            return out
+        }
+        var count = 0
+        for (e, shape) in results where shape != nil {
+            e.components.set(CollisionComponent(shapes: [shape!]))
+            e.components.set(PhysicsBodyComponent(massProperties: .default, material: .generate(friction: 0.9, restitution: 0), mode: .static))
+            count += 1
+        }
+        NSLog("[WB-R] static-mesh collision shapes: \(count) (parallel)")
     }
 
-    // Roughness/metalness fix: removes "plastic wrap" gloss from USDZ materials
+    // Matte concrete fix: USDZ comes mirror (metallic 0.8 rough 0.2) + IBL = plastic wrap
+    // Best RealityKit can do: PBR rough 0.95 metal 0.0 clearcoat 0, SimpleMaterial specular 0.1
     private func fixMaterials(_ root: RealityKit.Entity) {
         for child in root.children {
             if var model = child.components[ModelComponent.self] {
                 var newMats: [RealityKit.Material] = []
                 for mat in model.materials {
                     if var pbr = mat as? PhysicallyBasedMaterial {
-                        pbr.roughness = .init(floatLiteral: 0.85)
+                        pbr.roughness = .init(floatLiteral: 0.95)
                         pbr.metallic = .init(floatLiteral: 0.0)
+                        pbr.clearcoat = .init(floatLiteral: 0.0)
+                        // keep baseColor, kill mirror reflections from IBL
                         newMats.append(pbr)
+                    } else if var simple = mat as? SimpleMaterial {
+                        simple.roughness = .init(floatLiteral: 0.92)
+                        simple.metallic = .init(floatLiteral: 0.0)
+                        newMats.append(simple)
                     } else {
                         newMats.append(mat)
                     }
@@ -339,6 +544,7 @@ struct RealityGameView: View {
     let roomID: String
     let selectedMap: String
     let selectedClass: String
+    let serverHost: String
     var networkManager: NetworkManager? = nil
     var gameVM: GameViewModel
     @StateObject private var coordinator = RealityCoordinator()
@@ -349,6 +555,7 @@ struct RealityGameView: View {
             RealityView { content in
                 NSLog("[WB-R] RealityView make")
                 coordinator.selectedClass = selectedClass
+                coordinator.serverHost = serverHost
                 coordinator.coordinatorUsername = username
                 coordinator.coordinatorRoom = roomID
                 coordinator.networkManager = networkManager
@@ -417,22 +624,7 @@ struct RealityGameView: View {
             focused = true
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { focused = true; NSApp.activate(ignoringOtherApps: true) }
         }
-        .onDisappear { InputManager.remove() }
-        .onKeyPress(phases: .down) { press in
-            let key = press.characters.lowercased()
-            if key == "w" { InputManager.setForward(true); return .handled }
-            if key == "a" { InputManager.setLeft(true); return .handled }
-            if key == "s" { InputManager.setBackward(true); return .handled }
-            if key == "d" { InputManager.setRight(true); return .handled }
-            return .ignored
-        }
-        .onKeyPress(phases: .up) { press in
-            let key = press.characters.lowercased()
-            if key == "w" { InputManager.setForward(false); return .handled }
-            if key == "a" { InputManager.setLeft(false); return .handled }
-            if key == "s" { InputManager.setBackward(false); return .handled }
-            if key == "d" { InputManager.setRight(false); return .handled }
-            return .ignored
-        }
+        .onDisappear { coordinator.teardown(); InputManager.remove() }
+        // firm H6: WASD handled exclusively by InputManager.install monitor — remove duplicate SwiftUI handler
     }
 }
