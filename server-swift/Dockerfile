@@ -9,7 +9,7 @@ RUN npm run build
 # Stage 2: Build Backend (Swift 6.0)
 FROM swift:6.0-jammy AS swift-builder
 WORKDIR /app/server-swift
-COPY server-swift/Package.swift ./
+COPY server-swift/Package.swift server-swift/Package.resolved* ./
 COPY server-swift/Sources ./Sources
 RUN swift build -c release --product App
 

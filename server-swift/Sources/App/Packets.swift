@@ -15,12 +15,12 @@ import SwiftProtobuf
 // incompatible with the version of SwiftProtobuf to which you are linking.
 // Please ensure that you are building against the same version of the API
 // that was used to generate this file.
-fileprivate nonisolated struct _GeneratedWithProtocGenSwiftVersion: SwiftProtobuf.ProtobufAPIVersionCheck {
+fileprivate struct _GeneratedWithProtocGenSwiftVersion: SwiftProtobuf.ProtobufAPIVersionCheck {
   struct _2: SwiftProtobuf.ProtobufAPIVersion_2 {}
   typealias Version = _2
 }
 
-nonisolated struct Warbase_ClientEvent: Sendable {
+struct Warbase_ClientEvent: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
@@ -93,7 +93,7 @@ nonisolated struct Warbase_ClientEvent: Sendable {
 
   var unknownFields = SwiftProtobuf.UnknownStorage()
 
-  nonisolated enum OneOf_Event: Equatable, Sendable {
+  enum OneOf_Event: Equatable, Sendable {
     case stateUpdate(Warbase_PlayerStateUpdate)
     case hit(Warbase_HitEvent)
     case fire(Warbase_FireEvent)
@@ -108,7 +108,7 @@ nonisolated struct Warbase_ClientEvent: Sendable {
   init() {}
 }
 
-nonisolated struct Warbase_PlayerStateUpdate: Sendable {
+struct Warbase_PlayerStateUpdate: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
@@ -144,7 +144,7 @@ nonisolated struct Warbase_PlayerStateUpdate: Sendable {
   init() {}
 }
 
-nonisolated struct Warbase_HitEvent: Sendable {
+struct Warbase_HitEvent: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
@@ -158,7 +158,7 @@ nonisolated struct Warbase_HitEvent: Sendable {
   init() {}
 }
 
-nonisolated struct Warbase_FireEvent: Sendable {
+struct Warbase_FireEvent: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
@@ -188,7 +188,7 @@ nonisolated struct Warbase_FireEvent: Sendable {
   init() {}
 }
 
-nonisolated struct Warbase_ReloadEvent: Sendable {
+struct Warbase_ReloadEvent: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
@@ -198,7 +198,7 @@ nonisolated struct Warbase_ReloadEvent: Sendable {
   init() {}
 }
 
-nonisolated struct Warbase_SwitchWeaponEvent: Sendable {
+struct Warbase_SwitchWeaponEvent: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
@@ -210,7 +210,7 @@ nonisolated struct Warbase_SwitchWeaponEvent: Sendable {
   init() {}
 }
 
-nonisolated struct Warbase_RespawnRequestEvent: Sendable {
+struct Warbase_RespawnRequestEvent: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
@@ -220,7 +220,7 @@ nonisolated struct Warbase_RespawnRequestEvent: Sendable {
   init() {}
 }
 
-nonisolated struct Warbase_ThrowGrenadeEvent: Sendable {
+struct Warbase_ThrowGrenadeEvent: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
@@ -242,7 +242,7 @@ nonisolated struct Warbase_ThrowGrenadeEvent: Sendable {
   init() {}
 }
 
-nonisolated struct Warbase_ServerPongEvent: Sendable {
+struct Warbase_ServerPongEvent: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
@@ -254,7 +254,7 @@ nonisolated struct Warbase_ServerPongEvent: Sendable {
   init() {}
 }
 
-nonisolated struct Warbase_PingEvent: Sendable {
+struct Warbase_PingEvent: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
@@ -266,7 +266,7 @@ nonisolated struct Warbase_PingEvent: Sendable {
   init() {}
 }
 
-nonisolated struct Warbase_ServerMessage: Sendable {
+struct Warbase_ServerMessage: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
@@ -291,7 +291,7 @@ nonisolated struct Warbase_ServerMessage: Sendable {
 
   var unknownFields = SwiftProtobuf.UnknownStorage()
 
-  nonisolated enum OneOf_Message: Equatable, Sendable {
+  enum OneOf_Message: Equatable, Sendable {
     case gameState(Warbase_GameState)
     case serverEvent(Warbase_ServerEvent)
 
@@ -300,7 +300,7 @@ nonisolated struct Warbase_ServerMessage: Sendable {
   init() {}
 }
 
-nonisolated struct Warbase_GameState: Sendable {
+struct Warbase_GameState: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
@@ -322,7 +322,7 @@ nonisolated struct Warbase_GameState: Sendable {
   init() {}
 }
 
-nonisolated struct Warbase_PlayerState: Sendable {
+struct Warbase_PlayerState: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
@@ -364,7 +364,7 @@ nonisolated struct Warbase_PlayerState: Sendable {
   init() {}
 }
 
-nonisolated struct Warbase_ServerEvent: Sendable {
+struct Warbase_ServerEvent: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
@@ -421,7 +421,7 @@ nonisolated struct Warbase_ServerEvent: Sendable {
 
   var unknownFields = SwiftProtobuf.UnknownStorage()
 
-  nonisolated enum OneOf_Event: Equatable, Sendable {
+  enum OneOf_Event: Equatable, Sendable {
     case respawn(Warbase_RespawnEvent)
     case fire(Warbase_ServerFireEvent)
     case hitConfirmed(Warbase_HitConfirmedEvent)
@@ -434,7 +434,7 @@ nonisolated struct Warbase_ServerEvent: Sendable {
   init() {}
 }
 
-nonisolated struct Warbase_RespawnEvent: Sendable {
+struct Warbase_RespawnEvent: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
@@ -450,7 +450,7 @@ nonisolated struct Warbase_RespawnEvent: Sendable {
   init() {}
 }
 
-nonisolated struct Warbase_ServerFireEvent: Sendable {
+struct Warbase_ServerFireEvent: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
@@ -482,7 +482,7 @@ nonisolated struct Warbase_ServerFireEvent: Sendable {
   init() {}
 }
 
-nonisolated struct Warbase_HitConfirmedEvent: Sendable {
+struct Warbase_HitConfirmedEvent: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
@@ -492,7 +492,7 @@ nonisolated struct Warbase_HitConfirmedEvent: Sendable {
   init() {}
 }
 
-nonisolated struct Warbase_KillConfirmedEvent: Sendable {
+struct Warbase_KillConfirmedEvent: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
@@ -502,7 +502,7 @@ nonisolated struct Warbase_KillConfirmedEvent: Sendable {
   init() {}
 }
 
-nonisolated struct Warbase_ServerThrowGrenadeEvent: Sendable {
+struct Warbase_ServerThrowGrenadeEvent: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
@@ -528,9 +528,9 @@ nonisolated struct Warbase_ServerThrowGrenadeEvent: Sendable {
 
 // MARK: - Code below here is support for the SwiftProtobuf runtime.
 
-fileprivate nonisolated let _protobuf_package = "warbase"
+fileprivate let _protobuf_package = "warbase"
 
-nonisolated extension Warbase_ClientEvent: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+extension Warbase_ClientEvent: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   static let protoMessageName: String = _protobuf_package + ".ClientEvent"
   static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}state_update\0\u{1}hit\0\u{1}fire\0\u{1}reload\0\u{3}switch_weapon\0\u{3}respawn_request\0\u{3}throw_grenade\0\u{1}ping\0")
 
@@ -699,7 +699,7 @@ nonisolated extension Warbase_ClientEvent: SwiftProtobuf.Message, SwiftProtobuf.
   }
 }
 
-nonisolated extension Warbase_PlayerStateUpdate: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+extension Warbase_PlayerStateUpdate: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   static let protoMessageName: String = _protobuf_package + ".PlayerStateUpdate"
   static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}x\0\u{1}y\0\u{1}z\0\u{1}rx\0\u{1}ry\0\u{1}rz\0\u{1}rw\0\u{1}animation\0\u{3}platform_id\0\u{1}ping\0\u{3}weapon_id\0")
 
@@ -779,7 +779,7 @@ nonisolated extension Warbase_PlayerStateUpdate: SwiftProtobuf.Message, SwiftPro
   }
 }
 
-nonisolated extension Warbase_HitEvent: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+extension Warbase_HitEvent: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   static let protoMessageName: String = _protobuf_package + ".HitEvent"
   static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}target_id\0\u{1}damage\0")
 
@@ -814,7 +814,7 @@ nonisolated extension Warbase_HitEvent: SwiftProtobuf.Message, SwiftProtobuf._Me
   }
 }
 
-nonisolated extension Warbase_FireEvent: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+extension Warbase_FireEvent: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   static let protoMessageName: String = _protobuf_package + ".FireEvent"
   static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}origin_x\0\u{3}origin_y\0\u{3}origin_z\0\u{3}hit_x\0\u{3}hit_y\0\u{3}hit_z\0\u{3}normal_x\0\u{3}normal_y\0\u{3}normal_z\0\u{3}hit_wall\0")
 
@@ -889,7 +889,7 @@ nonisolated extension Warbase_FireEvent: SwiftProtobuf.Message, SwiftProtobuf._M
   }
 }
 
-nonisolated extension Warbase_ReloadEvent: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+extension Warbase_ReloadEvent: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   static let protoMessageName: String = _protobuf_package + ".ReloadEvent"
   static let _protobuf_nameMap = SwiftProtobuf._NameMap()
 
@@ -908,7 +908,7 @@ nonisolated extension Warbase_ReloadEvent: SwiftProtobuf.Message, SwiftProtobuf.
   }
 }
 
-nonisolated extension Warbase_SwitchWeaponEvent: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+extension Warbase_SwitchWeaponEvent: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   static let protoMessageName: String = _protobuf_package + ".SwitchWeaponEvent"
   static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}weapon_id\0")
 
@@ -938,7 +938,7 @@ nonisolated extension Warbase_SwitchWeaponEvent: SwiftProtobuf.Message, SwiftPro
   }
 }
 
-nonisolated extension Warbase_RespawnRequestEvent: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+extension Warbase_RespawnRequestEvent: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   static let protoMessageName: String = _protobuf_package + ".RespawnRequestEvent"
   static let _protobuf_nameMap = SwiftProtobuf._NameMap()
 
@@ -957,7 +957,7 @@ nonisolated extension Warbase_RespawnRequestEvent: SwiftProtobuf.Message, SwiftP
   }
 }
 
-nonisolated extension Warbase_ThrowGrenadeEvent: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+extension Warbase_ThrowGrenadeEvent: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   static let protoMessageName: String = _protobuf_package + ".ThrowGrenadeEvent"
   static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}px\0\u{1}py\0\u{1}pz\0\u{1}vx\0\u{1}vy\0\u{1}vz\0")
 
@@ -1012,7 +1012,7 @@ nonisolated extension Warbase_ThrowGrenadeEvent: SwiftProtobuf.Message, SwiftPro
   }
 }
 
-nonisolated extension Warbase_ServerPongEvent: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+extension Warbase_ServerPongEvent: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   static let protoMessageName: String = _protobuf_package + ".ServerPongEvent"
   static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}client_time\0")
 
@@ -1042,7 +1042,7 @@ nonisolated extension Warbase_ServerPongEvent: SwiftProtobuf.Message, SwiftProto
   }
 }
 
-nonisolated extension Warbase_PingEvent: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+extension Warbase_PingEvent: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   static let protoMessageName: String = _protobuf_package + ".PingEvent"
   static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}client_time\0")
 
@@ -1072,7 +1072,7 @@ nonisolated extension Warbase_PingEvent: SwiftProtobuf.Message, SwiftProtobuf._M
   }
 }
 
-nonisolated extension Warbase_ServerMessage: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+extension Warbase_ServerMessage: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   static let protoMessageName: String = _protobuf_package + ".ServerMessage"
   static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}game_state\0\u{3}server_event\0")
 
@@ -1139,7 +1139,7 @@ nonisolated extension Warbase_ServerMessage: SwiftProtobuf.Message, SwiftProtobu
   }
 }
 
-nonisolated extension Warbase_GameState: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+extension Warbase_GameState: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   static let protoMessageName: String = _protobuf_package + ".GameState"
   static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}players\0\u{3}room_mode\0\u{3}room_state\0\u{3}score_team_a\0\u{3}score_team_b\0\u{3}winner_id\0")
 
@@ -1194,7 +1194,7 @@ nonisolated extension Warbase_GameState: SwiftProtobuf.Message, SwiftProtobuf._M
   }
 }
 
-nonisolated extension Warbase_PlayerState: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+extension Warbase_PlayerState: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   static let protoMessageName: String = _protobuf_package + ".PlayerState"
   static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}x\0\u{1}y\0\u{1}z\0\u{1}rx\0\u{1}ry\0\u{1}rz\0\u{1}rw\0\u{1}animation\0\u{1}health\0\u{1}kills\0\u{1}deaths\0\u{3}is_dead\0\u{3}platform_id\0\u{1}ping\0\u{3}weapon_id\0\u{1}team\0")
 
@@ -1299,7 +1299,7 @@ nonisolated extension Warbase_PlayerState: SwiftProtobuf.Message, SwiftProtobuf.
   }
 }
 
-nonisolated extension Warbase_ServerEvent: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+extension Warbase_ServerEvent: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   static let protoMessageName: String = _protobuf_package + ".ServerEvent"
   static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}respawn\0\u{1}fire\0\u{3}hit_confirmed\0\u{3}kill_confirmed\0\u{3}throw_grenade\0\u{1}pong\0")
 
@@ -1434,7 +1434,7 @@ nonisolated extension Warbase_ServerEvent: SwiftProtobuf.Message, SwiftProtobuf.
   }
 }
 
-nonisolated extension Warbase_RespawnEvent: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+extension Warbase_RespawnEvent: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   static let protoMessageName: String = _protobuf_package + ".RespawnEvent"
   static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}x\0\u{1}y\0\u{1}z\0")
 
@@ -1474,7 +1474,7 @@ nonisolated extension Warbase_RespawnEvent: SwiftProtobuf.Message, SwiftProtobuf
   }
 }
 
-nonisolated extension Warbase_ServerFireEvent: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+extension Warbase_ServerFireEvent: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   static let protoMessageName: String = _protobuf_package + ".ServerFireEvent"
   static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}shooter_id\0\u{3}origin_x\0\u{3}origin_y\0\u{3}origin_z\0\u{3}hit_x\0\u{3}hit_y\0\u{3}hit_z\0\u{3}normal_x\0\u{3}normal_y\0\u{3}normal_z\0\u{3}hit_wall\0")
 
@@ -1554,7 +1554,7 @@ nonisolated extension Warbase_ServerFireEvent: SwiftProtobuf.Message, SwiftProto
   }
 }
 
-nonisolated extension Warbase_HitConfirmedEvent: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+extension Warbase_HitConfirmedEvent: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   static let protoMessageName: String = _protobuf_package + ".HitConfirmedEvent"
   static let _protobuf_nameMap = SwiftProtobuf._NameMap()
 
@@ -1573,7 +1573,7 @@ nonisolated extension Warbase_HitConfirmedEvent: SwiftProtobuf.Message, SwiftPro
   }
 }
 
-nonisolated extension Warbase_KillConfirmedEvent: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+extension Warbase_KillConfirmedEvent: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   static let protoMessageName: String = _protobuf_package + ".KillConfirmedEvent"
   static let _protobuf_nameMap = SwiftProtobuf._NameMap()
 
@@ -1592,7 +1592,7 @@ nonisolated extension Warbase_KillConfirmedEvent: SwiftProtobuf.Message, SwiftPr
   }
 }
 
-nonisolated extension Warbase_ServerThrowGrenadeEvent: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+extension Warbase_ServerThrowGrenadeEvent: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   static let protoMessageName: String = _protobuf_package + ".ServerThrowGrenadeEvent"
   static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}shooter_id\0\u{1}px\0\u{1}py\0\u{1}pz\0\u{1}vx\0\u{1}vy\0\u{1}vz\0")
 

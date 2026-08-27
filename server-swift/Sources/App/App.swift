@@ -39,6 +39,12 @@ struct CreateRoomResponse: Encodable, Sendable {
             return Response(status: .ok, headers: [.contentType: "application/json"], body: .init(byteBuffer: ByteBuffer(bytes: body)))
         }
 
+        router.get("/health") { _, _ -> Response in
+            let res = HealthCheckResponse(status: "available", system_info: .init(environment: "production", version: "1.0.0"))
+            let body = try JSONEncoder().encode(res)
+            return Response(status: .ok, headers: [.contentType: "application/json"], body: .init(byteBuffer: ByteBuffer(bytes: body)))
+        }
+
         router.get("/api/rooms") { _, _ -> Response in
             let rooms = await match.listRooms()
             let totalPlayers = rooms.reduce(0) { $0 + $1.playerCount }
@@ -95,7 +101,7 @@ struct CreateRoomResponse: Encodable, Sendable {
                     let sendTask = Task {
                         for await buffer in stream {
                             do {
-                                try await outbound.writeBinaryMessage(buffer)
+                                try await outbound.write(.binary(buffer))
                             } catch {
                                 break
                             }
