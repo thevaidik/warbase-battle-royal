@@ -262,6 +262,17 @@ struct SandtableHUDView: View {
                     }
                 }
                 
+                HStack {
+                    Button(action: { viewModel.isThermalMode.toggle() }) {
+                        Label(viewModel.isThermalMode ? "THERMAL ON" : "THERMAL OFF", systemImage: "eye.fill")
+                            .font(.system(size: 10, weight: .bold, design: .monospaced))
+                    }.buttonStyle(.bordered).tint(viewModel.isThermalMode ? .green : .gray).controlSize(.mini)
+                    Button(action: { viewModel.isLaserLockActive.toggle() }) {
+                        Label("LASER", systemImage: "scope")
+                            .font(.system(size: 10, weight: .bold, design: .monospaced))
+                    }.buttonStyle(.bordered).tint(viewModel.isLaserLockActive ? .red : .gray).controlSize(.mini)
+                    Spacer()
+                }
                 droneThermalFeedBox
             }
             
@@ -297,12 +308,12 @@ struct SandtableHUDView: View {
     private var droneThermalFeedBox: some View {
         ZStack {
             Rectangle()
-                .fill(Color.black.opacity(0.9))
+                .fill(viewModel.isThermalMode ? Color.black.opacity(0.95) : Color.gray.opacity(0.15))
                 .frame(height: 170)
                 .cornerRadius(10)
                 .overlay(
                     RoundedRectangle(cornerRadius: 10)
-                        .stroke(Color.green.opacity(0.6), lineWidth: 1)
+                        .stroke(viewModel.isThermalMode ? Color.green.opacity(0.6) : Color.white.opacity(0.2), lineWidth: 1)
                 )
             
             if let drone = viewModel.activeDronePiP {
