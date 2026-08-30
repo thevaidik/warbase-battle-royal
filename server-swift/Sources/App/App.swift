@@ -14,7 +14,7 @@ struct HealthCheckResponse: Encodable, Sendable {
 }
 
 struct RoomsListResponse: Encodable, Sendable {
-    let rooms: [RoomInfo]
+    let rooms: [TheatreInfo]
     let online_players: Int
 }
 
@@ -27,7 +27,7 @@ struct CreateRoomResponse: Encodable, Sendable {
         let env = Environment()
         let port = env.get("PORT").flatMap(Int.init) ?? 8081
         let match = Match()
-        await match.seedDefaultRooms()
+        await match.seedDefaultTheatres()
         Task { await match.runTicker() }
 
         let router = Router()
@@ -46,19 +46,24 @@ struct CreateRoomResponse: Encodable, Sendable {
         }
 
         router.get("/api/rooms") { _, _ -> Response in
-            let rooms = await match.listRooms()
-            let totalPlayers = rooms.reduce(0) { $0 + $1.playerCount }
-            let res = RoomsListResponse(rooms: rooms, online_players: totalPlayers)
+            let theatres = await match.listTheatres()
+            let totalCommanders = theatres.reduce(0) { $0 + $1.commanderCount }
+            struct Resp: Encodable {
+                let rooms: [TheatreInfo]
+                let online_players: Int
+            }
+            let res = Resp(rooms: theatres, online_players: totalCommanders)
             let body = try JSONEncoder().encode(res)
             return Response(status: .ok, headers: [.contentType: "application/json"], body: .init(byteBuffer: ByteBuffer(bytes: body)))
         }
 
         router.post("/api/rooms") { req, context -> Response in
-            struct Input: Decodable { var name: String; var map: String; var mode: String? }
+            struct Input: Decodable { var name: String; var map: String }
             let input = try await req.decode(as: Input.self, context: context)
-            guard !input.name.isEmpty, !input.map.isEmpty else { throw HTTPError(.badRequest) }
-            let room = await match.createRoom(name: input.name, mapName: input.map, mode: input.mode ?? "FFA")
-            let body = try JSONEncoder().encode(CreateRoomResponse(room_id: room.id))
+            guard !input.name.isEmpty else { throw HTTPError(.badRequest) }
+            let theatre = await match.createTheatre(name: input.name, mapName: input.map.isEmpty ? "donbas" : input.map)
+            struct CreateResp: Encodable { let room_id: String }
+            let body = try JSONEncoder().encode(CreateResp(room_id: theatre.id))
             return Response(status: .created, headers: [.contentType: "application/json"], body: .init(byteBuffer: ByteBuffer(bytes: body)))
         }
 
@@ -73,8 +78,8 @@ struct CreateRoomResponse: Encodable, Sendable {
                 let path = String(parts.first ?? "")
                 guard path == "/connect" else { return .dontUpgrade }
 
-                var username = "Player_\(Int.random(in: 1000...9999))"
-                var roomID = "industrial-public"
+                var username = "Commander_\(Int.random(in: 1000...9999))"
+                var roomID = "theatre-donbas"
                 if parts.count > 1 {
                     let query = String(parts[1])
                     let pairs = query.components(separatedBy: "&")
@@ -121,7 +126,7 @@ struct CreateRoomResponse: Encodable, Sendable {
                     }
 
                     sendTask.cancel()
-                    await match.unregister(session: session)
+                    await match.unregister(sessionID: user, roomID: room)
                 }
             }),
             configuration: .init(address: .hostname("0.0.0.0", port: port), serverName: "WarBase-Swift")

@@ -2,331 +2,182 @@ import Foundation
 import Combine
 import simd
 
-public struct NetworkPlayerState {
-    public var id: String
-    public var x: Float
-    public var y: Float
-    public var z: Float
-    public var rx: Float
-    public var ry: Float
-    public var rz: Float
-    public var rw: Float
-    public var anim: String
-    public var health: Float
-    public var kills: Int
-    public var deaths: Int
-    public var isDead: Bool
-    public var platformId: String
-    public var ping: Int
-    public var weaponId: String
-    public var team: String
-}
-
-
-public struct GameStateData {
-    public var players: [String: NetworkPlayerState]
-    public var roomMode: String
-    public var roomState: String
-    public var scoreTeamA: Int
-    public var scoreTeamB: Int
-    public var winnerId: String?
-}
-
-
-public class NetworkManager: ObservableObject {
+final class NetworkManager: ObservableObject {
     private var webSocket: URLSessionWebSocketTask?
     private var pingTimer: Timer?
-    private var reconnectAttempts = 0
-    private let maxReconnectAttempts = 10
     
-    @Published public var gameState: GameStateData?
-    public var currentPing: Int = 0  // RTT ms, mirrored from web
+    @Published var isConnected: Bool = false
+    @Published var ping: Int = 0
+    @Published var gameState: Warbase_StrategicGameState?
     
-    public var onStateReceived: ((GameStateData) -> Void)?
-    public var onHitConfirmed: ((String, Float) -> Void)?
-    public var onKillConfirmed: ((String) -> Void)?
-    public var onRespawn: ((Float, Float, Float) -> Void)?
-    // distinct args like web: (id, ox,oy,oz, hx,hy,hz, nx,ny,nz, wall)
-    public var onFireReceived: ((String, SIMD3<Float>, SIMD3<Float>, SIMD3<Float>, Bool) -> Void)?
-    public var onGrenadeReceived: ((String, [Float], [Float]) -> Void)?
+    // Event Callbacks
+    var onStateReceived: ((Warbase_StrategicGameState) -> Void)?
+    var onDetonationReceived: ((Warbase_ArtilleryDetonationEvent) -> Void)?
+    var onDroneStrikeReceived: ((Warbase_DroneStrikeEvent) -> Void)?
+    var onCounterBatteryReceived: ((Warbase_CounterBatteryAlert) -> Void)?
+    var onUnitDestroyedReceived: ((Warbase_UnitDestroyedEvent) -> Void)?
     
-    public init() {}
+    init() {}
     
     deinit {
         disconnect()
     }
-
-    public func disconnect() {
+    
+    func disconnect() {
         pingTimer?.invalidate()
         pingTimer = nil
         webSocket?.cancel(with: .goingAway, reason: nil)
         webSocket = nil
-        reconnectAttempts = maxReconnectAttempts
-        onStateReceived = nil
-        onHitConfirmed = nil
-        onKillConfirmed = nil
-        onRespawn = nil
-        onFireReceived = nil
-        onGrenadeReceived = nil
-        gameState = nil
+        DispatchQueue.main.async {
+            self.isConnected = false
+            self.gameState = nil
+        }
     }
     
-    public func connect(username: String = "Player", room: String = "default", host: String = "war.nxtlap.com") {
-        let cleanUser = username.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "Player"
-        let cleanRoom = room.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "default"
-        let scheme: String = {
-            if let url = URL(string: host), let sc = url.scheme, sc == "ws" || sc == "wss" { return sc }
-            // web parity: ws for localhost/127.0.0.1, wss otherwise
-            let isLocal = host.hasPrefix("localhost") || host.hasPrefix("127.") || host.contains("://localhost") || host.contains("://127.")
-            return isLocal ? "ws" : "wss"
-        }()
-        // sticky CID like web sessionStorage — survives reconnects
-        let cid: String = {
-            if let saved = UserDefaults.standard.string(forKey: "warbase_client_id") { return saved }
-            let fresh = UUID().uuidString; UserDefaults.standard.set(fresh, forKey: "warbase_client_id"); return fresh
-        }()
-        guard let url = URL(string: "\(scheme)://\(host)/connect?user=\(cleanUser)&room=\(cleanRoom)&cid=\(cid)") else { return }
-        connect(url: url)
-    }
-    
-    public func connect(url: URL) {
-        lastConnectURL = url
-        reconnectAttempts = 0
+    func connect(username: String = "Commander", room: String = "theatre-donbas", host: String = "127.0.0.1:8081") {
+        disconnect()
+        
+        let cleanUser = username.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "Commander"
+        let cleanRoom = room.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "theatre-donbas"
+        
+        let scheme = host.contains("localhost") || host.contains("127.0.0.1") ? "ws" : "wss"
+        guard let url = URL(string: "\(scheme)://\(host)/connect?user=\(cleanUser)&room=\(cleanRoom)") else { return }
+        
         let session = URLSession(configuration: .default)
         webSocket = session.webSocketTask(with: url)
         webSocket?.resume()
-        receiveMessage()
         
-        pingTimer?.invalidate()
-        pingTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
-            self?.sendPing()
+        DispatchQueue.main.async {
+            self.isConnected = true
         }
+        
+        receiveMessage()
+        startPingTimer()
     }
     
     private func receiveMessage() {
         webSocket?.receive { [weak self] result in
+            guard let self = self else { return }
             switch result {
-            case .failure(let error):
-                print("WebSocket error: \(error)")
-                self?.handleDisconnect()
             case .success(let message):
                 switch message {
                 case .data(let data):
-                    self?.handleBinaryData(data)
-                case .string(let str):
-                    print("Received string: \(str)")
-                @unknown default:
+                    self.handleIncomingData(data)
+                default:
                     break
                 }
-                self?.receiveMessage()
+                self.receiveMessage()
+            case .failure(let error):
+                print("WebSocket receive error: \(error)")
+                DispatchQueue.main.async {
+                    self.isConnected = false
+                }
             }
         }
     }
     
-    private var lastConnectURL: URL?
-    private func handleDisconnect() {
-        pingTimer?.invalidate()
-        pingTimer = nil
-        guard reconnectAttempts < maxReconnectAttempts, let url = lastConnectURL else { return }
-        let delay = min(pow(2.0, Double(reconnectAttempts)), 10.0)
-        reconnectAttempts += 1
-        DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self] in
-            guard let self else { return }
-            self.reconnect(url: url)
-        }
-    }
-    private func reconnect(url: URL) {
-        let session = URLSession(configuration: .default)
-        webSocket = session.webSocketTask(with: url)
-        webSocket?.resume()
-        receiveMessage()
-        pingTimer?.invalidate()
-        pingTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in self?.sendPing() }
-    }
-    
-    private func sendPing() {
-        var clientEvent = Warbase_ClientEvent()
-        var pingEvent = Warbase_PingEvent()
-        pingEvent.clientTime = Int64(Date().timeIntervalSince1970 * 1000)
-        clientEvent.ping = pingEvent
-        send(clientEvent)
-    }
-    
-    private func handleBinaryData(_ data: Data) {
+    private func handleIncomingData(_ data: Data) {
         do {
-            let serverMessage = try Warbase_ServerMessage(serializedBytes: [UInt8](data))
-            
-            switch serverMessage.message {
-            case .gameState(let gs):
-                var playersDict: [String: NetworkPlayerState] = [:]
-                for (id, p) in gs.players {
-                    // Strict NaN Safety Validation for Quaternions
-                    let isQuaternionValid = !p.rx.isNaN && !p.ry.isNaN && !p.rz.isNaN && !p.rw.isNaN
-                    let rx = isQuaternionValid ? p.rx : 0
-                    let ry = isQuaternionValid ? p.ry : 0
-                    let rz = isQuaternionValid ? p.rz : 0
-                    let rw = isQuaternionValid ? p.rw : 1.0
-                    
-                    playersDict[id] = NetworkPlayerState(
-                        id: id,
-                        x: p.x, y: p.y, z: p.z,
-                        rx: rx, ry: ry, rz: rz, rw: rw,
-                        anim: p.animation,
-                        health: Float(p.health),
-                        kills: Int(p.kills),
-                        deaths: Int(p.deaths),
-                        isDead: p.isDead,
-                        platformId: p.platformID,
-                        ping: Int(p.ping),
-                        weaponId: p.weaponID,
-                        team: p.team
-                    )
-                }
-                
-                let newGameState = GameStateData(
-                    players: playersDict,
-                    roomMode: gs.roomMode,
-                    roomState: gs.roomState,
-                    scoreTeamA: Int(gs.scoreTeamA),
-                    scoreTeamB: Int(gs.scoreTeamB),
-                    winnerId: gs.winnerID.isEmpty ? nil : gs.winnerID
-                )
-                
+            let serverMsg = try Warbase_ServerMessage(serializedBytes: data)
+            switch serverMsg.message {
+            case .gameState(let state):
                 DispatchQueue.main.async {
-                    self.gameState = newGameState
-                    self.onStateReceived?(newGameState)
+                    self.gameState = state
+                    self.onStateReceived?(state)
                 }
-                
-            case .serverEvent(let evt):
-                switch evt.event {
-                case .fire(let f):
-                    DispatchQueue.main.async {
-                        self.onFireReceived?(f.shooterID, SIMD3<Float>(f.originX, f.originY, f.originZ), SIMD3<Float>(f.hitX, f.hitY, f.hitZ), SIMD3<Float>(f.normalX, f.normalY, f.normalZ), f.hitWall)
+            case .theatreEvent(let evt):
+                DispatchQueue.main.async {
+                    switch evt.event {
+                    case .detonation(let det):
+                        self.onDetonationReceived?(det)
+                    case .droneStrike(let strike):
+                        self.onDroneStrikeReceived?(strike)
+                    case .counterBattery(let cb):
+                        self.onCounterBatteryReceived?(cb)
+                    case .unitDestroyed(let dest):
+                        self.onUnitDestroyedReceived?(dest)
+                    case .pong(let pong):
+                        let now = Int64(Date().timeIntervalSince1970 * 1000)
+                        self.ping = Int(now - pong.clientTime)
+                    default:
+                        break
                     }
-                case .hitConfirmed(_):
-                    DispatchQueue.main.async {
-                        self.onHitConfirmed?("target", 0)
-                    }
-                case .killConfirmed(_):
-                    DispatchQueue.main.async {
-                        self.onKillConfirmed?("target")
-                    }
-                case .pong(let pong):
-                    let rtt = Int(Date().timeIntervalSince1970 * 1000) - Int(pong.clientTime)
-                    DispatchQueue.main.async { self.currentPing = max(0, rtt) }
-                case .throwGrenade(let g):
-                    DispatchQueue.main.async {
-                        self.onGrenadeReceived?(g.shooterID, [g.px, g.py, g.pz], [g.vx, g.vy, g.vz])
-                    }
-                case .respawn(let r):
-                    DispatchQueue.main.async {
-                        self.onRespawn?(r.x, r.y, r.z)
-                    }
-                default:
-                    break
                 }
-                
             default:
                 break
             }
         } catch {
-            print("Failed to decode ServerMessage: \(error)")
+            print("Failed to decode Protobuf ServerMessage: \(error)")
         }
+    }
+    
+    func sendOrder(
+        unitId: String,
+        orderType: String,
+        targetX: Float = 0,
+        targetY: Float = 0,
+        targetZ: Float = 0,
+        targetUnitId: String = "",
+        munitionType: String = "HE",
+        roundsCount: Int32 = 1,
+        stance: String = "AGGRESSIVE"
+    ) {
+        var order = Warbase_CommanderOrderEvent()
+        order.orderID = UUID().uuidString
+        order.unitID = unitId
+        order.orderType = orderType
+        order.targetX = targetX
+        order.targetY = targetY
+        order.targetZ = targetZ
+        order.targetUnitID = targetUnitId
+        order.munitionType = munitionType
+        order.roundsCount = roundsCount
+        order.stance = stance
+        
+        var clientEvent = Warbase_ClientEvent()
+        clientEvent.commanderOrder = order
+        
+        send(clientEvent)
+    }
+    
+    func sendDroneControl(
+        droneId: String,
+        pitch: Float,
+        yaw: Float,
+        throttle: Float,
+        laserDesignator: Bool = false,
+        initiateDive: Bool = false
+    ) {
+        var ctrl = Warbase_DroneManualControlEvent()
+        ctrl.droneID = droneId
+        ctrl.pitch = pitch
+        ctrl.yaw = yaw
+        ctrl.throttle = throttle
+        ctrl.laserDesignatorActive = laserDesignator
+        ctrl.initiateDiveStrike = initiateDive
+        
+        var clientEvent = Warbase_ClientEvent()
+        clientEvent.droneControl = ctrl
+        send(clientEvent)
     }
     
     private func send(_ event: Warbase_ClientEvent) {
-        do {
-            let data = try event.serializedData()
-            webSocket?.send(.data(data)) { error in
-                if let error = error {
-                    print("Failed to send ClientEvent: \(error)")
-                }
+        guard let data = try? event.serializedData() else { return }
+        webSocket?.send(.data(data)) { error in
+            if let error = error {
+                print("Failed to send WebSocket event: \(error)")
             }
-        } catch {
-            print("Failed to serialize ClientEvent: \(error)")
         }
     }
     
-    public func sendState(state: NetworkPlayerState) {
-        guard !state.x.isNaN, !state.y.isNaN, !state.z.isNaN else { return }
-        
-        var clientEvent = Warbase_ClientEvent()
-        var update = Warbase_PlayerStateUpdate()
-        update.x = state.x
-        update.y = state.y
-        update.z = state.z
-        update.rx = state.rx.isNaN ? 0 : state.rx
-        update.ry = state.ry.isNaN ? 0 : state.ry
-        update.rz = state.rz.isNaN ? 0 : state.rz
-        update.rw = state.rw.isNaN ? 1 : state.rw
-        update.animation = state.anim
-        update.platformID = state.platformId
-        update.ping = Int32(currentPing)
-        update.weaponID = state.weaponId
-        
-        clientEvent.stateUpdate = update
-        send(clientEvent)
-    }
-    
-    public func sendFire(origin: SIMD3<Float>, hit: SIMD3<Float>, normal: SIMD3<Float>, hitWall: Bool) {
-        var clientEvent = Warbase_ClientEvent()
-        var fireEvent = Warbase_FireEvent()
-        fireEvent.originX = origin.x
-        fireEvent.originY = origin.y
-        fireEvent.originZ = origin.z
-        fireEvent.hitX = hit.x
-        fireEvent.hitY = hit.y
-        fireEvent.hitZ = hit.z
-        fireEvent.normalX = normal.x
-        fireEvent.normalY = normal.y
-        fireEvent.normalZ = normal.z
-        fireEvent.hitWall = hitWall
-        clientEvent.fire = fireEvent
-        send(clientEvent)
-    }
-    
-    public func sendGrenade(position: [Float], velocity: [Float]) {
-        var clientEvent = Warbase_ClientEvent()
-        var grenadeEvent = Warbase_ThrowGrenadeEvent()
-        grenadeEvent.px = position[0]
-        grenadeEvent.py = position[1]
-        grenadeEvent.pz = position[2]
-        grenadeEvent.vx = velocity[0]
-        grenadeEvent.vy = velocity[1]
-        grenadeEvent.vz = velocity[2]
-        
-        clientEvent.throwGrenade = grenadeEvent
-        send(clientEvent)
-    }
-    
-    public func sendHit(targetId: String, damage: Float, hitZone: String? = nil) {
-        // proto HitEvent has no zone — zone only used locally for headshot mult
-        var clientEvent = Warbase_ClientEvent()
-        var hitEvent = Warbase_HitEvent()
-        hitEvent.targetID = targetId
-        hitEvent.damage = Int32(damage)
-        clientEvent.hit = hitEvent
-        send(clientEvent)
-    }
-    
-    public func sendReload() {
-        var clientEvent = Warbase_ClientEvent()
-        clientEvent.reload = Warbase_ReloadEvent()
-        send(clientEvent)
-    }
-    
-    public func sendSwitchWeapon(weaponId: String) {
-        var clientEvent = Warbase_ClientEvent()
-        var switchEvent = Warbase_SwitchWeaponEvent()
-        switchEvent.weaponID = weaponId
-        
-        clientEvent.switchWeapon = switchEvent
-        send(clientEvent)
-    }
-    
-    public func sendRespawnRequest() {
-        var clientEvent = Warbase_ClientEvent()
-        clientEvent.respawnRequest = Warbase_RespawnRequestEvent()
-        send(clientEvent)
+    private func startPingTimer() {
+        pingTimer = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true) { [weak self] _ in
+            guard let self = self else { return }
+            var ping = Warbase_PingEvent()
+            ping.clientTime = Int64(Date().timeIntervalSince1970 * 1000)
+            var clientEvt = Warbase_ClientEvent()
+            clientEvt.ping = ping
+            self.send(clientEvt)
+        }
     }
 }

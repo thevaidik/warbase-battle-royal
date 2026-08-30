@@ -2,157 +2,240 @@ syntax = "proto3";
 
 package warbase;
 
-option go_package = "warbase-server/internal/engine;engine";
-
-// --------------------------
-// CLIENT -> SERVER MESSAGES
-// --------------------------
+// -------------------------------------------------------------
+// CLIENT (COMMANDER) -> SERVER (SIMULATION) MESSAGES
+// -------------------------------------------------------------
 
 message ClientEvent {
     oneof event {
-        PlayerStateUpdate state_update = 1;
-        HitEvent hit = 2;
-        FireEvent fire = 3;
-        ReloadEvent reload = 4;
-        SwitchWeaponEvent switch_weapon = 5;
-        RespawnRequestEvent respawn_request = 6;
-        ThrowGrenadeEvent throw_grenade = 7;
-        PingEvent ping = 8;
+        CommanderOrderEvent commander_order = 1;
+        DroneManualControlEvent drone_control = 2;
+        RequestScenarioEvent request_scenario = 3;
+        PingEvent ping = 4;
     }
 }
 
-message PlayerStateUpdate {
-    float x = 1;
-    float y = 2;
-    float z = 3;
-    float rx = 4; // rotation quaternion x
-    float ry = 5; // rotation quaternion y
-    float rz = 6; // rotation quaternion z
-    float rw = 7; // rotation quaternion w
-    string animation = 8;
-    string platform_id = 9;
-    int32 ping = 10;
-    string weapon_id = 11;
+message CommanderOrderEvent {
+    string order_id = 1;
+    string unit_id = 2;
+    string order_type = 3; // "MOVE", "ASSAULT", "ENTRENCH", "FIRE_MISSION", "LAUNCH_DRONE", "ACTIVATE_EW", "RESUPPLY", "LAY_MINES", "CANCEL"
+    string target_unit_id = 4;
+    float target_x = 5;
+    float target_y = 6;
+    float target_z = 7;
+    string munition_type = 8; // "HE", "AIRBURST", "PRECISION_GUIDED", "CLUSTER", "FPV_STRIKE", "SMOKE"
+    int32 rounds_count = 9;
+    string stance = 10; // "AGGRESSIVE", "DEFENSIVE", "AMBUSH", "RETREAT"
 }
 
-message HitEvent {
-    string target_id = 1;
-    int32 damage = 2;
+message DroneManualControlEvent {
+    string drone_id = 1;
+    float pitch = 2;
+    float yaw = 3;
+    float throttle = 4;
+    bool laser_designator_active = 5;
+    bool initiate_dive_strike = 6;
 }
 
-message FireEvent {
-    float origin_x = 1;
-    float origin_y = 2;
-    float origin_z = 3;
-    float hit_x = 4;
-    float hit_y = 5;
-    float hit_z = 6;
-    float normal_x = 7;
-    float normal_y = 8;
-    float normal_z = 9;
-    bool hit_wall = 10;
-}
-message ReloadEvent {}
-message SwitchWeaponEvent {
-    string weapon_id = 1;
-}
-message RespawnRequestEvent {}
-message ThrowGrenadeEvent {
-    float px = 1;
-    float py = 2;
-    float pz = 3;
-    float vx = 4;
-    float vy = 5;
-    float vz = 6;
-}
-
-message ServerPongEvent {
-    int64 client_time = 1;
+message RequestScenarioEvent {
+    string scenario_id = 1; // "theatre-donbas", "theatre-kharkiv", "theatre-steppe"
+    string faction = 2;     // "BLUEFOR", "REDFOR"
 }
 
 message PingEvent {
     int64 client_time = 1;
 }
 
-// --------------------------
-// SERVER -> CLIENT MESSAGES
-// --------------------------
+// -------------------------------------------------------------
+// SERVER (SIMULATION) -> CLIENT (COMMANDER) MESSAGES
+// -------------------------------------------------------------
 
 message ServerMessage {
     oneof message {
-        GameState game_state = 1;
-        ServerEvent server_event = 2;
+        StrategicGameState game_state = 1;
+        TheatreEvent theatre_event = 2;
     }
 }
 
-message GameState {
-    map<string, PlayerState> players = 1;
-    string room_mode = 2;
-    string room_state = 3;
-    int32 score_team_a = 4;
-    int32 score_team_b = 5;
-    string winner_id = 6;
+message StrategicGameState {
+    string theatre_id = 1;
+    int64 tick = 2;
+    int64 theatre_time = 3;
+    map<string, TacticalUnitState> units = 4;
+    map<string, DroneState> drones = 5;
+    repeated ActiveFireMission fire_missions = 6;
+    repeated EWEmitterState ew_emitters = 7;
+    repeated SupplyDepotState supply_depots = 8;
+    repeated FortificationState fortifications = 9;
+    repeated SensorContact contacts = 10;
+    string weather = 11; // "CLEAR", "OVERCAST", "RAIN", "HEAVY_FOG"
+    float operational_control_score = 12; // 0.0 to 100.0
 }
 
-message PlayerState {
-    float x = 1;
-    float y = 2;
-    float z = 3;
-    float rx = 4;
-    float ry = 5;
-    float rz = 6;
-    float rw = 7;
-    string animation = 8;
-    int32 health = 9;
-    int32 kills = 10;
-    int32 deaths = 11;
-    bool is_dead = 12;
-    string platform_id = 13;
-    int32 ping = 14;
-    string weapon_id = 15;
-    string team = 16;
+message TacticalUnitState {
+    string unit_id = 1;
+    string name = 2;
+    string callsign = 3;
+    string faction = 4; // "BLUEFOR", "REDFOR"
+    string unit_type = 5; // "MECH_INFANTRY", "ARMORED", "TUBE_ARTILLERY", "ROCKET_ARTILLERY", "SHORAD", "EW_COMPANY", "DRONE_RECON", "LOGISTICS"
+    string echelon = 6; // "BRIGADE", "BATTALION", "COMPANY", "BATTERY", "PLATOON"
+    float x = 7;
+    float y = 8;
+    float z = 9;
+    float heading = 10;
+    float health_percent = 11; // 0.0 to 100.0
+    int32 personnel_count = 12;
+    int32 vehicles_count = 13;
+    float combat_effectiveness = 14; // 0.0 to 1.0
+    float suppression_level = 15; // 0.0 to 1.0
+    float morale_level = 16; // 0.0 to 1.0
+    float ammo_level = 17; // 0.0 to 1.0
+    float fuel_level = 18; // 0.0 to 1.0
+    float battery_level = 19; // 0.0 to 1.0
+    int32 entrenchment_level = 20; // 0, 1, 2, 3
+    string status = 21; // "IDLE", "MOVING", "FIRING", "ENTRENCHING", "ENGAGED", "SUPPRESSED", "RETREATING", "DESTROYED"
+    string active_target_id = 22;
+    bool is_jammed = 23;
+    bool is_spotted = 24;
 }
 
-message ServerEvent {
+message DroneState {
+    string drone_id = 1;
+    string parent_unit_id = 2;
+    string drone_type = 3; // "RECON_QUADCOPTER", "RECON_FIXED_WING", "FPV_KAMIKAZE", "HEAVY_BOMBER"
+    string faction = 4;
+    float x = 5;
+    float y = 6;
+    float z = 7;
+    float vx = 8;
+    float vy = 9;
+    float vz = 10;
+    float heading = 11;
+    float pitch = 12;
+    float battery_percent = 13;
+    float signal_quality = 14; // 0.0 to 1.0 (drops near EW)
+    bool laser_designating = 15;
+    float target_x = 16;
+    float target_y = 17;
+    float target_z = 18;
+    string status = 19; // "CRUISING", "LOITERING", "DIVING", "RETURNING", "LOST_SIGNAL", "DESTROYED"
+}
+
+message ActiveFireMission {
+    string mission_id = 1;
+    string battery_id = 2;
+    float origin_x = 3;
+    float origin_y = 4;
+    float origin_z = 5;
+    float target_x = 6;
+    float target_y = 7;
+    float target_z = 8;
+    string munition_type = 9;
+    int32 total_rounds = 10;
+    int32 rounds_fired = 11;
+    float flight_time_seconds = 12;
+    float time_to_impact = 13;
+    float dispersion_cep = 14;
+}
+
+message EWEmitterState {
+    string emitter_id = 1;
+    string unit_id = 2;
+    string faction = 3;
+    float center_x = 4;
+    float center_z = 5;
+    float jamming_radius = 6;
+    float power_dbm = 7;
+    bool gps_denied = 8;
+}
+
+message SupplyDepotState {
+    string depot_id = 1;
+    string faction = 2;
+    float x = 3;
+    float y = 4;
+    float z = 5;
+    float ammo_tons = 6;
+    float fuel_tons = 7;
+    int32 drone_batteries = 8;
+}
+
+message FortificationState {
+    string fort_id = 1;
+    float x1 = 2;
+    float z1 = 3;
+    float x2 = 4;
+    float z2 = 5;
+    string type = 6; // "TRENCH", "DRAGON_TEETH", "MINEFIELD_AT", "MINEFIELD_AP", "BUNKER"
+    float integrity = 7; // 0.0 to 100.0
+}
+
+message SensorContact {
+    string contact_id = 1;
+    float x = 2;
+    float y = 3;
+    float z = 4;
+    string confidence = 5; // "UNCONFIRMED_THERMAL", "RADAR_BLIP", "ACOUSTIC_GUNFIRE", "IDENTIFIED_UNIT"
+    string detected_faction = 6;
+    string estimated_type = 7;
+    int64 last_seen_timestamp = 8;
+}
+
+message TheatreEvent {
     oneof event {
-        RespawnEvent respawn = 1;
-        ServerFireEvent fire = 2;
-        HitConfirmedEvent hit_confirmed = 3;
-        KillConfirmedEvent kill_confirmed = 4;
-        ServerThrowGrenadeEvent throw_grenade = 5;
+        ArtilleryDetonationEvent detonation = 1;
+        DroneStrikeEvent drone_strike = 2;
+        CounterBatteryAlert counter_battery = 3;
+        EWInterceptAlert ew_intercept = 4;
+        UnitDestroyedEvent unit_destroyed = 5;
         ServerPongEvent pong = 6;
     }
 }
 
-message RespawnEvent {
-    float x = 1;
-    float y = 2;
-    float z = 3;
+message ArtilleryDetonationEvent {
+    string mission_id = 1;
+    float x = 2;
+    float y = 3;
+    float z = 4;
+    string munition_type = 5;
+    float damage_radius = 6;
+    int32 casualties = 7;
+    int32 vehicles_destroyed = 8;
 }
 
-message ServerFireEvent {
-    string shooter_id = 1;
-    float origin_x = 2;
-    float origin_y = 3;
-    float origin_z = 4;
-    float hit_x = 5;
-    float hit_y = 6;
-    float hit_z = 7;
-    float normal_x = 8;
-    float normal_y = 9;
-    float normal_z = 10;
-    bool hit_wall = 11;
+message DroneStrikeEvent {
+    string drone_id = 1;
+    string target_unit_id = 2;
+    float x = 3;
+    float y = 4;
+    float z = 5;
+    bool armor_penetrated = 6;
+    float damage_dealt = 7;
 }
 
-message HitConfirmedEvent {}
-message KillConfirmedEvent {}
+message CounterBatteryAlert {
+    string detection_id = 1;
+    float detected_origin_x = 2;
+    float detected_origin_z = 3;
+    float confidence_cep = 4;
+    string detecting_radar_id = 5;
+}
 
-message ServerThrowGrenadeEvent {
-    string shooter_id = 1;
-    float px = 2;
-    float py = 3;
-    float pz = 4;
-    float vx = 5;
-    float vy = 6;
-    float vz = 7;
+message EWInterceptAlert {
+    float emitter_x = 1;
+    float emitter_z = 2;
+    float frequency_mhz = 3;
+    float strength = 4;
+}
+
+message UnitDestroyedEvent {
+    string unit_id = 1;
+    string unit_name = 2;
+    string faction = 3;
+    string destroyed_by_unit_id = 4;
+    string cause = 5; // "ARTILLERY", "DRONE_STRIKE", "DIRECT_FIRE", "MINEFIELD"
+}
+
+message ServerPongEvent {
+    int64 client_time = 1;
 }

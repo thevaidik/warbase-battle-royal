@@ -15,72 +15,40 @@ import SwiftProtobuf
 // incompatible with the version of SwiftProtobuf to which you are linking.
 // Please ensure that you are building against the same version of the API
 // that was used to generate this file.
-fileprivate nonisolated struct _GeneratedWithProtocGenSwiftVersion: SwiftProtobuf.ProtobufAPIVersionCheck {
+fileprivate struct _GeneratedWithProtocGenSwiftVersion: SwiftProtobuf.ProtobufAPIVersionCheck {
   struct _2: SwiftProtobuf.ProtobufAPIVersion_2 {}
   typealias Version = _2
 }
 
-nonisolated struct Warbase_ClientEvent: Sendable {
+struct Warbase_ClientEvent: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
   var event: Warbase_ClientEvent.OneOf_Event? = nil
 
-  var stateUpdate: Warbase_PlayerStateUpdate {
+  var commanderOrder: Warbase_CommanderOrderEvent {
     get {
-      if case .stateUpdate(let v)? = event {return v}
-      return Warbase_PlayerStateUpdate()
+      if case .commanderOrder(let v)? = event {return v}
+      return Warbase_CommanderOrderEvent()
     }
-    set {event = .stateUpdate(newValue)}
+    set {event = .commanderOrder(newValue)}
   }
 
-  var hit: Warbase_HitEvent {
+  var droneControl: Warbase_DroneManualControlEvent {
     get {
-      if case .hit(let v)? = event {return v}
-      return Warbase_HitEvent()
+      if case .droneControl(let v)? = event {return v}
+      return Warbase_DroneManualControlEvent()
     }
-    set {event = .hit(newValue)}
+    set {event = .droneControl(newValue)}
   }
 
-  var fire: Warbase_FireEvent {
+  var requestScenario: Warbase_RequestScenarioEvent {
     get {
-      if case .fire(let v)? = event {return v}
-      return Warbase_FireEvent()
+      if case .requestScenario(let v)? = event {return v}
+      return Warbase_RequestScenarioEvent()
     }
-    set {event = .fire(newValue)}
-  }
-
-  var reload: Warbase_ReloadEvent {
-    get {
-      if case .reload(let v)? = event {return v}
-      return Warbase_ReloadEvent()
-    }
-    set {event = .reload(newValue)}
-  }
-
-  var switchWeapon: Warbase_SwitchWeaponEvent {
-    get {
-      if case .switchWeapon(let v)? = event {return v}
-      return Warbase_SwitchWeaponEvent()
-    }
-    set {event = .switchWeapon(newValue)}
-  }
-
-  var respawnRequest: Warbase_RespawnRequestEvent {
-    get {
-      if case .respawnRequest(let v)? = event {return v}
-      return Warbase_RespawnRequestEvent()
-    }
-    set {event = .respawnRequest(newValue)}
-  }
-
-  var throwGrenade: Warbase_ThrowGrenadeEvent {
-    get {
-      if case .throwGrenade(let v)? = event {return v}
-      return Warbase_ThrowGrenadeEvent()
-    }
-    set {event = .throwGrenade(newValue)}
+    set {event = .requestScenario(newValue)}
   }
 
   var ping: Warbase_PingEvent {
@@ -93,14 +61,10 @@ nonisolated struct Warbase_ClientEvent: Sendable {
 
   var unknownFields = SwiftProtobuf.UnknownStorage()
 
-  nonisolated enum OneOf_Event: Equatable, Sendable {
-    case stateUpdate(Warbase_PlayerStateUpdate)
-    case hit(Warbase_HitEvent)
-    case fire(Warbase_FireEvent)
-    case reload(Warbase_ReloadEvent)
-    case switchWeapon(Warbase_SwitchWeaponEvent)
-    case respawnRequest(Warbase_RespawnRequestEvent)
-    case throwGrenade(Warbase_ThrowGrenadeEvent)
+  enum OneOf_Event: Equatable, Sendable {
+    case commanderOrder(Warbase_CommanderOrderEvent)
+    case droneControl(Warbase_DroneManualControlEvent)
+    case requestScenario(Warbase_RequestScenarioEvent)
     case ping(Warbase_PingEvent)
 
   }
@@ -108,60 +72,421 @@ nonisolated struct Warbase_ClientEvent: Sendable {
   init() {}
 }
 
-nonisolated struct Warbase_PlayerStateUpdate: Sendable {
+struct Warbase_CommanderOrderEvent: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  var x: Float = 0
+  var orderID: String = String()
 
-  var y: Float = 0
+  var unitID: String = String()
 
-  var z: Float = 0
+  /// "MOVE", "ASSAULT", "ENTRENCH", "FIRE_MISSION", "LAUNCH_DRONE", "ACTIVATE_EW", "RESUPPLY", "LAY_MINES", "CANCEL"
+  var orderType: String = String()
 
-  /// rotation quaternion x
-  var rx: Float = 0
+  var targetUnitID: String = String()
 
-  /// rotation quaternion y
-  var ry: Float = 0
+  var targetX: Float = 0
 
-  /// rotation quaternion z
-  var rz: Float = 0
+  var targetY: Float = 0
 
-  /// rotation quaternion w
-  var rw: Float = 0
+  var targetZ: Float = 0
 
-  var animation: String = String()
+  /// "HE", "AIRBURST", "PRECISION_GUIDED", "CLUSTER", "FPV_STRIKE", "SMOKE"
+  var munitionType: String = String()
 
-  var platformID: String = String()
+  var roundsCount: Int32 = 0
 
-  var ping: Int32 = 0
-
-  var weaponID: String = String()
+  /// "AGGRESSIVE", "DEFENSIVE", "AMBUSH", "RETREAT"
+  var stance: String = String()
 
   var unknownFields = SwiftProtobuf.UnknownStorage()
 
   init() {}
 }
 
-nonisolated struct Warbase_HitEvent: Sendable {
+struct Warbase_DroneManualControlEvent: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  var targetID: String = String()
+  var droneID: String = String()
 
-  var damage: Int32 = 0
+  var pitch: Float = 0
+
+  var yaw: Float = 0
+
+  var throttle: Float = 0
+
+  var laserDesignatorActive: Bool = false
+
+  var initiateDiveStrike: Bool = false
 
   var unknownFields = SwiftProtobuf.UnknownStorage()
 
   init() {}
 }
 
-nonisolated struct Warbase_FireEvent: Sendable {
+struct Warbase_RequestScenarioEvent: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
+
+  /// "theatre-donbas", "theatre-kharkiv", "theatre-steppe"
+  var scenarioID: String = String()
+
+  /// "BLUEFOR", "REDFOR"
+  var faction: String = String()
+
+  var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  init() {}
+}
+
+struct Warbase_PingEvent: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  var clientTime: Int64 = 0
+
+  var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  init() {}
+}
+
+struct Warbase_ServerMessage: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  var message: Warbase_ServerMessage.OneOf_Message? = nil
+
+  var gameState: Warbase_StrategicGameState {
+    get {
+      if case .gameState(let v)? = message {return v}
+      return Warbase_StrategicGameState()
+    }
+    set {message = .gameState(newValue)}
+  }
+
+  var theatreEvent: Warbase_TheatreEvent {
+    get {
+      if case .theatreEvent(let v)? = message {return v}
+      return Warbase_TheatreEvent()
+    }
+    set {message = .theatreEvent(newValue)}
+  }
+
+  var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  enum OneOf_Message: Equatable, Sendable {
+    case gameState(Warbase_StrategicGameState)
+    case theatreEvent(Warbase_TheatreEvent)
+
+  }
+
+  init() {}
+}
+
+struct Warbase_StrategicGameState: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  var theatreID: String = String()
+
+  var tick: Int64 = 0
+
+  var theatreTime: Int64 = 0
+
+  var units: Dictionary<String,Warbase_TacticalUnitState> = [:]
+
+  var drones: Dictionary<String,Warbase_DroneState> = [:]
+
+  var fireMissions: [Warbase_ActiveFireMission] = []
+
+  var ewEmitters: [Warbase_EWEmitterState] = []
+
+  var supplyDepots: [Warbase_SupplyDepotState] = []
+
+  var fortifications: [Warbase_FortificationState] = []
+
+  var contacts: [Warbase_SensorContact] = []
+
+  /// "CLEAR", "OVERCAST", "RAIN", "HEAVY_FOG"
+  var weather: String = String()
+
+  /// 0.0 to 100.0
+  var operationalControlScore: Float = 0
+
+  var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  init() {}
+}
+
+struct Warbase_TacticalUnitState: @unchecked Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  var unitID: String {
+    get {_storage._unitID}
+    set {_uniqueStorage()._unitID = newValue}
+  }
+
+  var name: String {
+    get {_storage._name}
+    set {_uniqueStorage()._name = newValue}
+  }
+
+  var callsign: String {
+    get {_storage._callsign}
+    set {_uniqueStorage()._callsign = newValue}
+  }
+
+  /// "BLUEFOR", "REDFOR"
+  var faction: String {
+    get {_storage._faction}
+    set {_uniqueStorage()._faction = newValue}
+  }
+
+  /// "MECH_INFANTRY", "ARMORED", "TUBE_ARTILLERY", "ROCKET_ARTILLERY", "SHORAD", "EW_COMPANY", "DRONE_RECON", "LOGISTICS"
+  var unitType: String {
+    get {_storage._unitType}
+    set {_uniqueStorage()._unitType = newValue}
+  }
+
+  /// "BRIGADE", "BATTALION", "COMPANY", "BATTERY", "PLATOON"
+  var echelon: String {
+    get {_storage._echelon}
+    set {_uniqueStorage()._echelon = newValue}
+  }
+
+  var x: Float {
+    get {_storage._x}
+    set {_uniqueStorage()._x = newValue}
+  }
+
+  var y: Float {
+    get {_storage._y}
+    set {_uniqueStorage()._y = newValue}
+  }
+
+  var z: Float {
+    get {_storage._z}
+    set {_uniqueStorage()._z = newValue}
+  }
+
+  var heading: Float {
+    get {_storage._heading}
+    set {_uniqueStorage()._heading = newValue}
+  }
+
+  /// 0.0 to 100.0
+  var healthPercent: Float {
+    get {_storage._healthPercent}
+    set {_uniqueStorage()._healthPercent = newValue}
+  }
+
+  var personnelCount: Int32 {
+    get {_storage._personnelCount}
+    set {_uniqueStorage()._personnelCount = newValue}
+  }
+
+  var vehiclesCount: Int32 {
+    get {_storage._vehiclesCount}
+    set {_uniqueStorage()._vehiclesCount = newValue}
+  }
+
+  /// 0.0 to 1.0
+  var combatEffectiveness: Float {
+    get {_storage._combatEffectiveness}
+    set {_uniqueStorage()._combatEffectiveness = newValue}
+  }
+
+  /// 0.0 to 1.0
+  var suppressionLevel: Float {
+    get {_storage._suppressionLevel}
+    set {_uniqueStorage()._suppressionLevel = newValue}
+  }
+
+  /// 0.0 to 1.0
+  var moraleLevel: Float {
+    get {_storage._moraleLevel}
+    set {_uniqueStorage()._moraleLevel = newValue}
+  }
+
+  /// 0.0 to 1.0
+  var ammoLevel: Float {
+    get {_storage._ammoLevel}
+    set {_uniqueStorage()._ammoLevel = newValue}
+  }
+
+  /// 0.0 to 1.0
+  var fuelLevel: Float {
+    get {_storage._fuelLevel}
+    set {_uniqueStorage()._fuelLevel = newValue}
+  }
+
+  /// 0.0 to 1.0
+  var batteryLevel: Float {
+    get {_storage._batteryLevel}
+    set {_uniqueStorage()._batteryLevel = newValue}
+  }
+
+  /// 0, 1, 2, 3
+  var entrenchmentLevel: Int32 {
+    get {_storage._entrenchmentLevel}
+    set {_uniqueStorage()._entrenchmentLevel = newValue}
+  }
+
+  /// "IDLE", "MOVING", "FIRING", "ENTRENCHING", "ENGAGED", "SUPPRESSED", "RETREATING", "DESTROYED"
+  var status: String {
+    get {_storage._status}
+    set {_uniqueStorage()._status = newValue}
+  }
+
+  var activeTargetID: String {
+    get {_storage._activeTargetID}
+    set {_uniqueStorage()._activeTargetID = newValue}
+  }
+
+  var isJammed: Bool {
+    get {_storage._isJammed}
+    set {_uniqueStorage()._isJammed = newValue}
+  }
+
+  var isSpotted: Bool {
+    get {_storage._isSpotted}
+    set {_uniqueStorage()._isSpotted = newValue}
+  }
+
+  var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  init() {}
+
+  fileprivate var _storage = _StorageClass.defaultInstance
+}
+
+struct Warbase_DroneState: @unchecked Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  var droneID: String {
+    get {_storage._droneID}
+    set {_uniqueStorage()._droneID = newValue}
+  }
+
+  var parentUnitID: String {
+    get {_storage._parentUnitID}
+    set {_uniqueStorage()._parentUnitID = newValue}
+  }
+
+  /// "RECON_QUADCOPTER", "RECON_FIXED_WING", "FPV_KAMIKAZE", "HEAVY_BOMBER"
+  var droneType: String {
+    get {_storage._droneType}
+    set {_uniqueStorage()._droneType = newValue}
+  }
+
+  var faction: String {
+    get {_storage._faction}
+    set {_uniqueStorage()._faction = newValue}
+  }
+
+  var x: Float {
+    get {_storage._x}
+    set {_uniqueStorage()._x = newValue}
+  }
+
+  var y: Float {
+    get {_storage._y}
+    set {_uniqueStorage()._y = newValue}
+  }
+
+  var z: Float {
+    get {_storage._z}
+    set {_uniqueStorage()._z = newValue}
+  }
+
+  var vx: Float {
+    get {_storage._vx}
+    set {_uniqueStorage()._vx = newValue}
+  }
+
+  var vy: Float {
+    get {_storage._vy}
+    set {_uniqueStorage()._vy = newValue}
+  }
+
+  var vz: Float {
+    get {_storage._vz}
+    set {_uniqueStorage()._vz = newValue}
+  }
+
+  var heading: Float {
+    get {_storage._heading}
+    set {_uniqueStorage()._heading = newValue}
+  }
+
+  var pitch: Float {
+    get {_storage._pitch}
+    set {_uniqueStorage()._pitch = newValue}
+  }
+
+  var batteryPercent: Float {
+    get {_storage._batteryPercent}
+    set {_uniqueStorage()._batteryPercent = newValue}
+  }
+
+  /// 0.0 to 1.0 (drops near EW)
+  var signalQuality: Float {
+    get {_storage._signalQuality}
+    set {_uniqueStorage()._signalQuality = newValue}
+  }
+
+  var laserDesignating: Bool {
+    get {_storage._laserDesignating}
+    set {_uniqueStorage()._laserDesignating = newValue}
+  }
+
+  var targetX: Float {
+    get {_storage._targetX}
+    set {_uniqueStorage()._targetX = newValue}
+  }
+
+  var targetY: Float {
+    get {_storage._targetY}
+    set {_uniqueStorage()._targetY = newValue}
+  }
+
+  var targetZ: Float {
+    get {_storage._targetZ}
+    set {_uniqueStorage()._targetZ = newValue}
+  }
+
+  /// "CRUISING", "LOITERING", "DIVING", "RETURNING", "LOST_SIGNAL", "DESTROYED"
+  var status: String {
+    get {_storage._status}
+    set {_uniqueStorage()._status = newValue}
+  }
+
+  var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  init() {}
+
+  fileprivate var _storage = _StorageClass.defaultInstance
+}
+
+struct Warbase_ActiveFireMission: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  var missionID: String = String()
+
+  var batteryID: String = String()
 
   var originX: Float = 0
 
@@ -169,163 +494,63 @@ nonisolated struct Warbase_FireEvent: Sendable {
 
   var originZ: Float = 0
 
-  var hitX: Float = 0
+  var targetX: Float = 0
 
-  var hitY: Float = 0
+  var targetY: Float = 0
 
-  var hitZ: Float = 0
+  var targetZ: Float = 0
 
-  var normalX: Float = 0
+  var munitionType: String = String()
 
-  var normalY: Float = 0
+  var totalRounds: Int32 = 0
 
-  var normalZ: Float = 0
+  var roundsFired: Int32 = 0
 
-  var hitWall: Bool = false
+  var flightTimeSeconds: Float = 0
 
-  var unknownFields = SwiftProtobuf.UnknownStorage()
+  var timeToImpact: Float = 0
 
-  init() {}
-}
-
-nonisolated struct Warbase_ReloadEvent: Sendable {
-  // SwiftProtobuf.Message conformance is added in an extension below. See the
-  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
-  // methods supported on all messages.
+  var dispersionCep: Float = 0
 
   var unknownFields = SwiftProtobuf.UnknownStorage()
 
   init() {}
 }
 
-nonisolated struct Warbase_SwitchWeaponEvent: Sendable {
+struct Warbase_EWEmitterState: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  var weaponID: String = String()
+  var emitterID: String = String()
+
+  var unitID: String = String()
+
+  var faction: String = String()
+
+  var centerX: Float = 0
+
+  var centerZ: Float = 0
+
+  var jammingRadius: Float = 0
+
+  var powerDbm: Float = 0
+
+  var gpsDenied: Bool = false
 
   var unknownFields = SwiftProtobuf.UnknownStorage()
 
   init() {}
 }
 
-nonisolated struct Warbase_RespawnRequestEvent: Sendable {
+struct Warbase_SupplyDepotState: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  var unknownFields = SwiftProtobuf.UnknownStorage()
+  var depotID: String = String()
 
-  init() {}
-}
-
-nonisolated struct Warbase_ThrowGrenadeEvent: Sendable {
-  // SwiftProtobuf.Message conformance is added in an extension below. See the
-  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
-  // methods supported on all messages.
-
-  var px: Float = 0
-
-  var py: Float = 0
-
-  var pz: Float = 0
-
-  var vx: Float = 0
-
-  var vy: Float = 0
-
-  var vz: Float = 0
-
-  var unknownFields = SwiftProtobuf.UnknownStorage()
-
-  init() {}
-}
-
-nonisolated struct Warbase_ServerPongEvent: Sendable {
-  // SwiftProtobuf.Message conformance is added in an extension below. See the
-  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
-  // methods supported on all messages.
-
-  var clientTime: Int64 = 0
-
-  var unknownFields = SwiftProtobuf.UnknownStorage()
-
-  init() {}
-}
-
-nonisolated struct Warbase_PingEvent: Sendable {
-  // SwiftProtobuf.Message conformance is added in an extension below. See the
-  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
-  // methods supported on all messages.
-
-  var clientTime: Int64 = 0
-
-  var unknownFields = SwiftProtobuf.UnknownStorage()
-
-  init() {}
-}
-
-nonisolated struct Warbase_ServerMessage: Sendable {
-  // SwiftProtobuf.Message conformance is added in an extension below. See the
-  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
-  // methods supported on all messages.
-
-  var message: Warbase_ServerMessage.OneOf_Message? = nil
-
-  var gameState: Warbase_GameState {
-    get {
-      if case .gameState(let v)? = message {return v}
-      return Warbase_GameState()
-    }
-    set {message = .gameState(newValue)}
-  }
-
-  var serverEvent: Warbase_ServerEvent {
-    get {
-      if case .serverEvent(let v)? = message {return v}
-      return Warbase_ServerEvent()
-    }
-    set {message = .serverEvent(newValue)}
-  }
-
-  var unknownFields = SwiftProtobuf.UnknownStorage()
-
-  nonisolated enum OneOf_Message: Equatable, Sendable {
-    case gameState(Warbase_GameState)
-    case serverEvent(Warbase_ServerEvent)
-
-  }
-
-  init() {}
-}
-
-nonisolated struct Warbase_GameState: Sendable {
-  // SwiftProtobuf.Message conformance is added in an extension below. See the
-  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
-  // methods supported on all messages.
-
-  var players: Dictionary<String,Warbase_PlayerState> = [:]
-
-  var roomMode: String = String()
-
-  var roomState: String = String()
-
-  var scoreTeamA: Int32 = 0
-
-  var scoreTeamB: Int32 = 0
-
-  var winnerID: String = String()
-
-  var unknownFields = SwiftProtobuf.UnknownStorage()
-
-  init() {}
-}
-
-nonisolated struct Warbase_PlayerState: Sendable {
-  // SwiftProtobuf.Message conformance is added in an extension below. See the
-  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
-  // methods supported on all messages.
+  var faction: String = String()
 
   var x: Float = 0
 
@@ -333,82 +558,115 @@ nonisolated struct Warbase_PlayerState: Sendable {
 
   var z: Float = 0
 
-  var rx: Float = 0
+  var ammoTons: Float = 0
 
-  var ry: Float = 0
+  var fuelTons: Float = 0
 
-  var rz: Float = 0
-
-  var rw: Float = 0
-
-  var animation: String = String()
-
-  var health: Int32 = 0
-
-  var kills: Int32 = 0
-
-  var deaths: Int32 = 0
-
-  var isDead: Bool = false
-
-  var platformID: String = String()
-
-  var ping: Int32 = 0
-
-  var weaponID: String = String()
-
-  var team: String = String()
+  var droneBatteries: Int32 = 0
 
   var unknownFields = SwiftProtobuf.UnknownStorage()
 
   init() {}
 }
 
-nonisolated struct Warbase_ServerEvent: Sendable {
+struct Warbase_FortificationState: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  var event: Warbase_ServerEvent.OneOf_Event? = nil
+  var fortID: String = String()
 
-  var respawn: Warbase_RespawnEvent {
+  var x1: Float = 0
+
+  var z1: Float = 0
+
+  var x2: Float = 0
+
+  var z2: Float = 0
+
+  /// "TRENCH", "DRAGON_TEETH", "MINEFIELD_AT", "MINEFIELD_AP", "BUNKER"
+  var type: String = String()
+
+  /// 0.0 to 100.0
+  var integrity: Float = 0
+
+  var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  init() {}
+}
+
+struct Warbase_SensorContact: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  var contactID: String = String()
+
+  var x: Float = 0
+
+  var y: Float = 0
+
+  var z: Float = 0
+
+  /// "UNCONFIRMED_THERMAL", "RADAR_BLIP", "ACOUSTIC_GUNFIRE", "IDENTIFIED_UNIT"
+  var confidence: String = String()
+
+  var detectedFaction: String = String()
+
+  var estimatedType: String = String()
+
+  var lastSeenTimestamp: Int64 = 0
+
+  var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  init() {}
+}
+
+struct Warbase_TheatreEvent: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  var event: Warbase_TheatreEvent.OneOf_Event? = nil
+
+  var detonation: Warbase_ArtilleryDetonationEvent {
     get {
-      if case .respawn(let v)? = event {return v}
-      return Warbase_RespawnEvent()
+      if case .detonation(let v)? = event {return v}
+      return Warbase_ArtilleryDetonationEvent()
     }
-    set {event = .respawn(newValue)}
+    set {event = .detonation(newValue)}
   }
 
-  var fire: Warbase_ServerFireEvent {
+  var droneStrike: Warbase_DroneStrikeEvent {
     get {
-      if case .fire(let v)? = event {return v}
-      return Warbase_ServerFireEvent()
+      if case .droneStrike(let v)? = event {return v}
+      return Warbase_DroneStrikeEvent()
     }
-    set {event = .fire(newValue)}
+    set {event = .droneStrike(newValue)}
   }
 
-  var hitConfirmed: Warbase_HitConfirmedEvent {
+  var counterBattery: Warbase_CounterBatteryAlert {
     get {
-      if case .hitConfirmed(let v)? = event {return v}
-      return Warbase_HitConfirmedEvent()
+      if case .counterBattery(let v)? = event {return v}
+      return Warbase_CounterBatteryAlert()
     }
-    set {event = .hitConfirmed(newValue)}
+    set {event = .counterBattery(newValue)}
   }
 
-  var killConfirmed: Warbase_KillConfirmedEvent {
+  var ewIntercept: Warbase_EWInterceptAlert {
     get {
-      if case .killConfirmed(let v)? = event {return v}
-      return Warbase_KillConfirmedEvent()
+      if case .ewIntercept(let v)? = event {return v}
+      return Warbase_EWInterceptAlert()
     }
-    set {event = .killConfirmed(newValue)}
+    set {event = .ewIntercept(newValue)}
   }
 
-  var throwGrenade: Warbase_ServerThrowGrenadeEvent {
+  var unitDestroyed: Warbase_UnitDestroyedEvent {
     get {
-      if case .throwGrenade(let v)? = event {return v}
-      return Warbase_ServerThrowGrenadeEvent()
+      if case .unitDestroyed(let v)? = event {return v}
+      return Warbase_UnitDestroyedEvent()
     }
-    set {event = .throwGrenade(newValue)}
+    set {event = .unitDestroyed(newValue)}
   }
 
   var pong: Warbase_ServerPongEvent {
@@ -421,12 +679,12 @@ nonisolated struct Warbase_ServerEvent: Sendable {
 
   var unknownFields = SwiftProtobuf.UnknownStorage()
 
-  nonisolated enum OneOf_Event: Equatable, Sendable {
-    case respawn(Warbase_RespawnEvent)
-    case fire(Warbase_ServerFireEvent)
-    case hitConfirmed(Warbase_HitConfirmedEvent)
-    case killConfirmed(Warbase_KillConfirmedEvent)
-    case throwGrenade(Warbase_ServerThrowGrenadeEvent)
+  enum OneOf_Event: Equatable, Sendable {
+    case detonation(Warbase_ArtilleryDetonationEvent)
+    case droneStrike(Warbase_DroneStrikeEvent)
+    case counterBattery(Warbase_CounterBatteryAlert)
+    case ewIntercept(Warbase_EWInterceptAlert)
+    case unitDestroyed(Warbase_UnitDestroyedEvent)
     case pong(Warbase_ServerPongEvent)
 
   }
@@ -434,10 +692,12 @@ nonisolated struct Warbase_ServerEvent: Sendable {
   init() {}
 }
 
-nonisolated struct Warbase_RespawnEvent: Sendable {
+struct Warbase_ArtilleryDetonationEvent: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
+
+  var missionID: String = String()
 
   var x: Float = 0
 
@@ -445,81 +705,108 @@ nonisolated struct Warbase_RespawnEvent: Sendable {
 
   var z: Float = 0
 
-  var unknownFields = SwiftProtobuf.UnknownStorage()
+  var munitionType: String = String()
 
-  init() {}
-}
+  var damageRadius: Float = 0
 
-nonisolated struct Warbase_ServerFireEvent: Sendable {
-  // SwiftProtobuf.Message conformance is added in an extension below. See the
-  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
-  // methods supported on all messages.
+  var casualties: Int32 = 0
 
-  var shooterID: String = String()
-
-  var originX: Float = 0
-
-  var originY: Float = 0
-
-  var originZ: Float = 0
-
-  var hitX: Float = 0
-
-  var hitY: Float = 0
-
-  var hitZ: Float = 0
-
-  var normalX: Float = 0
-
-  var normalY: Float = 0
-
-  var normalZ: Float = 0
-
-  var hitWall: Bool = false
+  var vehiclesDestroyed: Int32 = 0
 
   var unknownFields = SwiftProtobuf.UnknownStorage()
 
   init() {}
 }
 
-nonisolated struct Warbase_HitConfirmedEvent: Sendable {
+struct Warbase_DroneStrikeEvent: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
+
+  var droneID: String = String()
+
+  var targetUnitID: String = String()
+
+  var x: Float = 0
+
+  var y: Float = 0
+
+  var z: Float = 0
+
+  var armorPenetrated: Bool = false
+
+  var damageDealt: Float = 0
 
   var unknownFields = SwiftProtobuf.UnknownStorage()
 
   init() {}
 }
 
-nonisolated struct Warbase_KillConfirmedEvent: Sendable {
+struct Warbase_CounterBatteryAlert: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
+
+  var detectionID: String = String()
+
+  var detectedOriginX: Float = 0
+
+  var detectedOriginZ: Float = 0
+
+  var confidenceCep: Float = 0
+
+  var detectingRadarID: String = String()
 
   var unknownFields = SwiftProtobuf.UnknownStorage()
 
   init() {}
 }
 
-nonisolated struct Warbase_ServerThrowGrenadeEvent: Sendable {
+struct Warbase_EWInterceptAlert: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  var shooterID: String = String()
+  var emitterX: Float = 0
 
-  var px: Float = 0
+  var emitterZ: Float = 0
 
-  var py: Float = 0
+  var frequencyMhz: Float = 0
 
-  var pz: Float = 0
+  var strength: Float = 0
 
-  var vx: Float = 0
+  var unknownFields = SwiftProtobuf.UnknownStorage()
 
-  var vy: Float = 0
+  init() {}
+}
 
-  var vz: Float = 0
+struct Warbase_UnitDestroyedEvent: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  var unitID: String = String()
+
+  var unitName: String = String()
+
+  var faction: String = String()
+
+  var destroyedByUnitID: String = String()
+
+  /// "ARTILLERY", "DRONE_STRIKE", "DIRECT_FIRE", "MINEFIELD"
+  var cause: String = String()
+
+  var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  init() {}
+}
+
+struct Warbase_ServerPongEvent: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  var clientTime: Int64 = 0
 
   var unknownFields = SwiftProtobuf.UnknownStorage()
 
@@ -528,11 +815,11 @@ nonisolated struct Warbase_ServerThrowGrenadeEvent: Sendable {
 
 // MARK: - Code below here is support for the SwiftProtobuf runtime.
 
-fileprivate nonisolated let _protobuf_package = "warbase"
+fileprivate let _protobuf_package = "warbase"
 
-nonisolated extension Warbase_ClientEvent: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+extension Warbase_ClientEvent: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   static let protoMessageName: String = _protobuf_package + ".ClientEvent"
-  static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}state_update\0\u{1}hit\0\u{1}fire\0\u{1}reload\0\u{3}switch_weapon\0\u{3}respawn_request\0\u{3}throw_grenade\0\u{1}ping\0")
+  static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}commander_order\0\u{3}drone_control\0\u{3}request_scenario\0\u{1}ping\0")
 
   mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -541,97 +828,45 @@ nonisolated extension Warbase_ClientEvent: SwiftProtobuf.Message, SwiftProtobuf.
       // enabled. https://github.com/apple/swift-protobuf/issues/1034
       switch fieldNumber {
       case 1: try {
-        var v: Warbase_PlayerStateUpdate?
+        var v: Warbase_CommanderOrderEvent?
         var hadOneofValue = false
         if let current = self.event {
           hadOneofValue = true
-          if case .stateUpdate(let m) = current {v = m}
+          if case .commanderOrder(let m) = current {v = m}
         }
         try decoder.decodeSingularMessageField(value: &v)
         if let v = v {
           if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.event = .stateUpdate(v)
+          self.event = .commanderOrder(v)
         }
       }()
       case 2: try {
-        var v: Warbase_HitEvent?
+        var v: Warbase_DroneManualControlEvent?
         var hadOneofValue = false
         if let current = self.event {
           hadOneofValue = true
-          if case .hit(let m) = current {v = m}
+          if case .droneControl(let m) = current {v = m}
         }
         try decoder.decodeSingularMessageField(value: &v)
         if let v = v {
           if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.event = .hit(v)
+          self.event = .droneControl(v)
         }
       }()
       case 3: try {
-        var v: Warbase_FireEvent?
+        var v: Warbase_RequestScenarioEvent?
         var hadOneofValue = false
         if let current = self.event {
           hadOneofValue = true
-          if case .fire(let m) = current {v = m}
+          if case .requestScenario(let m) = current {v = m}
         }
         try decoder.decodeSingularMessageField(value: &v)
         if let v = v {
           if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.event = .fire(v)
+          self.event = .requestScenario(v)
         }
       }()
       case 4: try {
-        var v: Warbase_ReloadEvent?
-        var hadOneofValue = false
-        if let current = self.event {
-          hadOneofValue = true
-          if case .reload(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.event = .reload(v)
-        }
-      }()
-      case 5: try {
-        var v: Warbase_SwitchWeaponEvent?
-        var hadOneofValue = false
-        if let current = self.event {
-          hadOneofValue = true
-          if case .switchWeapon(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.event = .switchWeapon(v)
-        }
-      }()
-      case 6: try {
-        var v: Warbase_RespawnRequestEvent?
-        var hadOneofValue = false
-        if let current = self.event {
-          hadOneofValue = true
-          if case .respawnRequest(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.event = .respawnRequest(v)
-        }
-      }()
-      case 7: try {
-        var v: Warbase_ThrowGrenadeEvent?
-        var hadOneofValue = false
-        if let current = self.event {
-          hadOneofValue = true
-          if case .throwGrenade(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.event = .throwGrenade(v)
-        }
-      }()
-      case 8: try {
         var v: Warbase_PingEvent?
         var hadOneofValue = false
         if let current = self.event {
@@ -655,37 +890,21 @@ nonisolated extension Warbase_ClientEvent: SwiftProtobuf.Message, SwiftProtobuf.
     // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
     // https://github.com/apple/swift-protobuf/issues/1182
     switch self.event {
-    case .stateUpdate?: try {
-      guard case .stateUpdate(let v)? = self.event else { preconditionFailure() }
+    case .commanderOrder?: try {
+      guard case .commanderOrder(let v)? = self.event else { preconditionFailure() }
       try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
     }()
-    case .hit?: try {
-      guard case .hit(let v)? = self.event else { preconditionFailure() }
+    case .droneControl?: try {
+      guard case .droneControl(let v)? = self.event else { preconditionFailure() }
       try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
     }()
-    case .fire?: try {
-      guard case .fire(let v)? = self.event else { preconditionFailure() }
+    case .requestScenario?: try {
+      guard case .requestScenario(let v)? = self.event else { preconditionFailure() }
       try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
-    }()
-    case .reload?: try {
-      guard case .reload(let v)? = self.event else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 4)
-    }()
-    case .switchWeapon?: try {
-      guard case .switchWeapon(let v)? = self.event else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 5)
-    }()
-    case .respawnRequest?: try {
-      guard case .respawnRequest(let v)? = self.event else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 6)
-    }()
-    case .throwGrenade?: try {
-      guard case .throwGrenade(let v)? = self.event else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 7)
     }()
     case .ping?: try {
       guard case .ping(let v)? = self.event else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 8)
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 4)
     }()
     case nil: break
     }
@@ -699,9 +918,9 @@ nonisolated extension Warbase_ClientEvent: SwiftProtobuf.Message, SwiftProtobuf.
   }
 }
 
-nonisolated extension Warbase_PlayerStateUpdate: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  static let protoMessageName: String = _protobuf_package + ".PlayerStateUpdate"
-  static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}x\0\u{1}y\0\u{1}z\0\u{1}rx\0\u{1}ry\0\u{1}rz\0\u{1}rw\0\u{1}animation\0\u{3}platform_id\0\u{1}ping\0\u{3}weapon_id\0")
+extension Warbase_CommanderOrderEvent: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  static let protoMessageName: String = _protobuf_package + ".CommanderOrderEvent"
+  static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}order_id\0\u{3}unit_id\0\u{3}order_type\0\u{3}target_unit_id\0\u{3}target_x\0\u{3}target_y\0\u{3}target_z\0\u{3}munition_type\0\u{3}rounds_count\0\u{1}stance\0")
 
   mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -709,79 +928,74 @@ nonisolated extension Warbase_PlayerStateUpdate: SwiftProtobuf.Message, SwiftPro
       // allocates stack space for every case branch when no optimizations are
       // enabled. https://github.com/apple/swift-protobuf/issues/1034
       switch fieldNumber {
-      case 1: try { try decoder.decodeSingularFloatField(value: &self.x) }()
-      case 2: try { try decoder.decodeSingularFloatField(value: &self.y) }()
-      case 3: try { try decoder.decodeSingularFloatField(value: &self.z) }()
-      case 4: try { try decoder.decodeSingularFloatField(value: &self.rx) }()
-      case 5: try { try decoder.decodeSingularFloatField(value: &self.ry) }()
-      case 6: try { try decoder.decodeSingularFloatField(value: &self.rz) }()
-      case 7: try { try decoder.decodeSingularFloatField(value: &self.rw) }()
-      case 8: try { try decoder.decodeSingularStringField(value: &self.animation) }()
-      case 9: try { try decoder.decodeSingularStringField(value: &self.platformID) }()
-      case 10: try { try decoder.decodeSingularInt32Field(value: &self.ping) }()
-      case 11: try { try decoder.decodeSingularStringField(value: &self.weaponID) }()
+      case 1: try { try decoder.decodeSingularStringField(value: &self.orderID) }()
+      case 2: try { try decoder.decodeSingularStringField(value: &self.unitID) }()
+      case 3: try { try decoder.decodeSingularStringField(value: &self.orderType) }()
+      case 4: try { try decoder.decodeSingularStringField(value: &self.targetUnitID) }()
+      case 5: try { try decoder.decodeSingularFloatField(value: &self.targetX) }()
+      case 6: try { try decoder.decodeSingularFloatField(value: &self.targetY) }()
+      case 7: try { try decoder.decodeSingularFloatField(value: &self.targetZ) }()
+      case 8: try { try decoder.decodeSingularStringField(value: &self.munitionType) }()
+      case 9: try { try decoder.decodeSingularInt32Field(value: &self.roundsCount) }()
+      case 10: try { try decoder.decodeSingularStringField(value: &self.stance) }()
       default: break
       }
     }
   }
 
   func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    if self.x.bitPattern != 0 {
-      try visitor.visitSingularFloatField(value: self.x, fieldNumber: 1)
+    if !self.orderID.isEmpty {
+      try visitor.visitSingularStringField(value: self.orderID, fieldNumber: 1)
     }
-    if self.y.bitPattern != 0 {
-      try visitor.visitSingularFloatField(value: self.y, fieldNumber: 2)
+    if !self.unitID.isEmpty {
+      try visitor.visitSingularStringField(value: self.unitID, fieldNumber: 2)
     }
-    if self.z.bitPattern != 0 {
-      try visitor.visitSingularFloatField(value: self.z, fieldNumber: 3)
+    if !self.orderType.isEmpty {
+      try visitor.visitSingularStringField(value: self.orderType, fieldNumber: 3)
     }
-    if self.rx.bitPattern != 0 {
-      try visitor.visitSingularFloatField(value: self.rx, fieldNumber: 4)
+    if !self.targetUnitID.isEmpty {
+      try visitor.visitSingularStringField(value: self.targetUnitID, fieldNumber: 4)
     }
-    if self.ry.bitPattern != 0 {
-      try visitor.visitSingularFloatField(value: self.ry, fieldNumber: 5)
+    if self.targetX.bitPattern != 0 {
+      try visitor.visitSingularFloatField(value: self.targetX, fieldNumber: 5)
     }
-    if self.rz.bitPattern != 0 {
-      try visitor.visitSingularFloatField(value: self.rz, fieldNumber: 6)
+    if self.targetY.bitPattern != 0 {
+      try visitor.visitSingularFloatField(value: self.targetY, fieldNumber: 6)
     }
-    if self.rw.bitPattern != 0 {
-      try visitor.visitSingularFloatField(value: self.rw, fieldNumber: 7)
+    if self.targetZ.bitPattern != 0 {
+      try visitor.visitSingularFloatField(value: self.targetZ, fieldNumber: 7)
     }
-    if !self.animation.isEmpty {
-      try visitor.visitSingularStringField(value: self.animation, fieldNumber: 8)
+    if !self.munitionType.isEmpty {
+      try visitor.visitSingularStringField(value: self.munitionType, fieldNumber: 8)
     }
-    if !self.platformID.isEmpty {
-      try visitor.visitSingularStringField(value: self.platformID, fieldNumber: 9)
+    if self.roundsCount != 0 {
+      try visitor.visitSingularInt32Field(value: self.roundsCount, fieldNumber: 9)
     }
-    if self.ping != 0 {
-      try visitor.visitSingularInt32Field(value: self.ping, fieldNumber: 10)
-    }
-    if !self.weaponID.isEmpty {
-      try visitor.visitSingularStringField(value: self.weaponID, fieldNumber: 11)
+    if !self.stance.isEmpty {
+      try visitor.visitSingularStringField(value: self.stance, fieldNumber: 10)
     }
     try unknownFields.traverse(visitor: &visitor)
   }
 
-  static func ==(lhs: Warbase_PlayerStateUpdate, rhs: Warbase_PlayerStateUpdate) -> Bool {
-    if lhs.x != rhs.x {return false}
-    if lhs.y != rhs.y {return false}
-    if lhs.z != rhs.z {return false}
-    if lhs.rx != rhs.rx {return false}
-    if lhs.ry != rhs.ry {return false}
-    if lhs.rz != rhs.rz {return false}
-    if lhs.rw != rhs.rw {return false}
-    if lhs.animation != rhs.animation {return false}
-    if lhs.platformID != rhs.platformID {return false}
-    if lhs.ping != rhs.ping {return false}
-    if lhs.weaponID != rhs.weaponID {return false}
+  static func ==(lhs: Warbase_CommanderOrderEvent, rhs: Warbase_CommanderOrderEvent) -> Bool {
+    if lhs.orderID != rhs.orderID {return false}
+    if lhs.unitID != rhs.unitID {return false}
+    if lhs.orderType != rhs.orderType {return false}
+    if lhs.targetUnitID != rhs.targetUnitID {return false}
+    if lhs.targetX != rhs.targetX {return false}
+    if lhs.targetY != rhs.targetY {return false}
+    if lhs.targetZ != rhs.targetZ {return false}
+    if lhs.munitionType != rhs.munitionType {return false}
+    if lhs.roundsCount != rhs.roundsCount {return false}
+    if lhs.stance != rhs.stance {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
 }
 
-nonisolated extension Warbase_HitEvent: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  static let protoMessageName: String = _protobuf_package + ".HitEvent"
-  static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}target_id\0\u{1}damage\0")
+extension Warbase_DroneManualControlEvent: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  static let protoMessageName: String = _protobuf_package + ".DroneManualControlEvent"
+  static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}drone_id\0\u{1}pitch\0\u{1}yaw\0\u{1}throttle\0\u{3}laser_designator_active\0\u{3}initiate_dive_strike\0")
 
   mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -789,34 +1003,54 @@ nonisolated extension Warbase_HitEvent: SwiftProtobuf.Message, SwiftProtobuf._Me
       // allocates stack space for every case branch when no optimizations are
       // enabled. https://github.com/apple/swift-protobuf/issues/1034
       switch fieldNumber {
-      case 1: try { try decoder.decodeSingularStringField(value: &self.targetID) }()
-      case 2: try { try decoder.decodeSingularInt32Field(value: &self.damage) }()
+      case 1: try { try decoder.decodeSingularStringField(value: &self.droneID) }()
+      case 2: try { try decoder.decodeSingularFloatField(value: &self.pitch) }()
+      case 3: try { try decoder.decodeSingularFloatField(value: &self.yaw) }()
+      case 4: try { try decoder.decodeSingularFloatField(value: &self.throttle) }()
+      case 5: try { try decoder.decodeSingularBoolField(value: &self.laserDesignatorActive) }()
+      case 6: try { try decoder.decodeSingularBoolField(value: &self.initiateDiveStrike) }()
       default: break
       }
     }
   }
 
   func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    if !self.targetID.isEmpty {
-      try visitor.visitSingularStringField(value: self.targetID, fieldNumber: 1)
+    if !self.droneID.isEmpty {
+      try visitor.visitSingularStringField(value: self.droneID, fieldNumber: 1)
     }
-    if self.damage != 0 {
-      try visitor.visitSingularInt32Field(value: self.damage, fieldNumber: 2)
+    if self.pitch.bitPattern != 0 {
+      try visitor.visitSingularFloatField(value: self.pitch, fieldNumber: 2)
+    }
+    if self.yaw.bitPattern != 0 {
+      try visitor.visitSingularFloatField(value: self.yaw, fieldNumber: 3)
+    }
+    if self.throttle.bitPattern != 0 {
+      try visitor.visitSingularFloatField(value: self.throttle, fieldNumber: 4)
+    }
+    if self.laserDesignatorActive != false {
+      try visitor.visitSingularBoolField(value: self.laserDesignatorActive, fieldNumber: 5)
+    }
+    if self.initiateDiveStrike != false {
+      try visitor.visitSingularBoolField(value: self.initiateDiveStrike, fieldNumber: 6)
     }
     try unknownFields.traverse(visitor: &visitor)
   }
 
-  static func ==(lhs: Warbase_HitEvent, rhs: Warbase_HitEvent) -> Bool {
-    if lhs.targetID != rhs.targetID {return false}
-    if lhs.damage != rhs.damage {return false}
+  static func ==(lhs: Warbase_DroneManualControlEvent, rhs: Warbase_DroneManualControlEvent) -> Bool {
+    if lhs.droneID != rhs.droneID {return false}
+    if lhs.pitch != rhs.pitch {return false}
+    if lhs.yaw != rhs.yaw {return false}
+    if lhs.throttle != rhs.throttle {return false}
+    if lhs.laserDesignatorActive != rhs.laserDesignatorActive {return false}
+    if lhs.initiateDiveStrike != rhs.initiateDiveStrike {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
 }
 
-nonisolated extension Warbase_FireEvent: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  static let protoMessageName: String = _protobuf_package + ".FireEvent"
-  static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}origin_x\0\u{3}origin_y\0\u{3}origin_z\0\u{3}hit_x\0\u{3}hit_y\0\u{3}hit_z\0\u{3}normal_x\0\u{3}normal_y\0\u{3}normal_z\0\u{3}hit_wall\0")
+extension Warbase_RequestScenarioEvent: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  static let protoMessageName: String = _protobuf_package + ".RequestScenarioEvent"
+  static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}scenario_id\0\u{1}faction\0")
 
   mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -824,225 +1058,32 @@ nonisolated extension Warbase_FireEvent: SwiftProtobuf.Message, SwiftProtobuf._M
       // allocates stack space for every case branch when no optimizations are
       // enabled. https://github.com/apple/swift-protobuf/issues/1034
       switch fieldNumber {
-      case 1: try { try decoder.decodeSingularFloatField(value: &self.originX) }()
-      case 2: try { try decoder.decodeSingularFloatField(value: &self.originY) }()
-      case 3: try { try decoder.decodeSingularFloatField(value: &self.originZ) }()
-      case 4: try { try decoder.decodeSingularFloatField(value: &self.hitX) }()
-      case 5: try { try decoder.decodeSingularFloatField(value: &self.hitY) }()
-      case 6: try { try decoder.decodeSingularFloatField(value: &self.hitZ) }()
-      case 7: try { try decoder.decodeSingularFloatField(value: &self.normalX) }()
-      case 8: try { try decoder.decodeSingularFloatField(value: &self.normalY) }()
-      case 9: try { try decoder.decodeSingularFloatField(value: &self.normalZ) }()
-      case 10: try { try decoder.decodeSingularBoolField(value: &self.hitWall) }()
+      case 1: try { try decoder.decodeSingularStringField(value: &self.scenarioID) }()
+      case 2: try { try decoder.decodeSingularStringField(value: &self.faction) }()
       default: break
       }
     }
   }
 
   func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    if self.originX.bitPattern != 0 {
-      try visitor.visitSingularFloatField(value: self.originX, fieldNumber: 1)
+    if !self.scenarioID.isEmpty {
+      try visitor.visitSingularStringField(value: self.scenarioID, fieldNumber: 1)
     }
-    if self.originY.bitPattern != 0 {
-      try visitor.visitSingularFloatField(value: self.originY, fieldNumber: 2)
-    }
-    if self.originZ.bitPattern != 0 {
-      try visitor.visitSingularFloatField(value: self.originZ, fieldNumber: 3)
-    }
-    if self.hitX.bitPattern != 0 {
-      try visitor.visitSingularFloatField(value: self.hitX, fieldNumber: 4)
-    }
-    if self.hitY.bitPattern != 0 {
-      try visitor.visitSingularFloatField(value: self.hitY, fieldNumber: 5)
-    }
-    if self.hitZ.bitPattern != 0 {
-      try visitor.visitSingularFloatField(value: self.hitZ, fieldNumber: 6)
-    }
-    if self.normalX.bitPattern != 0 {
-      try visitor.visitSingularFloatField(value: self.normalX, fieldNumber: 7)
-    }
-    if self.normalY.bitPattern != 0 {
-      try visitor.visitSingularFloatField(value: self.normalY, fieldNumber: 8)
-    }
-    if self.normalZ.bitPattern != 0 {
-      try visitor.visitSingularFloatField(value: self.normalZ, fieldNumber: 9)
-    }
-    if self.hitWall != false {
-      try visitor.visitSingularBoolField(value: self.hitWall, fieldNumber: 10)
+    if !self.faction.isEmpty {
+      try visitor.visitSingularStringField(value: self.faction, fieldNumber: 2)
     }
     try unknownFields.traverse(visitor: &visitor)
   }
 
-  static func ==(lhs: Warbase_FireEvent, rhs: Warbase_FireEvent) -> Bool {
-    if lhs.originX != rhs.originX {return false}
-    if lhs.originY != rhs.originY {return false}
-    if lhs.originZ != rhs.originZ {return false}
-    if lhs.hitX != rhs.hitX {return false}
-    if lhs.hitY != rhs.hitY {return false}
-    if lhs.hitZ != rhs.hitZ {return false}
-    if lhs.normalX != rhs.normalX {return false}
-    if lhs.normalY != rhs.normalY {return false}
-    if lhs.normalZ != rhs.normalZ {return false}
-    if lhs.hitWall != rhs.hitWall {return false}
+  static func ==(lhs: Warbase_RequestScenarioEvent, rhs: Warbase_RequestScenarioEvent) -> Bool {
+    if lhs.scenarioID != rhs.scenarioID {return false}
+    if lhs.faction != rhs.faction {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
 }
 
-nonisolated extension Warbase_ReloadEvent: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  static let protoMessageName: String = _protobuf_package + ".ReloadEvent"
-  static let _protobuf_nameMap = SwiftProtobuf._NameMap()
-
-  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    // Load everything into unknown fields
-    while try decoder.nextFieldNumber() != nil {}
-  }
-
-  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    try unknownFields.traverse(visitor: &visitor)
-  }
-
-  static func ==(lhs: Warbase_ReloadEvent, rhs: Warbase_ReloadEvent) -> Bool {
-    if lhs.unknownFields != rhs.unknownFields {return false}
-    return true
-  }
-}
-
-nonisolated extension Warbase_SwitchWeaponEvent: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  static let protoMessageName: String = _protobuf_package + ".SwitchWeaponEvent"
-  static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}weapon_id\0")
-
-  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    while let fieldNumber = try decoder.nextFieldNumber() {
-      // The use of inline closures is to circumvent an issue where the compiler
-      // allocates stack space for every case branch when no optimizations are
-      // enabled. https://github.com/apple/swift-protobuf/issues/1034
-      switch fieldNumber {
-      case 1: try { try decoder.decodeSingularStringField(value: &self.weaponID) }()
-      default: break
-      }
-    }
-  }
-
-  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    if !self.weaponID.isEmpty {
-      try visitor.visitSingularStringField(value: self.weaponID, fieldNumber: 1)
-    }
-    try unknownFields.traverse(visitor: &visitor)
-  }
-
-  static func ==(lhs: Warbase_SwitchWeaponEvent, rhs: Warbase_SwitchWeaponEvent) -> Bool {
-    if lhs.weaponID != rhs.weaponID {return false}
-    if lhs.unknownFields != rhs.unknownFields {return false}
-    return true
-  }
-}
-
-nonisolated extension Warbase_RespawnRequestEvent: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  static let protoMessageName: String = _protobuf_package + ".RespawnRequestEvent"
-  static let _protobuf_nameMap = SwiftProtobuf._NameMap()
-
-  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    // Load everything into unknown fields
-    while try decoder.nextFieldNumber() != nil {}
-  }
-
-  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    try unknownFields.traverse(visitor: &visitor)
-  }
-
-  static func ==(lhs: Warbase_RespawnRequestEvent, rhs: Warbase_RespawnRequestEvent) -> Bool {
-    if lhs.unknownFields != rhs.unknownFields {return false}
-    return true
-  }
-}
-
-nonisolated extension Warbase_ThrowGrenadeEvent: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  static let protoMessageName: String = _protobuf_package + ".ThrowGrenadeEvent"
-  static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}px\0\u{1}py\0\u{1}pz\0\u{1}vx\0\u{1}vy\0\u{1}vz\0")
-
-  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    while let fieldNumber = try decoder.nextFieldNumber() {
-      // The use of inline closures is to circumvent an issue where the compiler
-      // allocates stack space for every case branch when no optimizations are
-      // enabled. https://github.com/apple/swift-protobuf/issues/1034
-      switch fieldNumber {
-      case 1: try { try decoder.decodeSingularFloatField(value: &self.px) }()
-      case 2: try { try decoder.decodeSingularFloatField(value: &self.py) }()
-      case 3: try { try decoder.decodeSingularFloatField(value: &self.pz) }()
-      case 4: try { try decoder.decodeSingularFloatField(value: &self.vx) }()
-      case 5: try { try decoder.decodeSingularFloatField(value: &self.vy) }()
-      case 6: try { try decoder.decodeSingularFloatField(value: &self.vz) }()
-      default: break
-      }
-    }
-  }
-
-  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    if self.px.bitPattern != 0 {
-      try visitor.visitSingularFloatField(value: self.px, fieldNumber: 1)
-    }
-    if self.py.bitPattern != 0 {
-      try visitor.visitSingularFloatField(value: self.py, fieldNumber: 2)
-    }
-    if self.pz.bitPattern != 0 {
-      try visitor.visitSingularFloatField(value: self.pz, fieldNumber: 3)
-    }
-    if self.vx.bitPattern != 0 {
-      try visitor.visitSingularFloatField(value: self.vx, fieldNumber: 4)
-    }
-    if self.vy.bitPattern != 0 {
-      try visitor.visitSingularFloatField(value: self.vy, fieldNumber: 5)
-    }
-    if self.vz.bitPattern != 0 {
-      try visitor.visitSingularFloatField(value: self.vz, fieldNumber: 6)
-    }
-    try unknownFields.traverse(visitor: &visitor)
-  }
-
-  static func ==(lhs: Warbase_ThrowGrenadeEvent, rhs: Warbase_ThrowGrenadeEvent) -> Bool {
-    if lhs.px != rhs.px {return false}
-    if lhs.py != rhs.py {return false}
-    if lhs.pz != rhs.pz {return false}
-    if lhs.vx != rhs.vx {return false}
-    if lhs.vy != rhs.vy {return false}
-    if lhs.vz != rhs.vz {return false}
-    if lhs.unknownFields != rhs.unknownFields {return false}
-    return true
-  }
-}
-
-nonisolated extension Warbase_ServerPongEvent: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  static let protoMessageName: String = _protobuf_package + ".ServerPongEvent"
-  static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}client_time\0")
-
-  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    while let fieldNumber = try decoder.nextFieldNumber() {
-      // The use of inline closures is to circumvent an issue where the compiler
-      // allocates stack space for every case branch when no optimizations are
-      // enabled. https://github.com/apple/swift-protobuf/issues/1034
-      switch fieldNumber {
-      case 1: try { try decoder.decodeSingularInt64Field(value: &self.clientTime) }()
-      default: break
-      }
-    }
-  }
-
-  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    if self.clientTime != 0 {
-      try visitor.visitSingularInt64Field(value: self.clientTime, fieldNumber: 1)
-    }
-    try unknownFields.traverse(visitor: &visitor)
-  }
-
-  static func ==(lhs: Warbase_ServerPongEvent, rhs: Warbase_ServerPongEvent) -> Bool {
-    if lhs.clientTime != rhs.clientTime {return false}
-    if lhs.unknownFields != rhs.unknownFields {return false}
-    return true
-  }
-}
-
-nonisolated extension Warbase_PingEvent: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+extension Warbase_PingEvent: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   static let protoMessageName: String = _protobuf_package + ".PingEvent"
   static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}client_time\0")
 
@@ -1072,9 +1113,9 @@ nonisolated extension Warbase_PingEvent: SwiftProtobuf.Message, SwiftProtobuf._M
   }
 }
 
-nonisolated extension Warbase_ServerMessage: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+extension Warbase_ServerMessage: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   static let protoMessageName: String = _protobuf_package + ".ServerMessage"
-  static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}game_state\0\u{3}server_event\0")
+  static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}game_state\0\u{3}theatre_event\0")
 
   mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -1083,7 +1124,7 @@ nonisolated extension Warbase_ServerMessage: SwiftProtobuf.Message, SwiftProtobu
       // enabled. https://github.com/apple/swift-protobuf/issues/1034
       switch fieldNumber {
       case 1: try {
-        var v: Warbase_GameState?
+        var v: Warbase_StrategicGameState?
         var hadOneofValue = false
         if let current = self.message {
           hadOneofValue = true
@@ -1096,16 +1137,16 @@ nonisolated extension Warbase_ServerMessage: SwiftProtobuf.Message, SwiftProtobu
         }
       }()
       case 2: try {
-        var v: Warbase_ServerEvent?
+        var v: Warbase_TheatreEvent?
         var hadOneofValue = false
         if let current = self.message {
           hadOneofValue = true
-          if case .serverEvent(let m) = current {v = m}
+          if case .theatreEvent(let m) = current {v = m}
         }
         try decoder.decodeSingularMessageField(value: &v)
         if let v = v {
           if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.message = .serverEvent(v)
+          self.message = .theatreEvent(v)
         }
       }()
       default: break
@@ -1123,8 +1164,8 @@ nonisolated extension Warbase_ServerMessage: SwiftProtobuf.Message, SwiftProtobu
       guard case .gameState(let v)? = self.message else { preconditionFailure() }
       try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
     }()
-    case .serverEvent?: try {
-      guard case .serverEvent(let v)? = self.message else { preconditionFailure() }
+    case .theatreEvent?: try {
+      guard case .theatreEvent(let v)? = self.message else { preconditionFailure() }
       try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
     }()
     case nil: break
@@ -1139,9 +1180,9 @@ nonisolated extension Warbase_ServerMessage: SwiftProtobuf.Message, SwiftProtobu
   }
 }
 
-nonisolated extension Warbase_GameState: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  static let protoMessageName: String = _protobuf_package + ".GameState"
-  static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}players\0\u{3}room_mode\0\u{3}room_state\0\u{3}score_team_a\0\u{3}score_team_b\0\u{3}winner_id\0")
+extension Warbase_StrategicGameState: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  static let protoMessageName: String = _protobuf_package + ".StrategicGameState"
+  static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}theatre_id\0\u{1}tick\0\u{3}theatre_time\0\u{1}units\0\u{1}drones\0\u{3}fire_missions\0\u{3}ew_emitters\0\u{3}supply_depots\0\u{1}fortifications\0\u{1}contacts\0\u{1}weather\0\u{3}operational_control_score\0")
 
   mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -1149,54 +1190,503 @@ nonisolated extension Warbase_GameState: SwiftProtobuf.Message, SwiftProtobuf._M
       // allocates stack space for every case branch when no optimizations are
       // enabled. https://github.com/apple/swift-protobuf/issues/1034
       switch fieldNumber {
-      case 1: try { try decoder.decodeMapField(fieldType: SwiftProtobuf._ProtobufMessageMap<SwiftProtobuf.ProtobufString,Warbase_PlayerState>.self, value: &self.players) }()
-      case 2: try { try decoder.decodeSingularStringField(value: &self.roomMode) }()
-      case 3: try { try decoder.decodeSingularStringField(value: &self.roomState) }()
-      case 4: try { try decoder.decodeSingularInt32Field(value: &self.scoreTeamA) }()
-      case 5: try { try decoder.decodeSingularInt32Field(value: &self.scoreTeamB) }()
-      case 6: try { try decoder.decodeSingularStringField(value: &self.winnerID) }()
+      case 1: try { try decoder.decodeSingularStringField(value: &self.theatreID) }()
+      case 2: try { try decoder.decodeSingularInt64Field(value: &self.tick) }()
+      case 3: try { try decoder.decodeSingularInt64Field(value: &self.theatreTime) }()
+      case 4: try { try decoder.decodeMapField(fieldType: SwiftProtobuf._ProtobufMessageMap<SwiftProtobuf.ProtobufString,Warbase_TacticalUnitState>.self, value: &self.units) }()
+      case 5: try { try decoder.decodeMapField(fieldType: SwiftProtobuf._ProtobufMessageMap<SwiftProtobuf.ProtobufString,Warbase_DroneState>.self, value: &self.drones) }()
+      case 6: try { try decoder.decodeRepeatedMessageField(value: &self.fireMissions) }()
+      case 7: try { try decoder.decodeRepeatedMessageField(value: &self.ewEmitters) }()
+      case 8: try { try decoder.decodeRepeatedMessageField(value: &self.supplyDepots) }()
+      case 9: try { try decoder.decodeRepeatedMessageField(value: &self.fortifications) }()
+      case 10: try { try decoder.decodeRepeatedMessageField(value: &self.contacts) }()
+      case 11: try { try decoder.decodeSingularStringField(value: &self.weather) }()
+      case 12: try { try decoder.decodeSingularFloatField(value: &self.operationalControlScore) }()
       default: break
       }
     }
   }
 
   func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    if !self.players.isEmpty {
-      try visitor.visitMapField(fieldType: SwiftProtobuf._ProtobufMessageMap<SwiftProtobuf.ProtobufString,Warbase_PlayerState>.self, value: self.players, fieldNumber: 1)
+    if !self.theatreID.isEmpty {
+      try visitor.visitSingularStringField(value: self.theatreID, fieldNumber: 1)
     }
-    if !self.roomMode.isEmpty {
-      try visitor.visitSingularStringField(value: self.roomMode, fieldNumber: 2)
+    if self.tick != 0 {
+      try visitor.visitSingularInt64Field(value: self.tick, fieldNumber: 2)
     }
-    if !self.roomState.isEmpty {
-      try visitor.visitSingularStringField(value: self.roomState, fieldNumber: 3)
+    if self.theatreTime != 0 {
+      try visitor.visitSingularInt64Field(value: self.theatreTime, fieldNumber: 3)
     }
-    if self.scoreTeamA != 0 {
-      try visitor.visitSingularInt32Field(value: self.scoreTeamA, fieldNumber: 4)
+    if !self.units.isEmpty {
+      try visitor.visitMapField(fieldType: SwiftProtobuf._ProtobufMessageMap<SwiftProtobuf.ProtobufString,Warbase_TacticalUnitState>.self, value: self.units, fieldNumber: 4)
     }
-    if self.scoreTeamB != 0 {
-      try visitor.visitSingularInt32Field(value: self.scoreTeamB, fieldNumber: 5)
+    if !self.drones.isEmpty {
+      try visitor.visitMapField(fieldType: SwiftProtobuf._ProtobufMessageMap<SwiftProtobuf.ProtobufString,Warbase_DroneState>.self, value: self.drones, fieldNumber: 5)
     }
-    if !self.winnerID.isEmpty {
-      try visitor.visitSingularStringField(value: self.winnerID, fieldNumber: 6)
+    if !self.fireMissions.isEmpty {
+      try visitor.visitRepeatedMessageField(value: self.fireMissions, fieldNumber: 6)
+    }
+    if !self.ewEmitters.isEmpty {
+      try visitor.visitRepeatedMessageField(value: self.ewEmitters, fieldNumber: 7)
+    }
+    if !self.supplyDepots.isEmpty {
+      try visitor.visitRepeatedMessageField(value: self.supplyDepots, fieldNumber: 8)
+    }
+    if !self.fortifications.isEmpty {
+      try visitor.visitRepeatedMessageField(value: self.fortifications, fieldNumber: 9)
+    }
+    if !self.contacts.isEmpty {
+      try visitor.visitRepeatedMessageField(value: self.contacts, fieldNumber: 10)
+    }
+    if !self.weather.isEmpty {
+      try visitor.visitSingularStringField(value: self.weather, fieldNumber: 11)
+    }
+    if self.operationalControlScore.bitPattern != 0 {
+      try visitor.visitSingularFloatField(value: self.operationalControlScore, fieldNumber: 12)
     }
     try unknownFields.traverse(visitor: &visitor)
   }
 
-  static func ==(lhs: Warbase_GameState, rhs: Warbase_GameState) -> Bool {
-    if lhs.players != rhs.players {return false}
-    if lhs.roomMode != rhs.roomMode {return false}
-    if lhs.roomState != rhs.roomState {return false}
-    if lhs.scoreTeamA != rhs.scoreTeamA {return false}
-    if lhs.scoreTeamB != rhs.scoreTeamB {return false}
-    if lhs.winnerID != rhs.winnerID {return false}
+  static func ==(lhs: Warbase_StrategicGameState, rhs: Warbase_StrategicGameState) -> Bool {
+    if lhs.theatreID != rhs.theatreID {return false}
+    if lhs.tick != rhs.tick {return false}
+    if lhs.theatreTime != rhs.theatreTime {return false}
+    if lhs.units != rhs.units {return false}
+    if lhs.drones != rhs.drones {return false}
+    if lhs.fireMissions != rhs.fireMissions {return false}
+    if lhs.ewEmitters != rhs.ewEmitters {return false}
+    if lhs.supplyDepots != rhs.supplyDepots {return false}
+    if lhs.fortifications != rhs.fortifications {return false}
+    if lhs.contacts != rhs.contacts {return false}
+    if lhs.weather != rhs.weather {return false}
+    if lhs.operationalControlScore != rhs.operationalControlScore {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
 }
 
-nonisolated extension Warbase_PlayerState: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  static let protoMessageName: String = _protobuf_package + ".PlayerState"
-  static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}x\0\u{1}y\0\u{1}z\0\u{1}rx\0\u{1}ry\0\u{1}rz\0\u{1}rw\0\u{1}animation\0\u{1}health\0\u{1}kills\0\u{1}deaths\0\u{3}is_dead\0\u{3}platform_id\0\u{1}ping\0\u{3}weapon_id\0\u{1}team\0")
+extension Warbase_TacticalUnitState: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  static let protoMessageName: String = _protobuf_package + ".TacticalUnitState"
+  static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}unit_id\0\u{1}name\0\u{1}callsign\0\u{1}faction\0\u{3}unit_type\0\u{1}echelon\0\u{1}x\0\u{1}y\0\u{1}z\0\u{1}heading\0\u{3}health_percent\0\u{3}personnel_count\0\u{3}vehicles_count\0\u{3}combat_effectiveness\0\u{3}suppression_level\0\u{3}morale_level\0\u{3}ammo_level\0\u{3}fuel_level\0\u{3}battery_level\0\u{3}entrenchment_level\0\u{1}status\0\u{3}active_target_id\0\u{3}is_jammed\0\u{3}is_spotted\0")
+
+  fileprivate class _StorageClass {
+    var _unitID: String = String()
+    var _name: String = String()
+    var _callsign: String = String()
+    var _faction: String = String()
+    var _unitType: String = String()
+    var _echelon: String = String()
+    var _x: Float = 0
+    var _y: Float = 0
+    var _z: Float = 0
+    var _heading: Float = 0
+    var _healthPercent: Float = 0
+    var _personnelCount: Int32 = 0
+    var _vehiclesCount: Int32 = 0
+    var _combatEffectiveness: Float = 0
+    var _suppressionLevel: Float = 0
+    var _moraleLevel: Float = 0
+    var _ammoLevel: Float = 0
+    var _fuelLevel: Float = 0
+    var _batteryLevel: Float = 0
+    var _entrenchmentLevel: Int32 = 0
+    var _status: String = String()
+    var _activeTargetID: String = String()
+    var _isJammed: Bool = false
+    var _isSpotted: Bool = false
+
+      // This property is used as the initial default value for new instances of the type.
+      // The type itself is protecting the reference to its storage via CoW semantics.
+      // This will force a copy to be made of this reference when the first mutation occurs;
+      // hence, it is safe to mark this as `nonisolated(unsafe)`.
+      static nonisolated(unsafe) let defaultInstance = _StorageClass()
+
+    private init() {}
+
+    init(copying source: _StorageClass) {
+      _unitID = source._unitID
+      _name = source._name
+      _callsign = source._callsign
+      _faction = source._faction
+      _unitType = source._unitType
+      _echelon = source._echelon
+      _x = source._x
+      _y = source._y
+      _z = source._z
+      _heading = source._heading
+      _healthPercent = source._healthPercent
+      _personnelCount = source._personnelCount
+      _vehiclesCount = source._vehiclesCount
+      _combatEffectiveness = source._combatEffectiveness
+      _suppressionLevel = source._suppressionLevel
+      _moraleLevel = source._moraleLevel
+      _ammoLevel = source._ammoLevel
+      _fuelLevel = source._fuelLevel
+      _batteryLevel = source._batteryLevel
+      _entrenchmentLevel = source._entrenchmentLevel
+      _status = source._status
+      _activeTargetID = source._activeTargetID
+      _isJammed = source._isJammed
+      _isSpotted = source._isSpotted
+    }
+  }
+
+  fileprivate mutating func _uniqueStorage() -> _StorageClass {
+    if !isKnownUniquelyReferenced(&_storage) {
+      _storage = _StorageClass(copying: _storage)
+    }
+    return _storage
+  }
+
+  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    _ = _uniqueStorage()
+    try withExtendedLifetime(_storage) { (_storage: _StorageClass) in
+      while let fieldNumber = try decoder.nextFieldNumber() {
+        // The use of inline closures is to circumvent an issue where the compiler
+        // allocates stack space for every case branch when no optimizations are
+        // enabled. https://github.com/apple/swift-protobuf/issues/1034
+        switch fieldNumber {
+        case 1: try { try decoder.decodeSingularStringField(value: &_storage._unitID) }()
+        case 2: try { try decoder.decodeSingularStringField(value: &_storage._name) }()
+        case 3: try { try decoder.decodeSingularStringField(value: &_storage._callsign) }()
+        case 4: try { try decoder.decodeSingularStringField(value: &_storage._faction) }()
+        case 5: try { try decoder.decodeSingularStringField(value: &_storage._unitType) }()
+        case 6: try { try decoder.decodeSingularStringField(value: &_storage._echelon) }()
+        case 7: try { try decoder.decodeSingularFloatField(value: &_storage._x) }()
+        case 8: try { try decoder.decodeSingularFloatField(value: &_storage._y) }()
+        case 9: try { try decoder.decodeSingularFloatField(value: &_storage._z) }()
+        case 10: try { try decoder.decodeSingularFloatField(value: &_storage._heading) }()
+        case 11: try { try decoder.decodeSingularFloatField(value: &_storage._healthPercent) }()
+        case 12: try { try decoder.decodeSingularInt32Field(value: &_storage._personnelCount) }()
+        case 13: try { try decoder.decodeSingularInt32Field(value: &_storage._vehiclesCount) }()
+        case 14: try { try decoder.decodeSingularFloatField(value: &_storage._combatEffectiveness) }()
+        case 15: try { try decoder.decodeSingularFloatField(value: &_storage._suppressionLevel) }()
+        case 16: try { try decoder.decodeSingularFloatField(value: &_storage._moraleLevel) }()
+        case 17: try { try decoder.decodeSingularFloatField(value: &_storage._ammoLevel) }()
+        case 18: try { try decoder.decodeSingularFloatField(value: &_storage._fuelLevel) }()
+        case 19: try { try decoder.decodeSingularFloatField(value: &_storage._batteryLevel) }()
+        case 20: try { try decoder.decodeSingularInt32Field(value: &_storage._entrenchmentLevel) }()
+        case 21: try { try decoder.decodeSingularStringField(value: &_storage._status) }()
+        case 22: try { try decoder.decodeSingularStringField(value: &_storage._activeTargetID) }()
+        case 23: try { try decoder.decodeSingularBoolField(value: &_storage._isJammed) }()
+        case 24: try { try decoder.decodeSingularBoolField(value: &_storage._isSpotted) }()
+        default: break
+        }
+      }
+    }
+  }
+
+  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    try withExtendedLifetime(_storage) { (_storage: _StorageClass) in
+      if !_storage._unitID.isEmpty {
+        try visitor.visitSingularStringField(value: _storage._unitID, fieldNumber: 1)
+      }
+      if !_storage._name.isEmpty {
+        try visitor.visitSingularStringField(value: _storage._name, fieldNumber: 2)
+      }
+      if !_storage._callsign.isEmpty {
+        try visitor.visitSingularStringField(value: _storage._callsign, fieldNumber: 3)
+      }
+      if !_storage._faction.isEmpty {
+        try visitor.visitSingularStringField(value: _storage._faction, fieldNumber: 4)
+      }
+      if !_storage._unitType.isEmpty {
+        try visitor.visitSingularStringField(value: _storage._unitType, fieldNumber: 5)
+      }
+      if !_storage._echelon.isEmpty {
+        try visitor.visitSingularStringField(value: _storage._echelon, fieldNumber: 6)
+      }
+      if _storage._x.bitPattern != 0 {
+        try visitor.visitSingularFloatField(value: _storage._x, fieldNumber: 7)
+      }
+      if _storage._y.bitPattern != 0 {
+        try visitor.visitSingularFloatField(value: _storage._y, fieldNumber: 8)
+      }
+      if _storage._z.bitPattern != 0 {
+        try visitor.visitSingularFloatField(value: _storage._z, fieldNumber: 9)
+      }
+      if _storage._heading.bitPattern != 0 {
+        try visitor.visitSingularFloatField(value: _storage._heading, fieldNumber: 10)
+      }
+      if _storage._healthPercent.bitPattern != 0 {
+        try visitor.visitSingularFloatField(value: _storage._healthPercent, fieldNumber: 11)
+      }
+      if _storage._personnelCount != 0 {
+        try visitor.visitSingularInt32Field(value: _storage._personnelCount, fieldNumber: 12)
+      }
+      if _storage._vehiclesCount != 0 {
+        try visitor.visitSingularInt32Field(value: _storage._vehiclesCount, fieldNumber: 13)
+      }
+      if _storage._combatEffectiveness.bitPattern != 0 {
+        try visitor.visitSingularFloatField(value: _storage._combatEffectiveness, fieldNumber: 14)
+      }
+      if _storage._suppressionLevel.bitPattern != 0 {
+        try visitor.visitSingularFloatField(value: _storage._suppressionLevel, fieldNumber: 15)
+      }
+      if _storage._moraleLevel.bitPattern != 0 {
+        try visitor.visitSingularFloatField(value: _storage._moraleLevel, fieldNumber: 16)
+      }
+      if _storage._ammoLevel.bitPattern != 0 {
+        try visitor.visitSingularFloatField(value: _storage._ammoLevel, fieldNumber: 17)
+      }
+      if _storage._fuelLevel.bitPattern != 0 {
+        try visitor.visitSingularFloatField(value: _storage._fuelLevel, fieldNumber: 18)
+      }
+      if _storage._batteryLevel.bitPattern != 0 {
+        try visitor.visitSingularFloatField(value: _storage._batteryLevel, fieldNumber: 19)
+      }
+      if _storage._entrenchmentLevel != 0 {
+        try visitor.visitSingularInt32Field(value: _storage._entrenchmentLevel, fieldNumber: 20)
+      }
+      if !_storage._status.isEmpty {
+        try visitor.visitSingularStringField(value: _storage._status, fieldNumber: 21)
+      }
+      if !_storage._activeTargetID.isEmpty {
+        try visitor.visitSingularStringField(value: _storage._activeTargetID, fieldNumber: 22)
+      }
+      if _storage._isJammed != false {
+        try visitor.visitSingularBoolField(value: _storage._isJammed, fieldNumber: 23)
+      }
+      if _storage._isSpotted != false {
+        try visitor.visitSingularBoolField(value: _storage._isSpotted, fieldNumber: 24)
+      }
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  static func ==(lhs: Warbase_TacticalUnitState, rhs: Warbase_TacticalUnitState) -> Bool {
+    if lhs._storage !== rhs._storage {
+      let storagesAreEqual: Bool = withExtendedLifetime((lhs._storage, rhs._storage)) { (_args: (_StorageClass, _StorageClass)) in
+        let _storage = _args.0
+        let rhs_storage = _args.1
+        if _storage._unitID != rhs_storage._unitID {return false}
+        if _storage._name != rhs_storage._name {return false}
+        if _storage._callsign != rhs_storage._callsign {return false}
+        if _storage._faction != rhs_storage._faction {return false}
+        if _storage._unitType != rhs_storage._unitType {return false}
+        if _storage._echelon != rhs_storage._echelon {return false}
+        if _storage._x != rhs_storage._x {return false}
+        if _storage._y != rhs_storage._y {return false}
+        if _storage._z != rhs_storage._z {return false}
+        if _storage._heading != rhs_storage._heading {return false}
+        if _storage._healthPercent != rhs_storage._healthPercent {return false}
+        if _storage._personnelCount != rhs_storage._personnelCount {return false}
+        if _storage._vehiclesCount != rhs_storage._vehiclesCount {return false}
+        if _storage._combatEffectiveness != rhs_storage._combatEffectiveness {return false}
+        if _storage._suppressionLevel != rhs_storage._suppressionLevel {return false}
+        if _storage._moraleLevel != rhs_storage._moraleLevel {return false}
+        if _storage._ammoLevel != rhs_storage._ammoLevel {return false}
+        if _storage._fuelLevel != rhs_storage._fuelLevel {return false}
+        if _storage._batteryLevel != rhs_storage._batteryLevel {return false}
+        if _storage._entrenchmentLevel != rhs_storage._entrenchmentLevel {return false}
+        if _storage._status != rhs_storage._status {return false}
+        if _storage._activeTargetID != rhs_storage._activeTargetID {return false}
+        if _storage._isJammed != rhs_storage._isJammed {return false}
+        if _storage._isSpotted != rhs_storage._isSpotted {return false}
+        return true
+      }
+      if !storagesAreEqual {return false}
+    }
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Warbase_DroneState: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  static let protoMessageName: String = _protobuf_package + ".DroneState"
+  static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}drone_id\0\u{3}parent_unit_id\0\u{3}drone_type\0\u{1}faction\0\u{1}x\0\u{1}y\0\u{1}z\0\u{1}vx\0\u{1}vy\0\u{1}vz\0\u{1}heading\0\u{1}pitch\0\u{3}battery_percent\0\u{3}signal_quality\0\u{3}laser_designating\0\u{3}target_x\0\u{3}target_y\0\u{3}target_z\0\u{1}status\0")
+
+  fileprivate class _StorageClass {
+    var _droneID: String = String()
+    var _parentUnitID: String = String()
+    var _droneType: String = String()
+    var _faction: String = String()
+    var _x: Float = 0
+    var _y: Float = 0
+    var _z: Float = 0
+    var _vx: Float = 0
+    var _vy: Float = 0
+    var _vz: Float = 0
+    var _heading: Float = 0
+    var _pitch: Float = 0
+    var _batteryPercent: Float = 0
+    var _signalQuality: Float = 0
+    var _laserDesignating: Bool = false
+    var _targetX: Float = 0
+    var _targetY: Float = 0
+    var _targetZ: Float = 0
+    var _status: String = String()
+
+      // This property is used as the initial default value for new instances of the type.
+      // The type itself is protecting the reference to its storage via CoW semantics.
+      // This will force a copy to be made of this reference when the first mutation occurs;
+      // hence, it is safe to mark this as `nonisolated(unsafe)`.
+      static nonisolated(unsafe) let defaultInstance = _StorageClass()
+
+    private init() {}
+
+    init(copying source: _StorageClass) {
+      _droneID = source._droneID
+      _parentUnitID = source._parentUnitID
+      _droneType = source._droneType
+      _faction = source._faction
+      _x = source._x
+      _y = source._y
+      _z = source._z
+      _vx = source._vx
+      _vy = source._vy
+      _vz = source._vz
+      _heading = source._heading
+      _pitch = source._pitch
+      _batteryPercent = source._batteryPercent
+      _signalQuality = source._signalQuality
+      _laserDesignating = source._laserDesignating
+      _targetX = source._targetX
+      _targetY = source._targetY
+      _targetZ = source._targetZ
+      _status = source._status
+    }
+  }
+
+  fileprivate mutating func _uniqueStorage() -> _StorageClass {
+    if !isKnownUniquelyReferenced(&_storage) {
+      _storage = _StorageClass(copying: _storage)
+    }
+    return _storage
+  }
+
+  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    _ = _uniqueStorage()
+    try withExtendedLifetime(_storage) { (_storage: _StorageClass) in
+      while let fieldNumber = try decoder.nextFieldNumber() {
+        // The use of inline closures is to circumvent an issue where the compiler
+        // allocates stack space for every case branch when no optimizations are
+        // enabled. https://github.com/apple/swift-protobuf/issues/1034
+        switch fieldNumber {
+        case 1: try { try decoder.decodeSingularStringField(value: &_storage._droneID) }()
+        case 2: try { try decoder.decodeSingularStringField(value: &_storage._parentUnitID) }()
+        case 3: try { try decoder.decodeSingularStringField(value: &_storage._droneType) }()
+        case 4: try { try decoder.decodeSingularStringField(value: &_storage._faction) }()
+        case 5: try { try decoder.decodeSingularFloatField(value: &_storage._x) }()
+        case 6: try { try decoder.decodeSingularFloatField(value: &_storage._y) }()
+        case 7: try { try decoder.decodeSingularFloatField(value: &_storage._z) }()
+        case 8: try { try decoder.decodeSingularFloatField(value: &_storage._vx) }()
+        case 9: try { try decoder.decodeSingularFloatField(value: &_storage._vy) }()
+        case 10: try { try decoder.decodeSingularFloatField(value: &_storage._vz) }()
+        case 11: try { try decoder.decodeSingularFloatField(value: &_storage._heading) }()
+        case 12: try { try decoder.decodeSingularFloatField(value: &_storage._pitch) }()
+        case 13: try { try decoder.decodeSingularFloatField(value: &_storage._batteryPercent) }()
+        case 14: try { try decoder.decodeSingularFloatField(value: &_storage._signalQuality) }()
+        case 15: try { try decoder.decodeSingularBoolField(value: &_storage._laserDesignating) }()
+        case 16: try { try decoder.decodeSingularFloatField(value: &_storage._targetX) }()
+        case 17: try { try decoder.decodeSingularFloatField(value: &_storage._targetY) }()
+        case 18: try { try decoder.decodeSingularFloatField(value: &_storage._targetZ) }()
+        case 19: try { try decoder.decodeSingularStringField(value: &_storage._status) }()
+        default: break
+        }
+      }
+    }
+  }
+
+  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    try withExtendedLifetime(_storage) { (_storage: _StorageClass) in
+      if !_storage._droneID.isEmpty {
+        try visitor.visitSingularStringField(value: _storage._droneID, fieldNumber: 1)
+      }
+      if !_storage._parentUnitID.isEmpty {
+        try visitor.visitSingularStringField(value: _storage._parentUnitID, fieldNumber: 2)
+      }
+      if !_storage._droneType.isEmpty {
+        try visitor.visitSingularStringField(value: _storage._droneType, fieldNumber: 3)
+      }
+      if !_storage._faction.isEmpty {
+        try visitor.visitSingularStringField(value: _storage._faction, fieldNumber: 4)
+      }
+      if _storage._x.bitPattern != 0 {
+        try visitor.visitSingularFloatField(value: _storage._x, fieldNumber: 5)
+      }
+      if _storage._y.bitPattern != 0 {
+        try visitor.visitSingularFloatField(value: _storage._y, fieldNumber: 6)
+      }
+      if _storage._z.bitPattern != 0 {
+        try visitor.visitSingularFloatField(value: _storage._z, fieldNumber: 7)
+      }
+      if _storage._vx.bitPattern != 0 {
+        try visitor.visitSingularFloatField(value: _storage._vx, fieldNumber: 8)
+      }
+      if _storage._vy.bitPattern != 0 {
+        try visitor.visitSingularFloatField(value: _storage._vy, fieldNumber: 9)
+      }
+      if _storage._vz.bitPattern != 0 {
+        try visitor.visitSingularFloatField(value: _storage._vz, fieldNumber: 10)
+      }
+      if _storage._heading.bitPattern != 0 {
+        try visitor.visitSingularFloatField(value: _storage._heading, fieldNumber: 11)
+      }
+      if _storage._pitch.bitPattern != 0 {
+        try visitor.visitSingularFloatField(value: _storage._pitch, fieldNumber: 12)
+      }
+      if _storage._batteryPercent.bitPattern != 0 {
+        try visitor.visitSingularFloatField(value: _storage._batteryPercent, fieldNumber: 13)
+      }
+      if _storage._signalQuality.bitPattern != 0 {
+        try visitor.visitSingularFloatField(value: _storage._signalQuality, fieldNumber: 14)
+      }
+      if _storage._laserDesignating != false {
+        try visitor.visitSingularBoolField(value: _storage._laserDesignating, fieldNumber: 15)
+      }
+      if _storage._targetX.bitPattern != 0 {
+        try visitor.visitSingularFloatField(value: _storage._targetX, fieldNumber: 16)
+      }
+      if _storage._targetY.bitPattern != 0 {
+        try visitor.visitSingularFloatField(value: _storage._targetY, fieldNumber: 17)
+      }
+      if _storage._targetZ.bitPattern != 0 {
+        try visitor.visitSingularFloatField(value: _storage._targetZ, fieldNumber: 18)
+      }
+      if !_storage._status.isEmpty {
+        try visitor.visitSingularStringField(value: _storage._status, fieldNumber: 19)
+      }
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  static func ==(lhs: Warbase_DroneState, rhs: Warbase_DroneState) -> Bool {
+    if lhs._storage !== rhs._storage {
+      let storagesAreEqual: Bool = withExtendedLifetime((lhs._storage, rhs._storage)) { (_args: (_StorageClass, _StorageClass)) in
+        let _storage = _args.0
+        let rhs_storage = _args.1
+        if _storage._droneID != rhs_storage._droneID {return false}
+        if _storage._parentUnitID != rhs_storage._parentUnitID {return false}
+        if _storage._droneType != rhs_storage._droneType {return false}
+        if _storage._faction != rhs_storage._faction {return false}
+        if _storage._x != rhs_storage._x {return false}
+        if _storage._y != rhs_storage._y {return false}
+        if _storage._z != rhs_storage._z {return false}
+        if _storage._vx != rhs_storage._vx {return false}
+        if _storage._vy != rhs_storage._vy {return false}
+        if _storage._vz != rhs_storage._vz {return false}
+        if _storage._heading != rhs_storage._heading {return false}
+        if _storage._pitch != rhs_storage._pitch {return false}
+        if _storage._batteryPercent != rhs_storage._batteryPercent {return false}
+        if _storage._signalQuality != rhs_storage._signalQuality {return false}
+        if _storage._laserDesignating != rhs_storage._laserDesignating {return false}
+        if _storage._targetX != rhs_storage._targetX {return false}
+        if _storage._targetY != rhs_storage._targetY {return false}
+        if _storage._targetZ != rhs_storage._targetZ {return false}
+        if _storage._status != rhs_storage._status {return false}
+        return true
+      }
+      if !storagesAreEqual {return false}
+    }
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Warbase_ActiveFireMission: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  static let protoMessageName: String = _protobuf_package + ".ActiveFireMission"
+  static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}mission_id\0\u{3}battery_id\0\u{3}origin_x\0\u{3}origin_y\0\u{3}origin_z\0\u{3}target_x\0\u{3}target_y\0\u{3}target_z\0\u{3}munition_type\0\u{3}total_rounds\0\u{3}rounds_fired\0\u{3}flight_time_seconds\0\u{3}time_to_impact\0\u{3}dispersion_cep\0")
 
   mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -1204,104 +1694,349 @@ nonisolated extension Warbase_PlayerState: SwiftProtobuf.Message, SwiftProtobuf.
       // allocates stack space for every case branch when no optimizations are
       // enabled. https://github.com/apple/swift-protobuf/issues/1034
       switch fieldNumber {
-      case 1: try { try decoder.decodeSingularFloatField(value: &self.x) }()
-      case 2: try { try decoder.decodeSingularFloatField(value: &self.y) }()
-      case 3: try { try decoder.decodeSingularFloatField(value: &self.z) }()
-      case 4: try { try decoder.decodeSingularFloatField(value: &self.rx) }()
-      case 5: try { try decoder.decodeSingularFloatField(value: &self.ry) }()
-      case 6: try { try decoder.decodeSingularFloatField(value: &self.rz) }()
-      case 7: try { try decoder.decodeSingularFloatField(value: &self.rw) }()
-      case 8: try { try decoder.decodeSingularStringField(value: &self.animation) }()
-      case 9: try { try decoder.decodeSingularInt32Field(value: &self.health) }()
-      case 10: try { try decoder.decodeSingularInt32Field(value: &self.kills) }()
-      case 11: try { try decoder.decodeSingularInt32Field(value: &self.deaths) }()
-      case 12: try { try decoder.decodeSingularBoolField(value: &self.isDead) }()
-      case 13: try { try decoder.decodeSingularStringField(value: &self.platformID) }()
-      case 14: try { try decoder.decodeSingularInt32Field(value: &self.ping) }()
-      case 15: try { try decoder.decodeSingularStringField(value: &self.weaponID) }()
-      case 16: try { try decoder.decodeSingularStringField(value: &self.team) }()
+      case 1: try { try decoder.decodeSingularStringField(value: &self.missionID) }()
+      case 2: try { try decoder.decodeSingularStringField(value: &self.batteryID) }()
+      case 3: try { try decoder.decodeSingularFloatField(value: &self.originX) }()
+      case 4: try { try decoder.decodeSingularFloatField(value: &self.originY) }()
+      case 5: try { try decoder.decodeSingularFloatField(value: &self.originZ) }()
+      case 6: try { try decoder.decodeSingularFloatField(value: &self.targetX) }()
+      case 7: try { try decoder.decodeSingularFloatField(value: &self.targetY) }()
+      case 8: try { try decoder.decodeSingularFloatField(value: &self.targetZ) }()
+      case 9: try { try decoder.decodeSingularStringField(value: &self.munitionType) }()
+      case 10: try { try decoder.decodeSingularInt32Field(value: &self.totalRounds) }()
+      case 11: try { try decoder.decodeSingularInt32Field(value: &self.roundsFired) }()
+      case 12: try { try decoder.decodeSingularFloatField(value: &self.flightTimeSeconds) }()
+      case 13: try { try decoder.decodeSingularFloatField(value: &self.timeToImpact) }()
+      case 14: try { try decoder.decodeSingularFloatField(value: &self.dispersionCep) }()
       default: break
       }
     }
   }
 
   func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    if self.x.bitPattern != 0 {
-      try visitor.visitSingularFloatField(value: self.x, fieldNumber: 1)
+    if !self.missionID.isEmpty {
+      try visitor.visitSingularStringField(value: self.missionID, fieldNumber: 1)
     }
-    if self.y.bitPattern != 0 {
-      try visitor.visitSingularFloatField(value: self.y, fieldNumber: 2)
+    if !self.batteryID.isEmpty {
+      try visitor.visitSingularStringField(value: self.batteryID, fieldNumber: 2)
     }
-    if self.z.bitPattern != 0 {
-      try visitor.visitSingularFloatField(value: self.z, fieldNumber: 3)
+    if self.originX.bitPattern != 0 {
+      try visitor.visitSingularFloatField(value: self.originX, fieldNumber: 3)
     }
-    if self.rx.bitPattern != 0 {
-      try visitor.visitSingularFloatField(value: self.rx, fieldNumber: 4)
+    if self.originY.bitPattern != 0 {
+      try visitor.visitSingularFloatField(value: self.originY, fieldNumber: 4)
     }
-    if self.ry.bitPattern != 0 {
-      try visitor.visitSingularFloatField(value: self.ry, fieldNumber: 5)
+    if self.originZ.bitPattern != 0 {
+      try visitor.visitSingularFloatField(value: self.originZ, fieldNumber: 5)
     }
-    if self.rz.bitPattern != 0 {
-      try visitor.visitSingularFloatField(value: self.rz, fieldNumber: 6)
+    if self.targetX.bitPattern != 0 {
+      try visitor.visitSingularFloatField(value: self.targetX, fieldNumber: 6)
     }
-    if self.rw.bitPattern != 0 {
-      try visitor.visitSingularFloatField(value: self.rw, fieldNumber: 7)
+    if self.targetY.bitPattern != 0 {
+      try visitor.visitSingularFloatField(value: self.targetY, fieldNumber: 7)
     }
-    if !self.animation.isEmpty {
-      try visitor.visitSingularStringField(value: self.animation, fieldNumber: 8)
+    if self.targetZ.bitPattern != 0 {
+      try visitor.visitSingularFloatField(value: self.targetZ, fieldNumber: 8)
     }
-    if self.health != 0 {
-      try visitor.visitSingularInt32Field(value: self.health, fieldNumber: 9)
+    if !self.munitionType.isEmpty {
+      try visitor.visitSingularStringField(value: self.munitionType, fieldNumber: 9)
     }
-    if self.kills != 0 {
-      try visitor.visitSingularInt32Field(value: self.kills, fieldNumber: 10)
+    if self.totalRounds != 0 {
+      try visitor.visitSingularInt32Field(value: self.totalRounds, fieldNumber: 10)
     }
-    if self.deaths != 0 {
-      try visitor.visitSingularInt32Field(value: self.deaths, fieldNumber: 11)
+    if self.roundsFired != 0 {
+      try visitor.visitSingularInt32Field(value: self.roundsFired, fieldNumber: 11)
     }
-    if self.isDead != false {
-      try visitor.visitSingularBoolField(value: self.isDead, fieldNumber: 12)
+    if self.flightTimeSeconds.bitPattern != 0 {
+      try visitor.visitSingularFloatField(value: self.flightTimeSeconds, fieldNumber: 12)
     }
-    if !self.platformID.isEmpty {
-      try visitor.visitSingularStringField(value: self.platformID, fieldNumber: 13)
+    if self.timeToImpact.bitPattern != 0 {
+      try visitor.visitSingularFloatField(value: self.timeToImpact, fieldNumber: 13)
     }
-    if self.ping != 0 {
-      try visitor.visitSingularInt32Field(value: self.ping, fieldNumber: 14)
-    }
-    if !self.weaponID.isEmpty {
-      try visitor.visitSingularStringField(value: self.weaponID, fieldNumber: 15)
-    }
-    if !self.team.isEmpty {
-      try visitor.visitSingularStringField(value: self.team, fieldNumber: 16)
+    if self.dispersionCep.bitPattern != 0 {
+      try visitor.visitSingularFloatField(value: self.dispersionCep, fieldNumber: 14)
     }
     try unknownFields.traverse(visitor: &visitor)
   }
 
-  static func ==(lhs: Warbase_PlayerState, rhs: Warbase_PlayerState) -> Bool {
+  static func ==(lhs: Warbase_ActiveFireMission, rhs: Warbase_ActiveFireMission) -> Bool {
+    if lhs.missionID != rhs.missionID {return false}
+    if lhs.batteryID != rhs.batteryID {return false}
+    if lhs.originX != rhs.originX {return false}
+    if lhs.originY != rhs.originY {return false}
+    if lhs.originZ != rhs.originZ {return false}
+    if lhs.targetX != rhs.targetX {return false}
+    if lhs.targetY != rhs.targetY {return false}
+    if lhs.targetZ != rhs.targetZ {return false}
+    if lhs.munitionType != rhs.munitionType {return false}
+    if lhs.totalRounds != rhs.totalRounds {return false}
+    if lhs.roundsFired != rhs.roundsFired {return false}
+    if lhs.flightTimeSeconds != rhs.flightTimeSeconds {return false}
+    if lhs.timeToImpact != rhs.timeToImpact {return false}
+    if lhs.dispersionCep != rhs.dispersionCep {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Warbase_EWEmitterState: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  static let protoMessageName: String = _protobuf_package + ".EWEmitterState"
+  static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}emitter_id\0\u{3}unit_id\0\u{1}faction\0\u{3}center_x\0\u{3}center_z\0\u{3}jamming_radius\0\u{3}power_dbm\0\u{3}gps_denied\0")
+
+  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.emitterID) }()
+      case 2: try { try decoder.decodeSingularStringField(value: &self.unitID) }()
+      case 3: try { try decoder.decodeSingularStringField(value: &self.faction) }()
+      case 4: try { try decoder.decodeSingularFloatField(value: &self.centerX) }()
+      case 5: try { try decoder.decodeSingularFloatField(value: &self.centerZ) }()
+      case 6: try { try decoder.decodeSingularFloatField(value: &self.jammingRadius) }()
+      case 7: try { try decoder.decodeSingularFloatField(value: &self.powerDbm) }()
+      case 8: try { try decoder.decodeSingularBoolField(value: &self.gpsDenied) }()
+      default: break
+      }
+    }
+  }
+
+  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.emitterID.isEmpty {
+      try visitor.visitSingularStringField(value: self.emitterID, fieldNumber: 1)
+    }
+    if !self.unitID.isEmpty {
+      try visitor.visitSingularStringField(value: self.unitID, fieldNumber: 2)
+    }
+    if !self.faction.isEmpty {
+      try visitor.visitSingularStringField(value: self.faction, fieldNumber: 3)
+    }
+    if self.centerX.bitPattern != 0 {
+      try visitor.visitSingularFloatField(value: self.centerX, fieldNumber: 4)
+    }
+    if self.centerZ.bitPattern != 0 {
+      try visitor.visitSingularFloatField(value: self.centerZ, fieldNumber: 5)
+    }
+    if self.jammingRadius.bitPattern != 0 {
+      try visitor.visitSingularFloatField(value: self.jammingRadius, fieldNumber: 6)
+    }
+    if self.powerDbm.bitPattern != 0 {
+      try visitor.visitSingularFloatField(value: self.powerDbm, fieldNumber: 7)
+    }
+    if self.gpsDenied != false {
+      try visitor.visitSingularBoolField(value: self.gpsDenied, fieldNumber: 8)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  static func ==(lhs: Warbase_EWEmitterState, rhs: Warbase_EWEmitterState) -> Bool {
+    if lhs.emitterID != rhs.emitterID {return false}
+    if lhs.unitID != rhs.unitID {return false}
+    if lhs.faction != rhs.faction {return false}
+    if lhs.centerX != rhs.centerX {return false}
+    if lhs.centerZ != rhs.centerZ {return false}
+    if lhs.jammingRadius != rhs.jammingRadius {return false}
+    if lhs.powerDbm != rhs.powerDbm {return false}
+    if lhs.gpsDenied != rhs.gpsDenied {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Warbase_SupplyDepotState: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  static let protoMessageName: String = _protobuf_package + ".SupplyDepotState"
+  static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}depot_id\0\u{1}faction\0\u{1}x\0\u{1}y\0\u{1}z\0\u{3}ammo_tons\0\u{3}fuel_tons\0\u{3}drone_batteries\0")
+
+  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.depotID) }()
+      case 2: try { try decoder.decodeSingularStringField(value: &self.faction) }()
+      case 3: try { try decoder.decodeSingularFloatField(value: &self.x) }()
+      case 4: try { try decoder.decodeSingularFloatField(value: &self.y) }()
+      case 5: try { try decoder.decodeSingularFloatField(value: &self.z) }()
+      case 6: try { try decoder.decodeSingularFloatField(value: &self.ammoTons) }()
+      case 7: try { try decoder.decodeSingularFloatField(value: &self.fuelTons) }()
+      case 8: try { try decoder.decodeSingularInt32Field(value: &self.droneBatteries) }()
+      default: break
+      }
+    }
+  }
+
+  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.depotID.isEmpty {
+      try visitor.visitSingularStringField(value: self.depotID, fieldNumber: 1)
+    }
+    if !self.faction.isEmpty {
+      try visitor.visitSingularStringField(value: self.faction, fieldNumber: 2)
+    }
+    if self.x.bitPattern != 0 {
+      try visitor.visitSingularFloatField(value: self.x, fieldNumber: 3)
+    }
+    if self.y.bitPattern != 0 {
+      try visitor.visitSingularFloatField(value: self.y, fieldNumber: 4)
+    }
+    if self.z.bitPattern != 0 {
+      try visitor.visitSingularFloatField(value: self.z, fieldNumber: 5)
+    }
+    if self.ammoTons.bitPattern != 0 {
+      try visitor.visitSingularFloatField(value: self.ammoTons, fieldNumber: 6)
+    }
+    if self.fuelTons.bitPattern != 0 {
+      try visitor.visitSingularFloatField(value: self.fuelTons, fieldNumber: 7)
+    }
+    if self.droneBatteries != 0 {
+      try visitor.visitSingularInt32Field(value: self.droneBatteries, fieldNumber: 8)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  static func ==(lhs: Warbase_SupplyDepotState, rhs: Warbase_SupplyDepotState) -> Bool {
+    if lhs.depotID != rhs.depotID {return false}
+    if lhs.faction != rhs.faction {return false}
     if lhs.x != rhs.x {return false}
     if lhs.y != rhs.y {return false}
     if lhs.z != rhs.z {return false}
-    if lhs.rx != rhs.rx {return false}
-    if lhs.ry != rhs.ry {return false}
-    if lhs.rz != rhs.rz {return false}
-    if lhs.rw != rhs.rw {return false}
-    if lhs.animation != rhs.animation {return false}
-    if lhs.health != rhs.health {return false}
-    if lhs.kills != rhs.kills {return false}
-    if lhs.deaths != rhs.deaths {return false}
-    if lhs.isDead != rhs.isDead {return false}
-    if lhs.platformID != rhs.platformID {return false}
-    if lhs.ping != rhs.ping {return false}
-    if lhs.weaponID != rhs.weaponID {return false}
-    if lhs.team != rhs.team {return false}
+    if lhs.ammoTons != rhs.ammoTons {return false}
+    if lhs.fuelTons != rhs.fuelTons {return false}
+    if lhs.droneBatteries != rhs.droneBatteries {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
 }
 
-nonisolated extension Warbase_ServerEvent: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  static let protoMessageName: String = _protobuf_package + ".ServerEvent"
-  static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}respawn\0\u{1}fire\0\u{3}hit_confirmed\0\u{3}kill_confirmed\0\u{3}throw_grenade\0\u{1}pong\0")
+extension Warbase_FortificationState: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  static let protoMessageName: String = _protobuf_package + ".FortificationState"
+  static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}fort_id\0\u{1}x1\0\u{1}z1\0\u{1}x2\0\u{1}z2\0\u{1}type\0\u{1}integrity\0")
+
+  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.fortID) }()
+      case 2: try { try decoder.decodeSingularFloatField(value: &self.x1) }()
+      case 3: try { try decoder.decodeSingularFloatField(value: &self.z1) }()
+      case 4: try { try decoder.decodeSingularFloatField(value: &self.x2) }()
+      case 5: try { try decoder.decodeSingularFloatField(value: &self.z2) }()
+      case 6: try { try decoder.decodeSingularStringField(value: &self.type) }()
+      case 7: try { try decoder.decodeSingularFloatField(value: &self.integrity) }()
+      default: break
+      }
+    }
+  }
+
+  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.fortID.isEmpty {
+      try visitor.visitSingularStringField(value: self.fortID, fieldNumber: 1)
+    }
+    if self.x1.bitPattern != 0 {
+      try visitor.visitSingularFloatField(value: self.x1, fieldNumber: 2)
+    }
+    if self.z1.bitPattern != 0 {
+      try visitor.visitSingularFloatField(value: self.z1, fieldNumber: 3)
+    }
+    if self.x2.bitPattern != 0 {
+      try visitor.visitSingularFloatField(value: self.x2, fieldNumber: 4)
+    }
+    if self.z2.bitPattern != 0 {
+      try visitor.visitSingularFloatField(value: self.z2, fieldNumber: 5)
+    }
+    if !self.type.isEmpty {
+      try visitor.visitSingularStringField(value: self.type, fieldNumber: 6)
+    }
+    if self.integrity.bitPattern != 0 {
+      try visitor.visitSingularFloatField(value: self.integrity, fieldNumber: 7)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  static func ==(lhs: Warbase_FortificationState, rhs: Warbase_FortificationState) -> Bool {
+    if lhs.fortID != rhs.fortID {return false}
+    if lhs.x1 != rhs.x1 {return false}
+    if lhs.z1 != rhs.z1 {return false}
+    if lhs.x2 != rhs.x2 {return false}
+    if lhs.z2 != rhs.z2 {return false}
+    if lhs.type != rhs.type {return false}
+    if lhs.integrity != rhs.integrity {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Warbase_SensorContact: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  static let protoMessageName: String = _protobuf_package + ".SensorContact"
+  static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}contact_id\0\u{1}x\0\u{1}y\0\u{1}z\0\u{1}confidence\0\u{3}detected_faction\0\u{3}estimated_type\0\u{3}last_seen_timestamp\0")
+
+  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.contactID) }()
+      case 2: try { try decoder.decodeSingularFloatField(value: &self.x) }()
+      case 3: try { try decoder.decodeSingularFloatField(value: &self.y) }()
+      case 4: try { try decoder.decodeSingularFloatField(value: &self.z) }()
+      case 5: try { try decoder.decodeSingularStringField(value: &self.confidence) }()
+      case 6: try { try decoder.decodeSingularStringField(value: &self.detectedFaction) }()
+      case 7: try { try decoder.decodeSingularStringField(value: &self.estimatedType) }()
+      case 8: try { try decoder.decodeSingularInt64Field(value: &self.lastSeenTimestamp) }()
+      default: break
+      }
+    }
+  }
+
+  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.contactID.isEmpty {
+      try visitor.visitSingularStringField(value: self.contactID, fieldNumber: 1)
+    }
+    if self.x.bitPattern != 0 {
+      try visitor.visitSingularFloatField(value: self.x, fieldNumber: 2)
+    }
+    if self.y.bitPattern != 0 {
+      try visitor.visitSingularFloatField(value: self.y, fieldNumber: 3)
+    }
+    if self.z.bitPattern != 0 {
+      try visitor.visitSingularFloatField(value: self.z, fieldNumber: 4)
+    }
+    if !self.confidence.isEmpty {
+      try visitor.visitSingularStringField(value: self.confidence, fieldNumber: 5)
+    }
+    if !self.detectedFaction.isEmpty {
+      try visitor.visitSingularStringField(value: self.detectedFaction, fieldNumber: 6)
+    }
+    if !self.estimatedType.isEmpty {
+      try visitor.visitSingularStringField(value: self.estimatedType, fieldNumber: 7)
+    }
+    if self.lastSeenTimestamp != 0 {
+      try visitor.visitSingularInt64Field(value: self.lastSeenTimestamp, fieldNumber: 8)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  static func ==(lhs: Warbase_SensorContact, rhs: Warbase_SensorContact) -> Bool {
+    if lhs.contactID != rhs.contactID {return false}
+    if lhs.x != rhs.x {return false}
+    if lhs.y != rhs.y {return false}
+    if lhs.z != rhs.z {return false}
+    if lhs.confidence != rhs.confidence {return false}
+    if lhs.detectedFaction != rhs.detectedFaction {return false}
+    if lhs.estimatedType != rhs.estimatedType {return false}
+    if lhs.lastSeenTimestamp != rhs.lastSeenTimestamp {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Warbase_TheatreEvent: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  static let protoMessageName: String = _protobuf_package + ".TheatreEvent"
+  static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}detonation\0\u{3}drone_strike\0\u{3}counter_battery\0\u{3}ew_intercept\0\u{3}unit_destroyed\0\u{1}pong\0")
 
   mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -1310,68 +2045,68 @@ nonisolated extension Warbase_ServerEvent: SwiftProtobuf.Message, SwiftProtobuf.
       // enabled. https://github.com/apple/swift-protobuf/issues/1034
       switch fieldNumber {
       case 1: try {
-        var v: Warbase_RespawnEvent?
+        var v: Warbase_ArtilleryDetonationEvent?
         var hadOneofValue = false
         if let current = self.event {
           hadOneofValue = true
-          if case .respawn(let m) = current {v = m}
+          if case .detonation(let m) = current {v = m}
         }
         try decoder.decodeSingularMessageField(value: &v)
         if let v = v {
           if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.event = .respawn(v)
+          self.event = .detonation(v)
         }
       }()
       case 2: try {
-        var v: Warbase_ServerFireEvent?
+        var v: Warbase_DroneStrikeEvent?
         var hadOneofValue = false
         if let current = self.event {
           hadOneofValue = true
-          if case .fire(let m) = current {v = m}
+          if case .droneStrike(let m) = current {v = m}
         }
         try decoder.decodeSingularMessageField(value: &v)
         if let v = v {
           if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.event = .fire(v)
+          self.event = .droneStrike(v)
         }
       }()
       case 3: try {
-        var v: Warbase_HitConfirmedEvent?
+        var v: Warbase_CounterBatteryAlert?
         var hadOneofValue = false
         if let current = self.event {
           hadOneofValue = true
-          if case .hitConfirmed(let m) = current {v = m}
+          if case .counterBattery(let m) = current {v = m}
         }
         try decoder.decodeSingularMessageField(value: &v)
         if let v = v {
           if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.event = .hitConfirmed(v)
+          self.event = .counterBattery(v)
         }
       }()
       case 4: try {
-        var v: Warbase_KillConfirmedEvent?
+        var v: Warbase_EWInterceptAlert?
         var hadOneofValue = false
         if let current = self.event {
           hadOneofValue = true
-          if case .killConfirmed(let m) = current {v = m}
+          if case .ewIntercept(let m) = current {v = m}
         }
         try decoder.decodeSingularMessageField(value: &v)
         if let v = v {
           if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.event = .killConfirmed(v)
+          self.event = .ewIntercept(v)
         }
       }()
       case 5: try {
-        var v: Warbase_ServerThrowGrenadeEvent?
+        var v: Warbase_UnitDestroyedEvent?
         var hadOneofValue = false
         if let current = self.event {
           hadOneofValue = true
-          if case .throwGrenade(let m) = current {v = m}
+          if case .unitDestroyed(let m) = current {v = m}
         }
         try decoder.decodeSingularMessageField(value: &v)
         if let v = v {
           if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.event = .throwGrenade(v)
+          self.event = .unitDestroyed(v)
         }
       }()
       case 6: try {
@@ -1398,24 +2133,24 @@ nonisolated extension Warbase_ServerEvent: SwiftProtobuf.Message, SwiftProtobuf.
     // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
     // https://github.com/apple/swift-protobuf/issues/1182
     switch self.event {
-    case .respawn?: try {
-      guard case .respawn(let v)? = self.event else { preconditionFailure() }
+    case .detonation?: try {
+      guard case .detonation(let v)? = self.event else { preconditionFailure() }
       try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
     }()
-    case .fire?: try {
-      guard case .fire(let v)? = self.event else { preconditionFailure() }
+    case .droneStrike?: try {
+      guard case .droneStrike(let v)? = self.event else { preconditionFailure() }
       try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
     }()
-    case .hitConfirmed?: try {
-      guard case .hitConfirmed(let v)? = self.event else { preconditionFailure() }
+    case .counterBattery?: try {
+      guard case .counterBattery(let v)? = self.event else { preconditionFailure() }
       try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
     }()
-    case .killConfirmed?: try {
-      guard case .killConfirmed(let v)? = self.event else { preconditionFailure() }
+    case .ewIntercept?: try {
+      guard case .ewIntercept(let v)? = self.event else { preconditionFailure() }
       try visitor.visitSingularMessageField(value: v, fieldNumber: 4)
     }()
-    case .throwGrenade?: try {
-      guard case .throwGrenade(let v)? = self.event else { preconditionFailure() }
+    case .unitDestroyed?: try {
+      guard case .unitDestroyed(let v)? = self.event else { preconditionFailure() }
       try visitor.visitSingularMessageField(value: v, fieldNumber: 5)
     }()
     case .pong?: try {
@@ -1427,16 +2162,16 @@ nonisolated extension Warbase_ServerEvent: SwiftProtobuf.Message, SwiftProtobuf.
     try unknownFields.traverse(visitor: &visitor)
   }
 
-  static func ==(lhs: Warbase_ServerEvent, rhs: Warbase_ServerEvent) -> Bool {
+  static func ==(lhs: Warbase_TheatreEvent, rhs: Warbase_TheatreEvent) -> Bool {
     if lhs.event != rhs.event {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
 }
 
-nonisolated extension Warbase_RespawnEvent: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  static let protoMessageName: String = _protobuf_package + ".RespawnEvent"
-  static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}x\0\u{1}y\0\u{1}z\0")
+extension Warbase_ArtilleryDetonationEvent: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  static let protoMessageName: String = _protobuf_package + ".ArtilleryDetonationEvent"
+  static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}mission_id\0\u{1}x\0\u{1}y\0\u{1}z\0\u{3}munition_type\0\u{3}damage_radius\0\u{1}casualties\0\u{3}vehicles_destroyed\0")
 
   mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -1444,39 +2179,64 @@ nonisolated extension Warbase_RespawnEvent: SwiftProtobuf.Message, SwiftProtobuf
       // allocates stack space for every case branch when no optimizations are
       // enabled. https://github.com/apple/swift-protobuf/issues/1034
       switch fieldNumber {
-      case 1: try { try decoder.decodeSingularFloatField(value: &self.x) }()
-      case 2: try { try decoder.decodeSingularFloatField(value: &self.y) }()
-      case 3: try { try decoder.decodeSingularFloatField(value: &self.z) }()
+      case 1: try { try decoder.decodeSingularStringField(value: &self.missionID) }()
+      case 2: try { try decoder.decodeSingularFloatField(value: &self.x) }()
+      case 3: try { try decoder.decodeSingularFloatField(value: &self.y) }()
+      case 4: try { try decoder.decodeSingularFloatField(value: &self.z) }()
+      case 5: try { try decoder.decodeSingularStringField(value: &self.munitionType) }()
+      case 6: try { try decoder.decodeSingularFloatField(value: &self.damageRadius) }()
+      case 7: try { try decoder.decodeSingularInt32Field(value: &self.casualties) }()
+      case 8: try { try decoder.decodeSingularInt32Field(value: &self.vehiclesDestroyed) }()
       default: break
       }
     }
   }
 
   func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.missionID.isEmpty {
+      try visitor.visitSingularStringField(value: self.missionID, fieldNumber: 1)
+    }
     if self.x.bitPattern != 0 {
-      try visitor.visitSingularFloatField(value: self.x, fieldNumber: 1)
+      try visitor.visitSingularFloatField(value: self.x, fieldNumber: 2)
     }
     if self.y.bitPattern != 0 {
-      try visitor.visitSingularFloatField(value: self.y, fieldNumber: 2)
+      try visitor.visitSingularFloatField(value: self.y, fieldNumber: 3)
     }
     if self.z.bitPattern != 0 {
-      try visitor.visitSingularFloatField(value: self.z, fieldNumber: 3)
+      try visitor.visitSingularFloatField(value: self.z, fieldNumber: 4)
+    }
+    if !self.munitionType.isEmpty {
+      try visitor.visitSingularStringField(value: self.munitionType, fieldNumber: 5)
+    }
+    if self.damageRadius.bitPattern != 0 {
+      try visitor.visitSingularFloatField(value: self.damageRadius, fieldNumber: 6)
+    }
+    if self.casualties != 0 {
+      try visitor.visitSingularInt32Field(value: self.casualties, fieldNumber: 7)
+    }
+    if self.vehiclesDestroyed != 0 {
+      try visitor.visitSingularInt32Field(value: self.vehiclesDestroyed, fieldNumber: 8)
     }
     try unknownFields.traverse(visitor: &visitor)
   }
 
-  static func ==(lhs: Warbase_RespawnEvent, rhs: Warbase_RespawnEvent) -> Bool {
+  static func ==(lhs: Warbase_ArtilleryDetonationEvent, rhs: Warbase_ArtilleryDetonationEvent) -> Bool {
+    if lhs.missionID != rhs.missionID {return false}
     if lhs.x != rhs.x {return false}
     if lhs.y != rhs.y {return false}
     if lhs.z != rhs.z {return false}
+    if lhs.munitionType != rhs.munitionType {return false}
+    if lhs.damageRadius != rhs.damageRadius {return false}
+    if lhs.casualties != rhs.casualties {return false}
+    if lhs.vehiclesDestroyed != rhs.vehiclesDestroyed {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
 }
 
-nonisolated extension Warbase_ServerFireEvent: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  static let protoMessageName: String = _protobuf_package + ".ServerFireEvent"
-  static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}shooter_id\0\u{3}origin_x\0\u{3}origin_y\0\u{3}origin_z\0\u{3}hit_x\0\u{3}hit_y\0\u{3}hit_z\0\u{3}normal_x\0\u{3}normal_y\0\u{3}normal_z\0\u{3}hit_wall\0")
+extension Warbase_DroneStrikeEvent: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  static let protoMessageName: String = _protobuf_package + ".DroneStrikeEvent"
+  static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}drone_id\0\u{3}target_unit_id\0\u{1}x\0\u{1}y\0\u{1}z\0\u{3}armor_penetrated\0\u{3}damage_dealt\0")
 
   mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -1484,117 +2244,59 @@ nonisolated extension Warbase_ServerFireEvent: SwiftProtobuf.Message, SwiftProto
       // allocates stack space for every case branch when no optimizations are
       // enabled. https://github.com/apple/swift-protobuf/issues/1034
       switch fieldNumber {
-      case 1: try { try decoder.decodeSingularStringField(value: &self.shooterID) }()
-      case 2: try { try decoder.decodeSingularFloatField(value: &self.originX) }()
-      case 3: try { try decoder.decodeSingularFloatField(value: &self.originY) }()
-      case 4: try { try decoder.decodeSingularFloatField(value: &self.originZ) }()
-      case 5: try { try decoder.decodeSingularFloatField(value: &self.hitX) }()
-      case 6: try { try decoder.decodeSingularFloatField(value: &self.hitY) }()
-      case 7: try { try decoder.decodeSingularFloatField(value: &self.hitZ) }()
-      case 8: try { try decoder.decodeSingularFloatField(value: &self.normalX) }()
-      case 9: try { try decoder.decodeSingularFloatField(value: &self.normalY) }()
-      case 10: try { try decoder.decodeSingularFloatField(value: &self.normalZ) }()
-      case 11: try { try decoder.decodeSingularBoolField(value: &self.hitWall) }()
+      case 1: try { try decoder.decodeSingularStringField(value: &self.droneID) }()
+      case 2: try { try decoder.decodeSingularStringField(value: &self.targetUnitID) }()
+      case 3: try { try decoder.decodeSingularFloatField(value: &self.x) }()
+      case 4: try { try decoder.decodeSingularFloatField(value: &self.y) }()
+      case 5: try { try decoder.decodeSingularFloatField(value: &self.z) }()
+      case 6: try { try decoder.decodeSingularBoolField(value: &self.armorPenetrated) }()
+      case 7: try { try decoder.decodeSingularFloatField(value: &self.damageDealt) }()
       default: break
       }
     }
   }
 
   func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    if !self.shooterID.isEmpty {
-      try visitor.visitSingularStringField(value: self.shooterID, fieldNumber: 1)
+    if !self.droneID.isEmpty {
+      try visitor.visitSingularStringField(value: self.droneID, fieldNumber: 1)
     }
-    if self.originX.bitPattern != 0 {
-      try visitor.visitSingularFloatField(value: self.originX, fieldNumber: 2)
+    if !self.targetUnitID.isEmpty {
+      try visitor.visitSingularStringField(value: self.targetUnitID, fieldNumber: 2)
     }
-    if self.originY.bitPattern != 0 {
-      try visitor.visitSingularFloatField(value: self.originY, fieldNumber: 3)
+    if self.x.bitPattern != 0 {
+      try visitor.visitSingularFloatField(value: self.x, fieldNumber: 3)
     }
-    if self.originZ.bitPattern != 0 {
-      try visitor.visitSingularFloatField(value: self.originZ, fieldNumber: 4)
+    if self.y.bitPattern != 0 {
+      try visitor.visitSingularFloatField(value: self.y, fieldNumber: 4)
     }
-    if self.hitX.bitPattern != 0 {
-      try visitor.visitSingularFloatField(value: self.hitX, fieldNumber: 5)
+    if self.z.bitPattern != 0 {
+      try visitor.visitSingularFloatField(value: self.z, fieldNumber: 5)
     }
-    if self.hitY.bitPattern != 0 {
-      try visitor.visitSingularFloatField(value: self.hitY, fieldNumber: 6)
+    if self.armorPenetrated != false {
+      try visitor.visitSingularBoolField(value: self.armorPenetrated, fieldNumber: 6)
     }
-    if self.hitZ.bitPattern != 0 {
-      try visitor.visitSingularFloatField(value: self.hitZ, fieldNumber: 7)
-    }
-    if self.normalX.bitPattern != 0 {
-      try visitor.visitSingularFloatField(value: self.normalX, fieldNumber: 8)
-    }
-    if self.normalY.bitPattern != 0 {
-      try visitor.visitSingularFloatField(value: self.normalY, fieldNumber: 9)
-    }
-    if self.normalZ.bitPattern != 0 {
-      try visitor.visitSingularFloatField(value: self.normalZ, fieldNumber: 10)
-    }
-    if self.hitWall != false {
-      try visitor.visitSingularBoolField(value: self.hitWall, fieldNumber: 11)
+    if self.damageDealt.bitPattern != 0 {
+      try visitor.visitSingularFloatField(value: self.damageDealt, fieldNumber: 7)
     }
     try unknownFields.traverse(visitor: &visitor)
   }
 
-  static func ==(lhs: Warbase_ServerFireEvent, rhs: Warbase_ServerFireEvent) -> Bool {
-    if lhs.shooterID != rhs.shooterID {return false}
-    if lhs.originX != rhs.originX {return false}
-    if lhs.originY != rhs.originY {return false}
-    if lhs.originZ != rhs.originZ {return false}
-    if lhs.hitX != rhs.hitX {return false}
-    if lhs.hitY != rhs.hitY {return false}
-    if lhs.hitZ != rhs.hitZ {return false}
-    if lhs.normalX != rhs.normalX {return false}
-    if lhs.normalY != rhs.normalY {return false}
-    if lhs.normalZ != rhs.normalZ {return false}
-    if lhs.hitWall != rhs.hitWall {return false}
+  static func ==(lhs: Warbase_DroneStrikeEvent, rhs: Warbase_DroneStrikeEvent) -> Bool {
+    if lhs.droneID != rhs.droneID {return false}
+    if lhs.targetUnitID != rhs.targetUnitID {return false}
+    if lhs.x != rhs.x {return false}
+    if lhs.y != rhs.y {return false}
+    if lhs.z != rhs.z {return false}
+    if lhs.armorPenetrated != rhs.armorPenetrated {return false}
+    if lhs.damageDealt != rhs.damageDealt {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
 }
 
-nonisolated extension Warbase_HitConfirmedEvent: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  static let protoMessageName: String = _protobuf_package + ".HitConfirmedEvent"
-  static let _protobuf_nameMap = SwiftProtobuf._NameMap()
-
-  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    // Load everything into unknown fields
-    while try decoder.nextFieldNumber() != nil {}
-  }
-
-  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    try unknownFields.traverse(visitor: &visitor)
-  }
-
-  static func ==(lhs: Warbase_HitConfirmedEvent, rhs: Warbase_HitConfirmedEvent) -> Bool {
-    if lhs.unknownFields != rhs.unknownFields {return false}
-    return true
-  }
-}
-
-nonisolated extension Warbase_KillConfirmedEvent: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  static let protoMessageName: String = _protobuf_package + ".KillConfirmedEvent"
-  static let _protobuf_nameMap = SwiftProtobuf._NameMap()
-
-  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    // Load everything into unknown fields
-    while try decoder.nextFieldNumber() != nil {}
-  }
-
-  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    try unknownFields.traverse(visitor: &visitor)
-  }
-
-  static func ==(lhs: Warbase_KillConfirmedEvent, rhs: Warbase_KillConfirmedEvent) -> Bool {
-    if lhs.unknownFields != rhs.unknownFields {return false}
-    return true
-  }
-}
-
-nonisolated extension Warbase_ServerThrowGrenadeEvent: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  static let protoMessageName: String = _protobuf_package + ".ServerThrowGrenadeEvent"
-  static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}shooter_id\0\u{1}px\0\u{1}py\0\u{1}pz\0\u{1}vx\0\u{1}vy\0\u{1}vz\0")
+extension Warbase_CounterBatteryAlert: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  static let protoMessageName: String = _protobuf_package + ".CounterBatteryAlert"
+  static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}detection_id\0\u{3}detected_origin_x\0\u{3}detected_origin_z\0\u{3}confidence_cep\0\u{3}detecting_radar_id\0")
 
   mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -1602,51 +2304,166 @@ nonisolated extension Warbase_ServerThrowGrenadeEvent: SwiftProtobuf.Message, Sw
       // allocates stack space for every case branch when no optimizations are
       // enabled. https://github.com/apple/swift-protobuf/issues/1034
       switch fieldNumber {
-      case 1: try { try decoder.decodeSingularStringField(value: &self.shooterID) }()
-      case 2: try { try decoder.decodeSingularFloatField(value: &self.px) }()
-      case 3: try { try decoder.decodeSingularFloatField(value: &self.py) }()
-      case 4: try { try decoder.decodeSingularFloatField(value: &self.pz) }()
-      case 5: try { try decoder.decodeSingularFloatField(value: &self.vx) }()
-      case 6: try { try decoder.decodeSingularFloatField(value: &self.vy) }()
-      case 7: try { try decoder.decodeSingularFloatField(value: &self.vz) }()
+      case 1: try { try decoder.decodeSingularStringField(value: &self.detectionID) }()
+      case 2: try { try decoder.decodeSingularFloatField(value: &self.detectedOriginX) }()
+      case 3: try { try decoder.decodeSingularFloatField(value: &self.detectedOriginZ) }()
+      case 4: try { try decoder.decodeSingularFloatField(value: &self.confidenceCep) }()
+      case 5: try { try decoder.decodeSingularStringField(value: &self.detectingRadarID) }()
       default: break
       }
     }
   }
 
   func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    if !self.shooterID.isEmpty {
-      try visitor.visitSingularStringField(value: self.shooterID, fieldNumber: 1)
+    if !self.detectionID.isEmpty {
+      try visitor.visitSingularStringField(value: self.detectionID, fieldNumber: 1)
     }
-    if self.px.bitPattern != 0 {
-      try visitor.visitSingularFloatField(value: self.px, fieldNumber: 2)
+    if self.detectedOriginX.bitPattern != 0 {
+      try visitor.visitSingularFloatField(value: self.detectedOriginX, fieldNumber: 2)
     }
-    if self.py.bitPattern != 0 {
-      try visitor.visitSingularFloatField(value: self.py, fieldNumber: 3)
+    if self.detectedOriginZ.bitPattern != 0 {
+      try visitor.visitSingularFloatField(value: self.detectedOriginZ, fieldNumber: 3)
     }
-    if self.pz.bitPattern != 0 {
-      try visitor.visitSingularFloatField(value: self.pz, fieldNumber: 4)
+    if self.confidenceCep.bitPattern != 0 {
+      try visitor.visitSingularFloatField(value: self.confidenceCep, fieldNumber: 4)
     }
-    if self.vx.bitPattern != 0 {
-      try visitor.visitSingularFloatField(value: self.vx, fieldNumber: 5)
-    }
-    if self.vy.bitPattern != 0 {
-      try visitor.visitSingularFloatField(value: self.vy, fieldNumber: 6)
-    }
-    if self.vz.bitPattern != 0 {
-      try visitor.visitSingularFloatField(value: self.vz, fieldNumber: 7)
+    if !self.detectingRadarID.isEmpty {
+      try visitor.visitSingularStringField(value: self.detectingRadarID, fieldNumber: 5)
     }
     try unknownFields.traverse(visitor: &visitor)
   }
 
-  static func ==(lhs: Warbase_ServerThrowGrenadeEvent, rhs: Warbase_ServerThrowGrenadeEvent) -> Bool {
-    if lhs.shooterID != rhs.shooterID {return false}
-    if lhs.px != rhs.px {return false}
-    if lhs.py != rhs.py {return false}
-    if lhs.pz != rhs.pz {return false}
-    if lhs.vx != rhs.vx {return false}
-    if lhs.vy != rhs.vy {return false}
-    if lhs.vz != rhs.vz {return false}
+  static func ==(lhs: Warbase_CounterBatteryAlert, rhs: Warbase_CounterBatteryAlert) -> Bool {
+    if lhs.detectionID != rhs.detectionID {return false}
+    if lhs.detectedOriginX != rhs.detectedOriginX {return false}
+    if lhs.detectedOriginZ != rhs.detectedOriginZ {return false}
+    if lhs.confidenceCep != rhs.confidenceCep {return false}
+    if lhs.detectingRadarID != rhs.detectingRadarID {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Warbase_EWInterceptAlert: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  static let protoMessageName: String = _protobuf_package + ".EWInterceptAlert"
+  static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}emitter_x\0\u{3}emitter_z\0\u{3}frequency_mhz\0\u{1}strength\0")
+
+  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularFloatField(value: &self.emitterX) }()
+      case 2: try { try decoder.decodeSingularFloatField(value: &self.emitterZ) }()
+      case 3: try { try decoder.decodeSingularFloatField(value: &self.frequencyMhz) }()
+      case 4: try { try decoder.decodeSingularFloatField(value: &self.strength) }()
+      default: break
+      }
+    }
+  }
+
+  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if self.emitterX.bitPattern != 0 {
+      try visitor.visitSingularFloatField(value: self.emitterX, fieldNumber: 1)
+    }
+    if self.emitterZ.bitPattern != 0 {
+      try visitor.visitSingularFloatField(value: self.emitterZ, fieldNumber: 2)
+    }
+    if self.frequencyMhz.bitPattern != 0 {
+      try visitor.visitSingularFloatField(value: self.frequencyMhz, fieldNumber: 3)
+    }
+    if self.strength.bitPattern != 0 {
+      try visitor.visitSingularFloatField(value: self.strength, fieldNumber: 4)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  static func ==(lhs: Warbase_EWInterceptAlert, rhs: Warbase_EWInterceptAlert) -> Bool {
+    if lhs.emitterX != rhs.emitterX {return false}
+    if lhs.emitterZ != rhs.emitterZ {return false}
+    if lhs.frequencyMhz != rhs.frequencyMhz {return false}
+    if lhs.strength != rhs.strength {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Warbase_UnitDestroyedEvent: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  static let protoMessageName: String = _protobuf_package + ".UnitDestroyedEvent"
+  static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}unit_id\0\u{3}unit_name\0\u{1}faction\0\u{3}destroyed_by_unit_id\0\u{1}cause\0")
+
+  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.unitID) }()
+      case 2: try { try decoder.decodeSingularStringField(value: &self.unitName) }()
+      case 3: try { try decoder.decodeSingularStringField(value: &self.faction) }()
+      case 4: try { try decoder.decodeSingularStringField(value: &self.destroyedByUnitID) }()
+      case 5: try { try decoder.decodeSingularStringField(value: &self.cause) }()
+      default: break
+      }
+    }
+  }
+
+  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.unitID.isEmpty {
+      try visitor.visitSingularStringField(value: self.unitID, fieldNumber: 1)
+    }
+    if !self.unitName.isEmpty {
+      try visitor.visitSingularStringField(value: self.unitName, fieldNumber: 2)
+    }
+    if !self.faction.isEmpty {
+      try visitor.visitSingularStringField(value: self.faction, fieldNumber: 3)
+    }
+    if !self.destroyedByUnitID.isEmpty {
+      try visitor.visitSingularStringField(value: self.destroyedByUnitID, fieldNumber: 4)
+    }
+    if !self.cause.isEmpty {
+      try visitor.visitSingularStringField(value: self.cause, fieldNumber: 5)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  static func ==(lhs: Warbase_UnitDestroyedEvent, rhs: Warbase_UnitDestroyedEvent) -> Bool {
+    if lhs.unitID != rhs.unitID {return false}
+    if lhs.unitName != rhs.unitName {return false}
+    if lhs.faction != rhs.faction {return false}
+    if lhs.destroyedByUnitID != rhs.destroyedByUnitID {return false}
+    if lhs.cause != rhs.cause {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Warbase_ServerPongEvent: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  static let protoMessageName: String = _protobuf_package + ".ServerPongEvent"
+  static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}client_time\0")
+
+  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularInt64Field(value: &self.clientTime) }()
+      default: break
+      }
+    }
+  }
+
+  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if self.clientTime != 0 {
+      try visitor.visitSingularInt64Field(value: self.clientTime, fieldNumber: 1)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  static func ==(lhs: Warbase_ServerPongEvent, rhs: Warbase_ServerPongEvent) -> Bool {
+    if lhs.clientTime != rhs.clientTime {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

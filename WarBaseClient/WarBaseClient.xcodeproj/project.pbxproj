@@ -31,6 +31,7 @@
 		7A89AEEB11197EB93B25FBBA /* RealityKeyCapture.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEE67D37C716307516894ED7 /* RealityKeyCapture.swift */; };
 		83B9F3D9D392DE45941A1AA4 /* PauseMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D1B82C6140CB5F6DE60CE12 /* PauseMenuView.swift */; };
 		8FC434725F4B0F08DE212623 /* RealityGrenadeSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D57562E660897DFCAC60183 /* RealityGrenadeSystem.swift */; };
+		90D1B686C877447F1AF55748 /* SandtableViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 055B01B5F39060920BFCD8A5 /* SandtableViewModel.swift */; };
 		93582912070EF99DCBAA9B33 /* RealityPlayerMovementSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 005ED2ED709988529C78C4B1 /* RealityPlayerMovementSystem.swift */; };
 		95A1A8716C92B5711681D100 /* HUDView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8960B74199290B913FBE2942 /* HUDView.swift */; };
 		98997A2CD9F2EADD7F46AA5F /* WarBaseApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C5992B4C2C91CF2C436DE93 /* WarBaseApp.swift */; };
@@ -38,6 +39,7 @@
 		A7E44450F05082EEA6F266FC /* RealityMultiplayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDD9447F3FCB1257C628F6CD /* RealityMultiplayer.swift */; };
 		A84BAA03B66DDE07A09AE418 /* Rifle_Idle.usdz in Resources */ = {isa = PBXBuildFile; fileRef = 541B066B8C8CBE41DF639208 /* Rifle_Idle.usdz */; };
 		AF833FEE3B86E00973B7CC6C /* WeaponConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4FF72B227D5CA5A32DD619C5 /* WeaponConfig.swift */; };
+		B1608B9DD0DC221FBA07C2E6 /* SandtableHUDView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65CEF9D9EC5D6669EA22DB5F /* SandtableHUDView.swift */; };
 		B1C5FE198375A809EB85A71F /* Firing_Rifle.usdz in Resources */ = {isa = PBXBuildFile; fileRef = A45A87E92CA47F5488A9A3A9 /* Firing_Rifle.usdz */; };
 		B47063A396D2BC37A16711CA /* Rifle_Run.usdz in Resources */ = {isa = PBXBuildFile; fileRef = C63AE4407EE24925E6A688C0 /* Rifle_Run.usdz */; };
 		B5BEA4EF15E8EA8D513210B0 /* Walking_Backwards.usdz in Resources */ = {isa = PBXBuildFile; fileRef = 23C5BEDC9866CA6E99F359E1 /* Walking_Backwards.usdz */; };
@@ -45,6 +47,7 @@
 		BE420048926F3394401206A1 /* Firing_walk_Rifle.usdz in Resources */ = {isa = PBXBuildFile; fileRef = 654EBF65838437965AD61369 /* Firing_walk_Rifle.usdz */; };
 		BF490F5E04F5F7E2854CEAD7 /* Components.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCC5CA9BBD7713BB916685CD /* Components.swift */; };
 		C1717EFC838A6A7E6D7650E6 /* Dying.usdz in Resources */ = {isa = PBXBuildFile; fileRef = 05269F402FB12CF517A78E55 /* Dying.usdz */; };
+		C3487D6D8110856F53A72311 /* SandtableRealityView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96E28E6C75CE2A4166389F83 /* SandtableRealityView.swift */; };
 		CFA822DC40A2E0C6ED360672 /* industrial.usdz in Resources */ = {isa = PBXBuildFile; fileRef = C952CD0CC6719873D9B6E366 /* industrial.usdz */; };
 		D50D14F6AAD8C4D8BFE59B9B /* venice_sunset_1k.hdr in Resources */ = {isa = PBXBuildFile; fileRef = D349B8004F5A7DF66C6047B1 /* venice_sunset_1k.hdr */; };
 		DCEF339A0ABC5CF572DCC80F /* RealityImpactSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = DAC41EF3ACFEEDBE8CD0FB21 /* RealityImpactSystem.swift */; };
@@ -60,6 +63,7 @@
 /* Begin PBXFileReference section */
 		005ED2ED709988529C78C4B1 /* RealityPlayerMovementSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RealityPlayerMovementSystem.swift; sourceTree = "<group>"; };
 		05269F402FB12CF517A78E55 /* Dying.usdz */ = {isa = PBXFileReference; lastKnownFileType = file.usdz; path = Dying.usdz; sourceTree = "<group>"; };
+		055B01B5F39060920BFCD8A5 /* SandtableViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SandtableViewModel.swift; sourceTree = "<group>"; };
 		07560D51A3B47BEBF4867265 /* LoadingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadingView.swift; sourceTree = "<group>"; };
 		0D57562E660897DFCAC60183 /* RealityGrenadeSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RealityGrenadeSystem.swift; sourceTree = "<group>"; };
 		0E7C3D635C174FED01296FB4 /* RealityWeaponSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RealityWeaponSystem.swift; sourceTree = "<group>"; };
@@ -78,12 +82,14 @@
 		5DB8D9127801B09D2FB83BCE /* AnimatedSoldier.usdz */ = {isa = PBXFileReference; lastKnownFileType = file.usdz; path = AnimatedSoldier.usdz; sourceTree = "<group>"; };
 		5F5C2A57E37AED982409D78F /* RealityDecalSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RealityDecalSystem.swift; sourceTree = "<group>"; };
 		654EBF65838437965AD61369 /* Firing_walk_Rifle.usdz */ = {isa = PBXFileReference; lastKnownFileType = file.usdz; path = Firing_walk_Rifle.usdz; sourceTree = "<group>"; };
+		65CEF9D9EC5D6669EA22DB5F /* SandtableHUDView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SandtableHUDView.swift; sourceTree = "<group>"; };
 		685CD7EC140832D64BFB30D8 /* Rifle_Jump.usdz */ = {isa = PBXFileReference; lastKnownFileType = file.usdz; path = Rifle_Jump.usdz; sourceTree = "<group>"; };
 		6E85ABEEFC69F781DAED85E9 /* anim_data.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = anim_data.json; sourceTree = "<group>"; };
 		80CE6B67AB0D06370322BF92 /* MobileControlsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobileControlsView.swift; sourceTree = "<group>"; };
 		8960B74199290B913FBE2942 /* HUDView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HUDView.swift; sourceTree = "<group>"; };
 		9489EE8280BB9B827BE75A56 /* LobbyViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LobbyViewModel.swift; sourceTree = "<group>"; };
 		960E61A2916863ED73247365 /* RealityGameView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RealityGameView.swift; sourceTree = "<group>"; };
+		96E28E6C75CE2A4166389F83 /* SandtableRealityView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SandtableRealityView.swift; sourceTree = "<group>"; };
 		9A12A48B7502F62634D79EA1 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		9F421E5CBA03782C2A7E3950 /* Strafe_Right.usdz */ = {isa = PBXFileReference; lastKnownFileType = file.usdz; path = Strafe_Right.usdz; sourceTree = "<group>"; };
 		A45A87E92CA47F5488A9A3A9 /* Firing_Rifle.usdz */ = {isa = PBXFileReference; lastKnownFileType = file.usdz; path = Firing_Rifle.usdz; sourceTree = "<group>"; };
@@ -154,6 +160,7 @@
 				5A67755D78276D04D3CE0459 /* InputManager.swift */,
 				960E61A2916863ED73247365 /* RealityGameView.swift */,
 				EEE67D37C716307516894ED7 /* RealityKeyCapture.swift */,
+				96E28E6C75CE2A4166389F83 /* SandtableRealityView.swift */,
 			);
 			path = Engine;
 			sourceTree = "<group>";
@@ -175,6 +182,7 @@
 				541B066B8C8CBE41DF639208 /* Rifle_Idle.usdz */,
 				685CD7EC140832D64BFB30D8 /* Rifle_Jump.usdz */,
 				C63AE4407EE24925E6A688C0 /* Rifle_Run.usdz */,
+				055B01B5F39060920BFCD8A5 /* SandtableViewModel.swift */,
 				D9BC811549304CB17FC24055 /* Strafe_Left.usdz */,
 				9F421E5CBA03782C2A7E3950 /* Strafe_Right.usdz */,
 				48EC936BF0B6AA5ACD091B98 /* TPose.usdz */,
@@ -220,6 +228,7 @@
 				1B378A9E6ACFEB18E1175B36 /* LobbyView.swift */,
 				80CE6B67AB0D06370322BF92 /* MobileControlsView.swift */,
 				2D1B82C6140CB5F6DE60CE12 /* PauseMenuView.swift */,
+				65CEF9D9EC5D6669EA22DB5F /* SandtableHUDView.swift */,
 				BD810B6EFB6BC869549B2BF2 /* ScopeOverlay.swift */,
 				0EA0A39F74E430B517BB3DCF /* ScoreboardView.swift */,
 				A4C65FC331A7F5B3BE893124 /* WeaponPreview3D.swift */,
@@ -352,6 +361,9 @@
 				FD41CE6E6A03B2B9D7B5DD5A /* RealityViewMaps.swift in Sources */,
 				F3AC9EE8F9CB5B30475ED2A3 /* RealityWeaponSystem.swift in Sources */,
 				3F09F660399AEE120701CD43 /* RealityWeapons.swift in Sources */,
+				B1608B9DD0DC221FBA07C2E6 /* SandtableHUDView.swift in Sources */,
+				C3487D6D8110856F53A72311 /* SandtableRealityView.swift in Sources */,
+				90D1B686C877447F1AF55748 /* SandtableViewModel.swift in Sources */,
 				4D290AE1AF5200192C0B6C04 /* ScopeOverlay.swift in Sources */,
 				E3B9FD9C12493E453DD92945 /* ScoreboardView.swift in Sources */,
 				98997A2CD9F2EADD7F46AA5F /* WarBaseApp.swift in Sources */,
