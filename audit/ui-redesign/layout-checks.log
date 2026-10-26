@@ -1,0 +1,17 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 4.1 Metal - 91.7 - Compatibility - Using Device: Apple - Apple M4
+
+MAP PREVIEWS unique=9
+UI SCALE pixels=(1920, 1080) logical=(1280, 720)
+UI PASS fullscreen deploy [P: (1070.0, 634.0), S: (186.0, 62.0)] bounds=[P: (0.0, 0.0), S: (1280.0, 720.0)]
+UI SCALE pixels=(2560, 1440) logical=(1280, 720)
+UI PASS fullscreen deploy [P: (1070.0, 634.0), S: (186.0, 62.0)] bounds=[P: (0.0, 0.0), S: (1280.0, 720.0)]
+UI PASS deploy at 1280 [P: (1070.0, 634.0), S: (186.0, 62.0)] bounds=[P: (0.0, 0.0), S: (1280.0, 720.0)]
+UI PASS deploy at 960 [P: (750.0, 554.0), S: (186.0, 62.0)] bounds=[P: (0.0, 0.0), S: (960.0, 640.0)]
+UI PASS loadout at 960 [P: (646.0, 104.0), S: (290.0, 432.0)] bounds=[P: (0.0, 0.0), S: (960.0, 640.0)]
+UI PASS create match modal [P: (410.0, 118.5), S: (460.0, 483.0)] bounds=[P: (0.0, 0.0), S: (1280.0, 720.0)]
+UI DEPLOY BEGIN
+UI DEPLOY RETURN phase=1 paused=false bots=7
+UI HUD CAPTURE BEGIN
+UI HUD CAPTURE END
+UI PREVIEW COMPLETE failures=0

@@ -1,0 +1,20 @@
+=== RUN   TestFootballMapNavigation
+    football_test.go:18: spawn=0 p=[-15 3.7421 -25] nearest=5812 connectedToPitch=true
+    football_test.go:18: spawn=1 p=[15 3.7421 -25] nearest=10025 connectedToPitch=true
+    football_test.go:18: spawn=2 p=[-15 3.7421 25] nearest=5862 connectedToPitch=true
+    football_test.go:18: spawn=3 p=[15 3.7421 25] nearest=10075 connectedToPitch=true
+    football_test.go:18: spawn=4 p=[-45 2.1619 -45] nearest=1461 connectedToPitch=true
+    football_test.go:18: spawn=5 p=[45 2.1619 -45] nearest=14099 connectedToPitch=true
+    football_test.go:18: spawn=6 p=[-45 2.1619 45] nearest=1551 connectedToPitch=true
+    football_test.go:18: spawn=7 p=[45 2.1619 45] nearest=14159 connectedToPitch=true
+    football_test.go:18: spawn=8 p=[-15 2.1619 -65] nearest=5775 connectedToPitch=true
+    football_test.go:18: spawn=9 p=[15 2.1619 -65] nearest=9988 connectedToPitch=true
+    football_test.go:18: spawn=10 p=[-15 2.1619 65] nearest=5899 connectedToPitch=true
+    football_test.go:18: spawn=11 p=[15 2.1619 65] nearest=10112 connectedToPitch=true
+    football_test.go:26: navigation nodes=15795
+--- PASS: TestFootballMapNavigation (2.59s)
+=== RUN   TestStadiumRepairPreservesSurfaceCoverage
+    stadium_surface_test.go:56: 10,000 ground/wall/roof rays preserve surface coverage within 2 mm
+--- PASS: TestStadiumRepairPreservesSurfaceCoverage (0.23s)
+PASS
+ok  	warbase-server/internal/engine	3.568s

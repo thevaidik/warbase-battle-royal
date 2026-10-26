@@ -1,0 +1,256 @@
+mkdir -p warbase-godot/client/dist
+"/Applications/Godot.app/Contents/MacOS/Godot" --headless --path warbase-godot/client --export-release Web dist/index.html
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+ERROR: Condition "ret != noErr" is true. Returning: ""
+   at: get_system_ca_certificates (platform/macos/os_macos.mm:1035)
+[   0% ] [90m[1mfirst_scan_filesystem[22m | Started Project initialization (5 steps)[39m[0m
+[   0% ] [90m[1mfirst_scan_filesystem[22m | Scanning file structure...[39m[0m
+[  16% ] [90m[1mfirst_scan_filesystem[22m | Loading global class names...[39m[0m
+[  33% ] [90m[1mfirst_scan_filesystem[22m | Verifying GDExtensions...[39m[0m
+[  50% ] [90m[1mfirst_scan_filesystem[22m | Creating autoload scripts...[39m[0m
+[  66% ] [90m[1mfirst_scan_filesystem[22m | Initializing plugins...[39m[0m
+[  83% ] [90m[1mfirst_scan_filesystem[22m | Starting file scan...[39m[0m
+[92m[ DONE ][39m [1mfirst_scan_filesystem[22m
+[0m
+[   0% ] [90m[1mupdate_scripts_classes[22m | Started Registering global classes... (3 steps)[39m[0m
+[   0% ] [90m[1mupdate_scripts_classes[22m | WarLoadoutMenu[39m[0m
+[  25% ] [90m[1mupdate_scripts_classes[22m | WarGrenade[39m[0m
+[  50% ] [90m[1mupdate_scripts_classes[22m | WarWeaponSystem[39m[0m
+[92m[ DONE ][39m [1mupdate_scripts_classes[22m
+[0m
+[   0% ] [90m[1msavepack[22m | Started Packing (102 steps)[39m[0m
+[   1% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/fps_shooter_game_arena_map_v3.glb-e0d3068aed6bac5981612c23e7dfdb60.scn[39m[0m
+[   1% ] [90m[1msavepack[22m | Storing File: res://assets/maps/fps_shooter_game_arena_map_v3.glb.import[39m[0m
+[   1% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/fps_shooter_game_arena_map_v3_0.png-3ec75cd53698109a581f01232bd2e099.ctex[39m[0m
+[   1% ] [90m[1msavepack[22m | Storing File: res://assets/maps/fps_shooter_game_arena_map_v3_0.png.import[39m[0m
+[   2% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/fps_shooter_game_arena_map_v3_1.png-3e41dfd9f030740efa4450c6461cbde4.ctex[39m[0m
+[   2% ] [90m[1msavepack[22m | Storing File: res://assets/maps/fps_shooter_game_arena_map_v3_1.png.import[39m[0m
+[   3% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/loft_17_Material.png-a63d4086565fb7294e8bab192ce9db31.ctex[39m[0m
+[   3% ] [90m[1msavepack[22m | Storing File: res://assets/maps/loft_17_Material.png.import[39m[0m
+[   4% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/loft_17_Material_1.jpg-55842cc06de1edc38c45f1edbb4ba66a.ctex[39m[0m
+[   4% ] [90m[1msavepack[22m | Storing File: res://assets/maps/loft_17_Material_1.jpg.import[39m[0m
+[   5% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/loft_17_Material_2.jpg-57ebd765391f5e1c65bb5265332806e6.ctex[39m[0m
+[   5% ] [90m[1msavepack[22m | Storing File: res://assets/maps/loft_17_Material_2.jpg.import[39m[0m
+[   6% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/loft_17_Material_3.jpg-2e8303f36bd08b62e5d3867c8f0fa80c.ctex[39m[0m
+[   6% ] [90m[1msavepack[22m | Storing File: res://assets/maps/loft_17_Material_3.jpg.import[39m[0m
+[   7% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/loft_17_Material_4.png-4c19726cbe11c2f38e76bfdb243386c4.ctex[39m[0m
+[   7% ] [90m[1msavepack[22m | Storing File: res://assets/maps/loft_17_Material_4.png.import[39m[0m
+[   8% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/loft_17_Material_5.jpg-1490afeac7f46f8a307aaa7888243e77.ctex[39m[0m
+[   8% ] [90m[1msavepack[22m | Storing File: res://assets/maps/loft_17_Material_5.jpg.import[39m[0m
+[   9% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/loft_17_Material_6.png-6d9136feee940a21427740e0ddf84fd3.ctex[39m[0m
+[   9% ] [90m[1msavepack[22m | Storing File: res://assets/maps/loft_17_Material_6.png.import[39m[0m
+[   9% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/loft_17_Material_7.png-1bfee100e500b25028f3033c344da000.ctex[39m[0m
+[   9% ] [90m[1msavepack[22m | Storing File: res://assets/maps/loft_17_Material_7.png.import[39m[0m
+[  10% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/loft_17_Material_8.jpg-8373af0ee80d517aff986e269476ad6c.ctex[39m[0m
+[  10% ] [90m[1msavepack[22m | Storing File: res://assets/maps/loft_17_Material_8.jpg.import[39m[0m
+[  11% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/loft_17_Material_9.jpg-c99dd0dfb878326f16daaa996f5d4961.ctex[39m[0m
+[  11% ] [90m[1msavepack[22m | Storing File: res://assets/maps/loft_17_Material_9.jpg.import[39m[0m
+[  12% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/loft_17_Material_10.png-2965f5663baa0863c983c1b82b299114.ctex[39m[0m
+[  12% ] [90m[1msavepack[22m | Storing File: res://assets/maps/loft_17_Material_10.png.import[39m[0m
+[  13% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/loft_17_Material_11.jpg-432a8004738fd9b427834d50eb6a3241.ctex[39m[0m
+[  13% ] [90m[1msavepack[22m | Storing File: res://assets/maps/loft_17_Material_11.jpg.import[39m[0m
+[  14% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/loft_17_Material_12.png-65ddee90dd7a66f1b82606685b8221bc.ctex[39m[0m
+[  14% ] [90m[1msavepack[22m | Storing File: res://assets/maps/loft_17_Material_12.png.import[39m[0m
+[  15% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/loft_17_Material_13.jpg-2383ae15aae06f2b3b9c85e19b39f8bf.ctex[39m[0m
+[  15% ] [90m[1msavepack[22m | Storing File: res://assets/maps/loft_17_Material_13.jpg.import[39m[0m
+[  16% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/loft_17_Material_14.jpg-d92323b9182ee16d0c3270f096c346c8.ctex[39m[0m
+[  16% ] [90m[1msavepack[22m | Storing File: res://assets/maps/loft_17_Material_14.jpg.import[39m[0m
+[  17% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/loft_17_Material_15.jpg-fa057e6e6ab9f2c3a386478c43ecc504.ctex[39m[0m
+[  17% ] [90m[1msavepack[22m | Storing File: res://assets/maps/loft_17_Material_15.jpg.import[39m[0m
+[  17% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/loft_17_Material_16.png-62ec4ee2a89a35cdfc3d58151df1ff6c.ctex[39m[0m
+[  17% ] [90m[1msavepack[22m | Storing File: res://assets/maps/loft_17_Material_16.png.import[39m[0m
+[  18% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/loft_17_Material_17.png-0495eca246f3665535f97649373dc757.ctex[39m[0m
+[  18% ] [90m[1msavepack[22m | Storing File: res://assets/maps/loft_17_Material_17.png.import[39m[0m
+[  19% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/loft_17_Material_18.png-6945564fa5c148d6dfa9a6c9866da566.ctex[39m[0m
+[  19% ] [90m[1msavepack[22m | Storing File: res://assets/maps/loft_17_Material_18.png.import[39m[0m
+[  20% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/loft_17_Material_19.png-88e9517ef48604cc4c7488ddd09c66c3.ctex[39m[0m
+[  20% ] [90m[1msavepack[22m | Storing File: res://assets/maps/loft_17_Material_19.png.import[39m[0m
+[  21% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/loft_17_Material_20.jpg-46af80e327b93bd56464660a8b78b47f.ctex[39m[0m
+[  21% ] [90m[1msavepack[22m | Storing File: res://assets/maps/loft_17_Material_20.jpg.import[39m[0m
+[  22% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/loft_17_Material_21.jpg-b4298975ad725b4f2a49471b10538109.ctex[39m[0m
+[  22% ] [90m[1msavepack[22m | Storing File: res://assets/maps/loft_17_Material_21.jpg.import[39m[0m
+[  23% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/loft_17_Material_22.jpg-e8410dcbda6f822370a6cb2080be5291.ctex[39m[0m
+[  23% ] [90m[1msavepack[22m | Storing File: res://assets/maps/loft_17_Material_22.jpg.import[39m[0m
+[  24% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/loft_17_Material_23.png-23bd31755b2ba6a32a070040d32d8947.ctex[39m[0m
+[  24% ] [90m[1msavepack[22m | Storing File: res://assets/maps/loft_17_Material_23.png.import[39m[0m
+[  25% ] [90m[1msavepack[22m | Storing File: res://.godot/exported/133200997/export-b0193f0024fff2b10de2a8dc4eacbfc5-loft_17_optimized.scn[39m[0m
+[  26% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/low_poly_industrial_zone.glb-d065bc2c69b465578cf18d5381de0b74.scn[39m[0m
+[  26% ] [90m[1msavepack[22m | Storing File: res://assets/maps/low_poly_industrial_zone.glb.import[39m[0m
+[  26% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/low_poly_industrial_zone_0.png-56676f8e10904c0b6dfb54142bd68095.ctex[39m[0m
+[  26% ] [90m[1msavepack[22m | Storing File: res://assets/maps/low_poly_industrial_zone_0.png.import[39m[0m
+[  27% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/low_poly_industrial_zone_1.png-7eda8e92892692bd518e275d29f7f39a.ctex[39m[0m
+[  27% ] [90m[1msavepack[22m | Storing File: res://assets/maps/low_poly_industrial_zone_1.png.import[39m[0m
+[  28% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/low_poly_industrial_zone_2.png-7328b09e83391d11fc61eed761b03f6e.ctex[39m[0m
+[  28% ] [90m[1msavepack[22m | Storing File: res://assets/maps/low_poly_industrial_zone_2.png.import[39m[0m
+[  29% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/low_poly_industrial_zone_3.png-1a64f0f4dd4a9f0d99432acf8fc31f3b.ctex[39m[0m
+[  29% ] [90m[1msavepack[22m | Storing File: res://assets/maps/low_poly_industrial_zone_3.png.import[39m[0m
+[  30% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/low_poly_industrial_zone_4.png-47ead5e553cd6af7cbb15fb74a5840c0.ctex[39m[0m
+[  30% ] [90m[1msavepack[22m | Storing File: res://assets/maps/low_poly_industrial_zone_4.png.import[39m[0m
+[  31% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/low_poly_industrial_zone_5.png-5f0ed79eb1dcfff2c41f15abdd3a0d29.ctex[39m[0m
+[  31% ] [90m[1msavepack[22m | Storing File: res://assets/maps/low_poly_industrial_zone_5.png.import[39m[0m
+[  32% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/shipment.glb-19d19fb0d64ef30c75f7e3dc22b1fe03.scn[39m[0m
+[  32% ] [90m[1msavepack[22m | Storing File: res://assets/maps/shipment.glb.import[39m[0m
+[  33% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/village_lowres.glb-f9dccaf7b97c9dfcaff4bb343aec0b93.scn[39m[0m
+[  33% ] [90m[1msavepack[22m | Storing File: res://assets/maps/village_lowres.glb.import[39m[0m
+[  33% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/village_lowres_0.jpg-c5dc0711fc718162ace7cdbe687dd44f.ctex[39m[0m
+[  33% ] [90m[1msavepack[22m | Storing File: res://assets/maps/village_lowres_0.jpg.import[39m[0m
+[  33% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/village_lowres_1.jpg-331b666019d519e398018f6cf482a256.ctex[39m[0m
+[  33% ] [90m[1msavepack[22m | Storing File: res://assets/maps/village_lowres_1.jpg.import[39m[0m
+[  34% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/village_lowres_2.jpg-5b9297e1bd5cbe5c625717936dd83794.ctex[39m[0m
+[  34% ] [90m[1msavepack[22m | Storing File: res://assets/maps/village_lowres_2.jpg.import[39m[0m
+[  35% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/village_lowres_3.jpg-cb6fdde2a0df0604cdb70fbb205e2e3a.ctex[39m[0m
+[  35% ] [90m[1msavepack[22m | Storing File: res://assets/maps/village_lowres_3.jpg.import[39m[0m
+[  36% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/village_lowres_4.jpg-512a39fdf31645382d388a9e9ae16f23.ctex[39m[0m
+[  36% ] [90m[1msavepack[22m | Storing File: res://assets/maps/village_lowres_4.jpg.import[39m[0m
+[  37% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/village_lowres_5.jpg-c8ce55743b280f424844e21b9d6f2365.ctex[39m[0m
+[  37% ] [90m[1msavepack[22m | Storing File: res://assets/maps/village_lowres_5.jpg.import[39m[0m
+[  38% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/village_lowres_6.jpg-10c25c45be435556511000540f8e7ba5.ctex[39m[0m
+[  38% ] [90m[1msavepack[22m | Storing File: res://assets/maps/village_lowres_6.jpg.import[39m[0m
+[  39% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/village_lowres_7.jpg-3ca29495fa9f0173d12b7b387e64d661.ctex[39m[0m
+[  39% ] [90m[1msavepack[22m | Storing File: res://assets/maps/village_lowres_7.jpg.import[39m[0m
+[  40% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/village_lowres_8.jpg-7209d5f5fe542b44e0ae99a0e2722200.ctex[39m[0m
+[  40% ] [90m[1msavepack[22m | Storing File: res://assets/maps/village_lowres_8.jpg.import[39m[0m
+[  41% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/village_lowres_9.jpg-88473931b6acb298dc5a3f85d870e55c.ctex[39m[0m
+[  41% ] [90m[1msavepack[22m | Storing File: res://assets/maps/village_lowres_9.jpg.import[39m[0m
+[  41% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/village_lowres_10.jpg-12445d35d38449045eb3cabd7889bf55.ctex[39m[0m
+[  41% ] [90m[1msavepack[22m | Storing File: res://assets/maps/village_lowres_10.jpg.import[39m[0m
+[  42% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/village_lowres_11.jpg-bb4a923095bc3adb6c43e73f3948823a.ctex[39m[0m
+[  42% ] [90m[1msavepack[22m | Storing File: res://assets/maps/village_lowres_11.jpg.import[39m[0m
+[  43% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/village_lowres_12.jpg-b094d166a9194f1d26e7728492537bde.ctex[39m[0m
+[  43% ] [90m[1msavepack[22m | Storing File: res://assets/maps/village_lowres_12.jpg.import[39m[0m
+[  44% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/village_lowres_13.jpg-8b350813fb147b3ed0d6ccc6676ba6e2.ctex[39m[0m
+[  44% ] [90m[1msavepack[22m | Storing File: res://assets/maps/village_lowres_13.jpg.import[39m[0m
+[  45% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/village_lowres_14.jpg-42a6e4f53e014ce87f77ec7d0ae04808.ctex[39m[0m
+[  45% ] [90m[1msavepack[22m | Storing File: res://assets/maps/village_lowres_14.jpg.import[39m[0m
+[  46% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/village_lowres_15.jpg-61dde5d6de2e3dff4538a576a2604225.ctex[39m[0m
+[  46% ] [90m[1msavepack[22m | Storing File: res://assets/maps/village_lowres_15.jpg.import[39m[0m
+[  47% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/village_lowres_16.jpg-e6b4333a5057416977796c7e9dd3a3e4.ctex[39m[0m
+[  47% ] [90m[1msavepack[22m | Storing File: res://assets/maps/village_lowres_16.jpg.import[39m[0m
+[  48% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/AnimatedSoldier.glb-5e34ab3d9976fed60eb1f5878b39380a.scn[39m[0m
+[  48% ] [90m[1msavepack[22m | Storing File: res://assets/models/AnimatedSoldier.glb.import[39m[0m
+[  49% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/AnimatedSoldier_Ch15_1001_Diffuse.jpg-15840e4b0cf30d5e11438c3d6d37abc5.ctex[39m[0m
+[  49% ] [90m[1msavepack[22m | Storing File: res://assets/models/AnimatedSoldier_Ch15_1001_Diffuse.jpg.import[39m[0m
+[  50% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/AnimatedSoldier_Ch15_1001_Glossiness.jpg-a6c37c49d1b5072b5a910268ff5dcafb.ctex[39m[0m
+[  50% ] [90m[1msavepack[22m | Storing File: res://assets/models/AnimatedSoldier_Ch15_1001_Glossiness.jpg.import[39m[0m
+[  50% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/AnimatedSoldier_Ch15_1001_Normal.jpg-04cf19c4cd1d2e16df31638f1d045f6a.ctex[39m[0m
+[  50% ] [90m[1msavepack[22m | Storing File: res://assets/models/AnimatedSoldier_Ch15_1001_Normal.jpg.import[39m[0m
+[  51% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/AnimatedSoldier_Ch15_1001_Specular.jpg-a1b69868699540d81a27b66723c5d5c9.ctex[39m[0m
+[  51% ] [90m[1msavepack[22m | Storing File: res://assets/models/AnimatedSoldier_Ch15_1001_Specular.jpg.import[39m[0m
+[  52% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/AnimatedSoldier_Ch15_1002_Diffuse.jpg-c984ebdabcc8fd785842b456a3cd0091.ctex[39m[0m
+[  52% ] [90m[1msavepack[22m | Storing File: res://assets/models/AnimatedSoldier_Ch15_1002_Diffuse.jpg.import[39m[0m
+[  53% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/AnimatedSoldier_Ch15_1002_Emissive.jpg-431600ddbf02aa0e0d9afbb7667c408a.ctex[39m[0m
+[  53% ] [90m[1msavepack[22m | Storing File: res://assets/models/AnimatedSoldier_Ch15_1002_Emissive.jpg.import[39m[0m
+[  54% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/AnimatedSoldier_Ch15_1002_Glossiness.jpg-6c2e2a46344d98a75e78286552db6eeb.ctex[39m[0m
+[  54% ] [90m[1msavepack[22m | Storing File: res://assets/models/AnimatedSoldier_Ch15_1002_Glossiness.jpg.import[39m[0m
+[  55% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/AnimatedSoldier_Ch15_1002_Normal.jpg-6d0ccd76ee95b0b0ecb41a2ff46a698d.ctex[39m[0m
+[  55% ] [90m[1msavepack[22m | Storing File: res://assets/models/AnimatedSoldier_Ch15_1002_Normal.jpg.import[39m[0m
+[  56% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/AnimatedSoldier_Ch15_1002_Specular.jpg-3eda36e16ab9342a58d77869618a0167.ctex[39m[0m
+[  56% ] [90m[1msavepack[22m | Storing File: res://assets/models/AnimatedSoldier_Ch15_1002_Specular.jpg.import[39m[0m
+[  57% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/armored_combat_van.glb-65e58227208485634670552d69b844cd.scn[39m[0m
+[  57% ] [90m[1msavepack[22m | Storing File: res://assets/models/armored_combat_van.glb.import[39m[0m
+[  58% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/combat_technical.glb-d907e98474e7b62c51ad10abfa19c355.scn[39m[0m
+[  58% ] [90m[1msavepack[22m | Storing File: res://assets/models/combat_technical.glb.import[39m[0m
+[  58% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/combat_technical_0.png-99cb5067f25f4905cf6aed180d7e5d2e.ctex[39m[0m
+[  58% ] [90m[1msavepack[22m | Storing File: res://assets/models/combat_technical_0.png.import[39m[0m
+[  59% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/combat_technical_1.png-73390092fcd179bea3e99d4ba7cec400.ctex[39m[0m
+[  59% ] [90m[1msavepack[22m | Storing File: res://assets/models/combat_technical_1.png.import[39m[0m
+[  60% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/combat_technical_2.png-535cbf97c517a4da8355f30f1484d207.ctex[39m[0m
+[  60% ] [90m[1msavepack[22m | Storing File: res://assets/models/combat_technical_2.png.import[39m[0m
+[  61% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/combat_technical_3.png-e396fcbf8cf05d49761360774ddd993a.ctex[39m[0m
+[  61% ] [90m[1msavepack[22m | Storing File: res://assets/models/combat_technical_3.png.import[39m[0m
+[  62% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/combat_technical_4.png-8a92aab00789dbbb31b36366cfd87b73.ctex[39m[0m
+[  62% ] [90m[1msavepack[22m | Storing File: res://assets/models/combat_technical_4.png.import[39m[0m
+[  63% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/combat_technical_5.png-28de8aa354db90d6e0a95371dc05543b.ctex[39m[0m
+[  63% ] [90m[1msavepack[22m | Storing File: res://assets/models/combat_technical_5.png.import[39m[0m
+[  64% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/Soldier.glb-2f885ea363003f4ffb359adc042f790b.scn[39m[0m
+[  64% ] [90m[1msavepack[22m | Storing File: res://assets/models/Soldier.glb.import[39m[0m
+[  65% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/Soldier_file2.jpg-81dcd36e29552522d343b3405a33a56f.ctex[39m[0m
+[  65% ] [90m[1msavepack[22m | Storing File: res://assets/models/Soldier_file2.jpg.import[39m[0m
+[  66% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/Soldier_vanguard_vanguard_diffuse_tga.jpg-1366bf73ac1e363be43222f633ebde95.ctex[39m[0m
+[  66% ] [90m[1msavepack[22m | Storing File: res://assets/models/Soldier_vanguard_vanguard_diffuse_tga.jpg.import[39m[0m
+[  66% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/tree.glb-a6aad56bc09063afe86a6b7b2394e352.scn[39m[0m
+[  66% ] [90m[1msavepack[22m | Storing File: res://assets/models/tree.glb.import[39m[0m
+[  66% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/venice_sunset_1k.hdr-f34bf3fa796a3a9ec605b9c91043b85b.ctex[39m[0m
+[  66% ] [90m[1msavepack[22m | Storing File: res://assets/sky/venice_sunset_1k.hdr.import[39m[0m
+[  67% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/arena.png-e7a28a7776963a4ad85a90c5ab05f069.ctex[39m[0m
+[  67% ] [90m[1msavepack[22m | Storing File: res://assets/ui/maps/arena.png.import[39m[0m
+[  68% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/canyon.png-23a16f705031b289a1890bf71d3cd62e.ctex[39m[0m
+[  68% ] [90m[1msavepack[22m | Storing File: res://assets/ui/maps/canyon.png.import[39m[0m
+[  69% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/desert_oasis.png-6707e14bf958b0483ab9496846b9ea89.ctex[39m[0m
+[  69% ] [90m[1msavepack[22m | Storing File: res://assets/ui/maps/desert_oasis.png.import[39m[0m
+[  70% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/dust2.png-62292c10ae7a89b8bbe0c27e0691c485.ctex[39m[0m
+[  70% ] [90m[1msavepack[22m | Storing File: res://assets/ui/maps/dust2.png.import[39m[0m
+[  71% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/industrial.png-f0bc85601496d2ade008ae140f996d93.ctex[39m[0m
+[  71% ] [90m[1msavepack[22m | Storing File: res://assets/ui/maps/industrial.png.import[39m[0m
+[  72% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/loft.png-cc64b398a2123684ba17899bdfafb215.ctex[39m[0m
+[  72% ] [90m[1msavepack[22m | Storing File: res://assets/ui/maps/loft.png.import[39m[0m
+[  73% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/nuketown.png-7bb2def0ca7dfb9d529a2629a5ea8e2b.ctex[39m[0m
+[  73% ] [90m[1msavepack[22m | Storing File: res://assets/ui/maps/nuketown.png.import[39m[0m
+[  74% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/shipment.png-7d29a85a5aff2f17d8088fe6821020db.ctex[39m[0m
+[  74% ] [90m[1msavepack[22m | Storing File: res://assets/ui/maps/shipment.png.import[39m[0m
+[  74% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/village.png-2c6ca3bb603a0ce52e4ef295211daa97.ctex[39m[0m
+[  74% ] [90m[1msavepack[22m | Storing File: res://assets/ui/maps/village.png.import[39m[0m
+[  75% ] [90m[1msavepack[22m | Storing File: res://.godot/exported/133200997/export-e7e6d5157900ed7fa3d7b09fc030ec6d-Bot.scn[39m[0m
+[  76% ] [90m[1msavepack[22m | Storing File: res://.godot/exported/133200997/export-035c3d5725bd97c4b183de26b6f800f3-CombatJeep.scn[39m[0m
+[  77% ] [90m[1msavepack[22m | Storing File: res://.godot/exported/133200997/export-8b85fce1ab6651424edcfcda8bdf52c6-Grenade.scn[39m[0m
+[  78% ] [90m[1msavepack[22m | Storing File: res://.godot/exported/133200997/export-4a24720ee5e787dbe30abc634fa3679d-Main.scn[39m[0m
+[  79% ] [90m[1msavepack[22m | Storing File: res://.godot/exported/133200997/export-e8220e74d1354b9e6b168b513689419c-Player.scn[39m[0m
+[  80% ] [90m[1msavepack[22m | Storing File: res://.godot/exported/133200997/export-57c56b7b7c9feb49635d638693248076-RemotePlayer.scn[39m[0m
+[  81% ] [90m[1msavepack[22m | Storing File: res://scripts/bots/Bot.gdc[39m[0m
+[  82% ] [90m[1msavepack[22m | Storing File: res://scripts/bots/BotManager.gdc[39m[0m
+[  82% ] [90m[1msavepack[22m | Storing File: res://scripts/core/AudioManager.gdc[39m[0m
+[  83% ] [90m[1msavepack[22m | Storing File: res://scripts/core/GameState.gdc[39m[0m
+[  84% ] [90m[1msavepack[22m | Storing File: res://scripts/core/Main.gdc[39m[0m
+[  85% ] [90m[1msavepack[22m | Storing File: res://scripts/core/Player.gdc[39m[0m
+[  86% ] [90m[1msavepack[22m | Storing File: res://scripts/core/Proto.gdc[39m[0m
+[  87% ] [90m[1msavepack[22m | Storing File: res://scripts/maps/MapBuilder.gdc[39m[0m
+[  88% ] [90m[1msavepack[22m | Storing File: res://scripts/net/MultiplayerManager.gdc[39m[0m
+[  89% ] [90m[1msavepack[22m | Storing File: res://scripts/net/NetworkManager.gdc[39m[0m
+[  90% ] [90m[1msavepack[22m | Storing File: res://scripts/net/RemotePlayer.gdc[39m[0m
+[  90% ] [90m[1msavepack[22m | Storing File: res://scripts/weapons/WeaponSystem.gdc[39m[0m
+[  91% ] [90m[1msavepack[22m | Storing File: res://scripts/ui/WarUI.gdc[39m[0m
+[  92% ] [90m[1msavepack[22m | Storing File: res://scripts/weapons/WeaponView.gdc[39m[0m
+[  93% ] [90m[1msavepack[22m | Storing File: res://scripts/ui/HUD.gdc[39m[0m
+[  94% ] [90m[1msavepack[22m | Storing File: res://.godot/imported/icon.svg-218a8f2b3041327d8a5756f3a245f83b.ctex[39m[0m
+[  94% ] [90m[1msavepack[22m | Storing File: res://icon.svg.import[39m[0m
+[  95% ] [90m[1msavepack[22m | Storing File: res://scripts/weapons/Grenade.gdc[39m[0m
+[  96% ] [90m[1msavepack[22m | Storing File: res://scripts/vehicles/CombatJeep.gdc[39m[0m
+[  97% ] [90m[1msavepack[22m | Storing File: res://scripts/ui/MainMenu.gdc[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://scripts/ui/LoadoutMenu.gdc[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://assets/maps/loft_17_optimized.tscn.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://scenes/Bot.tscn.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://scenes/CombatJeep.tscn.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://scenes/Grenade.tscn.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://scenes/Main.tscn.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://scenes/Player.tscn.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://scenes/RemotePlayer.tscn.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://scripts/bots/Bot.gd.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://scripts/bots/BotManager.gd.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://scripts/core/AudioManager.gd.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://scripts/core/GameState.gd.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://scripts/core/Main.gd.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://scripts/core/Player.gd.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://scripts/core/Proto.gd.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://scripts/maps/MapBuilder.gd.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://scripts/net/MultiplayerManager.gd.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://scripts/net/NetworkManager.gd.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://scripts/net/RemotePlayer.gd.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://scripts/weapons/WeaponSystem.gd.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://scripts/ui/WarUI.gd.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://scripts/weapons/WeaponView.gd.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://scripts/ui/HUD.gd.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://scripts/weapons/Grenade.gd.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://scripts/vehicles/CombatJeep.gd.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://scripts/ui/MainMenu.gd.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://scripts/ui/LoadoutMenu.gd.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://.godot/global_script_class_cache.cfg[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://.godot/uid_cache.bin[39m[0m
+[  98% ] [90m[1msavepack[22m | Storing File: res://project.binary[39m[0m
+[92m[ DONE ][39m [1msavepack[22m
+[0m
+ERROR: Cannot save file '/Users/vaidik/Library/Application Support/Godot/editor_settings-4.7.tres'.
+   at: save (scene/resources/resource_format_text.cpp:1768)
+ERROR: Error saving editor settings to /Users/vaidik/Library/Application Support/Godot/editor_settings-4.7.tres
+   at: save (editor/settings/editor_settings.cpp:1525)
+python3 scripts/compress_web.py

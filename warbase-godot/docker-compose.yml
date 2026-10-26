@@ -1,0 +1,21 @@
+services:
+  warbase-server:
+    build:
+      context: ..
+      dockerfile: warbase-godot/server/Dockerfile
+    restart: unless-stopped
+    ports:
+      - "8081:8081"
+    environment:
+      ENV: production
+    init: true
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    mem_limit: 1g
+    cpus: 2.0
+    stop_grace_period: 15s

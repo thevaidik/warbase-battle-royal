@@ -1,0 +1,203 @@
+syntax = "proto3";
+package warbase;
+option go_package = "warbase-server/internal/engine";
+
+message ClientEvent {
+  oneof event {
+    PlayerStateUpdate state_update = 1;
+    HitEvent hit = 2;
+    FireEvent fire = 3;
+    ReloadEvent reload = 4;
+    SwitchWeaponEvent switch_weapon = 5;
+    RespawnRequestEvent respawn_request = 6;
+    ThrowGrenadeEvent throw_grenade = 7;
+    PingEvent ping = 8;
+    LoadoutEvent loadout = 9;
+    VehicleSeatEvent vehicle_seat = 10;
+    VehicleInputEvent vehicle_input = 11;
+  }
+}
+
+message VehicleSeatEvent { string vehicle_id = 1; bool enter = 2; }
+message VehicleInputEvent { float throttle = 1; float steer = 2; bool brake = 3; int32 gear = 4; }
+message VehicleState { string id = 1; string driver = 2; float x = 3; float y = 4; float z = 5; float yaw = 6; float speed = 7; int32 health = 8; }
+
+message LoadoutEvent {
+ string primary = 1;
+ string secondary = 2;
+ string throwable = 3;
+}
+
+message PlayerStateUpdate {
+    float x = 1;
+    float y = 2;
+    float z = 3;
+    float rx = 4;
+    float ry = 5;
+    float rz = 6;
+    float rw = 7;
+    string animation = 8;
+    string platform_id = 9;
+    int32 ping = 10;
+    string weapon_id = 11;
+}
+
+message HitEvent {
+    string target_id = 1;
+    int32 damage = 2;
+    uint64 shot_id = 3;
+}
+
+message FireEvent {
+    float origin_x = 1;
+    float origin_y = 2;
+    float origin_z = 3;
+    float hit_x = 4;
+    float hit_y = 5;
+    float hit_z = 6;
+    float normal_x = 7;
+    float normal_y = 8;
+    float normal_z = 9;
+    bool hit_wall = 10;
+    uint64 shot_id = 11;
+}
+
+message ReloadEvent {
+}
+
+message SwitchWeaponEvent {
+    string weapon_id = 1;
+}
+
+message RespawnRequestEvent {
+}
+
+message ThrowGrenadeEvent {
+    float px = 1;
+    float py = 2;
+    float pz = 3;
+    float vx = 4;
+    float vy = 5;
+    float vz = 6;
+    string throwable_id = 7;
+}
+
+message ServerPongEvent {
+    int64 client_time = 1;
+}
+
+message PingEvent {
+    int64 client_time = 1;
+}
+
+message ServerMessage {
+  oneof message {
+    GameState game_state = 1;
+    ServerEvent server_event = 2;
+  }
+}
+
+message GameState {
+    map<string, PlayerState> players = 1;
+    string room_mode = 2;
+    string room_state = 3;
+    int32 score_team_a = 4;
+    int32 score_team_b = 5;
+    string winner_id = 6;
+    string map_name = 7;
+    uint32 protocol_version = 8;
+    string time_of_day = 9;
+    map<string, VehicleState> vehicles = 10;
+}
+
+message PlayerState {
+    float x = 1;
+    float y = 2;
+    float z = 3;
+    float rx = 4;
+    float ry = 5;
+    float rz = 6;
+    float rw = 7;
+    string animation = 8;
+    int32 health = 9;
+    int32 kills = 10;
+    int32 deaths = 11;
+    bool is_dead = 12;
+    string platform_id = 13;
+    int32 ping = 14;
+    string weapon_id = 15;
+    string team = 16;
+    int32 ammo_count = 17;
+    bool is_reloading = 18;
+    uint64 last_shot_id = 19;
+    int32 grenades_remaining = 20;
+    bool spawn_protected = 21;
+    string driving_vehicle_id = 22;
+}
+
+message ServerEvent {
+  oneof event {
+    RespawnEvent respawn = 1;
+    ServerFireEvent fire = 2;
+    HitConfirmedEvent hit_confirmed = 3;
+    KillConfirmedEvent kill_confirmed = 4;
+    ServerThrowGrenadeEvent throw_grenade = 5;
+    ServerPongEvent pong = 6;
+    ServerExplosionEvent explosion = 7;
+    DamageEvent damage = 8;
+  }
+}
+
+message RespawnEvent {
+    float x = 1;
+    float y = 2;
+    float z = 3;
+}
+
+message ServerFireEvent {
+    string shooter_id = 1;
+    float origin_x = 2;
+    float origin_y = 3;
+    float origin_z = 4;
+    float hit_x = 5;
+    float hit_y = 6;
+    float hit_z = 7;
+    float normal_x = 8;
+    float normal_y = 9;
+    float normal_z = 10;
+    bool hit_wall = 11;
+}
+
+message HitConfirmedEvent {
+}
+
+message KillConfirmedEvent {
+}
+
+message ServerThrowGrenadeEvent {
+    string shooter_id = 1;
+    float px = 2;
+    float py = 3;
+    float pz = 4;
+    float vx = 5;
+    float vy = 6;
+    float vz = 7;
+    uint64 grenade_id = 8;
+    string throwable_id = 9;
+}
+
+message ServerExplosionEvent {
+    uint64 grenade_id = 1;
+    string shooter_id = 2;
+    float x = 3;
+    float y = 4;
+    float z = 5;
+    string throwable_id = 6;
+}
+
+message DamageEvent {
+ string target_id = 1;
+ float x = 2; float y = 3; float z = 4;
+ float dx = 5; float dy = 6; float dz = 7;
+ int32 amount = 8;
+}

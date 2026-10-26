@@ -1,0 +1,21 @@
+=== RUN   TestAuditRapidFire
+    audit_probe_test.go:13: ak47 accepted a second shot immediately
+    audit_probe_test.go:13: pistol accepted a second shot immediately
+    audit_probe_test.go:13: hmg accepted a second shot immediately
+--- FAIL: TestAuditRapidFire (0.00s)
+=== RUN   TestAuditUnbackedHit
+    audit_probe_test.go:19: accepted 100 damage at 10km without any shot; health=0
+--- FAIL: TestAuditUnbackedHit (0.00s)
+=== RUN   TestAuditNetworkRules
+    audit_probe_test.go:38: server accepted RespawnRequest from living player
+    audit_probe_test.go:42: server accepted teleport to x=10000 after four updates
+--- FAIL: TestAuditNetworkRules (0.03s)
+=== RUN   TestAuditReplayRemoteHit
+2026/10/26 08:34:24 [Room industrial-public] Received Hit: Shooter=shooter, Target=victim, Damage=34
+2026/10/26 08:34:24 [Room industrial-public] Received Hit: Shooter=shooter, Target=victim, Damage=34
+2026/10/26 08:34:24 [Room industrial-public] Received Hit: Shooter=shooter, Target=victim, Damage=34
+    audit_probe_test.go:68: one Fire plus three Hit claims killed victim 10km away
+--- FAIL: TestAuditReplayRemoteHit (0.03s)
+FAIL
+FAIL	warbase-server/internal/engine	0.650s
+FAIL

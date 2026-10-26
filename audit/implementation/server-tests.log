@@ -1,0 +1,8 @@
+cd warbase-godot/server && go test -race ./... && go vet ./...
+ok  	warbase-server/cmd/game	12.579s
+?   	warbase-server/cmd/schema	[no test files]
+?   	warbase-server/cmd/stress	[no test files]
+ok  	warbase-server/internal/engine	12.521s
+?   	warbase-server/internal/engine/shared/proto	[no test files]
+?   	warbase-server/internal/jsonlog	[no test files]
+?   	warbase-server/internal/validator	[no test files]

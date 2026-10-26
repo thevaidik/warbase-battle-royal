@@ -1,0 +1,7 @@
+ok  	warbase-server/cmd/game	22.016s
+?   	warbase-server/cmd/schema	[no test files]
+?   	warbase-server/cmd/stress	[no test files]
+ok  	warbase-server/internal/engine	28.930s
+?   	warbase-server/internal/engine/shared/proto	[no test files]
+?   	warbase-server/internal/jsonlog	[no test files]
+?   	warbase-server/internal/validator	[no test files]

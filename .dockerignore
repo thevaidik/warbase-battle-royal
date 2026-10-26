@@ -1,0 +1,9 @@
+.git
+asset_backups
+build
+mixamo
+audit
+**/.godot
+**/server_bin*
+**/warbase-server
+**/game

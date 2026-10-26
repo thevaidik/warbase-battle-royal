@@ -1,0 +1,4 @@
+=== RUN   TestBotCannotSenseGrenadeThroughWall
+--- PASS: TestBotCannotSenseGrenadeThroughWall (0.66s)
+PASS
+ok  	warbase-server/internal/engine	1.214s

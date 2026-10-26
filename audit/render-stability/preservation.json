@@ -1,0 +1,10 @@
+{
+  "removed_triangles": 803,
+  "preserved": {
+    "NORMAL": true,
+    "POSITION": true,
+    "TEXCOORD_0": true,
+    "atlas": true
+  },
+  "texture_sha256": "b0ae6dc699ea0de348125b4c772c6530f6294f0b4a397e1d84c0bd9fd8e50e17"
+}

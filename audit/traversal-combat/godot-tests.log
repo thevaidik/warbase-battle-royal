@@ -1,0 +1,201 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+ERROR: Condition "ret != noErr" is true. Returning: ""
+   at: get_system_ca_certificates (platform/macos/os_macos.mm:1035)
+PASS: map collision blocks both sides like the authority
+PASS: capsule climbs a low step without mantling or clipping
+PASS: low ceiling rejects the entire step-up capsule
+PASS: releasing crouch cannot grow the body into a ceiling
+PASS: standing resumes after clearing low cover
+PASS: valid stadium surfaces below -4m do not trigger a teleport
+TRAVERSAL SAFETY TEST: 0 failures
+WARNING: 5 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+ERROR: Condition "ret != noErr" is true. Returning: ""
+   at: get_system_ca_certificates (platform/macos/os_macos.mm:1035)
+PASS: stadium has 12 authored spawns
+PASS: no artificial invisible boundaries
+PASS: spawn 0 has solid ground
+PASS: spawn 0 clears a player capsule
+PASS: spawn 1 has solid ground
+PASS: spawn 1 clears a player capsule
+PASS: spawn 2 has solid ground
+PASS: spawn 2 clears a player capsule
+PASS: spawn 3 has solid ground
+PASS: spawn 3 clears a player capsule
+PASS: spawn 4 has solid ground
+PASS: spawn 4 clears a player capsule
+PASS: spawn 5 has solid ground
+PASS: spawn 5 clears a player capsule
+PASS: spawn 6 has solid ground
+PASS: spawn 6 clears a player capsule
+PASS: spawn 7 has solid ground
+PASS: spawn 7 clears a player capsule
+PASS: spawn 8 has solid ground
+PASS: spawn 8 clears a player capsule
+PASS: spawn 9 has solid ground
+PASS: spawn 9 clears a player capsule
+PASS: spawn 10 has solid ground
+PASS: spawn 10 clears a player capsule
+PASS: spawn 11 has solid ground
+PASS: spawn 11 clears a player capsule
+PASS: uses the supplied stadium mesh
+PASS: no identically oriented overlapping triangles remain
+PASS: repaired full-detail mesh retains the expected non-overlapping surfaces
+PASS: authored railings and cut-outs retain alpha masking
+PASS: stadium responds to room time of day
+PASS: full texture resolution retained
+FOOTBALL MAP TEST: 0 failures
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+ERROR: Condition "ret != noErr" is true. Returning: ""
+   at: get_system_ca_certificates (platform/macos/os_macos.mm:1035)
+PASS: level aim has a deliberate overhand loft
+PASS: vertical aim keeps vertical throw control
+PASS: grenade retains speed and follows a ballistic arc after one second
+PASS: first impact bounces without erasing forward momentum
+PASS: level throw lands roughly 28 metres away
+PASS: grenade settles on the floor without sinking or rolling indefinitely
+PASS: sweep rebounds from a thin wall without tunnelling
+PASS: armed impact grenade stops on first contact
+PASS: visual grenade uses the shared flight model
+GRENADE BALLISTICS TEST: 0 failures; landing_x=28.079 final=(39.68426, 0.062, 0.0)
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+ERROR: Condition "ret != noErr" is true. Returning: ""
+   at: get_system_ca_certificates (platform/macos/os_macos.mm:1035)
+PASS: industrial uses the authored visible boundary
+PASS: industrial east road ray clear at z=-20.0
+PASS: industrial player capsule crosses former invisible wall at z=-20.0
+PASS: industrial visible perimeter fence remains solid at z=-20.0
+PASS: industrial east road ray clear at z=20.0
+PASS: industrial player capsule crosses former invisible wall at z=20.0
+PASS: industrial visible perimeter fence remains solid at z=20.0
+PASS: industrial east road ray clear at z=35.0
+PASS: industrial player capsule crosses former invisible wall at z=35.0
+PASS: industrial visible perimeter fence remains solid at z=35.0
+PASS: industrial warehouse wall remains solid
+PASS: dust2 uses the authored visible boundary
+PASS: dust2 east road ray clear at z=-20.0
+PASS: dust2 player capsule crosses former invisible wall at z=-20.0
+PASS: dust2 visible perimeter fence remains solid at z=-20.0
+PASS: dust2 east road ray clear at z=20.0
+PASS: dust2 player capsule crosses former invisible wall at z=20.0
+PASS: dust2 visible perimeter fence remains solid at z=20.0
+PASS: dust2 east road ray clear at z=35.0
+PASS: dust2 player capsule crosses former invisible wall at z=35.0
+PASS: dust2 visible perimeter fence remains solid at z=35.0
+PASS: dust2 warehouse wall remains solid
+PASS: nuketown uses the authored visible boundary
+PASS: nuketown east road ray clear at z=-20.0
+PASS: nuketown player capsule crosses former invisible wall at z=-20.0
+PASS: nuketown visible perimeter fence remains solid at z=-20.0
+PASS: nuketown east road ray clear at z=20.0
+PASS: nuketown player capsule crosses former invisible wall at z=20.0
+PASS: nuketown visible perimeter fence remains solid at z=20.0
+PASS: nuketown east road ray clear at z=35.0
+PASS: nuketown player capsule crosses former invisible wall at z=35.0
+PASS: nuketown visible perimeter fence remains solid at z=35.0
+PASS: nuketown warehouse wall remains solid
+PASS: canyon uses the authored visible boundary
+PASS: canyon east road ray clear at z=-20.0
+PASS: canyon player capsule crosses former invisible wall at z=-20.0
+PASS: canyon visible perimeter fence remains solid at z=-20.0
+PASS: canyon east road ray clear at z=20.0
+PASS: canyon player capsule crosses former invisible wall at z=20.0
+PASS: canyon visible perimeter fence remains solid at z=20.0
+PASS: canyon east road ray clear at z=35.0
+PASS: canyon player capsule crosses former invisible wall at z=35.0
+PASS: canyon visible perimeter fence remains solid at z=35.0
+PASS: canyon warehouse wall remains solid
+INDUSTRIAL COLLISION TEST: 0 failures
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+ERROR: Condition "ret != noErr" is true. Returning: ""
+   at: get_system_ca_certificates (platform/macos/os_macos.mm:1035)
+ERROR: Connection to remote host failed!
+   at: connect_to_host (core/io/stream_peer_tcp.cpp:90)
+ERROR: Connection to remote host failed!
+   at: connect_to_host (core/io/stream_peer_tcp.cpp:90)
+ERROR: Connection to remote host failed!
+   at: connect_to_host (core/io/stream_peer_tcp.cpp:90)
+ERROR: Connection to remote host failed!
+   at: connect_to_host (core/io/stream_peer_tcp.cpp:90)
+CHECK PASS AK consumes one cartridge
+CHECK PASS draw animation blocks firing
+CHECK PASS pistol consumes one cartridge
+CHECK PASS switch preserves rifle magazine
+CHECK PASS switch preserves pistol magazine
+CHECK PASS switch cancels reload without free ammo
+CHECK PASS 8x zoom uses optical FOV ratio
+CHECK PASS sniper uses scope aperture
+CHECK PASS recoil spring settles through frame spikes
+CHECK PASS bots and parked vehicles retain finite physics
+CHECK PASS pause suspends practice simulation
+CHECK PASS respawn resets weapon state
+CHECK PASS M4 Carbine fires and consumes ammo
+CHECK PASS weapon ID roundtrip
+CHECK PASS new weapon has muzzle and animated magazine
+CHECK PASS MP5 SMG fires and consumes ammo
+CHECK PASS weapon ID roundtrip
+CHECK PASS new weapon has muzzle and animated magazine
+CHECK PASS DMR-52 fires and consumes ammo
+CHECK PASS weapon ID roundtrip
+CHECK PASS new weapon has muzzle and animated magazine
+CHECK PASS DMR starts at 4x
+CHECK PASS DMR supports 6x
+CHECK PASS DMR requires trigger release between shots
+CHECK PASS DMR ADS displays the scope reticle
+CHECK PASS cannot equip a weapon outside selected slots
+CHECK PASS tracer uses rifle muzzle velocity
+CHECK PASS sniper retains lethal damage at maximum range
+CHECK PASS hit feedback uses the bounded blood pool
+CHECK PASS blood effect expires and particles are reused
+WEAPON TEST: 0 failures
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+ERROR: Condition "ret != noErr" is true. Returning: ""
+   at: get_system_ca_certificates (platform/macos/os_macos.mm:1035)
+AUTOTEST: deployed map=industrial player_at=(-22.0, 1.5, -22.0)
+ERROR: Connection to remote host failed!
+   at: connect_to_host (core/io/stream_peer_tcp.cpp:90)
+ERROR: Connection to remote host failed!
+   at: connect_to_host (core/io/stream_peer_tcp.cpp:90)
+ERROR: Connection to remote host failed!
+   at: connect_to_host (core/io/stream_peer_tcp.cpp:90)
+ERROR: Connection to remote host failed!
+   at: connect_to_host (core/io/stream_peer_tcp.cpp:90)
+AUTOTEST: server fire decode kind=fire shooter=BOT_1 wall=true
+AUTOTEST: state bytes=57
+AUTOTEST: moving forward, pos=(-22.0, 0.918089, -22.0)
+AUTOTEST: moved to (-22.0, 0.918089, -27.76996)
+AUTOTEST: fired, ammo=29 tracers_active=1
+AUTOTEST: grenade thrown, bots=7
+AUTOTEST: bot damaged hp=66.0
+AUTOTEST: bot killed dead=true
+AUTOTEST: player hp=75.0
+AUTOTEST: local kills=1
+AUTOTEST: roster entries=8 player_kills=1
+AUTOTEST: switched to pistol ammo=12
+AUTOTEST: switched to HMG ammo=60 name=WB-46 LMG
+AUTOTEST: back to AK ammo=29
+AUTOTEST: vehicle entered! jeep_pos=(-20.0, 0.784834, 19.99997) vel=(0.0, 0.030673, 0.008335)
+AUTOTEST: vehicle transmission verified! Gear 1=52km/h (climb), Gear 2=115km/h (speed)
+AUTOTEST: vehicle toggled to wide 3rd person chase! is_wide=true spring_len=8.80000019073486
+AUTOTEST: vehicle toggled back to normal 3rd person chase! is_wide=false spring_len=6.19999980926514
+AUTOTEST: vehicle exited safely! player_pos=(-22.4, 1.057683, -1.808267) driving=false
+AUTOTEST: scoreboard open=true mouse_mode=0
+AUTOTEST: bot_damage_enabled=false
+AUTOTEST: peaceful test hp_before=100.0 hp_after=100.0 (damage prevented=true)
+AUTOTEST: scoreboard closed, mouse_mode=0
+AUTOTEST: DONE pos=(-22.4, 1.057683, -1.808267) hp=100.0 phase=1 fps=1.0 phys_ms=0.0
+WARNING: 8 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+

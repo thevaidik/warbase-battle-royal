@@ -1,0 +1,13 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+ERROR: Condition "ret != noErr" is true. Returning: ""
+   at: get_system_ca_certificates (platform/macos/os_macos.mm:1035)
+MAP EXPORT: industrial triangles=78078
+MAP EXPORT: village triangles=112227
+MAP EXPORT: arena triangles=1292
+MAP EXPORT: shipment triangles=26458
+MAP EXPORT: loft triangles=2313
+MAP EXPORT: dust2 triangles=78078
+MAP EXPORT: canyon triangles=78078
+MAP EXPORT: desert_oasis triangles=720
+MAP EXPORT: nuketown triangles=78078

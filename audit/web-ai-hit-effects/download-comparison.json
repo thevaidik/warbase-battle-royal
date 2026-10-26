@@ -1,0 +1,23 @@
+{
+  "before_gzip_bytes": 40870312,
+  "after_brotli_bytes": 33246418,
+  "after_gzip_bytes": 35458788,
+  "saved_percent": 18.65,
+  "manifest": {
+    "assets": [
+      "index.html",
+      "engine-53ec26073f0ba9ba.audio.position.worklet.js",
+      "engine-53ec26073f0ba9ba.audio.worklet.js",
+      "engine-53ec26073f0ba9ba.js",
+      "engine-53ec26073f0ba9ba.wasm",
+      "game-ea6adc744246c34d.pck"
+    ],
+    "engine": "engine-53ec26073f0ba9ba",
+    "pack": "game-ea6adc744246c34d.pck",
+    "bytes": {
+      "identity": 65721959,
+      "gzip": 35458788,
+      "br": 33246418
+    }
+  }
+}

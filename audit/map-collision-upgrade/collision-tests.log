@@ -1,0 +1,49 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+ERROR: Condition "ret != noErr" is true. Returning: ""
+   at: get_system_ca_certificates (platform/macos/os_macos.mm:1035)
+PASS: industrial uses the authored visible boundary
+PASS: industrial east road ray clear at z=-20.0
+PASS: industrial player capsule crosses former invisible wall at z=-20.0
+PASS: industrial visible perimeter fence remains solid at z=-20.0
+PASS: industrial east road ray clear at z=20.0
+PASS: industrial player capsule crosses former invisible wall at z=20.0
+PASS: industrial visible perimeter fence remains solid at z=20.0
+PASS: industrial east road ray clear at z=35.0
+PASS: industrial player capsule crosses former invisible wall at z=35.0
+PASS: industrial visible perimeter fence remains solid at z=35.0
+PASS: industrial warehouse wall remains solid
+PASS: dust2 uses the authored visible boundary
+PASS: dust2 east road ray clear at z=-20.0
+PASS: dust2 player capsule crosses former invisible wall at z=-20.0
+PASS: dust2 visible perimeter fence remains solid at z=-20.0
+PASS: dust2 east road ray clear at z=20.0
+PASS: dust2 player capsule crosses former invisible wall at z=20.0
+PASS: dust2 visible perimeter fence remains solid at z=20.0
+PASS: dust2 east road ray clear at z=35.0
+PASS: dust2 player capsule crosses former invisible wall at z=35.0
+PASS: dust2 visible perimeter fence remains solid at z=35.0
+PASS: dust2 warehouse wall remains solid
+PASS: nuketown uses the authored visible boundary
+PASS: nuketown east road ray clear at z=-20.0
+PASS: nuketown player capsule crosses former invisible wall at z=-20.0
+PASS: nuketown visible perimeter fence remains solid at z=-20.0
+PASS: nuketown east road ray clear at z=20.0
+PASS: nuketown player capsule crosses former invisible wall at z=20.0
+PASS: nuketown visible perimeter fence remains solid at z=20.0
+PASS: nuketown east road ray clear at z=35.0
+PASS: nuketown player capsule crosses former invisible wall at z=35.0
+PASS: nuketown visible perimeter fence remains solid at z=35.0
+PASS: nuketown warehouse wall remains solid
+PASS: canyon uses the authored visible boundary
+PASS: canyon east road ray clear at z=-20.0
+PASS: canyon player capsule crosses former invisible wall at z=-20.0
+PASS: canyon visible perimeter fence remains solid at z=-20.0
+PASS: canyon east road ray clear at z=20.0
+PASS: canyon player capsule crosses former invisible wall at z=20.0
+PASS: canyon visible perimeter fence remains solid at z=20.0
+PASS: canyon east road ray clear at z=35.0
+PASS: canyon player capsule crosses former invisible wall at z=35.0
+PASS: canyon visible perimeter fence remains solid at z=35.0
+PASS: canyon warehouse wall remains solid
+INDUSTRIAL COLLISION TEST: 0 failures

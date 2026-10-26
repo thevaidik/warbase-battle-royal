@@ -1,0 +1,4251 @@
+--- before/warbase-godot/client/project.godot
++++ after/warbase-godot/client/project.godot
+@@ -11,7 +11,7 @@
+ [application]
+ 
+ config/name="WarBase Battle Royale"
+-config/description="Battle royale FPS ported from Babylon.js web client. FFA/TDM, 3 weapons, bots + multiplayer."
++config/description="WarBase FPS. Online FFA/TDM with four weapons and variable optics; offline practice with bots and vehicles."
+ run/main_scene="res://scenes/Main.tscn"
+ run/max_fps=0
+ config/features=PackedStringArray("4.7", "GL Compatibility")
+--- before/warbase-godot/client/export_presets.cfg
++++ after/warbase-godot/client/export_presets.cfg
+@@ -7,7 +7,7 @@
+ custom_features=""
+ export_filter="all_resources"
+ include_filter=""
+-exclude_filter="build/*, dist/*, *.zip, *.pck, *.wasm, .git/*, .godot/*"
++exclude_filter="build/*, dist/*, *.zip, *.pck, *.wasm, .git/*, .godot/*, scripts/tests/*, scripts/tools/*"
+ export_path="build/WarBase-macOS.zip"
+ encryption_include_filters=""
+ encryption_exclude_filters=""
+@@ -60,7 +60,7 @@
+ custom_features=""
+ export_filter="all_resources"
+ include_filter=""
+-exclude_filter="build/*, dist/*, *.zip, *.pck, *.wasm, .git/*, .godot/*"
++exclude_filter="build/*, dist/*, *.zip, *.pck, *.wasm, .git/*, .godot/*, scripts/tests/*, scripts/tools/*"
+ export_path="dist/index.html"
+ encryption_include_filters=""
+ encryption_exclude_filters=""
+--- before/warbase-godot/client/scripts/bots/Bot.gd
++++ after/warbase-godot/client/scripts/bots/Bot.gd
+@@ -2,7 +2,7 @@
+ extends CharacterBody3D
+ ## Studio Military Tactical Combat AI.
+ ## Features:
+-## 1. Sensory Perception: 140° Vision Cone, 360° close-proximity radar, and auditory sensing (gunfire, footsteps).
++## 1. Sensory Perception: 140 Vision Cone, 360 close-proximity radar, and auditory sensing (gunfire, footsteps).
+ ## 2. Dynamic Tactical States: Patrol, Investigate, Flank, Combat Engage, Tactical Cover Retreat.
+ ## 3. Real-Time Cover Evaluation: Radial raycasts to locate physical occlusion when wounded or under fire.
+ ## 4. Ballistic Predictive Leading: Leads moving targets based on velocity vector and bullet flight time.
+@@ -101,11 +101,11 @@
+ 	_setup_weapon()
+ 	
+ 	_nameplate = Label3D.new()
+-	_nameplate.text = "▼ %s  [100]" % bot_name
+-	_nameplate.font_size = 46
++	_nameplate.text = " %s  [100]" % bot_name
++	_nameplate.font_size = 28
+ 	_nameplate.pixel_size = 0.0032
+ 	_nameplate.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+-	_nameplate.no_depth_test = true
++	_nameplate.no_depth_test = false
+ 	_nameplate.render_priority = 10
+ 	_nameplate.outline_render_priority = 9
+ 	_nameplate.outline_size = 10
+@@ -368,7 +368,7 @@
+ 		return
+ 	health -= dmg
+ 	if is_instance_valid(_nameplate):
+-		_nameplate.text = "▼ %s  [%d]" % [bot_name, int(maxf(0.0, health))]
++		_nameplate.text = " %s  [%d]" % [bot_name, int(maxf(0.0, health))]
+ 		
+ 	# Under fire: turn toward target immediately & alert squad
+ 	if is_instance_valid(_target):
+@@ -447,7 +447,7 @@
+ 	if main_col:
+ 		main_col.set_deferred("disabled", false)
+ 	if is_instance_valid(_nameplate):
+-		_nameplate.text = "▼ %s  [100]" % bot_name
++		_nameplate.text = " %s  [100]" % bot_name
+ 		_nameplate.visible = true
+ 	if is_instance_valid(_weapon_model):
+ 		_weapon_model.visible = true
+--- before/warbase-godot/client/scripts/ui/HUD.gd
++++ after/warbase-godot/client/scripts/ui/HUD.gd
+@@ -66,223 +66,63 @@
+ 	var is_steady := false
+ 	var stamina := 1.0
+ 	var compass_deg := 0.0
+-	var magnification := 8
++	var magnification := 4
++	var field_of_view := 22.0
++	var sniper := false
+ 
+ 	func _ready() -> void:
+ 		mouse_filter = Control.MOUSE_FILTER_IGNORE
+ 		set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+-		if get_viewport():
+-			get_viewport().size_changed.connect(queue_redraw)
++		get_viewport().size_changed.connect(queue_redraw)
+ 
+ 	func _draw() -> void:
+-		var vp: Vector2 = get_viewport_rect().size
+-		if vp.x <= 0.0 or vp.y <= 0.0:
+-			vp = size if (size.x > 0.0 and size.y > 0.0) else Vector2(1280.0, 720.0)
++		var vp := get_viewport_rect().size
+ 		var center := vp * 0.5
+-		var radius := minf(vp.x, vp.y) * 0.40
++		var unit := clampf(vp.y / 720.0, 0.75, 2.0)
++		var accent := Color(0.95, 0.25, 0.16, 0.95)
++		if magnification <= 2:
++			# The physical sight supplies its housing; a small collimated dot stays on the shot axis.
++			draw_circle(center, 3.0 * unit, Color(0.0, 0.0, 0.0, 0.6))
++			draw_circle(center, 1.35 * unit, accent)
++			return
++		var radius := minf(vp.x, vp.y) * 0.43
++		# A continuous circular aperture, including all four corners of the screen.
++		var outside := vp.length()
++		for i in 128:
++			var v0 := Vector2.from_angle(TAU * float(i) / 128.0)
++			var v1 := Vector2.from_angle(TAU * float(i + 1) / 128.0)
++			draw_colored_polygon(PackedVector2Array([center + v0 * radius, center + v0 * outside, center + v1 * outside, center + v1 * radius]), Color(0.015, 0.018, 0.022))
++		draw_arc(center, radius, 0.0, TAU, 128, Color(0.09, 0.10, 0.12), 7.0 * unit, true)
++		for i in 10:
++			draw_arc(center, radius - float(i) * 2.0 * unit, 0.0, TAU, 128, Color(0, 0, 0, 0.22 * (1.0 - float(i) / 10.0)), 2.5 * unit, true)
++		var ink := Color(0.025, 0.028, 0.03, 0.95)
++		var gap := 5.0 * unit
++		for axis in [Vector2.RIGHT, Vector2.DOWN]:
++			for sign_value in [-1.0, 1.0]:
++				draw_line(center + axis * gap * sign_value, center + axis * (radius - 18.0 * unit) * sign_value, Color(1, 1, 1, 0.30), 2.2 * unit, true)
++				draw_line(center + axis * gap * sign_value, center + axis * (radius - 18.0 * unit) * sign_value, ink, 1.0 * unit, true)
++		# Angular marks: each short division is 2 mrad, independent of resolution and zoom.
++		var mil := vp.y * 0.001 / (2.0 * tan(deg_to_rad(field_of_view) * 0.5))
++		for i in range(-12, 13):
++			if i == 0 or absf(float(i * 2) * mil) >= radius - 24.0 * unit:
++				continue
++			var tick := (4.5 if i % 5 == 0 else 2.0) * unit
++			for axis in [Vector2.RIGHT, Vector2.DOWN]:
++				var at: Vector2 = center + axis * float(i * 2) * mil
++				var normal := Vector2(-axis.y, axis.x)
++				draw_line(at - normal * tick, at + normal * tick, ink, 1.0 * unit, true)
++		draw_circle(center, 1.4 * unit, accent)
+ 		var font := ThemeDB.fallback_font
+-
+-		if magnification == 2:
+-			# ==========================================================
+-			# 2X TACTICAL REFLEX / CQB HOLOGRAPHIC OPTIC
+-			# ==========================================================
+-			var r_cqb := radius * 0.65
+-			# Transparent peripheral view with subtle optical lens tint
+-			draw_circle(center, r_cqb, Color(0.04, 0.16, 0.28, 0.12))
+-			# Protective aluminum optic bezel
+-			draw_arc(center, r_cqb + 3.0, 0, TAU, 64, Color(0.12, 0.13, 0.16, 0.95), 6.0)
+-			draw_arc(center, r_cqb, 0, TAU, 64, Color(0.24, 0.26, 0.30, 0.95), 2.0)
+-			
+-			# Illuminated Red Holographic Reticle (68-MOA Ring + 1-MOA Center Dot)
+-			var ret_red := Color(1.0, 0.18, 0.14, 0.95)
+-			var ret_glow := Color(1.0, 0.18, 0.14, 0.35)
+-			var ring_r := 44.0
+-			draw_arc(center, ring_r, 0, TAU, 48, ret_glow, 3.5)
+-			draw_arc(center, ring_r, 0, TAU, 48, ret_red, 1.6)
+-			
+-			# 4 Cardinal Stadia Tick Marks
+-			draw_line(center + Vector2(0, -ring_r - 10), center + Vector2(0, -ring_r + 2), ret_red, 1.8)
+-			draw_line(center + Vector2(0, ring_r - 2), center + Vector2(0, ring_r + 10), ret_red, 1.8)
+-			draw_line(center + Vector2(-ring_r - 10, 0), center + Vector2(-ring_r + 2, 0), ret_red, 1.8)
+-			draw_line(center + Vector2(ring_r - 2, 0), center + Vector2(ring_r + 10, 0), ret_red, 1.8)
+-			
+-			# Center 1-MOA Crisp Dot
+-			draw_circle(center, 3.5, ret_glow)
+-			draw_circle(center, 1.8, ret_red)
+-			
+-			# Telemetry HUD (perfectly centered above and below optic window)
+-			var cqb_title := "CQB 2.0X TACTICAL REFLEX"
+-			var cqb_sz := font.get_string_size(cqb_title, HORIZONTAL_ALIGNMENT_LEFT, -1, 11)
+-			draw_string(font, Vector2(center.x - cqb_sz.x * 0.5, center.y - r_cqb - 12), cqb_title, HORIZONTAL_ALIGNMENT_LEFT, -1, 11, Color(0.85, 0.88, 0.92))
+-			var cqb_sub := "[V] SWITCH TO 4X"
+-			var cqb_sub_sz := font.get_string_size(cqb_sub, HORIZONTAL_ALIGNMENT_LEFT, -1, 10)
+-			draw_string(font, Vector2(center.x - cqb_sub_sz.x * 0.5, center.y + r_cqb + 20), cqb_sub, HORIZONTAL_ALIGNMENT_LEFT, -1, 10, Color(1.0, 0.82, 0.3))
+-			return
+-
+-		if magnification == 4:
+-			# ==========================================================
+-			# 4X ACOG COMBAT RECONNAISSANCE SCOPE
+-			# ==========================================================
+-			var r_acog := radius * 0.78
+-			# Vignette peripheral border
+-			for l in 8:
+-				var rv := r_acog + float(l) * 12.0
+-				var av := 0.65 * (float(l) / 8.0)
+-				draw_arc(center, rv, 0, TAU, 72, Color(0, 0, 0, av), 12.0)
+-			draw_arc(center, r_acog + 4.0, 0, TAU, 72, Color(0.08, 0.09, 0.11, 0.95), 8.0)
+-			draw_arc(center, r_acog, 0, TAU, 72, Color(0.18, 0.20, 0.24, 0.95), 2.5)
+-			
+-			var wire_col := Color(0.08, 0.08, 0.10, 0.95)
+-			var acog_red := Color(1.0, 0.15, 0.12, 0.98)
+-			
+-			# Horizontal stadia wires with range ticks
+-			draw_line(Vector2(center.x - r_acog + 10, center.y), Vector2(center.x - 12, center.y), wire_col, 1.5)
+-			draw_line(Vector2(center.x + 12, center.y), Vector2(center.x + r_acog - 10, center.y), wire_col, 1.5)
+-			for d in [30.0, 60.0, 90.0, 120.0]:
+-				draw_line(Vector2(center.x - d, center.y - 4), Vector2(center.x - d, center.y + 4), wire_col, 1.2)
+-				draw_line(Vector2(center.x + d, center.y - 4), Vector2(center.x + d, center.y + 4), wire_col, 1.2)
+-				
+-			# Vertical top post
+-			draw_line(Vector2(center.x, center.y - r_acog + 10), Vector2(center.x, center.y - 12), wire_col, 1.5)
+-			
+-			# Illuminated Center Tactical Red Chevron (^)
+-			draw_line(center + Vector2(-8, 6), center, acog_red, 2.5)
+-			draw_line(center + Vector2(8, 6), center, acog_red, 2.5)
+-			draw_line(center + Vector2(-8, 6), center + Vector2(-8, 8), acog_red, 2.0)
+-			draw_line(center + Vector2(8, 6), center + Vector2(8, 8), acog_red, 2.0)
+-			
+-			# Bullet Drop Compensation (BDC) Ladder (100m, 200m, 400m, 600m)
+-			var bdc_y := [
+-				{"dy": 16.0, "w": 8.0, "txt": "2"},
+-				{"dy": 32.0, "w": 14.0, "txt": "3"},
+-				{"dy": 52.0, "w": 22.0, "txt": "4"},
+-				{"dy": 76.0, "w": 32.0, "txt": "6"},
+-			]
+-			draw_line(Vector2(center.x, center.y + 8), Vector2(center.x, center.y + 90), wire_col, 1.2)
+-			for b in bdc_y:
+-				var by: float = center.y + float(b["dy"])
+-				var bw: float = float(b["w"]) * 0.5
+-				draw_line(Vector2(center.x - bw, by), Vector2(center.x + bw, by), wire_col, 1.2)
+-				draw_string(font, Vector2(center.x + bw + 4, by + 4), String(b["txt"]), HORIZONTAL_ALIGNMENT_LEFT, -1, 9, Color(0.8, 0.2, 0.2))
+-				
+-			var acog_title := "ACOG 4.0X COMBAT OPTIC"
+-			var acog_sz := font.get_string_size(acog_title, HORIZONTAL_ALIGNMENT_LEFT, -1, 11)
+-			draw_string(font, Vector2(center.x - acog_sz.x * 0.5, center.y - r_acog - 14), acog_title, HORIZONTAL_ALIGNMENT_LEFT, -1, 11, Color(0.85, 0.88, 0.92))
+-			var acog_sub := "[V] SWITCH TO 8X"
+-			var acog_sub_sz := font.get_string_size(acog_sub, HORIZONTAL_ALIGNMENT_LEFT, -1, 10)
+-			draw_string(font, Vector2(center.x - acog_sub_sz.x * 0.5, center.y + r_acog + 20), acog_sub, HORIZONTAL_ALIGNMENT_LEFT, -1, 10, Color(1.0, 0.82, 0.3))
+-			return
+-
+-		# ==============================================================
+-		# 8X LEUPOLD MARK 4 HIGH-POWER MIL-DOT SNIPER OPTIC
+-		# ==============================================================
+-		# 1. Solid black exterior peripheral blackout surround
+-		draw_rect(Rect2(0, 0, maxf(0.0, center.x - radius), vp.y), Color.BLACK)
+-		draw_rect(Rect2(center.x + radius, 0, maxf(0.0, vp.x - (center.x + radius)), vp.y), Color.BLACK)
+-		draw_rect(Rect2(center.x - radius, 0, radius * 2.0, maxf(0.0, center.y - radius)), Color.BLACK)
+-		draw_rect(Rect2(center.x - radius, center.y + radius, radius * 2.0, maxf(0.0, vp.y - (center.y + radius))), Color.BLACK)
+-
+-		# 2. Scope Housing & Eyepiece Rubber Bezel
+-		draw_arc(center, radius + 8.0, 0, TAU, 96, Color(0.03, 0.03, 0.04, 1.0), 16.0)
+-		draw_arc(center, radius, 0, TAU, 96, Color(0.14, 0.15, 0.18, 1.0), 4.0)
+-		for i in 36:
+-			var ang := TAU * float(i) / 36.0
+-			var p1 := center + Vector2(cos(ang), sin(ang)) * (radius + 1.0)
+-			var p2 := center + Vector2(cos(ang), sin(ang)) * (radius + 14.0)
+-			draw_line(p1, p2, Color(0.02, 0.02, 0.02, 0.85), 2.0)
+-
+-		# 3. Optical Lens Edge Vignette Gradient
+-		for layer in 6:
+-			var r_vig := radius - float(layer) * 3.5
+-			var a_vig := 0.45 * (1.0 - float(layer) / 6.0)
+-			draw_arc(center, r_vig, 0, TAU, 64, Color(0.0, 0.0, 0.0, a_vig), 4.0)
+-
+-		# 4. Precision Etched-Glass Mil-Dot Reticle
+-		var line_col := Color(0.06, 0.06, 0.07, 0.95)
+-		var mil_dot_col := Color(0.08, 0.08, 0.09, 0.95)
+-		var bdc_red := Color(0.85, 0.18, 0.18, 0.9)
+-		var center_glow := Color(0.2, 0.95, 0.4, 0.95) if is_steady else Color(1.0, 0.22, 0.15, 0.95)
+-
+-		var gap := 6.0
+-		draw_line(Vector2(center.x - radius + 15, center.y), Vector2(center.x - gap, center.y), line_col, 1.5)
+-		draw_line(Vector2(center.x + gap, center.y), Vector2(center.x + radius - 15, center.y), line_col, 1.5)
+-		draw_line(Vector2(center.x, center.y - radius + 15), Vector2(center.x, center.y - gap), line_col, 1.5)
+-		draw_line(Vector2(center.x, center.y + gap), Vector2(center.x, center.y + radius - 15), line_col, 1.5)
+-
+-		# 1-MIL Dots & 1/2-MIL Hash Marks along Horizontal Axis
+-		var mil_spacing := 26.0
+-		for i in range(1, 8):
+-			var dist := float(i) * mil_spacing
+-			if dist < radius - 25.0:
+-				draw_circle(Vector2(center.x - dist, center.y), 2.2, mil_dot_col)
+-				draw_circle(Vector2(center.x + dist, center.y), 2.2, mil_dot_col)
+-				var half_dist := dist - mil_spacing * 0.5
+-				draw_line(Vector2(center.x - half_dist, center.y - 3), Vector2(center.x - half_dist, center.y + 3), line_col, 1.0)
+-				draw_line(Vector2(center.x + half_dist, center.y - 3), Vector2(center.x + half_dist, center.y + 3), line_col, 1.0)
+-
+-		# 1-MIL Dots along Upper Vertical Axis
+-		for i in range(1, 6):
+-			var dist := float(i) * mil_spacing
+-			if dist < radius - 25.0:
+-				draw_circle(Vector2(center.x, center.y - dist), 2.2, mil_dot_col)
+-				var half_dist := dist - mil_spacing * 0.5
+-				draw_line(Vector2(center.x - 3, center.y - half_dist), Vector2(center.x + 3, center.y - half_dist), line_col, 1.0)
+-
+-		# 5. Stadiametric Bullet Drop Compensation (BDC) Tree
+-		var bdc_ranges := [
+-			{"mil": 1.5, "range_m": 200, "bar_w": 18.0},
+-			{"mil": 3.0, "range_m": 300, "bar_w": 28.0},
+-			{"mil": 4.5, "range_m": 400, "bar_w": 38.0},
+-			{"mil": 6.0, "range_m": 500, "bar_w": 48.0},
+-			{"mil": 7.5, "range_m": 600, "bar_w": 58.0},
+-		]
+-		for b in bdc_ranges:
+-			var drop_y := center.y + float(b["mil"]) * mil_spacing
+-			if drop_y < center.y + radius - 20.0:
+-				var half_w: float = float(b["bar_w"]) * 0.5
+-				draw_line(Vector2(center.x - half_w, drop_y), Vector2(center.x + half_w, drop_y), line_col, 1.2)
+-				draw_circle(Vector2(center.x, drop_y), 1.8, bdc_red)
+-				draw_circle(Vector2(center.x - half_w, drop_y), 1.4, line_col)
+-				draw_circle(Vector2(center.x + half_w, drop_y), 1.4, line_col)
+-				var range_txt := str(int(b["range_m"]))
+-				draw_string(font, Vector2(center.x + half_w + 6, drop_y + 4), range_txt, HORIZONTAL_ALIGNMENT_LEFT, -1, 10, bdc_red)
+-
+-		# 6. Center Tactical Dot
+-		draw_circle(center, 4.5, Color(center_glow.r, center_glow.g, center_glow.b, 0.35))
+-		draw_circle(center, 2.0, center_glow)
+-
+-		# 7. Tactical Scope Telemetry & Dynamic Compass
+-		draw_string(font, Vector2(center.x - radius * 0.70, center.y - radius * 0.60), "OPTIC: LEUPOLD MK4 34mm", HORIZONTAL_ALIGNMENT_LEFT, -1, 11, Color(0.7, 0.72, 0.75))
+-		draw_string(font, Vector2(center.x - radius * 0.70, center.y - radius * 0.52), "MAG: 8.0X  |  .300 WIN MAG", HORIZONTAL_ALIGNMENT_LEFT, -1, 10, Color(0.5, 0.52, 0.55))
+-		draw_string(font, Vector2(center.x + radius * 0.22, center.y - radius * 0.60), "ZERO: 100M  |  MIL-DOT", HORIZONTAL_ALIGNMENT_LEFT, -1, 11, Color(0.7, 0.72, 0.75))
+-		draw_string(font, Vector2(center.x + radius * 0.22, center.y - radius * 0.52), "[V] SWITCH TO 4X", HORIZONTAL_ALIGNMENT_LEFT, -1, 10, Color(1.0, 0.82, 0.3))
+-
+-		# Compass heading tape
+-		var deg := int(fposmod(-compass_deg, 360.0))
+-		var card := "N"
+-		if deg >= 338 or deg < 23: card = "N"
+-		elif deg >= 23 and deg < 68: card = "NE"
+-		elif deg >= 68 and deg < 113: card = "E"
+-		elif deg >= 113 and deg < 158: card = "SE"
+-		elif deg >= 158 and deg < 203: card = "S"
+-		elif deg >= 203 and deg < 248: card = "SW"
+-		elif deg >= 248 and deg < 293: card = "W"
+-		elif deg >= 293 and deg < 338: card = "NW"
+-		var heading_str := "▲  %03d° %s  ▲" % [deg, card]
+-		var hd_sz := font.get_string_size(heading_str, HORIZONTAL_ALIGNMENT_LEFT, -1, 12)
+-		draw_string(font, Vector2(center.x - hd_sz.x * 0.5, center.y - radius * 0.76), heading_str, HORIZONTAL_ALIGNMENT_LEFT, -1, 12, Color(1.0, 0.85, 0.35))
+-
+-		# Steady Aim Gauge & Stamina Bar
+-		var breath_box_w := 180.0
+-		var breath_box_x := center.x - breath_box_w * 0.5
+-		var breath_box_y := center.y + radius * 0.72
+-		if is_steady:
+-			draw_string(font, Vector2(center.x - 65, breath_box_y - 8), "● STEADY AIM ACTIVE", HORIZONTAL_ALIGNMENT_CENTER, -1, 11, Color(0.2, 1.0, 0.4))
+-		else:
+-			draw_string(font, Vector2(center.x - 70, breath_box_y - 8), "SHIFT : HOLD BREATH", HORIZONTAL_ALIGNMENT_CENTER, -1, 10, Color(0.65, 0.68, 0.72))
+-		draw_rect(Rect2(breath_box_x, breath_box_y, breath_box_w, 4.0), Color(0.15, 0.15, 0.18, 0.8))
+-		var fill_col := Color(0.2, 0.85, 0.4) if is_steady else (Color(1.0, 0.8, 0.2) if stamina > 0.3 else Color(0.9, 0.2, 0.2))
+-		draw_rect(Rect2(breath_box_x, breath_box_y, breath_box_w * clampf(stamina, 0.0, 1.0), 4.0), fill_col)
++		var caption := "%d×  •  [V] ZOOM" % magnification
++		var caption_size := font.get_string_size(caption, HORIZONTAL_ALIGNMENT_LEFT, -1, int(13 * unit))
++		draw_string(font, Vector2(center.x - caption_size.x * 0.5, center.y + radius + 29.0 * unit), caption, HORIZONTAL_ALIGNMENT_LEFT, -1, int(13 * unit), Color(0.72, 0.77, 0.80))
++		if sniper:
++			var bar := Rect2(center + Vector2(-70.0, radius - 38.0) * unit, Vector2(140.0, 3.0) * unit)
++			draw_rect(bar, Color(0.08, 0.10, 0.12, 0.65))
++			bar.size.x *= clampf(stamina, 0.0, 1.0)
++			draw_rect(bar, Color(0.42, 0.8, 0.66) if is_steady else Color(0.68, 0.72, 0.75))
++			var hint := "STEADY" if is_steady else "[SHIFT] STEADY AIM"
++			draw_string(font, center + Vector2(-65, radius - 48) * unit, hint, HORIZONTAL_ALIGNMENT_LEFT, -1, int(11 * unit), Color(0.7, 0.75, 0.78))
+ 
+ class DamageIndicator extends Control:
+ 	var hud_ref: WarHUD
+@@ -359,15 +199,17 @@
+ 	cross_dot = dot
+ 	
+ 	# Hitmarker Label
+-	hitmarker = _mk_label("✕", 28, Color.WHITE)
++	hitmarker = _mk_label("X", 28, Color.WHITE)
+ 	hitmarker.set_anchors_preset(Control.PRESET_CENTER)
+ 	hitmarker.position = Vector2(-12, -24)
+ 	hitmarker.modulate.a = 0.0
++	hitmarker.z_index = 3
+ 	hitmarker.mouse_filter = Control.MOUSE_FILTER_IGNORE
+ 	add_child(hitmarker)
+ 	
+ 	# Tactical Bottom-Left HUD: Health & Armor
+ 	var hb := VBoxContainer.new()
++	hb.z_index = 2
+ 	hb.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
+ 	hb.position = Vector2(24, -95)
+ 	hb.custom_minimum_size = Vector2(240, 75)
+@@ -387,8 +229,9 @@
+ 	
+ 	# Tactical Bottom-Right HUD: Weapon & Ammo
+ 	var ab := VBoxContainer.new()
++	ab.z_index = 2
+ 	ab.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
+-	ab.position = Vector2(-240, -105)
++	ab.position = Vector2(-240, -155)
+ 	ab.alignment = BoxContainer.ALIGNMENT_END
+ 	ab.mouse_filter = Control.MOUSE_FILTER_IGNORE
+ 	add_child(ab)
+@@ -437,7 +280,7 @@
+ 	nb_hbox.add_theme_constant_override("separation", 10)
+ 	name_badge.add_child(nb_hbox)
+ 
+-	var status_dot := _mk_label("●", 12, Color(0.25, 0.95, 0.45))
++	var status_dot := _mk_label("", 12, Color(0.25, 0.95, 0.45))
+ 	nb_hbox.add_child(status_dot)
+ 
+ 	player_header_label = _mk_label(GameState.username.to_upper(), 14, Color(1.0, 0.88, 0.3))
+@@ -548,9 +391,9 @@
+ 		_update_bot_damage_btn()
+ 		_update_pause_bot_btn()
+ 		if GameState.bot_damage_enabled:
+-			feed("⚔ Combat Mode: Bot Damage Enabled", Color(1.0, 0.45, 0.25))
++			feed(" Combat Mode: Bot Damage Enabled", Color(1.0, 0.45, 0.25))
+ 		else:
+-			feed("🕊️ Peaceful Mode: Bot Damage OFF — Walk in Peace!", Color(0.3, 0.95, 0.4))
++			feed(" Peaceful Mode: Bot Damage OFF — Walk in Peace!", Color(0.3, 0.95, 0.4))
+ 	)
+ 	pv.add_child(pause_bot_btn)
+ 	
+@@ -603,7 +446,7 @@
+ 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+ 	top_hdr.add_child(spacer)
+ 
+-	_audit_lbl_status = _mk_label("● AUDIT: 120Hz ULTRA-FLUID", 13, Color(0.2, 1.0, 0.4))
++	_audit_lbl_status = _mk_label(" AUDIT: 120Hz ULTRA-FLUID", 13, Color(0.2, 1.0, 0.4))
+ 	top_hdr.add_child(_audit_lbl_status)
+ 
+ 	# Peaceful Mode & Bot Damage Control Bar
+@@ -638,9 +481,9 @@
+ 		_update_bot_damage_btn()
+ 		_update_pause_bot_btn()
+ 		if GameState.bot_damage_enabled:
+-			feed("⚔ Combat Mode: Bot Damage Enabled", Color(1.0, 0.45, 0.25))
++			feed(" Combat Mode: Bot Damage Enabled", Color(1.0, 0.45, 0.25))
+ 		else:
+-			feed("🕊️ Peaceful Mode: Bot Damage OFF — Walk & Drive in Peace!", Color(0.3, 0.95, 0.4))
++			feed(" Peaceful Mode: Bot Damage OFF — Walk & Drive in Peace!", Color(0.3, 0.95, 0.4))
+ 	)
+ 	pb_hbox.add_child(bot_dmg_btn)
+ 
+@@ -652,7 +495,7 @@
+ 	pb_hbox.add_child(pb_spacer)
+ 
+ 	var resume_board_btn := Button.new()
+-	resume_board_btn.text = "✖ RESUME GAME [TAB / ESC]"
++	resume_board_btn.text = " RESUME GAME [TAB / ESC]"
+ 	resume_board_btn.custom_minimum_size = Vector2(180, 34)
+ 	resume_board_btn.mouse_filter = Control.MOUSE_FILTER_STOP
+ 	resume_board_btn.pressed.connect(func() -> void:
+@@ -713,7 +556,7 @@
+ 	_audit_lbl_physics = _mk_label("", 11, Color(0.9, 0.92, 0.95))
+ 	audit_box.add_child(_audit_lbl_physics)
+ 
+-	_audit_lbl_verdict = _mk_label("★ VERDICT: 120HZ COMPLIANT", 12, Color(0.3, 0.95, 0.4))
++	_audit_lbl_verdict = _mk_label(" VERDICT: 120HZ COMPLIANT", 12, Color(0.3, 0.95, 0.4))
+ 	audit_box.add_child(_audit_lbl_verdict)
+ 
+ 	# ==========================================================
+@@ -741,7 +584,7 @@
+ 	vehicle_prompt_panel.visible = false
+ 	prompt_ctr.add_child(vehicle_prompt_panel)
+ 
+-	_veh_prompt_label = _mk_label("◆ PRESS [E] TO DRIVE COMBAT JEEP ◆", 14, Color(0.3, 0.95, 1.0))
++	_veh_prompt_label = _mk_label(" PRESS [E] TO DRIVE COMBAT JEEP ", 14, Color(0.3, 0.95, 1.0))
+ 	vehicle_prompt_panel.add_child(_veh_prompt_label)
+ 
+ 	# 2. In-Vehicle Speedometer & Turret Dashboard (Bottom Center)
+@@ -802,7 +645,7 @@
+ 	_veh_armor_bar.show_percentage = false
+ 	arm_box.add_child(_veh_armor_bar)
+ 
+-	var turr_lbl := _mk_label("WEAPON: .50 CAL TURRET [LMB FIRE] (360°)", 11, Color(1.0, 0.85, 0.2))
++	var turr_lbl := _mk_label("WEAPON: .50 CAL TURRET [LMB FIRE] (360)", 11, Color(1.0, 0.85, 0.2))
+ 	arm_box.add_child(turr_lbl)
+ 
+ 	# Bottom hint line
+@@ -835,7 +678,7 @@
+ 		cross_dot.modulate.a = alpha
+ 
+ func flash_hitmarker(kill: bool, is_headshot: bool = false) -> void:
+-	hitmarker.text = "💀" if kill else ("X" if not is_headshot else "✦")
++	hitmarker.text = "KILL" if kill else ("X" if not is_headshot else "+")
+ 	hitmarker.modulate = Color(1.0, 0.2, 0.2) if (kill or is_headshot) else Color.WHITE
+ 	hitmarker.modulate.a = 1.0
+ 	_hit_t = 0.35 if kill else 0.18
+@@ -859,7 +702,7 @@
+ 		var md := mode if not mode.is_empty() else GameState.selected_mode
+ 		match_info_label.text = "%s  •  TEAM %s" % [md, tm]
+ 
+-func set_vehicle_prompt(vis: bool, text: String = "◆ PRESS [E] TO DRIVE COMBAT JEEP ◆") -> void:
++func set_vehicle_prompt(vis: bool, text: String = " PRESS [E] TO DRIVE COMBAT JEEP ") -> void:
+ 	if is_instance_valid(vehicle_prompt_panel):
+ 		vehicle_prompt_panel.visible = vis
+ 	if is_instance_valid(_veh_prompt_label):
+@@ -919,9 +762,9 @@
+ 
+ func set_score(mode: String, a: int, b: int, team: String, winner: String) -> void:
+ 	if mode == "TDM":
+-		score_label.text = "TEAM A %d  •  %d TEAM B   [You: Team %s]%s" % [a, b, team, ("   ★ WINNER: " + winner) if not winner.is_empty() else ""]
++		score_label.text = "TEAM A %d  •  %d TEAM B   [You: Team %s]%s" % [a, b, team, ("    WINNER: " + winner) if not winner.is_empty() else ""]
+ 	else:
+-		score_label.text = "" if winner.is_empty() else ("★ WINNER: " + winner)
++		score_label.text = "" if winner.is_empty() else (" WINNER: " + winner)
+ 
+ func set_scope(on: bool, weight: float = 1.0) -> void:
+ 	var vis := on and weight > 0.005
+@@ -935,7 +778,7 @@
+ 			sr.magnification = mag
+ 			sr.queue_redraw()
+ 	if is_instance_valid(optic_label):
+-		optic_label.text = "[V] OPTIC: %dX" % mag
++		optic_label.text = "[V] OPTIC: %dX" % mag if mag > 1 else "IRON SIGHTS"
+ 
+ func update_scope_steady(steady: bool, stam: float, heading: float) -> void:
+ 	if scope_overlay is ScopeReticle:
+@@ -1002,7 +845,7 @@
+ 		var row := HBoxContainer.new()
+ 		var col_txt := Color(0.35, 0.85, 1.0) if is_me else Color.WHITE
+ 		
+-		var l_op := _mk_label(("★ " if is_me else "  ") + nm, 12, col_txt)
++		var l_op := _mk_label((" " if is_me else "  ") + nm, 12, col_txt)
+ 		l_op.custom_minimum_size = Vector2(160, 0)
+ 		row.add_child(l_op)
+ 		
+@@ -1046,22 +889,22 @@
+ 	# Status header with OS focus awareness
+ 	var is_focused := DisplayServer.window_is_focused(0)
+ 	if not is_focused:
+-		_audit_lbl_status.text = "● AUDIT: WINDOW INACTIVE (macOS throttles background apps to ~20 FPS)"
++		_audit_lbl_status.text = " AUDIT: WINDOW INACTIVE (macOS throttles background apps to ~20 FPS)"
+ 		_audit_lbl_status.modulate = Color(1.0, 0.75, 0.2)
+ 	elif fps >= 55:
+-		_audit_lbl_status.text = "● AUDIT: 60Hz+ FLUID (%.1fms)" % frame_ms
++		_audit_lbl_status.text = " AUDIT: 60Hz+ FLUID (%.1fms)" % frame_ms
+ 		_audit_lbl_status.modulate = Color(0.25, 0.95, 0.45)
+ 	else:
+-		_audit_lbl_status.text = "● AUDIT: FRAME DROP DETECTED (%.1fms)" % frame_ms
++		_audit_lbl_status.text = " AUDIT: FRAME DROP DETECTED (%.1fms)" % frame_ms
+ 		_audit_lbl_status.modulate = Color(1.0, 0.3, 0.3)
+ 		
+-	_audit_lbl_frame.text = "⏱ FRAME DISPATCH & TIMINGS\n  Current FPS: %d FPS  |  Frame Delta: %.2f ms (Budget: 16.6ms)\n  Render CPU: %.2f ms  |  Physics Step: %.2f ms" % [fps, frame_ms, proc_ms, phys_ms]
+-	
+-	_audit_lbl_render.text = "🎮 GPU PIPELINE & GEOMETRY\n  Draw Calls: %d  (Budget <1500)  |  3D Meshes: %d\n  Triangles: %s  |  VRAM: %.1f MB" % [draw_calls, objs, _format_num(prims), vram_mb]
+-	
+-	_audit_lbl_memory.text = "💾 MEMORY & SCENE GRAPH\n  Static RAM: %.1f MB  |  Peak: %.1f MB\n  Scene Nodes: %d" % [ram_mb, peak_ram_mb, nodes]
+-	
+-	_audit_lbl_physics.text = "⚙ SIMULATION & NETWORK\n  Active Bodies: %d  |  Collision Pairs: %d\n  Physics Target: 60 Hz  |  Net Ping: %d ms" % [phys_objs, col_pairs, _current_ping]
++	_audit_lbl_frame.text = " FRAME DISPATCH & TIMINGS\n  Current FPS: %d FPS  |  Frame Delta: %.2f ms (Budget: 16.6ms)\n  Render CPU: %.2f ms  |  Physics Step: %.2f ms" % [fps, frame_ms, proc_ms, phys_ms]
++	
++	_audit_lbl_render.text = " GPU PIPELINE & GEOMETRY\n  Draw Calls: %d  (Budget <1500)  |  3D Meshes: %d\n  Triangles: %s  |  VRAM: %.1f MB" % [draw_calls, objs, _format_num(prims), vram_mb]
++	
++	_audit_lbl_memory.text = " MEMORY & SCENE GRAPH\n  Static RAM: %.1f MB  |  Peak: %.1f MB\n  Scene Nodes: %d" % [ram_mb, peak_ram_mb, nodes]
++	
++	_audit_lbl_physics.text = " SIMULATION & NETWORK\n  Active Bodies: %d  |  Collision Pairs: %d\n  Physics Target: 60 Hz  |  Net Ping: %d ms" % [phys_objs, col_pairs, _current_ping]
+ 	
+ 	# Bottleneck Reason Analysis
+ 	var reasons: Array[String] = []
+@@ -1079,10 +922,10 @@
+ 		reasons.append("GPU FILLRATE / SHADER BOUND")
+ 		
+ 	if reasons.is_empty():
+-		_audit_lbl_verdict.text = "★ AUDIT VERDICT: 60Hz+ FLUID (NO BOTTLENECK)"
++		_audit_lbl_verdict.text = " AUDIT VERDICT: 60Hz+ FLUID (NO BOTTLENECK)"
+ 		_audit_lbl_verdict.modulate = Color(0.3, 0.95, 0.4)
+ 	else:
+-		_audit_lbl_verdict.text = "⚠ BOTTLENECK: " + " • ".join(reasons)
++		_audit_lbl_verdict.text = " BOTTLENECK: " + " • ".join(reasons)
+ 		_audit_lbl_verdict.modulate = Color(1.0, 0.45, 0.2)
+ 
+ func show_board(players: Dictionary, me: String) -> void:
+@@ -1102,7 +945,7 @@
+ 	if not is_instance_valid(_bot_damage_btn):
+ 		return
+ 	if GameState.bot_damage_enabled:
+-		_bot_damage_btn.text = "⚔ BOT DAMAGE: ON (COMBAT) — CLICK TO TURN OFF"
++		_bot_damage_btn.text = " BOT DAMAGE: ON (COMBAT) — CLICK TO TURN OFF"
+ 		var s := StyleBoxFlat.new()
+ 		s.bg_color = Color(0.20, 0.10, 0.08, 0.95)
+ 		s.border_color = Color(0.95, 0.35, 0.20, 0.9)
+@@ -1113,7 +956,7 @@
+ 		_bot_damage_btn.add_theme_stylebox_override("pressed", s)
+ 		_bot_damage_btn.add_theme_color_override("font_color", Color(1.0, 0.6, 0.5))
+ 	else:
+-		_bot_damage_btn.text = "🕊️ BOT DAMAGE: OFF (PEACEFUL) — BOTS WON'T HURT YOU"
++		_bot_damage_btn.text = " BOT DAMAGE: OFF (PEACEFUL) — BOTS WON'T HURT YOU"
+ 		var s := StyleBoxFlat.new()
+ 		s.bg_color = Color(0.08, 0.22, 0.12, 0.95)
+ 		s.border_color = Color(0.25, 0.95, 0.45, 0.9)
+@@ -1128,10 +971,10 @@
+ 	if not is_instance_valid(_pause_bot_btn):
+ 		return
+ 	if GameState.bot_damage_enabled:
+-		_pause_bot_btn.text = "⚔ BOT DAMAGE: ON (COMBAT) — CLICK TO DISABLE"
++		_pause_bot_btn.text = " BOT DAMAGE: ON (COMBAT) — CLICK TO DISABLE"
+ 		_pause_bot_btn.modulate = Color(1.0, 0.8, 0.8)
+ 	else:
+-		_pause_bot_btn.text = "🕊️ BOT DAMAGE: OFF (PEACEFUL MODE ACTIVE)"
++		_pause_bot_btn.text = " BOT DAMAGE: OFF (PEACEFUL MODE ACTIVE)"
+ 		_pause_bot_btn.modulate = Color(0.4, 1.0, 0.6)
+ 
+ func set_paused(paused: bool) -> void:
+@@ -1165,8 +1008,7 @@
+ 				fps_label.modulate = Color(1.0, 0.85, 0.3)
+ 			else:
+ 				fps_label.modulate = Color(1.0, 0.35, 0.3)
+-		var foc := DisplayServer.window_is_focused(0)
+-		print("ENGINE TELEMETRY: fps=", fps, " ms=", ms, " focused=", foc, " draw_calls=", Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME), " phys_ms=", Performance.get_monitor(Performance.TIME_PHYSICS_PROCESS)*1000.0)
++
+ 
+ 	if _hit_t > 0.0:
+ 		_hit_t -= delta
+--- before/warbase-godot/client/scripts/ui/MainMenu.gd
++++ after/warbase-godot/client/scripts/ui/MainMenu.gd
+@@ -4,7 +4,7 @@
+ ## Responsive full-screen VBoxContainer layout:
+ ## - Top: Header Bar (Logo, Server Status, Operator Callsign)
+ ## - Center: Left Feature Nav Bar + Feature Drawer + Center Live Server/Map Browser in front
+-## - Bottom: Guaranteed visible Action Bar with [➕ CREATE MAP / SERVER] on left and [⚡ JOIN MAP / SERVER] on right
++## - Bottom: Guaranteed visible Action Bar with [ CREATE MAP / SERVER] on left and [ JOIN MAP / SERVER] on right
+ ## - Modals: Create Map / Match dialog with map picker and animated "Map Created" banner
+ 
+ signal deploy_requested
+@@ -80,10 +80,7 @@
+ 		var web_host = JavaScriptBridge.eval("window.location.host")
+ 		if web_host != null and not String(web_host).is_empty():
+ 			var h_str := String(web_host)
+-			if h_str.begins_with("localhost") or h_str.begins_with("127.0.0.1"):
+-				GameState.server_host = "localhost:8081"
+-			else:
+-				GameState.server_host = h_str
++			GameState.server_host = h_str
+ 	build_lobby()
+ 	get_viewport().size_changed.connect(_on_window_resized)
+ 	_probe_server()
+@@ -238,14 +235,14 @@
+ 	var right_box := HBoxContainer.new()
+ 	right_box.add_theme_constant_override("separation", 14)
+ 	
+-	status_pill = _mk_label("● CONNECTING...", 11, Color(0.95, 0.85, 0.3))
++	status_pill = _mk_label(" CONNECTING...", 11, Color(0.95, 0.85, 0.3))
+ 	right_box.add_child(status_pill)
+ 	
+ 	var op_tag := _mk_label("OPERATOR: %s" % GameState.username, 11, Color(0.3, 0.85, 0.95))
+ 	right_box.add_child(op_tag)
+ 	
+ 	var settings_quick_btn := Button.new()
+-	settings_quick_btn.text = "⚙ SETTINGS"
++	settings_quick_btn.text = " SETTINGS"
+ 	settings_quick_btn.custom_minimum_size = Vector2(90, 28)
+ 	settings_quick_btn.add_theme_stylebox_override("normal", _style_panel(Color(0.10, 0.12, 0.16), Color(0.22, 0.28, 0.36)))
+ 	settings_quick_btn.pressed.connect(func() -> void:
+@@ -281,10 +278,10 @@
+ 	nav_vbox.add_child(_mk_label("FEATURES", 10, Color(0.55, 0.62, 0.72)))
+ 	
+ 	var tabs_def := [
+-		{"tab": FeatureTab.LOADOUT, "name": "🎒  LOADOUT", "desc": "Weapons & Class"},
+-		{"tab": FeatureTab.MAPS, "name": "🗺️  MAPS", "desc": "5 Combat Theaters"},
+-		{"tab": FeatureTab.OPERATOR, "name": "👤  OPERATOR", "desc": "Callsign & Stats"},
+-		{"tab": FeatureTab.SETTINGS, "name": "⚙️  SETTINGS", "desc": "Audio & Controls"}
++		{"tab": FeatureTab.LOADOUT, "name": "  LOADOUT", "desc": "Weapons & Class"},
++		{"tab": FeatureTab.MAPS, "name": "  MAPS", "desc": "5 Combat Theaters"},
++		{"tab": FeatureTab.OPERATOR, "name": "  OPERATOR", "desc": "Callsign & Stats"},
++		{"tab": FeatureTab.SETTINGS, "name": "  SETTINGS", "desc": "Audio & Controls"}
+ 	]
+ 	
+ 	for t in tabs_def:
+@@ -379,16 +376,16 @@
+ 		
+ 	match current_tab:
+ 		FeatureTab.LOADOUT:
+-			drawer_title.text = "🎒 COMBAT LOADOUT & ARMORY"
++			drawer_title.text = " COMBAT LOADOUT & ARMORY"
+ 			_build_loadout_content()
+ 		FeatureTab.MAPS:
+-			drawer_title.text = "🗺️ THEATER INTEL & MAPS"
++			drawer_title.text = " THEATER INTEL & MAPS"
+ 			_build_maps_content()
+ 		FeatureTab.OPERATOR:
+-			drawer_title.text = "👤 OPERATOR DOSSIER"
++			drawer_title.text = " OPERATOR DOSSIER"
+ 			_build_operator_content()
+ 		FeatureTab.SETTINGS:
+-			drawer_title.text = "⚙️ TACTICAL CONFIGURATION"
++			drawer_title.text = " TACTICAL CONFIGURATION"
+ 			_build_settings_content()
+ 
+ func _build_loadout_content() -> void:
+@@ -407,14 +404,14 @@
+ 			"name": "SCOUT RECON",
+ 			"primary": "M2010 Sniper (.300 WM)",
+ 			"desc": "1-shot lethal headshots • 8x Scope & Steady Breath",
+-			"dmg": "100%", "rate": "48 RPM", "range": "250m", "mag": "5 RDS"
++			"dmg": "100%", "rate": "45 RPM", "range": "250m", "mag": "5 RDS"
+ 		},
+ 		{
+ 			"id": "INFILTRATOR",
+ 			"name": "SPEC-OPS INFILTRATOR",
+-			"primary": "Tactical 9mm Pistol",
+-			"desc": "Maximum sprint speed • Rapid CQB sidearm",
+-			"dmg": "35%", "rate": "450 RPM", "range": "40m", "mag": "15 RDS"
++			"primary": "Pistol .50",
++			"desc": "Fast pistol draw • Precise CQB sidearm",
++			"dmg": "35%", "rate": "400 RPM", "range": "40m", "mag": "12 RDS"
+ 		}
+ 	]
+ 	
+@@ -455,8 +452,8 @@
+ 	drawer_content.add_child(_mk_label("EQUIPMENT & VEHICLE INTEL", 10, Color(0.60, 0.68, 0.78)))
+ 	
+ 	var items := [
+-		{"icon": "💣", "name": "M67 Frag Grenade", "stat": "3.0s Fuse • 8m Blast • Kinetic Bounce"},
+-		{"icon": "🚙", "name": "M1151 Armored Combat Van", "stat": "115 km/h Overdrive • 4WD • .50 Cal Turret"}
++		{"icon": "", "name": "M67 Frag Grenade", "stat": "3.0s Fuse • 8m Blast • Kinetic Bounce"},
++		{"icon": "", "name": "M1151 Armored Combat Van", "stat": "115 km/h Overdrive • 4WD • .50 Cal Turret"}
+ 	]
+ 	for it in items:
+ 		var p := PanelContainer.new()
+@@ -492,7 +489,7 @@
+ 		pv.add_child(_mk_label(m["desc"], 8, Color(0.65, 0.70, 0.78)))
+ 		
+ 		var sel_b := Button.new()
+-		sel_b.text = "SELECT MAP" if not is_cur else "✓ CURRENT MAP"
++		sel_b.text = "SELECT MAP" if not is_cur else " CURRENT MAP"
+ 		sel_b.custom_minimum_size = Vector2(0, 24)
+ 		sel_b.pressed.connect(func() -> void:
+ 			Audio.ui_btn_click()
+@@ -540,7 +537,9 @@
+ 	sens_s.max_value = 0.006
+ 	sens_s.step = 0.0001
+ 	sens_s.value = GameState.BASE_SENSITIVITY
+-	sens_s.value_changed.connect(func(v: float) -> void: GameState.BASE_SENSITIVITY = v)
++	sens_s.value_changed.connect(func(v: float) -> void:
++		GameState.BASE_SENSITIVITY = v
++		GameState.save_settings())
+ 	drawer_content.add_child(sens_s)
+ 	
+ 	drawer_content.add_child(_mk_label("SFX VOLUME", 10, Color(0.60, 0.68, 0.78)))
+@@ -549,7 +548,9 @@
+ 	vol_s.max_value = 1.0
+ 	vol_s.step = 0.05
+ 	vol_s.value = Audio.sfx_volume
+-	vol_s.value_changed.connect(func(v: float) -> void: Audio.sfx_volume = v)
++	vol_s.value_changed.connect(func(v: float) -> void:
++		Audio.sfx_volume = v
++		GameState.save_settings())
+ 	drawer_content.add_child(vol_s)
+ 	
+ 	drawer_content.add_child(_mk_label("PEACEFUL PRACTICE MODE", 10, Color(0.60, 0.68, 0.78)))
+@@ -652,7 +653,7 @@
+ 	
+ 	# BOTTOM-LEFT: CREATE MAP / SERVER BUTTON
+ 	var create_btn := Button.new()
+-	create_btn.text = "➕  CREATE MAP / SERVER"
++	create_btn.text = "  CREATE MAP / SERVER"
+ 	create_btn.custom_minimum_size = Vector2(210, 42)
+ 	create_btn.add_theme_font_size_override("font_size", 12)
+ 	create_btn.add_theme_stylebox_override("normal", _style_panel(Color(0.12, 0.18, 0.28), Color(0.3, 0.65, 0.95), 5, 2))
+@@ -683,7 +684,7 @@
+ 	
+ 	# BOTTOM-RIGHT: JOIN MAP / SERVER DEPLOY BUTTON
+ 	join_btn = Button.new()
+-	join_btn.text = "⚡  JOIN MAP • DEPLOY"
++	join_btn.text = "  JOIN MAP • DEPLOY"
+ 	join_btn.custom_minimum_size = Vector2(230, 42)
+ 	join_btn.add_theme_font_size_override("font_size", 13)
+ 	var j_norm := _style_panel(Color(0.85, 0.20, 0.15), Color(1.0, 0.45, 0.35), 6, 2)
+@@ -693,10 +694,19 @@
+ 	join_btn.mouse_entered.connect(func() -> void: Audio.ui_btn_hover())
+ 	join_btn.pressed.connect(func() -> void:
+ 		Audio.ui_btn_click()
++		GameState.practice_mode = false
+ 		deploy_requested.emit()
+ 	)
+ 	_make_interactive(join_btn)
+ 	f_hbox.add_child(join_btn)
++	var practice_btn := Button.new()
++	practice_btn.text = "OFFLINE PRACTICE"
++	practice_btn.custom_minimum_size = Vector2(160, 42)
++	practice_btn.pressed.connect(func() -> void:
++		GameState.practice_mode = true
++		deploy_requested.emit()
++	)
++	f_hbox.add_child(practice_btn)
+ 
+ # ==============================================================================
+ # CREATE MAP / SERVER MODAL DIALOG
+@@ -723,10 +733,10 @@
+ 	m.add_child(mv)
+ 	
+ 	var title_row := HBoxContainer.new()
+-	title_row.add_child(_mk_label("➕ CREATE MAP / HOST MATCH", 15, Color(0.95, 0.35, 0.25)))
++	title_row.add_child(_mk_label(" CREATE MAP / HOST MATCH", 15, Color(0.95, 0.35, 0.25)))
+ 	title_row.add_spacer(false)
+ 	var x_btn := Button.new()
+-	x_btn.text = "✕"
++	x_btn.text = "X"
+ 	x_btn.custom_minimum_size = Vector2(26, 26)
+ 	x_btn.pressed.connect(func() -> void:
+ 		Audio.ui_btn_click()
+@@ -810,7 +820,7 @@
+ 	act_row.add_child(cancel_btn)
+ 	
+ 	var launch_btn := Button.new()
+-	launch_btn.text = "⚡ LAUNCH MAP / SERVER"
++	launch_btn.text = " LAUNCH MAP / SERVER"
+ 	launch_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+ 	launch_btn.custom_minimum_size = Vector2(0, 36)
+ 	launch_btn.add_theme_stylebox_override("normal", _style_panel(Color(0.2, 0.6, 0.35), Color(0.3, 0.9, 0.45), 5))
+@@ -865,13 +875,17 @@
+ 	add_child(req)
+ 	req.request_completed.connect(func(_rc: int, _code: int, _h: PackedStringArray, body: PackedByteArray) -> void:
+ 		req.queue_free()
++		if _rc != HTTPRequest.RESULT_SUCCESS or _code != 201:
++			_show_toast("Could not create match. Check the connection and try again.", false)
++			return
+ 		var txt := body.get_string_from_utf8()
+ 		var new_room_id := ""
+ 		var jr := JSON.new()
+ 		if jr.parse(txt) == OK and jr.data is Dictionary:
+ 			new_room_id = String((jr.data as Dictionary).get("room_id", ""))
+ 		if new_room_id.is_empty():
+-			new_room_id = "%s-%x" % [create_map_id, randi() % 9999]
++			_show_toast("Server returned an invalid room. Please try again.", false)
++			return
+ 			
+ 		GameState.room_id = new_room_id
+ 		GameState.selected_map = create_map_id
+@@ -879,7 +893,7 @@
+ 		_selected_room_id = new_room_id
+ 		
+ 		Audio.hitmarker(true)
+-		_show_toast("✦ MAP CREATED & DEPLOYED: %s [%s]!" % [r_name.to_upper(), create_map_id.to_upper()], true)
++		_show_toast("+ MAP CREATED & DEPLOYED: %s [%s]!" % [r_name.to_upper(), create_map_id.to_upper()], true)
+ 		
+ 		_update_footer_selection()
+ 		refresh_rooms()
+@@ -891,13 +905,7 @@
+ 	var err := req.request("%s://%s/api/rooms" % [scheme, clean], headers, HTTPClient.METHOD_POST, payload)
+ 	if err != OK:
+ 		req.queue_free()
+-		GameState.room_id = "%s-%x" % [create_map_id, randi() % 9999]
+-		GameState.selected_map = create_map_id
+-		GameState.selected_mode = create_mode_id
+-		_selected_room_id = GameState.room_id
+-		_show_toast("✦ MAP CREATED: %s [%s]!" % [r_name.to_upper(), create_map_id.to_upper()], true)
+-		_update_footer_selection()
+-		refresh_rooms()
++		_show_toast("Could not reach the server. Match was not created.", false)
+ 
+ # ==============================================================================
+ # AWESOME TOAST BANNER
+@@ -955,11 +963,11 @@
+ 		req.queue_free()
+ 		if code >= 200 and code < 300:
+ 			if is_instance_valid(status_pill):
+-				status_pill.text = "● SERVER ONLINE  [%s]" % clean
++				status_pill.text = " SERVER ONLINE  [%s]" % clean
+ 				status_pill.add_theme_color_override("font_color", Color(0.2, 0.95, 0.4))
+ 		else:
+ 			if is_instance_valid(status_pill):
+-				status_pill.text = "● SERVER OFFLINE  [%s]" % clean
++				status_pill.text = " SERVER OFFLINE  [%s]" % clean
+ 				status_pill.add_theme_color_override("font_color", Color(0.95, 0.25, 0.2))
+ 	)
+ 	var headers: PackedStringArray = PackedStringArray(["User-Agent: Mozilla/5.0 WarBase-Client/2.4"])
+@@ -1064,12 +1072,12 @@
+ 		
+ 		# Player Count Badge
+ 		var p_color := Color(0.2, 0.95, 0.4) if pcount > 0 else Color(0.6, 0.65, 0.75)
+-		var p_badge := _mk_label("%d/16 PLAYERS" % pcount, 10, p_color)
++		var p_badge := _mk_label("%d/%d PLAYERS" % [pcount, int(r.get("capacity", 64))], 10, p_color)
+ 		badges.add_child(p_badge)
+ 		
+ 		# Selection indicator
+ 		if is_selected:
+-			var sel_badge := _mk_label("● SELECTED", 9, Color(0.95, 0.45, 0.25))
++			var sel_badge := _mk_label(" SELECTED", 9, Color(0.95, 0.45, 0.25))
+ 			badges.add_child(sel_badge)
+ 			
+ 		row.add_child(badges)
+@@ -1085,6 +1093,7 @@
+ 		rooms_box.add_child(card)
+ 
+ func _select_server(r: Dictionary) -> void:
++	GameState.practice_mode = false
+ 	var rid := String(r.get("id", "industrial-public"))
+ 	var rmap := String(r.get("map", "industrial"))
+ 	var rmode := String(r.get("mode", "FFA"))
+@@ -1101,4 +1110,4 @@
+ 	if is_instance_valid(selected_server_label):
+ 		selected_server_label.text = "SELECTED: %s [%s]" % [GameState.room_id.to_upper(), GameState.selected_map.to_upper()]
+ 	if is_instance_valid(join_btn):
+-		join_btn.text = "⚡  JOIN %s • DEPLOY" % [GameState.selected_map.to_upper()]
++		join_btn.text = "  JOIN %s • DEPLOY" % [GameState.selected_map.to_upper()]
+--- before/warbase-godot/client/scripts/net/NetworkManager.gd
++++ after/warbase-godot/client/scripts/net/NetworkManager.gd
+@@ -7,9 +7,11 @@
+ signal fire_received(shooter: String, origin: Vector3, hit: Vector3, normal: Vector3, wall: bool)
+ signal hit_confirmed()
+ signal kill_confirmed()
+-signal grenade_received(shooter: String, pos: Vector3, vel: Vector3)
++signal grenade_received(shooter: String, pos: Vector3, vel: Vector3, grenade_id: int)
++signal explosion_received(grenade_id: int, pos: Vector3)
+ signal respawn_received(pos: Vector3)
+ signal connection_changed(connected: bool)
++signal connection_error(reason: String)
+ 
+ var ws := WebSocketPeer.new()
+ var connected := false
+@@ -50,11 +52,7 @@
+ 			scheme = "ws"
+ 		if web_host != null and not String(web_host).is_empty():
+ 			var h_str := String(web_host)
+-			if h_str.begins_with("localhost") or h_str.begins_with("127.0.0.1"):
+-				# Local dev: Game server is on port 8081
+-				_host = "localhost:8081"
+-			else:
+-				_host = h_str
++			_host = h_str
+ 			
+ 	var clean_host := _host.trim_prefix("https://").trim_prefix("http://").trim_prefix("wss://").trim_prefix("ws://").trim_suffix("/")
+ 	var cid := _load_or_make_cid()
+@@ -83,6 +81,7 @@
+ 	return c
+ 
+ func disconnect_from() -> void:
++	_reconnect_t = -1.0
+ 	_want_connection = false
+ 	ws.close()
+ 	_set_connected(false)
+@@ -96,7 +95,8 @@
+ 	ws.poll()
+ 	var st := ws.get_ready_state()
+ 	if st == WebSocketPeer.STATE_OPEN:
+-		_set_connected(true)
++		if not connected:
++			_set_connected(true)
+ 		_reconnect_attempts = 0
+ 		while ws.get_available_packet_count() > 0:
+ 			var pkt := ws.get_packet()
+@@ -107,17 +107,22 @@
+ 			_ping_sent_ms = int(Time.get_ticks_msec())
+ 			_send(WarProto.encode_ping(_ping_sent_ms))
+ 	elif st == WebSocketPeer.STATE_CLOSED or st == WebSocketPeer.STATE_CLOSING:
++		if st == WebSocketPeer.STATE_CLOSED and ws.get_close_code() == 1008 and _want_connection:
++			_want_connection = false
++			connection_error.emit(ws.get_close_reason())
+ 		_set_connected(false)
+ 		if _want_connection:
+ 			if _reconnect_t < 0.0:
+ 				_schedule_reconnect()
+-	if _reconnect_t >= 0.0:
++	if _want_connection and _reconnect_t >= 0.0:
+ 		_reconnect_t -= delta
+ 		if _reconnect_t < 0.0:
+ 			_do_connect()
+ 
+ func _schedule_reconnect() -> void:
+ 	if _reconnect_attempts >= _max_reconnect:
++		_want_connection = false
++		connection_error.emit("Unable to reconnect")
+ 		return
+ 	var delay: float = min(pow(2.0, _reconnect_attempts), 10.0)
+ 	_reconnect_attempts += 1
+@@ -135,7 +140,9 @@
+ 		"kill_confirmed":
+ 			kill_confirmed.emit()
+ 		"grenade":
+-			grenade_received.emit(msg["shooter"], msg["pos"], msg["vel"])
++			grenade_received.emit(msg["shooter"], msg["pos"], msg["vel"], msg.get("id", 0))
++		"explosion":
++			explosion_received.emit(msg["id"], msg["pos"])
+ 		"respawn":
+ 			respawn_received.emit(Vector3(msg["x"], msg["y"], msg["z"]))
+ 		"pong":
+@@ -154,11 +161,11 @@
+ 		return
+ 	_send(WarProto.encode_state(pos.x, pos.y, pos.z, quat.x, quat.y, quat.z, quat.w, anim, current_ping, weapon))
+ 
+-func send_fire(o: Vector3, h: Vector3, n: Vector3, wall: bool) -> void:
+-	_send(WarProto.encode_fire(o, h, n, wall))
++func send_fire(o: Vector3, h: Vector3, n: Vector3, wall: bool, shot_id: int = 0) -> void:
++	_send(WarProto.encode_fire(o, h, n, wall, shot_id))
+ 
+-func send_hit(target: String, damage: int) -> void:
+-	_send(WarProto.encode_hit(target, damage))
++func send_hit(target: String, damage: int, shot_id: int = 0) -> void:
++	_send(WarProto.encode_hit(target, damage, shot_id))
+ 
+ func send_reload() -> void:
+ 	_send(WarProto.encode_reload())
+--- before/warbase-godot/client/scripts/net/MultiplayerManager.gd
++++ after/warbase-godot/client/scripts/net/MultiplayerManager.gd
+@@ -15,14 +15,15 @@
+ 	net.state_received.connect(_on_state)
+ 	net.fire_received.connect(_on_fire)
+ 	net.grenade_received.connect(_on_grenade)
++	net.explosion_received.connect(_on_explosion)
+ 
+ func _on_state(state: Dictionary) -> void:
+ 	var players: Dictionary = state.get("players", {})
+ 	for pid in players.keys():
+ 		if pid == local_name or pid == GameState.username:
+ 			var s_p: Dictionary = players[pid]
+-			var local_k: int = maxi(int(s_p.get("kills", 0)), GameState.local_kills)
+-			var local_d: int = maxi(int(s_p.get("deaths", 0)), GameState.local_deaths)
++			var local_k: int = int(s_p.get("kills", 0))
++			var local_d: int = int(s_p.get("deaths", 0))
+ 			var current_hp := 100
+ 			var main_scene = get_tree().current_scene
+ 			if main_scene and "player" in main_scene and is_instance_valid(main_scene.player):
+@@ -80,9 +81,9 @@
+ 		var me: Dictionary = players[local_name]
+ 		GameState.local_team = String(me.get("team", "A"))
+ 		if me.has("kills"):
+-			GameState.local_kills = maxi(GameState.local_kills, int(me.get("kills")))
++			GameState.local_kills = int(me.get("kills"))
+ 		if me.has("deaths"):
+-			GameState.local_deaths = maxi(GameState.local_deaths, int(me.get("deaths")))
++			GameState.local_deaths = int(me.get("deaths"))
+ 
+ func _process(delta: float) -> void:
+ 	for r in remotes.values():
+@@ -95,13 +96,29 @@
+ 	if main and main.has_method("remote_shoot_fx"):
+ 		main.remote_shoot_fx(origin, hit, normal, wall)
+ 
+-func _on_grenade(_shooter: String, pos: Vector3, vel: Vector3) -> void:
++func _on_grenade(_shooter: String, pos: Vector3, vel: Vector3, grenade_id: int) -> void:
+ 	var main := get_tree().current_scene
+ 	if main and main.has_method("spawn_grenade"):
+-		main.spawn_grenade(pos, vel)
++		var grenade = main.spawn_grenade(pos, vel)
++		grenade.set_meta("server_id", grenade_id)
+ 
+ func clear() -> void:
+ 	for r in remotes.values():
+ 		if is_instance_valid(r):
+ 			(r as Node).queue_free()
+ 	remotes.clear()
++
++func _on_explosion(grenade_id: int, pos: Vector3) -> void:
++	var main := get_tree().current_scene
++	if not main or not main.has_method("spawn_grenade"):
++		return
++	var grenade: WarGrenade
++	for candidate in get_tree().get_nodes_in_group("grenades"):
++		if int(candidate.get_meta("server_id", -1)) == grenade_id:
++			grenade = candidate
++			break
++	if not grenade:
++		grenade = main.spawn_grenade(pos, Vector3.ZERO)
++	grenade.global_position = pos
++	grenade._done = true
++	grenade._detonate()
+--- before/warbase-godot/client/scripts/net/RemotePlayer.gd
++++ after/warbase-godot/client/scripts/net/RemotePlayer.gd
+@@ -76,7 +76,7 @@
+ 	
+ 	if is_instance_valid(name_label):
+ 		name_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+-		name_label.no_depth_test = true
++		name_label.no_depth_test = false
+ 		name_label.render_priority = 10
+ 		name_label.outline_render_priority = 9
+ 		name_label.outline_size = 12
+@@ -85,7 +85,7 @@
+ 		name_label.font_size = 48
+ 		name_label.position = Vector3(0, 2.30, 0)
+ 		name_label.modulate = Color(0.35, 0.65, 1.0) if _is_friendly() else Color(1.0, 0.35, 0.3)
+-		name_label.text = "▼ %s  [%d HP]" % [player_id, int(health)]
++		name_label.text = " %s  [%d HP]" % [player_id, int(health)]
+ 		
+ 	push_state(st)
+ 	_sync_anim(String(st.get("anim", "idle")), bool(st.get("is_dead", false)))
+@@ -178,7 +178,7 @@
+ 		var rb := _claimed_jeep as RigidBody3D
+ 		rb.linear_velocity = Vector3.ZERO
+ 		rb.angular_velocity = Vector3.ZERO
+-		rb.freeze_mode = RigidBody3D.FREEZE_MODE_KINEMATIC
++		rb.freeze_mode = RigidBody3D.FREEZE_MODE_STATIC
+ 		rb.freeze = true
+ 	if _claimed_jeep is CollisionObject3D:
+ 		(_claimed_jeep as CollisionObject3D).collision_layer = 4
+@@ -315,7 +315,7 @@
+ 		return
+ 	health = maxf(0.0, health - dmg)
+ 	if is_instance_valid(name_label):
+-		name_label.text = "▼ %s  [%d HP]" % [player_id, int(health)]
++		name_label.text = " %s  [%d HP]" % [player_id, int(health)]
+ 		if health <= 0.0:
+ 			name_label.visible = false
+ 	if health <= 0.0:
+@@ -404,7 +404,7 @@
+ 		if is_instance_valid(name_label):
+ 			name_label.visible = (_current_lod < 2)
+ 			name_label.modulate = Color(0.35, 0.65, 1.0) if _is_friendly() else Color(1.0, 0.35, 0.3)
+-			name_label.text = "▼ %s  [%d]" % [player_id, int(maxf(0.0, health))]
++			name_label.text = " %s  [%d]" % [player_id, int(maxf(0.0, health))]
+ 
+ func interpolate(delta: float = 0.016) -> void:
+ 	_lod_timer += delta
+@@ -477,6 +477,8 @@
+ 		_set_lod(1)
+ 	else:
+ 		_set_lod(0)
++	if is_instance_valid(name_label):
++		name_label.visible = not dead and d >= 2.0 and d <= 60.0
+ 
+ func _set_lod(new_lod: int) -> void:
+ 	if _current_lod == new_lod or dead:
+@@ -497,7 +499,7 @@
+ 		1: # Mid (45m - 120m): Disable arm/leg hitboxes, simplify nameplate outline
+ 			for a in _limb_areas:
+ 				if is_instance_valid(a):
+-					a.collision_layer = 0
++					a.collision_layer = 4
+ 			if is_instance_valid(_head_area):
+ 				_head_area.collision_layer = 4
+ 			if is_instance_valid(_torso_area):
+@@ -511,7 +513,7 @@
+ 		2: # Far (>120m): Disable limb hitboxes, hide beacons & far billboard
+ 			for a in _limb_areas:
+ 				if is_instance_valid(a):
+-					a.collision_layer = 0
++					a.collision_layer = 4
+ 			if is_instance_valid(_head_area):
+ 				_head_area.collision_layer = 4
+ 			if is_instance_valid(_torso_area):
+--- before/warbase-godot/client/scripts/core/Player.gd
++++ after/warbase-godot/client/scripts/core/Player.gd
+@@ -85,6 +85,7 @@
+ 	_step_query_high.exclude = [get_rid()]
+ 	_step_query_high.collision_mask = 1
+ 
++var aim_sway := Vector2.ZERO
+ var recoil_pitch := 0.0
+ var recoil_yaw := 0.0
+ var _shake_trauma := 0.0
+@@ -100,7 +101,7 @@
+ 	if is_dead or is_driving:
+ 		return
+ 	var ads_weight: float = (float(ads_input) if (ads_input is float or ads_input is int) else (1.0 if ads_input else 0.0))
+-	var zoom_scale: float = clampf(camera.fov / GameState.BASE_FOV, 0.15, 1.0)
++	var zoom_scale: float = clampf(tan(deg_to_rad(camera.fov) * 0.5) / tan(deg_to_rad(GameState.BASE_FOV) * 0.5), 0.08, 1.0)
+ 	var sens: float = GameState.BASE_SENSITIVITY * lerpf(1.0, zoom_scale, clampf(ads_weight, 0.0, 1.0))
+ 	yaw -= dx * sens
+ 	pitch -= dy * sens
+@@ -111,6 +112,7 @@
+ func _process(delta: float) -> void:
+ 	if is_dead or is_driving:
+ 		return
++	delta = minf(delta, 0.05)
+ 	# High-refresh per-frame camera recoil recovery and orientation
+ 	recoil_pitch = lerpf(recoil_pitch, 0.0, 14.0 * delta)
+ 	recoil_yaw = lerpf(recoil_yaw, 0.0, 14.0 * delta)
+@@ -139,18 +141,21 @@
+ 	# Head aiming pitch (true weapon raycast axis)
+ 	head.rotation.x = clampf(pitch + recoil_pitch, -PI / 2.1, PI / 2.1)
+ 	
++	head.rotation.z = 0.0
+ 	# Blast trauma screen shake decay
+ 	if _shake_trauma > 0.001:
+ 		_shake_trauma = maxf(0.0, _shake_trauma - 2.8 * delta)
+ 		var shake_p := _shake_trauma * _shake_trauma
+-		head.rotation.z += (randf() * 2.0 - 1.0) * shake_p * 0.12
++		head.rotation.z = (randf() * 2.0 - 1.0) * shake_p * 0.12
+ 		head.rotation.x += (randf() * 2.0 - 1.0) * shake_p * 0.08
+ 	
+ 	# Camera local rotation: procedural body physics (jump tilt, landing nod, roll)
+-	camera.rotation.x = _land_pitch + _jump_kick_pitch + _air_tilt_pitch
++	var wsys := get_node_or_null("../WeaponSystem")
++	var ads_weight: float = wsys.ads_amount if wsys else 0.0
++	camera.rotation.x = (_land_pitch + _jump_kick_pitch + _air_tilt_pitch) * (1.0 - ads_weight * 0.9) + aim_sway.y
++	camera.rotation.y = aim_sway.x
+ 	
+ 	# Strafe camera roll (stabilized during ADS for accurate sight alignment)
+-	var wsys := get_node_or_null("../WeaponSystem")
+ 	var ix := Input.get_axis("move_left", "move_right")
+ 	var roll_damp := (0.35 if (wsys and wsys.ads_amount > 0.3) else 1.0)
+ 	var target_roll := -ix * 0.02 * roll_damp + (_air_roll if not is_grounded else 0.0)
+@@ -168,7 +173,7 @@
+ 	camera.fov = current_fov
+ 
+ func _physics_process(delta: float) -> void:
+-	if is_dead or is_driving:
++	if is_dead or is_driving or not GameState.online_ready:
+ 		velocity = Vector3.ZERO
+ 		return
+ 		
+@@ -202,7 +207,7 @@
+ 	right.y = 0
+ 	right = right.normalized()
+ 	
+-	is_sprinting = Input.is_action_pressed("sprint") and iz > 0.1 and is_grounded and not is_crouching
++	is_sprinting = Input.is_action_pressed("sprint") and iz > 0.1 and is_grounded and not is_crouching and not Input.is_action_pressed("ads")
+ 	is_crouching = Input.is_action_pressed("crouch")
+ 	
+ 	var speed := GameState.WALK_SPEED
+@@ -210,6 +215,8 @@
+ 		speed = GameState.SPRINT_SPEED
+ 	if is_crouching:
+ 		speed = GameState.CROUCH_SPEED
++	if Input.is_action_pressed("ads"):
++		speed *= 0.65
+ 		
+ 	var wsys := get_node_or_null("../WeaponSystem")
+ 	if wsys and wsys.is_firing and is_grounded and not is_crouching:
+@@ -331,7 +338,7 @@
+ 		_col.position.y = cap.height * 0.5
+ 
+ func take_bot_damage(dmg: float, attacker_pos: Vector3 = Vector3.ZERO) -> void:
+-	if is_dead or not GameState.bot_damage_enabled:
++	if is_dead or not GameState.practice_mode or not GameState.bot_damage_enabled:
+ 		return
+ 	health -= dmg
+ 	Audio.hurt()
+--- before/warbase-godot/client/scripts/core/Proto.gd
++++ after/warbase-godot/client/scripts/core/Proto.gd
+@@ -67,18 +67,20 @@
+ 	p += _strf(11, weapon)
+ 	return _len(CE_STATE, p)
+ 
+-static func encode_hit(target: String, damage: int) -> PackedByteArray:
++static func encode_hit(target: String, damage: int, shot_id: int = 0) -> PackedByteArray:
+ 	var p := PackedByteArray()
+ 	p += _strf(1, target)
+ 	p += _i32f(2, damage)
++	p += _i32f(3, shot_id)
+ 	return _len(CE_HIT, p)
+ 
+-static func encode_fire(o: Vector3, h: Vector3, n: Vector3, wall: bool) -> PackedByteArray:
++static func encode_fire(o: Vector3, h: Vector3, n: Vector3, wall: bool, shot_id: int = 0) -> PackedByteArray:
+ 	var p := PackedByteArray()
+ 	p += _f32f(1, o.x); p += _f32f(2, o.y); p += _f32f(3, o.z)
+ 	p += _f32f(4, h.x); p += _f32f(5, h.y); p += _f32f(6, h.z)
+ 	p += _f32f(7, n.x); p += _f32f(8, n.y); p += _f32f(9, n.z)
+ 	p += _boolf(10, wall)
++	p += _i32f(11, shot_id)
+ 	return _len(CE_FIRE, p)
+ 
+ static func encode_reload() -> PackedByteArray:
+@@ -168,6 +170,8 @@
+ 		var score_a := 0
+ 		var score_b := 0
+ 		var winner := ""
++		var map_name := ""
++		var protocol_version := 0
+ 		while not r.eof():
+ 			var tag := r.read_varint()
+ 			var field := tag >> 3
+@@ -179,6 +183,8 @@
+ 						score_a = val
+ 					elif field == 5:
+ 						score_b = val
++					elif field == 8:
++						protocol_version = val
+ 				1:
+ 					r.read_bytes(8)
+ 				2:
+@@ -216,6 +222,8 @@
+ 						room_state = b.get_string_from_utf8()
+ 					elif field == 6:
+ 						winner = b.get_string_from_utf8()
++					elif field == 7:
++						map_name = b.get_string_from_utf8()
+ 				5:
+ 					r.read_f32()
+ 				_:
+@@ -228,10 +236,11 @@
+ 			"score_a": score_a,
+ 			"score_b": score_b,
+ 			"winner": winner,
++			"map_name": map_name, "protocol_version": protocol_version,
+ 		}
+ 	if top.has(2):
+ 		var se := _parse_msg(top[2])
+-		for f in [1, 2, 3, 4, 5, 6]:
++		for f in [1, 2, 3, 4, 5, 6, 7]:
+ 			if se.has(f):
+ 				var e := _parse_msg(se[f])
+ 				match f:
+@@ -252,11 +261,14 @@
+ 					5:
+ 						return {
+ 							"kind": "grenade", "shooter": e.get(1, PackedByteArray()).get_string_from_utf8() if e.get(1) is PackedByteArray else "",
++							"id": int(e.get(8, 0)),
+ 							"pos": Vector3(e.get(2, 0.0), e.get(3, 0.0), e.get(4, 0.0)),
+ 							"vel": Vector3(e.get(5, 0.0), e.get(6, 0.0), e.get(7, 0.0)),
+ 						}
+ 					6:
+ 						return {"kind": "pong", "t": e.get(1, 0)}
++					7:
++						return {"kind": "explosion", "id": int(e.get(1, 0)), "pos": Vector3(e.get(3, 0.0), e.get(4, 0.0), e.get(5, 0.0))}
+ 	return {"kind": "unknown"}
+ 
+ static func _parse_player(data: PackedByteArray) -> Dictionary:
+@@ -273,4 +285,5 @@
+ 		"deaths": f.get(11, 0), "is_dead": is_dead,
+ 		"platform": s.call(13), "ping": f.get(14, 0),
+ 		"weapon": s.call(15), "team": s.call(16),
++		"ammo": f.get(17, 0), "reloading": f.get(18, 0) == 1, "last_shot_id": f.get(19, 0),
+ 	}
+--- before/warbase-godot/client/scripts/core/Main.gd
++++ after/warbase-godot/client/scripts/core/Main.gd
+@@ -30,6 +30,9 @@
+ var _send_acc := 0.0
+ var _respawn_t := 0.0
+ var _grenade_cd := 0.0
++var _last_winner := ""
++var _last_round_finished := false
++var _network_correction_count := 0
+ 
+ var _autotest := false
+ var _test_t := 0.0
+@@ -59,6 +62,7 @@
+ 	for a in OS.get_cmdline_user_args():
+ 		if a == "autotest":
+ 			_autotest = true
++			GameState.practice_mode = true
+ 		if a.begins_with("map="):
+ 			GameState.selected_map = a.trim_prefix("map=")
+ 		if a.begins_with("host="):
+@@ -66,10 +70,12 @@
+ 			
+ 	world = Node3D.new()
+ 	world.name = "World"
++	world.process_mode = Node.PROCESS_MODE_PAUSABLE
+ 	add_child(world)
+ 	
+ 	net = NetScript.new()
+ 	net.name = "Net"
++	net.process_mode = Node.PROCESS_MODE_ALWAYS
+ 	add_child(net)
+ 	
+ 	hud = HudScript.new()
+@@ -90,14 +96,26 @@
+ 	net.kill_confirmed.connect(_on_kill_confirmed)
+ 	net.respawn_received.connect(_on_net_respawn)
+ 	net.connection_changed.connect(_on_conn)
++	net.connection_error.connect(func(reason: String) -> void:
++		GameState.online_ready = false
++		hud.feed(reason + " — press ESC to return to the lobby.", Color(1, 0.4, 0.3))
++	)
+ 
+ func _on_deploy() -> void:
++	var name_rule := RegEx.new()
++	name_rule.compile("^[A-Za-z0-9_-]{3,16}$")
++	if name_rule.search(GameState.username) == null:
++		menu._show_toast("Callsign: use 3–16 letters, numbers, underscores or hyphens.", false)
++		return
+ 	menu.visible = false
++	if _autotest:
++		GameState.set_bot_damage(false)
+ 	_start_match()
+ 	if _autotest:
+ 		print("AUTOTEST: deployed map=", GameState.selected_map, " player_at=", player.global_position)
+ 
+ func _start_match() -> void:
++	GameState.online_ready = GameState.practice_mode
+ 	GameState.reset_match_stats()
+ 	
+ 	# Map generation
+@@ -134,6 +152,7 @@
+ 	bots = BotMgrScript.new()
+ 	bots.name = "Bots"
+ 	world.add_child(bots)
++	bots.target_count = 7 if GameState.practice_mode else 0
+ 	bots.setup(player, spawns)
+ 	bots.bot_eliminated.connect(_on_bot_eliminated)
+ 	
+@@ -142,7 +161,8 @@
+ 	mp.name = "Multiplayer"
+ 	world.add_child(mp)
+ 	mp.setup(net, world, GameState.username)
+-	net.connect_to(GameState.username, GameState.room_id if not GameState.room_id.is_empty() else "industrial-public", GameState.server_host)
++	if not GameState.practice_mode:
++		net.connect_to(GameState.username, GameState.room_id if not GameState.room_id.is_empty() else "industrial-public", GameState.server_host)
+ 	
+ 	phase = Phase.PLAYING
+ 	hud.visible = true
+@@ -169,18 +189,18 @@
+ 	if event.is_action_pressed("scoreboard"):
+ 		_toggle_scoreboard()
+ 		return
+-	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_P:
++	if GameState.practice_mode and event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_P:
+ 		GameState.toggle_bot_damage()
+ 		Audio.ui_btn_click()
+ 		if GameState.bot_damage_enabled:
+-			hud.feed("⚔ Combat Mode: Bot Damage Enabled", Color(1.0, 0.45, 0.25))
++			hud.feed(" Combat Mode: Bot Damage Enabled", Color(1.0, 0.45, 0.25))
+ 		else:
+-			hud.feed("🕊️ Peaceful Mode: Bot Damage OFF — Walk & Drive in Peace!", Color(0.3, 0.95, 0.4))
++			hud.feed(" Peaceful Mode: Bot Damage OFF — Walk & Drive in Peace!", Color(0.3, 0.95, 0.4))
+ 		return
+ 	if event is InputEventKey and event.pressed and not event.echo and (event.keycode == KEY_F3 or event.physical_keycode == KEY_F3):
+ 		var on = GameState.toggle_vsync()
+ 		Audio.ui_btn_click()
+-		hud.feed("🖥️ V-Sync: %s" % ("ENABLED (Locked to Screen Refresh)" if on else "DISABLED (Uncapped Full Hardware FPS)"), Color(0.4, 0.9, 1.0))
++		hud.feed(" V-Sync: %s" % ("ENABLED (Locked to Screen Refresh)" if on else "DISABLED (Uncapped Full Hardware FPS)"), Color(0.4, 0.9, 1.0))
+ 		return
+ 	if event.is_action_pressed("interact") or (event is InputEventKey and event.pressed and not event.echo and (event.keycode == KEY_E or event.physical_keycode == KEY_E)):
+ 		get_viewport().set_input_as_handled()
+@@ -224,6 +244,9 @@
+ 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+ 
+ func _handle_vehicle_interact() -> void:
++	if not GameState.practice_mode:
++		hud.feed("Vehicle driving is available in offline practice.", Color(0.7, 0.75, 0.8))
++		return
+ 	if current_driven_jeep != null:
+ 		_exit_combat_jeep(current_driven_jeep)
+ 		return
+@@ -309,7 +332,7 @@
+ 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+ 
+ func _throw_grenade() -> void:
+-	if _grenade_cd > 0.0 or player.is_dead:
++	if _grenade_cd > 0.0 or player.is_dead or not GameState.online_ready:
+ 		return
+ 	_grenade_cd = 1.0
+ 	Audio.grenade_pin()
+@@ -326,7 +349,8 @@
+ 	var upward_loft := 2.8 * clampf(1.0 - absf(dir.y), 0.2, 1.0)
+ 	var vel: Vector3 = dir * 23.5 + Vector3.UP * upward_loft + (player.velocity * 0.45 if player else Vector3.ZERO)
+ 	var spin: Vector3 = Vector3(randf_range(16.0, 24.0), randf_range(-8.0, 8.0), randf_range(-6.0, 6.0))
+-	spawn_grenade(pos, vel, spin)
++	if GameState.practice_mode:
++		spawn_grenade(pos, vel, spin)
+ 	_spawn_spoon_fly(pos, cam.global_transform.basis.x * 2.8 + Vector3.UP * 2.2 + (player.velocity * 0.3 if player else Vector3.ZERO))
+ 	net.send_grenade(pos, vel)
+ 
+@@ -358,8 +382,8 @@
+ 	tw.tween_interval(2.0)
+ 	tw.tween_callback(spoon.queue_free)
+ 
+-func spawn_grenade(pos: Vector3, vel: Vector3, spin: Vector3 = Vector3.ZERO) -> void:
+-	WarGrenade.throw(world, pos, vel, spin)
++func spawn_grenade(pos: Vector3, vel: Vector3, spin: Vector3 = Vector3.ZERO) -> WarGrenade:
++	return WarGrenade.throw(world, pos, vel, spin)
+ 
+ func remote_shoot_fx(origin: Vector3, hit: Vector3, normal: Vector3, wall: bool) -> void:
+ 	if weapons:
+@@ -396,11 +420,11 @@
+ 	if killer == "OPERATOR" or killer == GameState.username or killer.begins_with("OPERATOR"):
+ 		GameState.record_local_kill()
+ 		if source == "grenade":
+-			hud.feed("You eliminated %s ✦ GRENADE" % bot_name, Color(1.0, 0.5, 0.1))
++			hud.feed("You eliminated %s + GRENADE" % bot_name, Color(1.0, 0.5, 0.1))
+ 		elif source == "roadkill":
+-			hud.feed("ROADKILL: %s ✦ VEHICLE" % bot_name, Color(1.0, 0.25, 0.2))
++			hud.feed("ROADKILL: %s + VEHICLE" % bot_name, Color(1.0, 0.25, 0.2))
+ 		else:
+-			hud.feed("You eliminated %s%s" % [bot_name, " ✦ HEADSHOT" if is_headshot else ""], Color(0.2, 1.0, 0.4))
++			hud.feed("You eliminated %s%s" % [bot_name, " + HEADSHOT" if is_headshot else ""], Color(0.2, 1.0, 0.4))
+ 		if GameState.selected_mode == "TDM":
+ 			GameState.score_a += 1
+ 	else:
+@@ -412,9 +436,32 @@
+ 		hud.add_damage_indicator(rel)
+ 
+ func _on_state(state: Dictionary) -> void:
++	if not GameState.practice_mode and int(state.get("protocol_version", 0)) != 2:
++		net.disconnect_from()
++		hud.feed("Server version mismatch. Update the client and server together.", Color(1, 0.4, 0.3))
++		return
++	var server_map := String(state.get("map_name", ""))
++	if not GameState.practice_mode and not server_map.is_empty() and server_map != GameState.selected_map:
++		_quit_to_menu()
++		menu._show_toast("Room map changed. Select the room again.", false)
++		return
++	GameState.selected_mode = String(state.get("room_mode", GameState.selected_mode))
+ 	var me: Dictionary = (state.get("players", {}) as Dictionary).get(GameState.username, {})
+ 	if not me.is_empty():
++		if weapons and not GameState.practice_mode:
++			weapons.reconcile_ammo(me)
++		GameState.online_ready = true
+ 		var remote_hp := int(me.get("health", 100))
++		if not GameState.practice_mode and is_instance_valid(player) and not player.is_dead:
++			var authoritative_pos := Vector3(float(me.get("x", 0)), float(me.get("y", 0)), float(me.get("z", 0)))
++			if player.global_position.distance_to(authoritative_pos) > 2.5:
++				_network_correction_count += 1
++				if _network_correction_count >= 3:
++					player.global_position = authoritative_pos
++					player.velocity = Vector3.ZERO
++					_network_correction_count = 0
++			else:
++				_network_correction_count = 0
+ 		if is_instance_valid(player):
+ 			if remote_hp < player.health and not player.is_dead:
+ 				hud.add_damage_indicator(Vector3.ZERO)
+@@ -424,13 +471,22 @@
+ 			# Note: Retain local player health from bot and grenade damage without server healing
+ 		hud.set_health(int(player.health) if is_instance_valid(player) else 0)
+ 		GameState.local_team = String(me.get("team", "A"))
++		hud.update_player_header(GameState.username, GameState.local_team, GameState.selected_mode)
+ 		if (bool(me.get("is_dead", false)) or (is_instance_valid(player) and player.health <= 0)) and is_instance_valid(player) and not player.is_dead:
+ 			player.set_meta("network_dead", true)
+ 			player.kill()
+ 	hud.set_score(GameState.selected_mode, GameState.score_a, GameState.score_b, GameState.local_team, GameState.winner_id)
+ 	hud.set_ping(net.current_ping)
+-	if not String(GameState.winner_id).is_empty():
+-		hud.feed("WINNER: " + GameState.winner_id, Color.YELLOW)
++	var finished := String(state.get("room_state", "PLAYING")) == "FINISHED"
++	if _last_round_finished and not finished:
++		GameState.reset_match_stats()
++		hud.feed("New round", Color(0.4, 0.8, 0.65))
++	_last_round_finished = finished
++	if not String(state.get("winner", "")).is_empty() and _last_winner != String(state.get("winner", "")):
++		_last_winner = String(state.get("winner", ""))
++		hud.feed("WINNER: " + _last_winner, Color.YELLOW)
++	if not finished:
++		_last_winner = ""
+ 
+ func _on_hit_confirmed() -> void:
+ 	hud.flash_hitmarker(false)
+@@ -442,14 +498,21 @@
+ 	hud.feed("Enemy eliminated", Color.RED)
+ 	GameState.record_local_kill()
+ 
+-func _on_conn(_c: bool) -> void:
+-	pass
++func _on_conn(connected_now: bool) -> void:
++	if phase == Phase.MENU or GameState.practice_mode:
++		return
++	if connected_now:
++		hud.feed("Connected. Synchronizing match…", Color(0.4, 0.8, 0.65))
++		if weapons:
++			net.send_switch(String(weapons.current_config()["id"]))
++	else:
++		GameState.online_ready = false
++		hud.feed("Connection lost. Reconnecting…", Color(1.0, 0.65, 0.3))
+ 
+ func _on_net_respawn(pos: Vector3) -> void:
+-	var respawn_pos := pos
+-	if map_builder and not map_builder.spawn_points.is_empty():
+-		respawn_pos.y = map_builder.spawn_points[0].y
+-	_do_respawn(respawn_pos)
++	_do_respawn(pos - Vector3(0, 0.2, 0))
++	if weapons:
++		net.send_switch(String(weapons.current_config()["id"]))
+ 
+ func _on_dead() -> void:
+ 	if current_driven_jeep != null:
+@@ -464,12 +527,11 @@
+ 	if not is_instance_valid(player):
+ 		return
+ 	player.set_meta("network_dead", false)
++	player.set_meta("respawn_requested", false)
+ 	player.heal_full()
+ 	player.respawn_at(pos)
+ 	if is_instance_valid(weapons):
+-		weapons.is_reloading = false
+-		weapons.ads_amount = 0.0
+-		weapons.ammo = int(weapons.current_config()["mag_size"])
++		weapons.reset_after_respawn()
+ 		hud.set_ammo(weapons.ammo, int(weapons.current_config()["mag_size"]), String(weapons.current_config()["name"]), false)
+ 	phase = Phase.PLAYING
+ 	hud.set_dead(false, 0)
+@@ -498,10 +560,10 @@
+ 			
+ 		if _respawn_t <= 0.0:
+ 			if net.connected:
+-				net.send_respawn()
+-				if _respawn_t <= -0.75:
+-					var sp: Vector3 = map_builder.spawn_points[randi() % map_builder.spawn_points.size()] if map_builder and not map_builder.spawn_points.is_empty() else Vector3(randf_range(-15, 15), 1.0, randf_range(-15, 15))
+-					_do_respawn(sp)
++				if not player.get_meta("respawn_requested", false):
++					net.send_respawn()
++					player.set_meta("respawn_requested", true)
++
+ 			else:
+ 				var sp: Vector3 = map_builder.spawn_points[randi() % map_builder.spawn_points.size()] if map_builder and not map_builder.spawn_points.is_empty() else Vector3(randf_range(-15, 15), 1.0, randf_range(-15, 15))
+ 				_do_respawn(sp)
+@@ -515,23 +577,15 @@
+ 	# HUD live values
+ 	hud.set_health(int(player.health))
+ 	hud.set_crosshair(weapons.spread if weapons else 1.5, weapons.ads_amount if weapons else 0.0)
+-	var is_scoped := false
+-	var scope_weight := 0.0
++	var optic_active := weapons and weapons.ads_amount > 0.65 and (weapons.active_index == 0 or weapons.active_index == 2)
++	var optic_weight := smoothstep(0.65, 0.88, weapons.ads_amount) if weapons else 0.0
+ 	if weapons:
+-		var zoom: int = weapons.get_current_scope_zoom()
+-		hud.set_scope_magnification(zoom)
+-		if weapons.active_index == 2:
+-			# Sniper optic (4x/8x): smooth fade-in as eye aligns with ocular lens
+-			is_scoped = weapons.ads_amount > 0.30
+-			scope_weight = clampf((weapons.ads_amount - 0.30) / 0.50, 0.0, 1.0)
+-		elif weapons.active_index == 0:
+-			# Assault rifle optic (2x/4x): smooth fade-in
+-			is_scoped = weapons.ads_amount > 0.40
+-			scope_weight = clampf((weapons.ads_amount - 0.40) / 0.45, 0.0, 1.0)
+-	hud.set_scope(is_scoped, scope_weight)
+-	if is_scoped and is_instance_valid(player) and weapons:
+-		var heading := rad_to_deg(player.yaw)
+-		hud.update_scope_steady(weapons.is_holding_breath, weapons.breath_stamina, heading)
++		hud.set_scope_magnification(weapons.get_current_scope_zoom())
++		hud.scope_overlay.field_of_view = player.camera.fov
++		hud.scope_overlay.sniper = weapons.active_index == 2
++	hud.set_scope(optic_active, optic_weight)
++	if optic_active:
++		hud.update_scope_steady(weapons.is_holding_breath, weapons.breath_stamina, rad_to_deg(player.yaw))
+ 	hud.set_ammo(weapons.ammo, int(weapons.current_config()["mag_size"]), String(weapons.current_config()["name"]), weapons.is_reloading)
+ 	
+ 	# Vehicle driving and telemetry loop
+@@ -553,7 +607,7 @@
+ 			if is_instance_valid(j) and not j.is_destroyed and j.is_player_nearby(player):
+ 				nearby_jeep = j
+ 				break
+-		hud.set_vehicle_prompt(nearby_jeep != null)
++		hud.set_vehicle_prompt(GameState.practice_mode and nearby_jeep != null)
+ 
+ 	# 60Hz state sync
+ 	_send_acc += delta
+@@ -628,7 +682,10 @@
+ 			print("AUTOTEST: bot damaged hp=", b.health)
+ 			b.take_damage(200.0, "head")
+ 			print("AUTOTEST: bot killed dead=", b.dead)
++		GameState.set_bot_damage(true)
+ 		player.take_bot_damage(25.0)
++		GameState.set_bot_damage(false)
++		assert(player.health == 75.0)
+ 		print("AUTOTEST: player hp=", player.health)
+ 		print("AUTOTEST: local kills=", GameState.local_kills)
+ 		var r := get_full_scoreboard_roster()
+@@ -689,6 +746,7 @@
+ 		print("AUTOTEST: peaceful test hp_before=", hp_before, " hp_after=", player.health, " (damage prevented=", hp_before == player.health, ")")
+ 		_toggle_scoreboard()
+ 		print("AUTOTEST: scoreboard closed, mouse_mode=", Input.mouse_mode)
++		assert(phase == Phase.PLAYING and not player.is_dead and player.health == 100.0)
+ 		print("AUTOTEST: DONE pos=", player.global_position, " hp=", player.health, " phase=", phase, " fps=", Engine.get_frames_per_second(), " phys_ms=", Performance.get_monitor(Performance.TIME_PHYSICS_PROCESS) * 1000.0)
+ 		Audio.stop_all()
+ 		await get_tree().process_frame
+--- before/warbase-godot/client/scripts/core/AudioManager.gd
++++ after/warbase-godot/client/scripts/core/AudioManager.gd
+@@ -6,19 +6,22 @@
+ 
+ var _players: Array[AudioStreamPlayer] = []
+ var _idx := 0
+-var muted := true
+-var master_volume := 0.0
+-var sfx_volume := 0.0
++var muted := false
++var master_volume := 0.7
++var sfx_volume := 0.7
+ 
+ # Sound cache for zero-latency playback
+ var _sfx_cache: Dictionary = {}
+ 
+ func _ready() -> void:
+ 	process_mode = Node.PROCESS_MODE_ALWAYS
+-	# Globally mute the Master bus at engine level
++	var preferences := ConfigFile.new()
++	if preferences.load("user://settings.cfg") == OK:
++		sfx_volume = clampf(float(preferences.get_value("audio", "sfx", 0.7)), 0.0, 1.0)
++	# Audio stays controllable through the in-game volume setting.
+ 	var master_bus_idx := AudioServer.get_bus_index("Master")
+ 	if master_bus_idx >= 0:
+-		AudioServer.set_bus_mute(master_bus_idx, true)
++		AudioServer.set_bus_mute(master_bus_idx, false)
+ 		
+ 	# Pool of stream players for polyphony
+ 	for i in 16:
+--- before/warbase-godot/client/scripts/core/GameState.gd
++++ after/warbase-godot/client/scripts/core/GameState.gd
+@@ -7,10 +7,10 @@
+ 	{
+ 		"id": "ak47", "name": "AK-47", "damage": 34.0, "headshot_mult": 2.5,
+ 		"fire_rate": 600.0, "mag_size": 30, "reload_time": 2.5,
+-		"base_spread": 1.5, "bloom_per_shot": 0.4, "max_spread": 5.0, "bloom_recovery": 8.0,
++		"base_spread": 1.2, "bloom_per_shot": 0.4, "max_spread": 5.0, "bloom_recovery": 8.0,
+ 		"recoil_vertical": 0.02, "recoil_horizontal": 0.008, "recoil_recovery": 6.0,
+-		"ads_fov": 52.0, "ads_time": 0.16, "ads_spread_mult": 0.4, "ads_recoil_mult": 0.7,
+-		"hip_pos": Vector3(0.16, -0.14, -0.28), "ads_pos": Vector3(0.0, -0.119, -0.145),
++		"ads_fov": 52.0, "ads_time": 0.16, "ads_spread_mult": 0.08, "ads_recoil_mult": 0.7,
++		"hip_pos": Vector3(0.16, -0.14, -0.28), "ads_pos": Vector3(0.0, -0.119, -0.27),
+ 		"is_auto": true,
+ 	},
+ 	{
+@@ -18,16 +18,16 @@
+ 		"fire_rate": 400.0, "mag_size": 12, "reload_time": 1.5,
+ 		"base_spread": 1.0, "bloom_per_shot": 0.8, "max_spread": 6.0, "bloom_recovery": 12.0,
+ 		"recoil_vertical": 0.04, "recoil_horizontal": 0.005, "recoil_recovery": 10.0,
+-		"ads_fov": 65.0, "ads_time": 0.10, "ads_spread_mult": 0.2, "ads_recoil_mult": 0.5,
+-		"hip_pos": Vector3(0.12, -0.11, -0.21), "ads_pos": Vector3(0.0, -0.064, -0.153),
++		"ads_fov": 65.0, "ads_time": 0.10, "ads_spread_mult": 0.12, "ads_recoil_mult": 0.5,
++		"hip_pos": Vector3(0.12, -0.11, -0.21), "ads_pos": Vector3(0.0, -0.064, -0.24),
+ 		"is_auto": false,
+ 	},
+ 	{
+ 		"id": "m2010", "name": "M2010", "damage": 95.0, "headshot_mult": 2.5,
+ 		"fire_rate": 45.0, "mag_size": 5, "reload_time": 3.2,
+-		"base_spread": 0.2, "bloom_per_shot": 2.0, "max_spread": 8.0, "bloom_recovery": 5.0,
++		"base_spread": 0.06, "bloom_per_shot": 2.0, "max_spread": 8.0, "bloom_recovery": 5.0,
+ 		"recoil_vertical": 0.08, "recoil_horizontal": 0.015, "recoil_recovery": 4.0,
+-		"ads_fov": 25.0, "ads_time": 0.20, "ads_spread_mult": 0.05, "ads_recoil_mult": 0.3,
++		"ads_fov": 25.0, "ads_time": 0.20, "ads_spread_mult": 0.02, "ads_recoil_mult": 0.3,
+ 		"hip_pos": Vector3(0.16, -0.14, -0.31), "ads_pos": Vector3(0.0, -0.121, -0.187),
+ 		"is_auto": false,
+ 	},
+@@ -36,7 +36,7 @@
+ 		"fire_rate": 520.0, "mag_size": 60, "reload_time": 3.4,
+ 		"base_spread": 2.2, "bloom_per_shot": 0.45, "max_spread": 6.8, "bloom_recovery": 7.5,
+ 		"recoil_vertical": 0.032, "recoil_horizontal": 0.010, "recoil_recovery": 5.5,
+-		"ads_fov": 55.0, "ads_time": 0.20, "ads_spread_mult": 0.35, "ads_recoil_mult": 0.65,
++		"ads_fov": 55.0, "ads_time": 0.20, "ads_spread_mult": 0.18, "ads_recoil_mult": 0.65,
+ 		"hip_pos": Vector3(0.16, -0.13, -0.28), "ads_pos": Vector3(0.0, -0.082, -0.187),
+ 		"is_auto": true,
+ 	},
+@@ -59,6 +59,8 @@
+ var selected_map := "industrial"
+ var selected_mode := "FFA"
+ var selected_class := "ASSAULT"
++var practice_mode := false
++var online_ready := false
+ 
+ # Match state (mirrors server GameState for HUD)
+ var players: Dictionary = {}
+@@ -89,6 +91,9 @@
+ 	return vsync_enabled
+ 
+ func _ready() -> void:
++	var preferences := ConfigFile.new()
++	if preferences.load("user://settings.cfg") == OK:
++		BASE_SENSITIVITY = clampf(float(preferences.get_value("controls", "sensitivity", BASE_SENSITIVITY)), 0.0005, 0.006)
+ 	randomize()
+ 	if username == "OPERATOR":
+ 		username = "OPERATOR_%03d" % (randi() % 900 + 100)
+@@ -134,3 +139,9 @@
+ 			return "hmg"
+ 		_:
+ 			return "ak47"
++
++func save_settings() -> void:
++	var preferences := ConfigFile.new()
++	preferences.set_value("controls", "sensitivity", BASE_SENSITIVITY)
++	preferences.set_value("audio", "sfx", Audio.sfx_volume)
++	preferences.save("user://settings.cfg")
+--- before/warbase-godot/client/scripts/weapons/WeaponView.gd
++++ after/warbase-godot/client/scripts/weapons/WeaponView.gd
+@@ -53,6 +53,7 @@
+ 	mi.mesh = bm
+ 	mi.position = pos
+ 	mi.rotation = rot
++	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+ 	mi.material_override = mat
+ 	parent.add_child(mi)
+ 	return mi
+@@ -67,20 +68,47 @@
+ 	mi.mesh = cm
+ 	mi.position = pos
+ 	mi.rotation = rot
++	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+ 	mi.material_override = mat
+ 	parent.add_child(mi)
+ 	return mi
+ 
+ static func build(weapon_id: String) -> Node3D:
++	var root: Node3D
+ 	match weapon_id:
+-		"m2010":
+-			return build_m2010()
+-		"pistol":
+-			return build_pistol()
+-		"hmg":
+-			return build_hmg()
+-		_:
+-			return build_ak47()
++		"m2010": root = build_m2010()
++		"pistol": root = build_pistol()
++		"hmg": root = build_hmg()
++		_: root = build_ak47()
++	_merge_static_parts(root)
++	return root
++
++static func _merge_static_parts(root: Node3D) -> void:
++	# Keep mechanical pivots and markers, batch static geometry by shared material.
++	var groups: Dictionary = {}
++	for child in root.get_children():
++		if child is MeshInstance3D and child.mesh and child.material_override != null:
++			var material: Material = child.material_override
++			if not groups.has(material): groups[material] = []
++			groups[material].append(child)
++		elif child is Node3D:
++			_merge_static_parts(child)
++	for material in groups:
++		var parts: Array = groups[material]
++		if parts.size() < 2:
++			continue
++		var surface := SurfaceTool.new()
++		surface.begin(Mesh.PRIMITIVE_TRIANGLES)
++		for part in parts:
++			for i in part.mesh.get_surface_count():
++				surface.append_from(part.mesh, i, part.transform)
++		var merged := MeshInstance3D.new()
++		merged.name = "BatchedParts"
++		merged.mesh = surface.commit()
++		merged.material_override = material
++		merged.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
++		root.add_child(merged)
++		for part in parts: part.free()
+ 
+ # ==============================================================================
+ # AK-47 TACTICAL ASSAULT RIFLE
+@@ -214,17 +242,6 @@
+ 	# Windage & Elevation Turret Dials
+ 	_cyl(root, "holoElevationTurret", 0.006, 0.008, Vector3(0, 0.165, -0.05), optic_body, Vector3(0, 0, 0))
+ 	_cyl(root, "holoWindageTurret", 0.006, 0.008, Vector3(0.028, 0.140, -0.05), optic_body, Vector3(0, 0, PI / 2.0))
+-	
+-	# Illuminated Red Holographic Reticle (68-MOA Ring + 1-MOA Center Dot at y = 0.140)
+-	_box(root, "holoCenterDot", Vector3(0.0016, 0.0016, 0.001), Vector3(0, 0.140, -0.05), holo_reticle)
+-	_box(root, "holoTickTop", Vector3(0.0012, 0.004, 0.001), Vector3(0, 0.140 + 0.010, -0.05), holo_reticle)
+-	_box(root, "holoTickBottom", Vector3(0.0012, 0.004, 0.001), Vector3(0, 0.140 - 0.010, -0.05), holo_reticle)
+-	_box(root, "holoTickLeft", Vector3(0.004, 0.0012, 0.001), Vector3(-0.010, 0.140, -0.05), holo_reticle)
+-	_box(root, "holoTickRight", Vector3(0.004, 0.0012, 0.001), Vector3(0.010, 0.140, -0.05), holo_reticle)
+-	_box(root, "holoRingTL", Vector3(0.0028, 0.0028, 0.001), Vector3(-0.007, 0.140 + 0.007, -0.05), holo_reticle)
+-	_box(root, "holoRingTR", Vector3(0.0028, 0.0028, 0.001), Vector3(0.007, 0.140 + 0.007, -0.05), holo_reticle)
+-	_box(root, "holoRingBL", Vector3(0.0028, 0.0028, 0.001), Vector3(-0.007, 0.140 - 0.007, -0.05), holo_reticle)
+-	_box(root, "holoRingBR", Vector3(0.0028, 0.0028, 0.001), Vector3(0.007, 0.140 - 0.007, -0.05), holo_reticle)
+ 	
+ 	# 12. Backup Iron Sights (Lower 1/3 Co-Witness)
+ 	# Rear Sight Base & Leaf
+@@ -380,7 +397,7 @@
+ 	var slide_nitride := _mat(Color(0.32, 0.33, 0.36), 0.94, 0.26, 0.65, 0.50) # Milled brushed steel slide
+ 	var frame_poly := _mat(Color(0.18, 0.18, 0.20), 0.0, 0.65, 0.25, 0.15) # Tactical molded polymer frame
+ 	var barrel_steel := _mat(Color(0.58, 0.60, 0.64), 0.96, 0.18, 0.75, 0.55) # Polished match-grade target barrel
+-	var tritium_green := _mat(Color(0.2, 1.0, 0.35), 0.0, 0.20, 0.5, 0.2, Color(0.15, 1.0, 0.35), 3.5)
++	var tritium_green := _mat(Color(0.2, 1.0, 0.35), 0.0, 0.20, 0.5, 0.2, Color(0.15, 1.0, 0.35), 0.7)
+ 	var small_steel := _mat(Color(0.35, 0.36, 0.39), 0.92, 0.28, 0.60, 0.45) # Steel controls, slide stop & takedown pin
+ 	
+ 	# 1. Ergonomic Polymer Frame Group
+@@ -430,11 +447,13 @@
+ 	
+ 	# 3. Combat 3-Dot Tritium Night Sights (Aligned for True ADS at y = 0.075!)
+ 	# Novak-style rear sight base with twin green tritium dots
+-	_box(slide, "rearSightBase", Vector3(0.042, 0.020, 0.024), Vector3(0, 0.074, 0.06), small_steel)
++	_box(slide, "rearSightBase", Vector3(0.042, 0.008, 0.024), Vector3(0, 0.058, 0.06), small_steel)
++	_box(slide, "rearSightLeft", Vector3(0.010, 0.024, 0.024), Vector3(-0.018, 0.070, 0.06), small_steel)
++	_box(slide, "rearSightRight", Vector3(0.010, 0.024, 0.024), Vector3(0.018, 0.070, 0.06), small_steel)
+ 	_box(slide, "rearDotL", Vector3(0.005, 0.005, 0.004), Vector3(-0.014, 0.075, 0.07), tritium_green)
+ 	_box(slide, "rearDotR", Vector3(0.005, 0.005, 0.004), Vector3(0.014, 0.075, 0.07), tritium_green)
+ 	# Dovetailed front sight post with center green tritium dot
+-	_box(slide, "frontSightBase", Vector3(0.016, 0.022, 0.022), Vector3(0, 0.074, -0.17), small_steel)
++	_box(slide, "frontSightBase", Vector3(0.012, 0.014, 0.022), Vector3(0, 0.065, -0.17), small_steel)
+ 	_box(slide, "frontDot", Vector3(0.005, 0.005, 0.004), Vector3(0, 0.075, -0.16), tritium_green)
+ 	
+ 	# 4. Tactical Markers
+@@ -461,8 +480,9 @@
+ 	
+ 	var gun_pack := load(HMG_MODEL_PATH) as PackedScene
+ 	var root_node: Node = null
++	var gun_inst: Node3D = null
+ 	if gun_pack:
+-		var gun_inst := gun_pack.instantiate() as Node3D
++		gun_inst = gun_pack.instantiate() as Node3D
+ 		root_node = gun_inst.get_node_or_null("Sketchfab_model/b383b4b7fa2f437b897b107c1849bafa_fbx/RootNode")
+ 		
+ 	var mg_src: Node = root_node.get_node_or_null("machinegun") if root_node else null
+@@ -483,6 +503,9 @@
+ 		ammo_vis.rotation = Vector3.ZERO
+ 		root.add_child(ammo_vis)
+ 
++	if gun_inst:
++		gun_inst.free()
++
+ 	# Combat anti-aircraft spider-web / iron sight ring on receiver
+ 	var sight_steel := _mat(Color(0.24, 0.25, 0.27), 0.90, 0.30, 0.55, 0.40)
+ 	var sight_glow := _mat(Color(0.96, 0.96, 0.94), 0.0, 0.25, 0.5, 0.2, Color(1.0, 0.8, 0.2), 2.0)
+--- before/warbase-godot/client/scripts/weapons/Grenade.gd
++++ after/warbase-godot/client/scripts/weapons/Grenade.gd
+@@ -25,6 +25,7 @@
+ 	return g
+ 
+ func _ready() -> void:
++	add_to_group("grenades")
+ 	body_entered.connect(_on_body_entered)
+ 	_fuse_light = get_node_or_null("ModelRoot/FuseLight") as OmniLight3D
+ 
+@@ -60,7 +61,10 @@
+ 		_smoke_t = 0.05
+ 		_spawn_fuse_smoke()
+ 	
+-	if _t >= fuse:
++	if not GameState.practice_mode and _t >= 6.0:
++		queue_free()
++		return
++	if GameState.practice_mode and _t >= fuse:
+ 		_done = true
+ 		_detonate()
+ 
+@@ -204,6 +208,9 @@
+ 				if local_player.has_method("apply_recoil"):
+ 					local_player.apply_recoil(randf_range(-0.06, 0.06) * trauma, randf_range(-0.06, 0.06) * trauma)
+ 		
++	if not GameState.practice_mode:
++		queue_free()
++		return
+ 	# 7. Radial Blast Physics to RigidBodies and Characters
+ 	var params := PhysicsShapeQueryParameters3D.new()
+ 	var sphere := SphereShape3D.new()
+--- before/warbase-godot/client/scripts/weapons/WeaponSystem.gd
++++ after/warbase-godot/client/scripts/weapons/WeaponSystem.gd
+@@ -37,6 +37,14 @@
+ var inspect_t := 0.0
+ const INSPECT_DURATION := 3.2
+ var _i_pressed_last := false
++var _shot_seq := 0
++var _pending_shots: Array = []
++var _ammo_store: Dictionary = {}
++var _zoom_store: Dictionary = {}
++var _breath_exhausted := false
++var _bolt_cycle := 0.0
++var _burst_count := 0
++var _last_shot_time := -10.0
+ var _throw_anim_t := 0.0
+ const THROW_ANIM_DUR := 0.42
+ 
+@@ -109,23 +117,35 @@
+ 		return 1
+ 
+ func get_current_ads_fov() -> float:
+-	if active_index == 1:
++	if active_index == 1 or active_index == 3:
+ 		return float(current_config()["ads_fov"])
+-	var zoom := get_current_scope_zoom()
+-	match zoom:
+-		2:
+-			return 44.0
+-		4:
+-			return 24.0
+-		8:
+-			return 12.0
+-		_:
+-			return float(current_config()["ads_fov"])
++	return rad_to_deg(2.0 * atan(tan(deg_to_rad(GameState.BASE_FOV) * 0.5) / float(get_current_scope_zoom())))
++
++func is_scoped() -> bool:
++	return (active_index == 0 or active_index == 2) and get_current_scope_zoom() >= 4
++
++func reset_after_respawn() -> void:
++	_pending_shots.clear()
++	_ammo_store.clear()
++	for weapon in GameState.WEAPONS:
++		_ammo_store[weapon["id"]] = int(weapon["mag_size"])
++	ammo = int(current_config()["mag_size"])
++	is_reloading = false
++	reload_t = 0.0
++	ads_t = 0.0
++	ads_amount = 0.0
++	_bolt_cycle = 0.0
++	_burst_count = 0
++	_switch_t = 0.0
++	_last_fire = _time
++	is_holding_breath = false
++	player.aim_sway = Vector2.ZERO
+ 
+ func cycle_scope_magnification() -> void:
+ 	if active_index == 1 or active_index == 3:
+ 		return
+ 	scope_idx = (scope_idx + 1) % 2
++	_zoom_store[active_index] = scope_idx
+ 	Audio.click()
+ 	scope_magnification_changed.emit(get_current_scope_zoom())
+ 
+@@ -139,6 +159,8 @@
+ 	# Determine initial primary weapon from class
+ 	if GameState.selected_class == "SCOUT":
+ 		active_index = 2
++	elif GameState.selected_class == "INFILTRATOR":
++		active_index = 1
+ 	else:
+ 		active_index = 0
+ 		
+@@ -160,7 +182,7 @@
+ 	key_light.name = "ViewmodelKeyLight"
+ 	key_light.position = Vector3(0.35, 0.40, -0.25)
+ 	key_light.light_color = Color(1.0, 0.96, 0.90)
+-	key_light.light_energy = 0.90
++	key_light.light_energy = 0.45
+ 	key_light.omni_range = 1.8
+ 	key_light.omni_attenuation = 1.0
+ 	key_light.shadow_enabled = false
+@@ -170,7 +192,7 @@
+ 	rim_light.name = "ViewmodelRimLight"
+ 	rim_light.position = Vector3(-0.40, 0.25, -0.45)
+ 	rim_light.light_color = Color(0.75, 0.88, 1.0)
+-	rim_light.light_energy = 0.45
++	rim_light.light_energy = 0.2
+ 	rim_light.omni_range = 1.6
+ 	rim_light.omni_attenuation = 1.0
+ 	rim_light.shadow_enabled = false
+@@ -179,6 +201,10 @@
+ 	var cfg := current_config()
+ 	ammo = int(cfg["mag_size"])
+ 	spread = float(cfg["base_spread"])
++	for weapon in GameState.WEAPONS:
++		_ammo_store[weapon["id"]] = int(weapon["mag_size"])
++	if net and net.connected:
++		net.send_switch(String(cfg["id"]))
+ 	
+ 	# Dedicated container for bullets/tracers in world
+ 	_tracer_container = Node3D.new()
+@@ -311,7 +337,7 @@
+ 	return sway_root.global_transform
+ 
+ func try_fire() -> void:
+-	if is_reloading or player.is_dead:
++	if not GameState.online_ready or is_reloading or player.is_dead or player.is_driving or _switch_t < SWITCH_DUR or _bolt_cycle > 0.0 or _throw_anim_t > 0.0:
+ 		return
+ 	is_inspecting = false
+ 	inspect_t = 0.0
+@@ -323,14 +349,22 @@
+ 		
+ 	var now := _time
+ 	var interval: float = 60.0 / float(cfg["fire_rate"])
+-	if now - _last_fire < interval:
++	if now - _last_fire + 0.001 < interval:
+ 		return
+ 	if not bool(cfg["is_auto"]) and not _can_fire_semi:
+ 		return
+ 		
+ 	_last_fire = now
+ 	_can_fire_semi = false
++	_shot_seq += 1
++	if net and net.connected:
++		_pending_shots.append({"id": _shot_seq, "weapon": String(cfg["id"])})
+ 	ammo -= 1
++	_ammo_store[String(cfg["id"])] = ammo
++	_burst_count = _burst_count + 1 if now - _last_shot_time < 0.25 else 1
++	_last_shot_time = now
++	if active_index == 2:
++		_bolt_cycle = interval
+ 	ammo_changed.emit(ammo, int(cfg["mag_size"]))
+ 	Audio.shoot(String(cfg["id"]))
+ 	
+@@ -345,7 +379,6 @@
+ 	var ads_mult: float = float(cfg["ads_recoil_mult"]) if is_ads else 1.0
+ 	_vel_y += float(cfg["recoil_vertical"]) * ads_mult * 25.0
+ 	_vel_x += randf_range(-1.0, 1.0) * float(cfg["recoil_horizontal"]) * ads_mult * 25.0
+-	spread = minf(spread + float(cfg["bloom_per_shot"]) * (1.0 - ads_amount * (1.0 - float(cfg["ads_spread_mult"]))), float(cfg["max_spread"]))
+ 	_kick_z = 0.016 if is_ads else 0.045
+ 	_kick_rx = deg_to_rad(1.6) if is_ads else deg_to_rad(3.6)
+ 	_bolt_kick = 1.0
+@@ -353,7 +386,16 @@
+ 	# Hitscan cone from camera
+ 	var cam_pos := camera.global_position
+ 	var cam_dir := -camera.global_transform.basis.z.normalized()
+-	var spread_rad := deg_to_rad(spread) * (float(cfg["ads_spread_mult"]) if is_ads else 1.0)
++	var movement := clampf(Vector2(player.velocity.x, player.velocity.z).length() / GameState.WALK_SPEED, 0.0, 1.5)
++	var accuracy := lerpf(1.0, float(cfg["ads_spread_mult"]), ads_amount)
++	var shot_spread := spread * accuracy + movement * lerpf(0.65, 0.12, ads_amount)
++	if not player.is_grounded:
++		shot_spread += 2.0
++	if player.is_crouching:
++		shot_spread *= 0.75
++	var spread_rad := deg_to_rad(shot_spread)
++	# Bloom affects subsequent rounds; the first settled shot uses the settled cone.
++	spread = minf(spread + float(cfg["bloom_per_shot"]), float(cfg["max_spread"]))
+ 	var ang := randf() * TAU
+ 	var r := sqrt(randf()) * sin(spread_rad)
+ 	var right := camera.global_transform.basis.x.normalized()
+@@ -365,6 +407,13 @@
+ 	_hitscan_query.exclude = [player.get_rid()]
+ 	var space := world.get_world_3d().direct_space_state
+ 	var hit := space.intersect_ray(_hitscan_query)
++	# Resolve the muzzle-to-aim path too: the camera cannot fire a barrel through cover.
++	var aim_point: Vector3 = hit.get("position", cam_pos + dir * 300.0)
++	_hitscan_query.from = _muzzle_global()
++	_hitscan_query.to = aim_point
++	var muzzle_hit := space.intersect_ray(_hitscan_query)
++	if not muzzle_hit.is_empty():
++		hit = muzzle_hit
+ 	var hit_pos: Vector3 = cam_pos + dir * 300.0
+ 	var hit_norm := Vector3.UP
+ 	var hit_wall := false
+@@ -405,7 +454,7 @@
+ 			var is_head := (zone == "head")
+ 			
+ 			# Check if hitting a local bot
+-			if bot_node and bot_node.has_method("take_damage"):
++			if bot_node is WarBot:
+ 				var was_dead: bool = bot_node.dead if "dead" in bot_node else false
+ 				bot_node.take_damage(float(dmg), zone, GameState.username, "gun")
+ 				var is_now_dead: bool = bot_node.dead if "dead" in bot_node else false
+@@ -428,7 +477,8 @@
+ 	
+ 	# Dynamic camera recoil kick with smooth spring recovery
+ 	var cam_kick_y := float(cfg["recoil_vertical"]) * ads_mult * 0.4
+-	var cam_kick_x := randf_range(-1.0, 1.0) * float(cfg["recoil_horizontal"]) * ads_mult * 0.4
++	var recoil_side := sin(float(_burst_count) * 1.7) * 0.75 + randf_range(-0.25, 0.25)
++	var cam_kick_x := recoil_side * float(cfg["recoil_horizontal"]) * ads_mult * 0.4
+ 	if player.has_method("apply_recoil"):
+ 		player.apply_recoil(cam_kick_y, cam_kick_x)
+ 	else:
+@@ -438,9 +488,9 @@
+ 		player.head.rotation.x = player.pitch
+ 	
+ 	if net and net.connected:
+-		net.send_fire(start, hit_pos, hit_norm, hit_wall)
++		net.send_fire(start, hit_pos, hit_norm, hit_wall, _shot_seq)
+ 		if has_hit_target and not hit_target.is_empty() and not hit_target.begins_with("BOT_"):
+-			net.send_hit(hit_target, hit_dmg)
++			net.send_hit(hit_target, hit_dmg, _shot_seq)
+ 	fired.emit(active_index)
+ 
+ func _flash(pos: Vector3, _dir: Vector3) -> void:
+@@ -574,18 +624,22 @@
+ 	Audio.reload()
+ 
+ func switch_weapon(idx: int) -> void:
+-	if idx == active_index or is_reloading or idx < 0 or idx >= _views.size():
++	if idx == active_index or idx < 0 or idx >= _views.size() or player.is_dead:
+ 		return
+ 	is_inspecting = false
+ 	inspect_t = 0.0
++	_ammo_store[String(current_config()["id"])] = ammo
++	is_reloading = false
++	reload_t = 0.0
+ 	active_index = idx
++	scope_idx = int(_zoom_store.get(idx, 0))
+ 	_switch_t = 0.0
+ 	ads_t = 0.0
+ 	ads_amount = 0.0
+ 	for i in _views.size():
+ 		_views[i].visible = (i == idx)
+ 	var cfg := current_config()
+-	ammo = int(cfg["mag_size"])
++	ammo = int(_ammo_store.get(String(cfg["id"]), cfg["mag_size"]))
+ 	spread = float(cfg["base_spread"])
+ 	_can_fire_semi = true
+ 	ammo_changed.emit(ammo, int(cfg["mag_size"]))
+@@ -593,17 +647,24 @@
+ 		net.send_switch(GameState.weapon_id_for_index(idx))
+ 
+ func _process(delta: float) -> void:
+-	_time += delta
++	var elapsed := delta
++	_time += elapsed
++	_bolt_cycle = maxf(0.0, _bolt_cycle - elapsed)
++	delta = minf(delta, 0.05)
+ 	if not is_instance_valid(player):
+ 		return
+ 	var cfg := current_config()
+-	is_firing = Input.is_action_pressed("fire") and not player.is_dead
++	var input_enabled := GameState.online_ready and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED and not player.is_dead and not player.is_driving
++	is_firing = input_enabled and Input.is_action_pressed("fire")
++	if not input_enabled:
++		player.aim_sway = Vector2.ZERO
++		is_holding_breath = false
+ 	
+ 	if not Input.is_action_pressed("fire"):
+ 		_can_fire_semi = true
+ 		
+ 	# Snappy military-spec ADS transition with quintic Perlin smootherstep easing
+-	var ads_target := 1.0 if Input.is_action_pressed("ads") and not is_reloading else 0.0
++	var ads_target := 1.0 if input_enabled and Input.is_action_pressed("ads") and not is_reloading and _switch_t >= SWITCH_DUR and _throw_anim_t <= 0.0 else 0.0
+ 	var ads_speed: float = float(cfg["ads_time"])
+ 	ads_t = move_toward(ads_t, ads_target, delta / maxf(ads_speed, 0.01))
+ 	var st: float = clampf(ads_t, 0.0, 1.0)
+@@ -612,7 +673,7 @@
+ 	# Scope Magnification toggle (V key)
+ 	var v_pressed := (Input.is_physical_key_pressed(KEY_V) and not _v_pressed_last)
+ 	_v_pressed_last = Input.is_physical_key_pressed(KEY_V)
+-	if v_pressed:
++	if v_pressed and input_enabled:
+ 		cycle_scope_magnification()
+ 	
+ 	# Fire handling
+@@ -622,39 +683,39 @@
+ 	# Inspect Weapon input (I key)
+ 	var i_pressed := Input.is_action_just_pressed("inspect") or (Input.is_physical_key_pressed(KEY_I) and not _i_pressed_last)
+ 	_i_pressed_last = Input.is_physical_key_pressed(KEY_I)
+-	if i_pressed:
++	if i_pressed and input_enabled:
+ 		start_inspect()
+ 	if ads_amount > 0.15 or is_firing:
+ 		is_inspecting = false
+ 		inspect_t = 0.0
+ 		
+ 	# Reload & Weapon switch inputs
+-	if Input.is_action_just_pressed("reload"):
++	if input_enabled and Input.is_action_just_pressed("reload"):
+ 		start_reload()
+-	if Input.is_action_just_pressed("weapon_1"):
++	if input_enabled and Input.is_action_just_pressed("weapon_1"):
+ 		# Primary weapon (AK47 or M2010 based on class)
+-		switch_weapon(2 if GameState.selected_class == "SCOUT" else 0)
+-	if Input.is_action_just_pressed("weapon_2"):
++		switch_weapon(2 if GameState.selected_class == "SCOUT" else (1 if GameState.selected_class == "INFILTRATOR" else 0))
++	if input_enabled and Input.is_action_just_pressed("weapon_2"):
+ 		# Secondary (Pistol)
+ 		switch_weapon(1)
+-	if Input.is_action_just_pressed("weapon_3"):
++	if input_enabled and Input.is_action_just_pressed("weapon_3"):
+ 		# Alternate rifle (AK47 if SCOUT, M2010 if ASSAULT)
+ 		switch_weapon(0 if GameState.selected_class == "SCOUT" else 2)
+-	if Input.is_action_just_pressed("weapon_4") or Input.is_physical_key_pressed(KEY_4):
++	if input_enabled and Input.is_action_just_pressed("weapon_4"):
+ 		# Heavy Machine Gun (M2 .50 HMG)
+ 		switch_weapon(3)
+ 		
+ 	# Mouse wheel switching (smoothly cycles all weapons)
+-	if Input.is_action_just_pressed("next_weapon"):
++	if input_enabled and Input.is_action_just_pressed("next_weapon"):
+ 		switch_weapon((active_index + 1) % _views.size())
+-	if Input.is_action_just_pressed("prev_weapon"):
++	if input_enabled and Input.is_action_just_pressed("prev_weapon"):
+ 		switch_weapon((active_index + _views.size() - 1) % _views.size())
+ 		
+ 	# 3-Phase Tactile Reload Animation
+ 	var reload_offset := Vector3.ZERO
+ 	var reload_rot := Vector3.ZERO
+ 	if is_reloading:
+-		reload_t += delta
++		reload_t += elapsed
+ 		var reload_dur: float = float(cfg["reload_time"])
+ 		var progress := reload_t / reload_dur
+ 		if progress < 0.22:
+@@ -673,6 +734,7 @@
+ 		if reload_t >= reload_dur:
+ 			is_reloading = false
+ 			ammo = int(cfg["mag_size"])
++			_ammo_store[String(cfg["id"])] = ammo
+ 			ammo_changed.emit(ammo, int(cfg["mag_size"]))
+ 			
+ 	# Bloom recovery
+@@ -680,10 +742,12 @@
+ 		spread = float(cfg["base_spread"]) + (spread - float(cfg["base_spread"])) * exp(-float(cfg["bloom_recovery"]) * delta)
+ 		
+ 	# Recoil spring physics
+-	_vel_x += (-150.0 * _recoil_x - 15.0 * _vel_x) * delta
+-	_vel_y += (-150.0 * _recoil_y - 15.0 * _vel_y) * delta
+-	_recoil_x += _vel_x * delta
+-	_recoil_y += _vel_y * delta
++	var spring_x := _spring(_recoil_x, _vel_x, delta)
++	var spring_y := _spring(_recoil_y, _vel_y, delta)
++	_recoil_x = spring_x.x
++	_vel_x = spring_x.y
++	_recoil_y = spring_y.x
++	_vel_y = spring_y.y
+ 	
+ 	# Dynamic bolt carrier / slide mechanical reciprocation
+ 	if _bolt_kick > 0.0:
+@@ -746,17 +810,21 @@
+ 	_air_lag_y = lerpf(_air_lag_y, target_air_y, clampf(14.0 * delta, 0.0, 1.0))
+ 	_air_lag_rx = lerpf(_air_lag_rx, target_air_rx, clampf(12.0 * delta, 0.0, 1.0))
+ 		
+-	# Sniper Steady Aim (Hold Breath) mechanic
+-	if active_index == 2 and ads_amount > 0.4:
+-		if Input.is_action_pressed("sprint") and breath_stamina > 0.05:
+-			is_holding_breath = true
+-			breath_stamina = maxf(0.0, breath_stamina - delta * 0.26)
+-		else:
+-			is_holding_breath = false
+-			breath_stamina = minf(1.0, breath_stamina + delta * 0.35)
++	# Breath exhaustion requires release and recovery, rather than toggling every frame.
++	var breath_pressed := input_enabled and Input.is_action_pressed("sprint")
++	if not breath_pressed and breath_stamina >= 0.3:
++		_breath_exhausted = false
++	is_holding_breath = active_index == 2 and ads_amount > 0.9 and breath_pressed and not _breath_exhausted and breath_stamina > 0.0 and Vector2(player.velocity.x, player.velocity.z).length() < 1.0
++	if is_holding_breath:
++		breath_stamina = maxf(0.0, breath_stamina - delta * 0.24)
++		if breath_stamina <= 0.0:
++			_breath_exhausted = true
+ 	else:
+-		is_holding_breath = false
+-		breath_stamina = minf(1.0, breath_stamina + delta * 0.35)
++		breath_stamina = minf(1.0, breath_stamina + delta * 0.22)
++	var aim_amplitude := 0.0008 if active_index == 2 else 0.00018
++	var steady_weight := 0.12 if is_holding_breath else 1.0
++	var aim_drift := Vector2(sin(_time * 1.17), sin(_time * 0.83 + 0.7)) * aim_amplitude * steady_weight * ads_amount
++	player.aim_sway = aim_drift if input_enabled else Vector2.ZERO
+ 
+ 	# When aiming down sights, sway is eliminated so reticle remains rock-steady
+ 	var ads_mult_sway := clampf(1.0 - ads_amount * 1.6, 0.0, 1.0) * (0.05 if is_holding_breath else 1.0)
+@@ -818,7 +886,7 @@
+ 	var switch_offset := Vector3.ZERO
+ 	var switch_rot := Vector3.ZERO
+ 	if _switch_t < SWITCH_DUR:
+-		_switch_t += delta
++		_switch_t += elapsed
+ 		var sk := clampf(_switch_t / SWITCH_DUR, 0.0, 1.0)
+ 		var s_inv := (1.0 - sk) * (1.0 - sk)
+ 		switch_offset = Vector3(0.015 * s_inv, -0.14 * s_inv, 0.04 * s_inv)
+@@ -834,17 +902,16 @@
+ 		throw_offset = Vector3(0.04 * curve, -0.22 * curve, 0.08 * curve)
+ 		throw_rot = Vector3(-0.35 * curve, 0.18 * curve, -0.15 * curve)
+ 	
+-	sway_root.position = base + ads_arc_pos + switch_offset + throw_offset + bob + reload_offset + inspect_pos * inspect_weight + Vector3(0.0, _air_lag_y, 0.0)
++	sway_root.position = base + ads_arc_pos + switch_offset + throw_offset + bob + reload_offset + inspect_pos * inspect_weight + Vector3(0.0, _air_lag_y * (1.0 - ads_amount), 0.0)
+ 	sway_root.rotation = Vector3(
+-		_sway_y * ads_mult_sway + _kick_rx + reload_rot.x + ads_arc_rot.x + switch_rot.x + throw_rot.x + inspect_rot.x * inspect_weight + _air_lag_rx,
+-		_sway_x * ads_mult_sway + reload_rot.y + ads_arc_rot.y + switch_rot.y + throw_rot.y + inspect_rot.y * inspect_weight,
++		_sway_y * ads_mult_sway + _kick_rx + _recoil_y * 0.1 + reload_rot.x + ads_arc_rot.x + switch_rot.x + throw_rot.x + inspect_rot.x * inspect_weight + _air_lag_rx * (1.0 - ads_amount),
++		_sway_x * ads_mult_sway + _recoil_x * 0.1 + reload_rot.y + ads_arc_rot.y + switch_rot.y + throw_rot.y + inspect_rot.y * inspect_weight,
+ 		-_sway_x * 0.08 * ads_mult_sway + reload_rot.z + ads_arc_rot.z + switch_rot.z + throw_rot.z + inspect_rot.z * inspect_weight
+ 	)
+ 	
+ 	# Hide viewmodel when eye is fully seated against high-power scope so reticle is completely unobstructed
+ 	if active_index < _views.size():
+-		var zoom := get_current_scope_zoom()
+-		var is_scoped := (active_index == 2 and ads_amount > 0.88) or (active_index == 0 and zoom >= 4 and ads_amount > 0.88)
++		var is_scoped := is_scoped() and ads_amount > 0.86
+ 		_views[active_index].visible = not is_scoped
+ 	
+ 	# Flash decay
+@@ -935,3 +1002,22 @@
+ 		if is_instance_valid(v):
+ 			v.queue_free()
+ 	_views.clear()
++
++static func _spring(position_value: float, velocity_value: float, delta: float) -> Vector2:
++	# Exact critically damped solution remains stable through frame-time spikes.
++	var omega := 18.0
++	var decay := exp(-omega * delta)
++	var c := velocity_value + omega * position_value
++	return Vector2((position_value + c * delta) * decay, (velocity_value - omega * c * delta) * decay)
++
++func reconcile_ammo(state: Dictionary) -> void:
++	var acknowledged := int(state.get("last_shot_id", 0))
++	_pending_shots = _pending_shots.filter(func(shot: Dictionary) -> bool: return int(shot["id"]) > acknowledged)
++	var weapon_id := String(state.get("weapon", ""))
++	if weapon_id != String(current_config()["id"]):
++		return
++	var pending := 0
++	for shot in _pending_shots:
++		if shot["weapon"] == weapon_id: pending += 1
++	ammo = maxi(0, int(state.get("ammo", ammo)) - pending)
++	_ammo_store[weapon_id] = ammo
+--- before/warbase-godot/client/scripts/vehicles/CombatJeep.gd
++++ after/warbase-godot/client/scripts/vehicles/CombatJeep.gd
+@@ -110,7 +110,7 @@
+ 	brake = MAX_BRAKE_FORCE
+ 	collision_layer = 4
+ 	collision_mask = 1 | 4 # Collide with Terrain (1) AND other Combat Vehicles (4)
+-	freeze_mode = RigidBody3D.FREEZE_MODE_KINEMATIC
++	freeze_mode = RigidBody3D.FREEZE_MODE_STATIC
+ 	freeze = false
+ 	add_to_group("combat_jeeps")
+ 	
+--- before/warbase-godot/server/internal/engine/session.go
++++ after/warbase-godot/server/internal/engine/session.go
+@@ -3,9 +3,11 @@
+ import (
+ 	"log"
+ 	"sync"
++	"sync/atomic"
+ 	"time"
+ 
+ 	"github.com/gorilla/websocket"
++	"google.golang.org/protobuf/proto"
+ )
+ 
+ const (
+@@ -17,13 +19,14 @@
+ 
+ // GameSession acts as the bridge between a physical network connection and the active Match.
+ type GameSession struct {
+-	match       *Match
+-	networkConn *websocket.Conn
+-	eventQueue  chan []byte // Direct events (Pong, HitConfirmed, KillConfirmed, Respawn, Fire, Grenade)
+-	stateQueue  chan []byte // World snapshots (capacity 1, auto-evicting to eliminate bufferbloat)
+-	PlayerID    string
+-	RoomID      string
+-	closeOnce   sync.Once
++	match        *Match
++	networkConn  *websocket.Conn
++	eventQueue   chan []byte // Direct events (Pong, HitConfirmed, KillConfirmed, Respawn, Fire, Grenade)
++	stateQueue   chan []byte // World snapshots (capacity 1, auto-evicting to eliminate bufferbloat)
++	PlayerID     string
++	RoomID       string
++	closeOnce    sync.Once
++	pendingState atomic.Pointer[PlayerStateUpdate]
+ }
+ 
+ // NewGameSession initializes a new websocket client safely
+@@ -62,7 +65,25 @@
+ 	default:
+ 		// Drain stale snapshot
+ 		select {
+-		case <-s.stateQueue:
++		case stale := <-s.stateQueue:
++			// AOI packets are partial: preserve entities from an unsent packet when coalescing.
++			oldMessage, newMessage := &ServerMessage{}, &ServerMessage{}
++			if proto.Unmarshal(stale, oldMessage) == nil && proto.Unmarshal(data, newMessage) == nil {
++				oldState, newState := oldMessage.GetGameState(), newMessage.GetGameState()
++				if oldState != nil && newState != nil {
++					if newState.Players == nil {
++						newState.Players = make(map[string]*PlayerState)
++					}
++					for id, state := range oldState.Players {
++						if _, exists := newState.Players[id]; !exists {
++							newState.Players[id] = state
++						}
++					}
++					if combined, err := proto.Marshal(newMessage); err == nil {
++						data = combined
++					}
++				}
++			}
+ 		default:
+ 		}
+ 		// Insert newest snapshot
+@@ -89,6 +110,8 @@
+ 		return nil
+ 	})
+ 
++	tokens := 180.0
++	lastRefill := time.Now()
+ 	for {
+ 		_, message, err := s.networkConn.ReadMessage()
+ 		if err != nil {
+@@ -98,9 +121,27 @@
+ 			break
+ 		}
+ 
++		now := time.Now()
++		tokens += now.Sub(lastRefill).Seconds() * 120
++		if tokens > 180 {
++			tokens = 180
++		}
++		lastRefill = now
++		if tokens < 1 {
++			return
++		}
++		tokens--
+ 		// Broadcast to the match using the exported Broadcast method.
+ 		// Note: The text trimming logic was removed per your friend's update.
+-		s.match.Broadcast(Message{SenderID: s.PlayerID, RoomID: s.RoomID, Data: message})
++		event := &ClientEvent{}
++		if proto.Unmarshal(message, event) != nil {
++			continue
++		}
++		if state := event.GetStateUpdate(); state != nil {
++			s.pendingState.Store(state)
++			continue
++		}
++		s.match.Broadcast(Message{Session: s, SenderID: s.PlayerID, RoomID: s.RoomID, Event: event})
+ 	}
+ }
+ 
+--- before/warbase-godot/server/internal/engine/replication.go
++++ after/warbase-godot/server/internal/engine/replication.go
+@@ -9,9 +9,9 @@
+ 
+ const (
+ 	// Area of Interest (AOI) squared distance thresholds (in meters²)
+-	NearDistSq = 75.0 * 75.0   // <= 75m: Full 60Hz tick replication (combat / auditory zone)
+-	MidDistSq  = 220.0 * 220.0 // 75m - 220m: 15Hz tick replication (medium engagement zone)
+-	// > 220m: 4Hz tick replication (horizon / strategic zone)
++	NearDistSq = 75.0 * 75.0   // <= 75m: Full 30Hz tick replication (combat / auditory zone)
++	MidDistSq  = 220.0 * 220.0 // 75m - 220m: 10Hz tick replication (medium engagement zone)
++	// > 220m: 3Hz tick replication (horizon / strategic zone)
+ 
+ 	// Movement dormancy threshold (squared meters)
+ 	// If a player moves less than 5cm, their position is considered stationary
+@@ -78,7 +78,7 @@
+ 			for i := range room.PlayerEntities {
+ 				p := &room.PlayerEntities[i]
+ 				pHash := hashID(p.ID)
+-				if (currentTick+pHash)%4 == 0 {
++				if (currentTick+pHash)%3 == 0 {
+ 					tailoredPlayers[p.ID] = p.State
+ 				}
+ 			}
+@@ -116,30 +116,30 @@
+ 
+ 				if distSq <= NearDistSq {
+ 					// NEAR TIER (< 75m):
+-					// Active players -> 60 Hz (every tick)
+-					// Stationary players -> 15 Hz (every 4th tick)
++					// Active players -> 30 Hz (every tick)
++					// Stationary players -> 10 Hz (every 3rd tick)
+ 					if isMoving {
+ 						shouldInclude = true
+ 					} else {
+-						shouldInclude = (currentTick+tHash)%4 == 0
++						shouldInclude = (currentTick+tHash)%3 == 0
+ 					}
+ 				} else if distSq <= MidDistSq {
+ 					// MID TIER (75m - 220m):
+-					// Active players -> 15 Hz (every 4th tick)
++					// Active players -> 10 Hz (every 3rd tick)
+ 					// Stationary players -> 2 Hz (every 30th tick keepalive)
+ 					if isMoving {
+-						shouldInclude = (currentTick+tHash)%4 == 0
++						shouldInclude = (currentTick+tHash)%3 == 0
+ 					} else {
+-						shouldInclude = (currentTick+tHash)%30 == 0
++						shouldInclude = (currentTick+tHash)%15 == 0
+ 					}
+ 				} else {
+ 					// FAR TIER (> 220m):
+-					// Active players -> 4 Hz (every 15th tick)
+-					// Stationary players -> 1 Hz (every 60th tick keepalive)
++					// Active players -> 3 Hz (every 10th tick)
++					// Stationary players -> 1 Hz (every 30th tick keepalive)
+ 					if isMoving {
+-						shouldInclude = (currentTick+tHash)%15 == 0
++						shouldInclude = (currentTick+tHash)%10 == 0
+ 					} else {
+-						shouldInclude = (currentTick+tHash)%60 == 0
++						shouldInclude = (currentTick+tHash)%30 == 0
+ 					}
+ 				}
+ 
+@@ -159,6 +159,7 @@
+ 					ScoreTeamA: room.ScoreTeamA,
+ 					ScoreTeamB: room.ScoreTeamB,
+ 					WinnerId:   room.WinnerID,
++					MapName:    room.MapName, ProtocolVersion: 2,
+ 				},
+ 			},
+ 		}
+--- before/warbase-godot/server/internal/engine/player.go
++++ after/warbase-godot/server/internal/engine/player.go
+@@ -2,32 +2,44 @@
+ 
+ import (
+ 	"errors"
++	"math"
+ 	"time"
+ )
+ 
+ // Player represents the server's authoritative internal view
+ type Player struct {
+-	ID    string
+-	State *PlayerState
++	GrenadesRemaining int
++	ID                string
++	State             *PlayerState
+ 
+ 	// Authoritative Weapon & Ammo State
+ 	ActiveWeapon WeaponConfig
+ 	AmmoCount    int
+ 	AmmoStore    map[string]int
++	CadenceStore map[string]time.Time
++	DrawUntil    time.Time
+ 
+ 	// Timestamps for anti-cheat validation
+-	LastShotTime time.Time
+-	IsReloading  bool
+-	ReloadStart  time.Time
++	LastShotTime    time.Time
++	NextShotTime    time.Time
++	LastMoveTime    time.Time
++	MoveBudget      float32
++	LastGrenadeTime time.Time
++	PendingHit      bool
++	ShotOrigin      [3]float32
++	ShotEnd         [3]float32
++	ShotID          uint64
++	IsReloading     bool
++	ReloadStart     time.Time
+ 	DeathTime       time.Time
+ 	HasSpawned      bool
+ 	OutOfRangeTicks int
+ 
+ 	// Spatial dormancy & delta tracking
+-	LastX        float32
+-	LastY        float32
+-	LastZ        float32
+-	LastAnim     string
++	LastX    float32
++	LastY    float32
++	LastZ    float32
++	LastAnim string
+ }
+ 
+ func NewPlayer(id string) *Player {
+@@ -36,7 +48,7 @@
+ 	for name, config := range Weapons {
+ 		ammoStore[name] = config.MagSize
+ 	}
+-	
++
+ 	return &Player{
+ 		ID: id,
+ 		State: &PlayerState{
+@@ -47,6 +59,7 @@
+ 		ActiveWeapon: defaultWeapon,
+ 		AmmoCount:    defaultWeapon.MagSize,
+ 		AmmoStore:    ammoStore,
++		CadenceStore: make(map[string]time.Time),
+ 		LastShotTime: time.Now().Add(-time.Hour), // Ensure they can shoot immediately
+ 	}
+ }
+@@ -54,6 +67,9 @@
+ func (p *Player) ValidateAndApplyFire() error {
+ 	if p.State.IsDead {
+ 		return errors.New("dead players cannot shoot")
++	}
++	if time.Now().Before(p.DrawUntil) {
++		return errors.New("weapon is still being drawn")
+ 	}
+ 
+ 	now := time.Now()
+@@ -70,14 +86,10 @@
+ 		}
+ 	}
+ 
+-	// 2. Validate Fire Rate (RPM) — clamp tolerance so high-RPM (600) doesn't become negative
+-	minInterval := time.Duration(float64(time.Minute) / float64(p.ActiveWeapon.RPM))
+-	threshold := minInterval - 200*time.Millisecond
+-	if threshold < 0 {
+-		threshold = 0
+-	}
+-	if now.Sub(p.LastShotTime) < threshold {
+-		return errors.New("firing rate exceeds limits (hacking detected)")
++	// Preserve cadence across packet jitter without granting sustained extra RPM.
++	interval := time.Minute / time.Duration(p.ActiveWeapon.RPM)
++	if now.Add(5 * time.Millisecond).Before(p.NextShotTime) {
++		return errors.New("firing rate exceeds limit")
+ 	}
+ 
+ 	// 3. Validate Ammo
+@@ -89,6 +101,12 @@
+ 	p.AmmoCount--
+ 	p.AmmoStore[p.ActiveWeapon.ID] = p.AmmoCount
+ 	p.LastShotTime = now
++	if p.NextShotTime.Before(now) {
++		p.NextShotTime = now
++	}
++	p.NextShotTime = p.NextShotTime.Add(interval)
++	p.CadenceStore[p.ActiveWeapon.ID] = p.NextShotTime
++	p.PendingHit = true
+ 	return nil
+ }
+ 
+@@ -116,24 +134,34 @@
+ 	if target.State.IsDead {
+ 		return false, errors.New("target is already dead")
+ 	}
+-	isDriving := p.State.Animation == "drive" || p.State.WeaponId == "vehicle"
+-	if !isDriving && p.IsReloading {
+-		return false, errors.New("shooter was reloading")
+-	}
+-	if p.ID == target.ID {
+-		return false, errors.New("cannot shoot yourself")
+-	}
+-
+-	// Basic cheat check: e.g. 3x headshot mult, or kinetic vehicle roadkill
+-	maxDamage := int(float64(p.ActiveWeapon.Damage) * 3.0)
+-	if isDriving {
+-		maxDamage = 350
+-	}
+-	if clientDamage <= 0 || clientDamage > maxDamage {
+-		return false, errors.New("invalid or impossible damage")
+-	}
+-
+-	target.State.Health -= int32(clientDamage)
++	if p.IsReloading || !p.PendingHit || time.Since(p.LastShotTime) > 800*time.Millisecond {
++		return false, errors.New("no unconsumed shot")
++	}
++	// One accepted firing event can resolve damage only once.
++	p.PendingHit = false
++	dx, dy, dz := p.ShotEnd[0]-p.ShotOrigin[0], p.ShotEnd[1]-p.ShotOrigin[1], p.ShotEnd[2]-p.ShotOrigin[2]
++	lengthSq := dx*dx + dy*dy + dz*dz
++	if lengthSq < 0.001 {
++		return false, errors.New("invalid shot segment")
++	}
++	tx, ty, tz := target.State.X-p.ShotOrigin[0], target.State.Y+1-p.ShotOrigin[1], target.State.Z-p.ShotOrigin[2]
++	fraction := (tx*dx + ty*dy + tz*dz) / lengthSq
++	if fraction < 0 || fraction > 1.02 {
++		return false, errors.New("target outside shot range")
++	}
++	cx, cy, cz := p.ShotOrigin[0]+fraction*dx, p.ShotOrigin[1]+fraction*dy, p.ShotOrigin[2]+fraction*dz
++	// Horizontal capsule and vertical extent, with modest interpolation tolerance.
++	if (cx-target.State.X)*(cx-target.State.X)+(cz-target.State.Z)*(cz-target.State.Z) > 0.75*0.75 || cy < target.State.Y-0.25 || cy > target.State.Y+2.1 {
++		return false, errors.New("shot misses target")
++	}
++	damage := p.ActiveWeapon.Damage
++	if cy > target.State.Y+1.45 {
++		damage = int(math.Round(float64(damage) * p.ActiveWeapon.HeadshotMultiplier))
++	}
++	// Damage comes from the server; clientDamage is not trusted.
++	_ = clientDamage
++
++	target.State.Health -= int32(damage)
+ 	if target.State.Health <= 0 {
+ 		target.State.Health = 0
+ 		target.State.IsDead = true
+@@ -145,3 +173,32 @@
+ 	}
+ 	return false, nil
+ }
++
++// ValidateFireRay ties accepted shots to finite, nearby origins and a bounded range.
++func (p *Player) ValidateFireRay(f *FireEvent) error {
++	if f == nil {
++		return errors.New("missing fire event")
++	}
++	if f.ShotId == 0 || f.ShotId <= p.State.LastShotId {
++		return errors.New("stale shot")
++	}
++	p.State.LastShotId = f.ShotId
++	values := []float32{f.OriginX, f.OriginY, f.OriginZ, f.HitX, f.HitY, f.HitZ, f.NormalX, f.NormalY, f.NormalZ}
++	for _, v := range values {
++		if !isValidFloat32(v) {
++			return errors.New("invalid fire coordinates")
++		}
++	}
++	ox, oy, oz := f.OriginX-p.State.X, f.OriginY-p.State.Y, f.OriginZ-p.State.Z
++	dx, dy, dz := f.HitX-f.OriginX, f.HitY-f.OriginY, f.HitZ-f.OriginZ
++	if ox*ox+oy*oy+oz*oz > 9 || dx*dx+dy*dy+dz*dz > 305*305 || dx*dx+dy*dy+dz*dz < 0.001 {
++		return errors.New("impossible fire ray")
++	}
++	if err := p.ValidateAndApplyFire(); err != nil {
++		return err
++	}
++	p.ShotID = f.ShotId
++	p.ShotOrigin = [3]float32{f.OriginX, f.OriginY, f.OriginZ}
++	p.ShotEnd = [3]float32{f.HitX, f.HitY, f.HitZ}
++	return nil
++}
+--- before/warbase-godot/server/internal/engine/match.go
++++ after/warbase-godot/server/internal/engine/match.go
+@@ -1,11 +1,10 @@
+ package engine
+ 
+ import (
++	"errors"
+ 	"log"
+ 	"math"
+-	"math/rand"
+ 	"sort"
+-	"strings"
+ 	"sync"
+ 	"sync/atomic"
+ 	"time"
+@@ -19,13 +18,23 @@
+ }
+ 
+ // Internal server wrapper to identify who sent a raw network packet
++type registration struct {
++	session *GameSession
++	result  chan error
++}
++
+ type Message struct {
++	Event    *ClientEvent
++	Session  *GameSession
+ 	SenderID string
+ 	RoomID   string
+ 	Data     []byte
+ }
+ 
+ type Room struct {
++	Grenades        []*serverGrenade
++	NextGrenade     uint64
++	Geometry        *mapGeometry
+ 	ID              string
+ 	Name            string
+ 	MapName         string
+@@ -48,6 +57,7 @@
+ 
+ func NewRoom(id string, name string, mapName string, mode string) *Room {
+ 	return &Room{
++		Geometry:        geometryFor(mapName),
+ 		ID:              id,
+ 		Name:            name,
+ 		MapName:         mapName,
+@@ -55,7 +65,7 @@
+ 		State:           "PLAYING",
+ 		PlayerEntities:  make([]Player, 0, 128),
+ 		PlayerIndices:   make(map[string]int),
+-		CachedGameState: &GameState{Players: make(map[string]*PlayerState), RoomMode: mode, RoomState: "PLAYING"},
++		CachedGameState: &GameState{Players: make(map[string]*PlayerState), RoomMode: mode, RoomState: "PLAYING", MapName: mapName, ProtocolVersion: 2},
+ 		CachedServerMsg: &ServerMessage{},
+ 		Sessions:        make(map[*GameSession]bool),
+ 		EmptySince:      time.Now(),
+@@ -70,22 +80,28 @@
+ 
+ // Match maintains the set of active game sessions and orchestrates the game loop.
+ type Match struct {
+-	sessions    map[*GameSession]bool // Plain English: Tracking active player sessions
+-	rooms       map[string]*Room
+-	roomsMutex  sync.RWMutex
+-	broadcast   chan Message
+-	register      chan *GameSession
++	sessions      map[*GameSession]bool // Plain English: Tracking active player sessions
++	rooms         map[string]*Room
++	roomsMutex    sync.RWMutex
++	broadcast     chan Message
++	register      chan registration
+ 	unregister    chan *GameSession
+ 	activePlayers atomic.Int32
++	stop          chan struct{}
++	done          chan struct{}
++	stopOnce      sync.Once
++	lastTick      atomic.Int64
++	snapshotTick  uint64
+ }
+ 
+ func NewMatch() *Match {
+ 	m := &Match{
+-		broadcast:   make(chan Message, 4096),
+-		register:    make(chan *GameSession, 128),
+-		unregister:  make(chan *GameSession, 128),
+-		sessions:    make(map[*GameSession]bool),
+-		rooms:       make(map[string]*Room),
++		stop: make(chan struct{}), done: make(chan struct{}),
++		broadcast:  make(chan Message, 4096),
++		register:   make(chan registration, 128),
++		unregister: make(chan *GameSession, 128),
++		sessions:   make(map[*GameSession]bool),
++		rooms:      make(map[string]*Room),
+ 	}
+ 	m.seedDefaultRoomsLocked()
+ 	return m
+@@ -98,6 +114,12 @@
+ 		{"industrial-public", "Industrial Zone (Public)", "industrial", "TDM"},
+ 		{"village-public", "Village Outpost (Public)", "village", "FFA"},
+ 		{"arena-public", "Game Arena (Public)", "arena", "FFA"},
++		{"loft-public", "Loft 17 (Public)", "loft", "FFA"},
++		{"shipment-public", "Shipment (Public)", "shipment", "FFA"},
++		{"dust2-public", "Industrial Recon (Public)", "dust2", "FFA"},
++		{"canyon-public", "Canyon (Public)", "canyon", "FFA"},
++		{"desert_oasis-public", "Desert Oasis (Public)", "desert_oasis", "FFA"},
++		{"nuketown-public", "Industrial Outpost (Public)", "nuketown", "FFA"},
+ 	}
+ 	for _, d := range defaults {
+ 		if _, exists := m.rooms[d.id]; !exists {
+@@ -109,11 +131,12 @@
+ }
+ 
+ type RoomInfo struct {
+-	ID         string `json:"id"`
+-	Name       string `json:"name"`
+-	MapName    string `json:"map"`
+-	Mode       string `json:"mode"`
+-	PlayerCount int   `json:"playerCount"`
++	ID          string `json:"id"`
++	Name        string `json:"name"`
++	MapName     string `json:"map"`
++	Mode        string `json:"mode"`
++	PlayerCount int    `json:"playerCount"`
++	Capacity    int    `json:"capacity"`
+ }
+ 
+ func (m *Match) CreateRoom(name string, mapName string, mode string) *Room {
+@@ -122,11 +145,15 @@
+ 		mode = "FFA"
+ 	}
+ 	room := NewRoom(id, name, mapName, mode)
+-	
++
+ 	m.roomsMutex.Lock()
++	if len(m.rooms) >= 256 {
++		m.roomsMutex.Unlock()
++		return nil
++	}
+ 	m.rooms[id] = room
+ 	m.roomsMutex.Unlock()
+-	
++
+ 	return room
+ }
+ 
+@@ -137,7 +164,7 @@
+ 
+ 	m.roomsMutex.RLock()
+ 	defer m.roomsMutex.RUnlock()
+-	
++
+ 	rooms := make([]RoomInfo, 0, len(m.rooms))
+ 	for _, room := range m.rooms {
+ 		rooms = append(rooms, RoomInfo{
+@@ -145,10 +172,11 @@
+ 			Name:        room.Name,
+ 			MapName:     room.MapName,
+ 			Mode:        room.Mode,
+-			PlayerCount: int(room.playerCount.Load()),
++			PlayerCount: len(room.Sessions),
++			Capacity:    64,
+ 		})
+ 	}
+-	
++
+ 	// Sort rooms consistently: by PlayerCount descending, then Name ascending
+ 	sort.Slice(rooms, func(i, j int) bool {
+ 		if rooms[i].PlayerCount != rooms[j].PlayerCount {
+@@ -156,7 +184,7 @@
+ 		}
+ 		return rooms[i].Name < rooms[j].Name
+ 	})
+-	
++
+ 	return rooms
+ }
+ 
+@@ -180,23 +208,42 @@
+ 	if !ok {
+ 		return false
+ 	}
+-	// Check if this username is in the room's PlayerIndices map (which tracks active entities)
+-	// We do this instead of iterating sessions for O(1) speed.
+-	_, taken := room.PlayerIndices[username]
+-	return taken
++	for session := range room.Sessions {
++		if session.PlayerID == username {
++			return true
++		}
++	}
++	return false
+ }
+ 
+ // Exported methods to allow external HTTP handlers to interact with the Match
+-func (m *Match) Register(s *GameSession) {
+-	m.register <- s
++func (m *Match) Register(s *GameSession) error {
++	result := make(chan error, 1)
++	select {
++	case m.register <- registration{session: s, result: result}:
++	case <-m.done:
++		return errors.New("server stopped")
++	}
++	select {
++	case err := <-result:
++		return err
++	case <-m.done:
++		return errors.New("server stopped")
++	}
+ }
+ 
+ func (m *Match) Unregister(s *GameSession) {
+-	m.unregister <- s
++	select {
++	case m.unregister <- s:
++	case <-m.done:
++	}
+ }
+ 
+ func (m *Match) Broadcast(msg Message) {
+-	m.broadcast <- msg
++	select {
++	case m.broadcast <- msg:
++	case <-m.done:
++	}
+ }
+ 
+ // Helper to send events without re-locking
+@@ -211,7 +258,14 @@
+ 	}
+ }
+ 
++func (m *Match) Healthy() bool { return time.Since(time.Unix(0, m.lastTick.Load())) < 2*time.Second }
++
++func (m *Match) Stop() { m.stopOnce.Do(func() { close(m.stop) }); <-m.done }
++
+ func (m *Match) Run() {
++	defer close(m.done)
++	defer m.lastTick.Store(0)
++	m.lastTick.Store(time.Now().UnixNano())
+ 	defer func() {
+ 		if err := recover(); err != nil {
+ 			log.Printf("CRITICAL PANIC in Match.Run(): %v", err)
+@@ -223,28 +277,51 @@
+ 
+ 	for {
+ 		select {
+-		case session := <-m.register:
+-			m.sessions[session] = true
+-			m.activePlayers.Add(1)
+-			
++		case <-m.stop:
++			m.roomsMutex.Lock()
++			for session := range m.sessions {
++				session.SafeClose()
++				if session.networkConn != nil {
++					session.networkConn.Close()
++				}
++			}
++			m.roomsMutex.Unlock()
++			return
++		case request := <-m.register:
++			session := request.session
++
+ 			m.roomsMutex.Lock()
+ 			room, ok := m.rooms[session.RoomID]
+ 			if !ok {
+-				log.Printf("Auto-creating room %s for connecting player %s", session.RoomID, session.PlayerID)
+-				mapName := "industrial"
+-				if strings.Contains(strings.ToLower(session.RoomID), "village") {
+-					mapName = "village"
+-				} else if strings.Contains(strings.ToLower(session.RoomID), "arena") {
+-					mapName = "arena"
+-				}
+-				roomName := "Custom Match (" + session.RoomID[:min(8, len(session.RoomID))] + ")"
+-				room = NewRoom(session.RoomID, roomName, mapName, "FFA")
+-				m.rooms[session.RoomID] = room
+-			}
++				m.roomsMutex.Unlock()
++				request.result <- errors.New("room no longer exists; refresh the room list")
++				continue
++			}
++			if len(m.sessions) >= 1024 || len(room.Sessions) >= 64 {
++				m.roomsMutex.Unlock()
++				request.result <- errors.New("server or room is full")
++				continue
++			}
++			duplicate := false
++			for active := range room.Sessions {
++				if active.PlayerID == session.PlayerID {
++					duplicate = true
++					break
++				}
++			}
++			if duplicate {
++				m.roomsMutex.Unlock()
++				request.result <- errors.New("username already in use")
++				continue
++			}
++			m.sessions[session] = true
++			m.activePlayers.Add(1)
+ 			room.Sessions[session] = true
+ 			m.roomsMutex.Unlock()
++			request.result <- nil
+ 
+ 		case session := <-m.unregister:
++			m.roomsMutex.Lock()
+ 			if _, ok := m.sessions[session]; ok {
+ 				delete(m.sessions, session)
+ 				m.activePlayers.Add(-1)
+@@ -260,14 +337,12 @@
+ 					break
+ 				}
+ 			}
+-			
+-			m.roomsMutex.RLock()
++
+ 			room, ok := m.rooms[session.RoomID]
+-			m.roomsMutex.RUnlock()
+-			
++
+ 			if ok {
+ 				delete(room.Sessions, session)
+-				
++
+ 				if !stillConnected {
+ 					idx, pOk := room.PlayerIndices[session.PlayerID]
+ 					if pOk {
+@@ -283,7 +358,7 @@
+ 						delete(room.PlayerIndices, session.PlayerID)
+ 						delete(room.CachedGameState.Players, session.PlayerID)
+ 						room.playerCount.Add(-1)
+-						
++
+ 						if room.playerCount.Load() == 0 {
+ 							room.EmptySince = time.Now()
+ 						}
+@@ -291,373 +366,31 @@
+ 				}
+ 			}
+ 
++			m.roomsMutex.Unlock()
+ 			log.Printf("Player %s disconnected from room %s", session.PlayerID, session.RoomID)
+ 
+ 		case message := <-m.broadcast:
++			m.processMessage(message)
++		case <-ticker.C:
++			// Replace obsolete incoming transforms instead of building a seconds-long input backlog.
+ 			m.roomsMutex.RLock()
+-			room, ok := m.rooms[message.RoomID]
++			inputs := make([]Message, 0, len(m.sessions))
++			for session := range m.sessions {
++				if state := session.pendingState.Swap(nil); state != nil {
++					inputs = append(inputs, Message{Session: session, SenderID: session.PlayerID, RoomID: session.RoomID, Event: &ClientEvent{Event: &ClientEvent_StateUpdate{StateUpdate: state}}})
++				}
++			}
+ 			m.roomsMutex.RUnlock()
+-			if !ok {
+-				continue
+-			}
+-
+-			var clientEvent ClientEvent
+-			if err := proto.Unmarshal(message.Data, &clientEvent); err == nil {
+-
+-				switch event := clientEvent.Event.(type) {
+-				case *ClientEvent_StateUpdate:
+-					// SECURITY FIX: Ignore stateUpdate.ID to prevent spoofing
+-					idx, ok := room.PlayerIndices[message.SenderID]
+-					if !ok {
+-						newPlayer := NewPlayer(message.SenderID)
+-						// Assign Team for TDM
+-						if room.Mode == "TDM" {
+-							teamACount := 0
+-							teamBCount := 0
+-							for i := range room.PlayerEntities {
+-								if room.PlayerEntities[i].State.Team == "A" {
+-									teamACount++
+-								} else if room.PlayerEntities[i].State.Team == "B" {
+-									teamBCount++
+-								}
+-							}
+-							if teamACount <= teamBCount {
+-								newPlayer.State.Team = "A"
+-							} else {
+-								newPlayer.State.Team = "B"
+-							}
+-						} else {
+-							newPlayer.State.Team = "NONE"
+-						}
+-						
+-						room.PlayerEntities = append(room.PlayerEntities, *newPlayer)
+-						idx = len(room.PlayerEntities) - 1
+-						room.PlayerIndices[message.SenderID] = idx
+-						room.CachedGameState.Players[message.SenderID] = room.PlayerEntities[idx].State
+-						room.playerCount.Add(1)
+-					}
+-					player := &room.PlayerEntities[idx]
+-
+-					if player.State.IsDead && (player.DeathTime.IsZero() || time.Since(player.DeathTime) < 2800*time.Millisecond || event.StateUpdate.Animation == "death") {
+-						player.State.Animation = "death"
+-						player.HasSpawned = false
+-						player.OutOfRangeTicks = 0
+-					} else {
+-						if player.State.IsDead {
+-							player.State.IsDead = false
+-							player.State.Health = 100
+-							player.DeathTime = time.Time{}
+-							player.HasSpawned = false
+-							player.OutOfRangeTicks = 0
+-						}
+-						if event.StateUpdate.Animation == "death" {
+-							player.HasSpawned = false
+-							player.OutOfRangeTicks = 0
+-						}
+-						// Update positions with speed clamp (anti-teleport + browser stutter recovery)
+-						if isValidFloat32(event.StateUpdate.X) && isValidFloat32(event.StateUpdate.Y) && isValidFloat32(event.StateUpdate.Z) {
+-							dx := event.StateUpdate.X - player.State.X
+-							dy := event.StateUpdate.Y - player.State.Y
+-							dz := event.StateUpdate.Z - player.State.Z
+-							dist2 := dx*dx + dy*dy + dz*dz
+-							maxDist2 := float32(625.0) // 25m/tick for foot (tolerant of browser frame drops / tab switches)
+-							isDriving := event.StateUpdate.Animation == "drive" || event.StateUpdate.WeaponId == "vehicle"
+-							if isDriving {
+-								maxDist2 = 3600.0 // 60m/tick for high-speed vehicles and mounting transitions
+-							}
+-							if player.HasSpawned && dist2 > maxDist2 && player.OutOfRangeTicks < 3 {
+-								// Temporary rubberband on single-tick spike; after 3 consecutive ticks, accept authoritative client position
+-								player.OutOfRangeTicks++
+-							} else {
+-								player.HasSpawned = true
+-								player.OutOfRangeTicks = 0
+-								player.State.X = event.StateUpdate.X
+-								player.State.Y = event.StateUpdate.Y
+-								player.State.Z = event.StateUpdate.Z
+-							}
+-						}
+-						if isValidFloat32(event.StateUpdate.Rx) && isValidFloat32(event.StateUpdate.Ry) && isValidFloat32(event.StateUpdate.Rz) && isValidFloat32(event.StateUpdate.Rw) {
+-							player.State.Rx = event.StateUpdate.Rx
+-							player.State.Ry = event.StateUpdate.Ry
+-							player.State.Rz = event.StateUpdate.Rz
+-							player.State.Rw = event.StateUpdate.Rw
+-						}
+-						player.State.Animation = event.StateUpdate.Animation
+-						player.State.PlatformId = event.StateUpdate.PlatformId
+-						player.State.Ping = event.StateUpdate.Ping
+-						if event.StateUpdate.WeaponId != "" {
+-							player.State.WeaponId = event.StateUpdate.WeaponId
+-						}
+-					}
+-
+-				case *ClientEvent_Ping:
+-					pongMsg := &ServerMessage{
+-						Message: &ServerMessage_ServerEvent{
+-							ServerEvent: &ServerEvent{
+-								Event: &ServerEvent_Pong{
+-									Pong: &ServerPongEvent{
+-										ClientTime: event.Ping.ClientTime,
+-									},
+-								},
+-							},
+-						},
+-					}
+-					m.sendDirectEventLocked(room, message.SenderID, pongMsg)
+-
+-				case *ClientEvent_Hit:
+-					targetIdx, okTarget := room.PlayerIndices[event.Hit.TargetId]
+-					shooterIdx, okShooter := room.PlayerIndices[message.SenderID]
+-					// firm: hit without recent fire is spam — require fire window (500ms), unless driving vehicle
+-					if okShooter {
+-						shooterTmp := &room.PlayerEntities[shooterIdx]
+-						isDriving := shooterTmp.State.Animation == "drive" || shooterTmp.State.WeaponId == "vehicle"
+-						if !isDriving && time.Since(shooterTmp.LastShotTime) > 800*time.Millisecond {
+-							log.Printf("[Room %s] Hit rejected: no recent Fire from %s", message.RoomID, message.SenderID)
+-							continue
+-						}
+-					}
+-					log.Printf("[Room %s] Received Hit: Shooter=%s, Target=%s, Damage=%d", message.RoomID, message.SenderID, event.Hit.TargetId, event.Hit.Damage)
+-
+-					if okTarget && okShooter {
+-						target := &room.PlayerEntities[targetIdx]
+-						shooter := &room.PlayerEntities[shooterIdx]
+-
+-						if room.Mode == "TDM" && shooter.State.Team == target.State.Team && shooter.State.Team != "NONE" {
+-							// Friendly fire disabled
+-							continue
+-						}
+-
+-						isKill, err := shooter.ValidateAndApplyHit(target, int(event.Hit.Damage))
+-						if err != nil {
+-							log.Printf("Hit Invalid: %s", err.Error())
+-						}
+-						if err == nil {
+-							// Valid hit! Send feedback to shooter
+-							if isKill {
+-								// Check win condition
+-								if room.Mode == "FFA" {
+-									if shooter.State.Kills >= 30 {
+-										room.State = "FINISHED"
+-										room.WinnerID = shooter.ID
+-										room.StateTimer = time.Now().Add(10 * time.Second)
+-										room.CachedGameState.RoomState = room.State
+-										room.CachedGameState.WinnerId = room.WinnerID
+-									}
+-								} else if room.Mode == "TDM" {
+-									if shooter.State.Team == "A" {
+-										room.ScoreTeamA++
+-										room.CachedGameState.ScoreTeamA = room.ScoreTeamA
+-										if room.ScoreTeamA >= 60 {
+-											room.State = "FINISHED"
+-											room.WinnerID = "A"
+-											room.StateTimer = time.Now().Add(10 * time.Second)
+-											room.CachedGameState.RoomState = room.State
+-											room.CachedGameState.WinnerId = room.WinnerID
+-										}
+-									} else if shooter.State.Team == "B" {
+-										room.ScoreTeamB++
+-										room.CachedGameState.ScoreTeamB = room.ScoreTeamB
+-										if room.ScoreTeamB >= 60 {
+-											room.State = "FINISHED"
+-											room.WinnerID = "B"
+-											room.StateTimer = time.Now().Add(10 * time.Second)
+-											room.CachedGameState.RoomState = room.State
+-											room.CachedGameState.WinnerId = room.WinnerID
+-										}
+-									}
+-								}
+-
+-								// It was a lethal shot
+-								m.sendDirectEventLocked(room, shooter.ID, &ServerMessage{
+-									Message: &ServerMessage_ServerEvent{
+-										ServerEvent: &ServerEvent{
+-											Event: &ServerEvent_KillConfirmed{},
+-										},
+-									},
+-								})
+-								// Target's client will send a RespawnRequest in 3 seconds.
+-							} else {
+-								// Normal hit
+-								m.sendDirectEventLocked(room, shooter.ID, &ServerMessage{
+-									Message: &ServerMessage_ServerEvent{
+-										ServerEvent: &ServerEvent{
+-											Event: &ServerEvent_HitConfirmed{},
+-										},
+-									},
+-								})
+-							}
+-						} else {
+-							log.Printf("Hit denied from %s: %v", shooter.ID, err)
+-						}
+-					}
+-
+-				case *ClientEvent_Fire:
+-					idx, ok := room.PlayerIndices[message.SenderID]
+-					if ok {
+-						shooter := &room.PlayerEntities[idx]
+-						if err := shooter.ValidateAndApplyFire(); err == nil {
+-							f := event.Fire
+-							// Valid! Broadcast to everyone else IN THIS ROOM
+-							fireMsg := &ServerMessage{
+-								Message: &ServerMessage_ServerEvent{
+-									ServerEvent: &ServerEvent{
+-										Event: &ServerEvent_Fire{
+-											Fire: &ServerFireEvent{
+-												ShooterId: message.SenderID,
+-												OriginX:   f.GetOriginX(),
+-												OriginY:   f.GetOriginY(),
+-												OriginZ:   f.GetOriginZ(),
+-												HitX:      f.GetHitX(),
+-												HitY:      f.GetHitY(),
+-												HitZ:      f.GetHitZ(),
+-												NormalX:   f.GetNormalX(),
+-												NormalY:   f.GetNormalY(),
+-												NormalZ:   f.GetNormalZ(),
+-												HitWall:   f.GetHitWall(),
+-											},
+-										},
+-									},
+-								},
+-							}
+-							if outData, err := proto.Marshal(fireMsg); err == nil {
+-								for session := range room.Sessions {
+-									if session.PlayerID != message.SenderID {
+-										session.EnqueueDirectEvent(outData)
+-									}
+-								}
+-							}
+-						} else {
+-							log.Printf("Fire denied from %s: %v", shooter.ID, err)
+-						}
+-					}
+-
+-				case *ClientEvent_Reload:
+-					idx, ok := room.PlayerIndices[message.SenderID]
+-					if ok {
+-						shooter := &room.PlayerEntities[idx]
+-						if err := shooter.ValidateAndApplyReload(); err != nil {
+-							log.Printf("Reload denied from %s: %v", shooter.ID, err)
+-						}
+-					}
+-
+-				case *ClientEvent_SwitchWeapon:
+-					idx, ok := room.PlayerIndices[message.SenderID]
+-					if ok {
+-						shooter := &room.PlayerEntities[idx]
+-						if !shooter.State.IsDead {
+-							if weapon, wOk := Weapons[event.SwitchWeapon.WeaponId]; wOk {
+-								shooter.ActiveWeapon = weapon
+-								shooter.State.WeaponId = event.SwitchWeapon.WeaponId
+-								if savedAmmo, hasSaved := shooter.AmmoStore[weapon.ID]; hasSaved {
+-									shooter.AmmoCount = savedAmmo
+-								} else {
+-									shooter.AmmoCount = weapon.MagSize
+-								}
+-								shooter.IsReloading = false
+-							}
+-						}
+-					}
+-					
+-				case *ClientEvent_RespawnRequest:
+-					idx, ok := room.PlayerIndices[message.SenderID]
+-					if ok {
+-						player := &room.PlayerEntities[idx]
+-						canRespawn := !player.State.IsDead || player.DeathTime.IsZero() || time.Since(player.DeathTime) >= 2400*time.Millisecond
+-						if canRespawn {
+-							player.State.IsDead = false
+-							player.State.Health = 100
+-							player.State.Animation = "idle"
+-							player.IsReloading = false
+-							player.AmmoCount = player.ActiveWeapon.MagSize
+-							player.AmmoStore[player.ActiveWeapon.ID] = player.AmmoCount
+-							player.DeathTime = time.Time{}
+-							player.HasSpawned = false
+-							player.OutOfRangeTicks = 0
+-
+-							newX := (rand.Float64() * 24) - 12
+-							newZ := (rand.Float64() * 24) - 12
+-							
+-							player.State.X = float32(newX)
+-							player.State.Y = 1.0
+-							player.State.Z = float32(newZ)
+-
+-							respawnEvt := &ServerMessage{
+-								Message: &ServerMessage_ServerEvent{
+-									ServerEvent: &ServerEvent{
+-										Event: &ServerEvent_Respawn{
+-											Respawn: &RespawnEvent{
+-												X: float32(newX),
+-												Y: 1.0,
+-												Z: float32(newZ),
+-											},
+-										},
+-									},
+-								},
+-							}
+-							m.sendDirectEventLocked(room, message.SenderID, respawnEvt)
+-						}
+-					}
+-
+-				case *ClientEvent_ThrowGrenade:
+-					// firm: validate grenade (dead, NaN, distance, rate)
+-					if idx, ok := room.PlayerIndices[message.SenderID]; ok {
+-						pl := &room.PlayerEntities[idx]
+-						if pl.State.IsDead {
+-							continue
+-						}
+-						if !isValidFloat32(event.ThrowGrenade.Px) || !isValidFloat32(event.ThrowGrenade.Py) || !isValidFloat32(event.ThrowGrenade.Pz) || !isValidFloat32(event.ThrowGrenade.Vx) || !isValidFloat32(event.ThrowGrenade.Vy) || !isValidFloat32(event.ThrowGrenade.Vz) {
+-							continue
+-						}
+-						vx, vy, vz := event.ThrowGrenade.Vx, event.ThrowGrenade.Vy, event.ThrowGrenade.Vz
+-						vlen := vx*vx + vy*vy + vz*vz
+-						if vlen > 900 { // 30m/s squared
+-							continue
+-						}
+-						// rate limit: reuse LastShotTime as grenade throttle (1 per 800ms)
+-						if time.Since(pl.LastShotTime) < 400*time.Millisecond && vlen > 0 {
+-							// allow if not spamming
+-						}
+-						// distance from player < 4m
+-						dx := event.ThrowGrenade.Px - pl.State.X
+-						dz := event.ThrowGrenade.Pz - pl.State.Z
+-						if dx*dx+dz*dz > 16 {
+-							continue
+-						}
+-					}
+-					// Broadcast to everyone else IN THIS ROOM
+-					grenadeMsg := &ServerMessage{
+-						Message: &ServerMessage_ServerEvent{
+-							ServerEvent: &ServerEvent{
+-								Event: &ServerEvent_ThrowGrenade{
+-									ThrowGrenade: &ServerThrowGrenadeEvent{
+-										ShooterId: message.SenderID,
+-										Px:        event.ThrowGrenade.Px,
+-										Py:        event.ThrowGrenade.Py,
+-										Pz:        event.ThrowGrenade.Pz,
+-										Vx:        event.ThrowGrenade.Vx,
+-										Vy:        event.ThrowGrenade.Vy,
+-										Vz:        event.ThrowGrenade.Vz,
+-									},
+-								},
+-							},
+-						},
+-					}
+-					if outData, err := proto.Marshal(grenadeMsg); err == nil {
+-						for session := range room.Sessions {
+-							if session.PlayerID != message.SenderID {
+-								session.EnqueueDirectEvent(outData)
+-							}
+-						}
+-					}
+-				}
+-
+-			}
+-		case <-ticker.C:
++			for _, input := range inputs {
++				m.processMessage(input)
++			}
++			m.snapshotTick++
++			m.lastTick.Store(time.Now().UnixNano())
+ 			// Process each room separately
+ 			now := time.Now()
+ 			var emptyRooms []string
+ 
+-			m.roomsMutex.RLock()
++			m.roomsMutex.Lock()
+ 			for _, room := range m.rooms {
+ 				// Mark for GC if non-permanent and empty for 30s
+ 				if !room.IsPermanent && room.playerCount.Load() == 0 && now.Sub(room.EmptySince) > 30*time.Second {
+@@ -687,41 +420,11 @@
+ 						player := &room.PlayerEntities[i]
+ 						player.State.Kills = 0
+ 						player.State.Deaths = 0
+-						player.State.Health = 100
+-						player.State.IsDead = false
+-						player.State.Animation = "idle"
+-						player.IsReloading = false
+-						if player.ActiveWeapon.ID != "" {
+-							player.AmmoCount = player.ActiveWeapon.MagSize
+-							player.AmmoStore[player.ActiveWeapon.ID] = player.AmmoCount
+-						}
+-						player.DeathTime = time.Time{}
+-						player.HasSpawned = false
+-
+-						// Force Respawn
+-						newX := (rand.Float64() * 24) - 12
+-						newZ := (rand.Float64() * 24) - 12
+-						player.State.X = float32(newX)
+-						player.State.Y = 1.0
+-						player.State.Z = float32(newZ)
+-						
+-						respawnEvt := &ServerMessage{
+-							Message: &ServerMessage_ServerEvent{
+-								ServerEvent: &ServerEvent{
+-									Event: &ServerEvent_Respawn{
+-										Respawn: &RespawnEvent{
+-											X: float32(newX),
+-											Y: 1.0,
+-											Z: float32(newZ),
+-										},
+-									},
+-								},
+-							},
+-						}
+-						m.sendDirectEventLocked(room, player.ID, respawnEvt)
+-					}
+-				}
+-
++						m.respawnPlayer(room, player)
++					}
++				}
++
++				m.advanceGrenades(room, 1.0/60.0)
+ 				// Resolve naturally completed reloads
+ 				for i := range room.PlayerEntities {
+ 					player := &room.PlayerEntities[i]
+@@ -732,10 +435,17 @@
+ 					}
+ 				}
+ 
++				for i := range room.PlayerEntities {
++					p := &room.PlayerEntities[i]
++					p.State.AmmoCount = int32(p.AmmoCount)
++					p.State.IsReloading = p.IsReloading
++				}
+ 				// Spatial Area of Interest (AOI) & Tiered Priority Replication
+-				room.ReplicationMgr.BroadcastRoomState(room)
+-			}
+-			m.roomsMutex.RUnlock()
++				if m.snapshotTick%2 == 0 {
++					room.ReplicationMgr.BroadcastRoomState(room)
++				}
++			}
++			m.roomsMutex.Unlock()
+ 
+ 			// Perform Garbage Collection of Empty Rooms
+ 			if len(emptyRooms) > 0 {
+@@ -753,3 +463,426 @@
+ 		}
+ 	}
+ }
++
++func (m *Match) processMessage(message Message) {
++	m.roomsMutex.Lock()
++	room, ok := m.rooms[message.RoomID]
++	defer m.roomsMutex.Unlock()
++	if !ok {
++		return
++	}
++
++	if message.Session != nil && !m.sessions[message.Session] {
++		return
++	}
++	for once := true; once; once = false {
++
++		clientEvent := message.Event
++		if clientEvent == nil {
++			clientEvent = &ClientEvent{}
++			if proto.Unmarshal(message.Data, clientEvent) != nil {
++				return
++			}
++		}
++		{
++
++			switch event := clientEvent.Event.(type) {
++			case *ClientEvent_StateUpdate:
++				// SECURITY FIX: Ignore stateUpdate.ID to prevent spoofing
++				idx, ok := room.PlayerIndices[message.SenderID]
++				if !ok {
++					newPlayer := NewPlayer(message.SenderID)
++					// Assign Team for TDM
++					if room.Mode == "TDM" {
++						teamACount := 0
++						teamBCount := 0
++						for i := range room.PlayerEntities {
++							if room.PlayerEntities[i].State.Team == "A" {
++								teamACount++
++							} else if room.PlayerEntities[i].State.Team == "B" {
++								teamBCount++
++							}
++						}
++						if teamACount <= teamBCount {
++							newPlayer.State.Team = "A"
++						} else {
++							newPlayer.State.Team = "B"
++						}
++					} else {
++						newPlayer.State.Team = "NONE"
++					}
++
++					room.PlayerEntities = append(room.PlayerEntities, *newPlayer)
++					idx = len(room.PlayerEntities) - 1
++					room.PlayerIndices[message.SenderID] = idx
++					room.CachedGameState.Players[message.SenderID] = room.PlayerEntities[idx].State
++					room.playerCount.Add(1)
++					m.respawnPlayer(room, &room.PlayerEntities[idx])
++					continue
++				}
++				player := &room.PlayerEntities[idx]
++
++				if player.State.IsDead {
++					continue
++				} else {
++					// Update positions with speed clamp (anti-teleport + browser stutter recovery)
++					if isValidFloat32(event.StateUpdate.X) && isValidFloat32(event.StateUpdate.Y) && isValidFloat32(event.StateUpdate.Z) {
++						dx := event.StateUpdate.X - player.State.X
++						dy := event.StateUpdate.Y - player.State.Y
++						dz := event.StateUpdate.Z - player.State.Z
++						dist2 := dx*dx + dy*dy + dz*dz
++						now := time.Now()
++						elapsed := now.Sub(player.LastMoveTime).Seconds()
++						if elapsed > 0.25 {
++							elapsed = 0.25
++						}
++						speed := float32(12)
++
++						player.MoveBudget += speed * float32(elapsed)
++						if player.MoveBudget > speed*0.25+0.3 {
++							player.MoveBudget = speed*0.25 + 0.3
++						}
++						player.LastMoveTime = now
++						distance := float32(math.Sqrt(float64(dist2)))
++						inBounds := math.Abs(float64(event.StateUpdate.X)) <= 1100 && math.Abs(float64(event.StateUpdate.Z)) <= 1100 && event.StateUpdate.Y >= -150 && event.StateUpdate.Y <= 300
++						if inBounds && distance <= player.MoveBudget && !room.Geometry.movementBlocked(vector{player.State.X, player.State.Y, player.State.Z}, vector{event.StateUpdate.X, event.StateUpdate.Y, event.StateUpdate.Z}) {
++							player.MoveBudget -= distance
++							player.State.X = event.StateUpdate.X
++							player.State.Y = event.StateUpdate.Y
++							player.State.Z = event.StateUpdate.Z
++						}
++					}
++					if isValidFloat32(event.StateUpdate.Rx) && isValidFloat32(event.StateUpdate.Ry) && isValidFloat32(event.StateUpdate.Rz) && isValidFloat32(event.StateUpdate.Rw) {
++						player.State.Rx = event.StateUpdate.Rx
++						player.State.Ry = event.StateUpdate.Ry
++						player.State.Rz = event.StateUpdate.Rz
++						player.State.Rw = event.StateUpdate.Rw
++					}
++					switch event.StateUpdate.Animation {
++					case "idle", "run", "firing", "firing walk", "jump":
++						player.State.Animation = event.StateUpdate.Animation
++					default:
++						player.State.Animation = "idle"
++					}
++					if len(event.StateUpdate.PlatformId) <= 24 {
++						player.State.PlatformId = event.StateUpdate.PlatformId
++					}
++					player.State.Ping = event.StateUpdate.Ping
++
++				}
++
++			case *ClientEvent_Ping:
++				pongMsg := &ServerMessage{
++					Message: &ServerMessage_ServerEvent{
++						ServerEvent: &ServerEvent{
++							Event: &ServerEvent_Pong{
++								Pong: &ServerPongEvent{
++									ClientTime: event.Ping.ClientTime,
++								},
++							},
++						},
++					},
++				}
++				m.sendDirectEventLocked(room, message.SenderID, pongMsg)
++
++			case *ClientEvent_Hit:
++				if room.State != "PLAYING" {
++					continue
++				}
++				targetIdx, okTarget := room.PlayerIndices[event.Hit.TargetId]
++				shooterIdx, okShooter := room.PlayerIndices[message.SenderID]
++				// firm: hit without recent fire is spam — require fire window (500ms), unless driving vehicle
++				if okShooter {
++					shooterTmp := &room.PlayerEntities[shooterIdx]
++					isDriving := shooterTmp.State.Animation == "drive" || shooterTmp.State.WeaponId == "vehicle"
++					if !isDriving && time.Since(shooterTmp.LastShotTime) > 800*time.Millisecond {
++						log.Printf("[Room %s] Hit rejected: no recent Fire from %s", message.RoomID, message.SenderID)
++						continue
++					}
++				}
++				log.Printf("[Room %s] Received Hit: Shooter=%s, Target=%s, Damage=%d", message.RoomID, message.SenderID, event.Hit.TargetId, event.Hit.Damage)
++
++				if okTarget && okShooter {
++					target := &room.PlayerEntities[targetIdx]
++					shooter := &room.PlayerEntities[shooterIdx]
++
++					if room.Mode == "TDM" && shooter.State.Team == target.State.Team && shooter.State.Team != "NONE" {
++						// Friendly fire disabled
++						continue
++					}
++
++					if event.Hit.ShotId != shooter.ShotID {
++						continue
++					}
++					isKill, err := shooter.ValidateAndApplyHit(target, int(event.Hit.Damage))
++					if err != nil {
++						log.Printf("Hit Invalid: %s", err.Error())
++					}
++					if err == nil {
++						// Valid hit! Send feedback to shooter
++						if isKill {
++							// Check win condition
++							if room.Mode == "FFA" {
++								if shooter.State.Kills >= 30 {
++									room.State = "FINISHED"
++									room.WinnerID = shooter.ID
++									room.StateTimer = time.Now().Add(10 * time.Second)
++									room.CachedGameState.RoomState = room.State
++									room.CachedGameState.WinnerId = room.WinnerID
++								}
++							} else if room.Mode == "TDM" {
++								if shooter.State.Team == "A" {
++									room.ScoreTeamA++
++									room.CachedGameState.ScoreTeamA = room.ScoreTeamA
++									if room.ScoreTeamA >= 60 {
++										room.State = "FINISHED"
++										room.WinnerID = "A"
++										room.StateTimer = time.Now().Add(10 * time.Second)
++										room.CachedGameState.RoomState = room.State
++										room.CachedGameState.WinnerId = room.WinnerID
++									}
++								} else if shooter.State.Team == "B" {
++									room.ScoreTeamB++
++									room.CachedGameState.ScoreTeamB = room.ScoreTeamB
++									if room.ScoreTeamB >= 60 {
++										room.State = "FINISHED"
++										room.WinnerID = "B"
++										room.StateTimer = time.Now().Add(10 * time.Second)
++										room.CachedGameState.RoomState = room.State
++										room.CachedGameState.WinnerId = room.WinnerID
++									}
++								}
++							}
++
++							// It was a lethal shot
++							m.sendDirectEventLocked(room, shooter.ID, &ServerMessage{
++								Message: &ServerMessage_ServerEvent{
++									ServerEvent: &ServerEvent{
++										Event: &ServerEvent_KillConfirmed{},
++									},
++								},
++							})
++							// Target's client will send a RespawnRequest in 3 seconds.
++						} else {
++							// Normal hit
++							m.sendDirectEventLocked(room, shooter.ID, &ServerMessage{
++								Message: &ServerMessage_ServerEvent{
++									ServerEvent: &ServerEvent{
++										Event: &ServerEvent_HitConfirmed{},
++									},
++								},
++							})
++						}
++					} else {
++						log.Printf("Hit denied from %s: %v", shooter.ID, err)
++					}
++				}
++
++			case *ClientEvent_Fire:
++				if room.State != "PLAYING" {
++					continue
++				}
++				idx, ok := room.PlayerIndices[message.SenderID]
++				if ok {
++					shooter := &room.PlayerEntities[idx]
++					firing := event.Fire
++					if firing == nil {
++						continue
++					}
++					if err := shooter.ValidateFireRay(event.Fire); err == nil {
++						f := event.Fire
++						// Occluded shots still spend ammo and acknowledge their ID; only damage is rejected.
++						origin, end := vector{f.OriginX, f.OriginY, f.OriginZ}, vector{f.HitX, f.HitY, f.HitZ}
++						if room.Geometry.blocked(origin, end) {
++							shooter.PendingHit = false
++							if fraction, normal, hit := room.Geometry.trace(origin, end); hit {
++								delta := sub(end, origin)
++								f.HitX = origin[0] + delta[0]*fraction
++								f.HitY = origin[1] + delta[1]*fraction
++								f.HitZ = origin[2] + delta[2]*fraction
++								f.NormalX, f.NormalY, f.NormalZ = normal[0], normal[1], normal[2]
++								f.HitWall = true
++							}
++						}
++						// Valid! Broadcast to everyone else IN THIS ROOM
++						fireMsg := &ServerMessage{
++							Message: &ServerMessage_ServerEvent{
++								ServerEvent: &ServerEvent{
++									Event: &ServerEvent_Fire{
++										Fire: &ServerFireEvent{
++											ShooterId: message.SenderID,
++											OriginX:   f.GetOriginX(),
++											OriginY:   f.GetOriginY(),
++											OriginZ:   f.GetOriginZ(),
++											HitX:      f.GetHitX(),
++											HitY:      f.GetHitY(),
++											HitZ:      f.GetHitZ(),
++											NormalX:   f.GetNormalX(),
++											NormalY:   f.GetNormalY(),
++											NormalZ:   f.GetNormalZ(),
++											HitWall:   f.GetHitWall(),
++										},
++									},
++								},
++							},
++						}
++						if outData, err := proto.Marshal(fireMsg); err == nil {
++							for session := range room.Sessions {
++								if session.PlayerID != message.SenderID {
++									session.EnqueueDirectEvent(outData)
++								}
++							}
++						}
++					} else {
++						log.Printf("Fire denied from %s: %v", shooter.ID, err)
++					}
++				}
++
++			case *ClientEvent_Reload:
++				idx, ok := room.PlayerIndices[message.SenderID]
++				if ok {
++					shooter := &room.PlayerEntities[idx]
++					if err := shooter.ValidateAndApplyReload(); err != nil {
++						log.Printf("Reload denied from %s: %v", shooter.ID, err)
++					}
++				}
++
++			case *ClientEvent_SwitchWeapon:
++				idx, ok := room.PlayerIndices[message.SenderID]
++				if ok {
++					shooter := &room.PlayerEntities[idx]
++					if !shooter.State.IsDead {
++						if weapon, wOk := Weapons[event.SwitchWeapon.WeaponId]; wOk {
++							shooter.ActiveWeapon = weapon
++							shooter.NextShotTime = shooter.CadenceStore[weapon.ID]
++							shooter.DrawUntil = time.Now().Add(220 * time.Millisecond)
++							shooter.State.WeaponId = event.SwitchWeapon.WeaponId
++							if savedAmmo, hasSaved := shooter.AmmoStore[weapon.ID]; hasSaved {
++								shooter.AmmoCount = savedAmmo
++							} else {
++								shooter.AmmoCount = weapon.MagSize
++							}
++							shooter.IsReloading = false
++							shooter.PendingHit = false
++						}
++					}
++				}
++
++			case *ClientEvent_RespawnRequest:
++				idx, ok := room.PlayerIndices[message.SenderID]
++				if ok {
++					player := &room.PlayerEntities[idx]
++					canRespawn := player.State.IsDead && !player.DeathTime.IsZero() && time.Since(player.DeathTime) >= 3*time.Second && room.State == "PLAYING"
++					if canRespawn {
++						m.respawnPlayer(room, player)
++					}
++				}
++
++			case *ClientEvent_ThrowGrenade:
++				// firm: validate grenade (dead, NaN, distance, rate)
++				if idx, ok := room.PlayerIndices[message.SenderID]; ok {
++					pl := &room.PlayerEntities[idx]
++					if pl.State.IsDead || pl.GrenadesRemaining <= 0 || room.State != "PLAYING" {
++						continue
++					}
++					if !isValidFloat32(event.ThrowGrenade.Px) || !isValidFloat32(event.ThrowGrenade.Py) || !isValidFloat32(event.ThrowGrenade.Pz) || !isValidFloat32(event.ThrowGrenade.Vx) || !isValidFloat32(event.ThrowGrenade.Vy) || !isValidFloat32(event.ThrowGrenade.Vz) {
++						continue
++					}
++					vx, vy, vz := event.ThrowGrenade.Vx, event.ThrowGrenade.Vy, event.ThrowGrenade.Vz
++					vlen := vx*vx + vy*vy + vz*vz
++					if vlen > 900 { // 30m/s squared
++						continue
++					}
++					if time.Since(pl.LastGrenadeTime) < time.Second {
++						continue
++					}
++					pl.LastGrenadeTime = time.Now()
++					// distance from player < 4m
++					dx := event.ThrowGrenade.Px - pl.State.X
++					dy := event.ThrowGrenade.Py - pl.State.Y
++					dz := event.ThrowGrenade.Pz - pl.State.Z
++					if dx*dx+dy*dy+dz*dz > 16 {
++						continue
++					}
++					pl.GrenadesRemaining--
++				} else {
++					continue
++				}
++				room.NextGrenade++
++				grenadeID := room.NextGrenade
++				room.Grenades = append(room.Grenades, &serverGrenade{id: grenadeID, owner: message.SenderID, pos: vector{event.ThrowGrenade.Px, event.ThrowGrenade.Py, event.ThrowGrenade.Pz}, velocity: vector{event.ThrowGrenade.Vx, event.ThrowGrenade.Vy, event.ThrowGrenade.Vz}})
++
++				// Broadcast to everyone else IN THIS ROOM
++				grenadeMsg := &ServerMessage{
++					Message: &ServerMessage_ServerEvent{
++						ServerEvent: &ServerEvent{
++							Event: &ServerEvent_ThrowGrenade{
++								ThrowGrenade: &ServerThrowGrenadeEvent{
++									ShooterId: message.SenderID,
++									GrenadeId: grenadeID,
++									Px:        event.ThrowGrenade.Px,
++									Py:        event.ThrowGrenade.Py,
++									Pz:        event.ThrowGrenade.Pz,
++									Vx:        event.ThrowGrenade.Vx,
++									Vy:        event.ThrowGrenade.Vy,
++									Vz:        event.ThrowGrenade.Vz,
++								},
++							},
++						},
++					},
++				}
++				if outData, err := proto.Marshal(grenadeMsg); err == nil {
++					for session := range room.Sessions {
++						session.EnqueueDirectEvent(outData)
++					}
++				}
++			}
++
++		}
++	}
++}
++
++func (m *Match) respawnPlayer(room *Room, p *Player) {
++	spawn := vector{0, 1, 0}
++	bestDistance := float32(-1)
++	// Choose a clear authored spawn farthest from existing opponents.
++	if room.Geometry != nil {
++		for _, candidate := range room.Geometry.spawns {
++			nearest := float32(math.MaxFloat32)
++			for i := range room.PlayerEntities {
++				other := &room.PlayerEntities[i]
++				if other.ID == p.ID || other.State.IsDead {
++					continue
++				}
++				dx, dz := other.State.X-candidate[0], other.State.Z-candidate[2]
++				d := dx*dx + dz*dz
++				if d < nearest {
++					nearest = d
++				}
++			}
++			if nearest > bestDistance {
++				bestDistance = nearest
++				spawn = candidate
++			}
++		}
++	}
++	p.State.X, p.State.Y, p.State.Z = spawn[0], spawn[1]+0.2, spawn[2]
++	p.State.Health = 100
++	p.State.IsDead = false
++	p.State.Animation = "idle"
++	p.IsReloading = false
++	p.PendingHit = false
++	p.DeathTime = time.Time{}
++	p.HasSpawned = true
++	p.LastMoveTime = time.Now()
++	p.MoveBudget = 1
++	p.NextShotTime = time.Time{}
++	p.CadenceStore = make(map[string]time.Time)
++	p.DrawUntil = time.Now().Add(220 * time.Millisecond)
++	p.GrenadesRemaining = 2
++	for id, cfg := range Weapons {
++		p.AmmoStore[id] = cfg.MagSize
++	}
++	p.AmmoCount = p.ActiveWeapon.MagSize
++	m.sendDirectEventLocked(room, p.ID, &ServerMessage{Message: &ServerMessage_ServerEvent{ServerEvent: &ServerEvent{Event: &ServerEvent_Respawn{Respawn: &RespawnEvent{X: p.State.X, Y: p.State.Y, Z: p.State.Z}}}}})
++}
+--- before/warbase-godot/server/internal/engine/weapons.go
++++ after/warbase-godot/server/internal/engine/weapons.go
+@@ -4,41 +4,46 @@
+ 
+ // WeaponConfig defines authoritative weapon properties
+ type WeaponConfig struct {
+-	ID         string
+-	Damage     int
+-	RPM        int // Fire rate
+-	MagSize    int
+-	ReloadTime time.Duration // e.g. 2500ms
++	ID                 string
++	Damage             int
++	HeadshotMultiplier float64
++	RPM                int // Fire rate
++	MagSize            int
++	ReloadTime         time.Duration // e.g. 2500ms
+ }
+ 
+ // Authoritative definitions of all in-game weapons
+ var Weapons = map[string]WeaponConfig{
+ 	"ak47": {
+-		ID:         "ak47",
+-		Damage:     34,
+-		RPM:        600,
+-		ReloadTime: 2500 * time.Millisecond,
+-		MagSize:    30,
++		ID:                 "ak47",
++		Damage:             34,
++		HeadshotMultiplier: 2.5,
++		RPM:                600,
++		ReloadTime:         2500 * time.Millisecond,
++		MagSize:            30,
+ 	},
+ 	"pistol": {
+-		ID:         "pistol",
+-		Damage:     25,
+-		RPM:        400,
+-		ReloadTime: 1500 * time.Millisecond,
+-		MagSize:    12,
++		ID:                 "pistol",
++		Damage:             25,
++		HeadshotMultiplier: 3.0,
++		RPM:                400,
++		ReloadTime:         1500 * time.Millisecond,
++		MagSize:            12,
+ 	},
+ 	"m2010": {
+-		ID:         "m2010",
+-		Damage:     95,
+-		RPM:        45,
+-		ReloadTime: 3200 * time.Millisecond,
+-		MagSize:    5,
++		ID:                 "m2010",
++		Damage:             95,
++		HeadshotMultiplier: 2.5,
++		RPM:                45,
++		ReloadTime:         3200 * time.Millisecond,
++		MagSize:            5,
+ 	},
+ 	"hmg": {
+-		ID:         "hmg",
+-		Damage:     42,
+-		RPM:        520,
+-		ReloadTime: 3400 * time.Millisecond,
+-		MagSize:    60,
++		ID:                 "hmg",
++		Damage:             42,
++		HeadshotMultiplier: 2.5,
++		RPM:                520,
++		ReloadTime:         3400 * time.Millisecond,
++		MagSize:            60,
+ 	},
+ }
+--- before/warbase-godot/server/cmd/game/server.go
++++ after/warbase-godot/server/cmd/game/server.go
+@@ -55,6 +55,7 @@
+ 		// because the shutdown didn't complete before the 5-second context deadline is
+ 		// hit). We relay this return value to the shutdownError channel.
+ 		//PS: making sure all background tasks have done executing:
++		app.match.Stop()
+ 		err := srv.Shutdown(ctx)
+ 		if err != nil {
+ 			shutdownError <- err
+--- before/warbase-godot/server/cmd/game/handlers.go
++++ after/warbase-godot/server/cmd/game/handlers.go
+@@ -5,7 +5,9 @@
+ 	"math/rand"
+ 	"net"
+ 	"net/http"
++	"net/url"
+ 	"strconv"
++	"strings"
+ 	"time"
+ 	"warbase-server/internal/engine"
+ 
+@@ -13,6 +15,7 @@
+ )
+ 
+ var allowedOrigins = map[string]bool{
++	"war.vaidik.blog":    true,
+ 	"war.nxtlap.com":     true,
+ 	"warbase.nxtlap.com": true,
+ 	"localhost:8081":     true,
+@@ -23,11 +26,23 @@
+ 	ReadBufferSize:  8192,
+ 	WriteBufferSize: 0,
+ 	CheckOrigin: func(r *http.Request) bool {
+-		return true // Public game server: allow web browser client from war.vaidik.blog and any client
++		origin := r.Header.Get("Origin")
++		if origin == "" {
++			return true
++		} // Native clients do not send browser origins.
++		parsed, err := url.Parse(origin)
++		if err != nil || (parsed.Scheme != "https" && parsed.Scheme != "http") {
++			return false
++		}
++		return parsed.Host == r.Host || allowedOrigins[parsed.Host]
+ 	},
+ }
+ 
+ func (app *application) healthcheckHandler(w http.ResponseWriter, r *http.Request) {
++	if !app.match.Healthy() {
++		app.writeJSON(w, http.StatusServiceUnavailable, envelope{"status": "unavailable"}, nil)
++		return
++	}
+ 	data := envelope{
+ 		"status": "available",
+ 		"system_info": envelope{
+@@ -106,7 +121,11 @@
+ 	session := engine.NewGameSession(app.match, conn, username, room)
+ 
+ 	// 4. Register the session with the central game Match
+-	app.match.Register(session)
++	if err := app.match.Register(session); err != nil {
++		conn.WriteControl(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.ClosePolicyViolation, err.Error()), time.Now().Add(time.Second))
++		conn.Close()
++		return
++	}
+ 
+ 	// 5. Start the network loops in background goroutines
+ 	go session.StreamUpdatesToPlayer()
+@@ -118,7 +137,7 @@
+ 	now := time.Now()
+ 
+ 	app.presenceMu.Lock()
+-	if cid != "" {
++	if cid != "" && len(cid) <= 64 && len(app.presenceMap) < 4096 {
+ 		app.presenceMap[cid] = now
+ 	}
+ 	// Evict entries older than 15 seconds
+@@ -159,12 +178,25 @@
+ 		return
+ 	}
+ 
+-	if input.Name == "" || input.Map == "" {
+-		app.badRequestResponse(w, r, fmt.Errorf("name and map are required"))
+-		return
+-	}
+-
++	input.Name = strings.TrimSpace(input.Name)
++	validMaps := map[string]bool{"industrial": true, "village": true, "arena": true, "shipment": true, "loft": true, "dust2": true, "canyon": true, "desert_oasis": true, "nuketown": true}
++	if input.Mode == "" {
++		input.Mode = "FFA"
++	}
++	if len(input.Name) < 1 || len(input.Name) > 48 || !validMaps[input.Map] || (input.Mode != "FFA" && input.Mode != "TDM") {
++		app.badRequestResponse(w, r, fmt.Errorf("choose a valid map, FFA/TDM mode, and room name of 1–48 bytes"))
++		return
++	}
++
++	if len(app.match.ListActiveRooms()) >= 256 {
++		app.writeJSON(w, http.StatusTooManyRequests, envelope{"error": "room limit reached"}, nil)
++		return
++	}
+ 	room := app.match.CreateRoom(input.Name, input.Map, input.Mode)
++	if room == nil {
++		app.writeJSON(w, http.StatusTooManyRequests, envelope{"error": "room limit reached"}, nil)
++		return
++	}
+ 
+ 	err = app.writeJSON(w, http.StatusCreated, envelope{"room_id": room.ID}, nil)
+ 	if err != nil {
+--- before/warbase-godot/server/cmd/game/routes.go
++++ after/warbase-godot/server/cmd/game/routes.go
+@@ -35,7 +35,7 @@
+ 
+ 	mux.HandleFunc("/healthcheck", app.healthcheckHandler)
+ 	mux.HandleFunc("/connect", app.connectToServerHandler)
+-	
++
+ 	mux.HandleFunc("/api/rooms", func(w http.ResponseWriter, r *http.Request) {
+ 		if r.Method == http.MethodGet {
+ 			app.listRoomsHandler(w, r)
+@@ -55,6 +55,9 @@
+ 		distPath = "/app/dist"
+ 	} else if _, err := os.Stat("dist"); err == nil {
+ 		distPath = "dist"
++	}
++	if app.config.staticDir != "" {
++		distPath = app.config.staticDir
+ 	}
+ 	mux.Handle("/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+ 		w.Header().Set("X-Content-Type-Options", "nosniff")
+@@ -116,7 +119,7 @@
+ 	}))
+ 
+ 	// Profiling only when not production
+-	if os.Getenv("ENV") != "production" {
++	if app.config.env != "production" && os.Getenv("ENV") != "production" {
+ 		mux.HandleFunc("/debug/pprof/", pprof.Index)
+ 		mux.HandleFunc("/debug/pprof/cmdline", pprof.Cmdline)
+ 		mux.HandleFunc("/debug/pprof/profile", pprof.Profile)
+--- before/warbase-godot/server/cmd/game/main.go
++++ after/warbase-godot/server/cmd/game/main.go
+@@ -11,17 +11,18 @@
+ )
+ 
+ type config struct {
+-	port int
+-	env  string
++	port      int
++	staticDir string
++	env       string
+ }
+ 
+ type application struct {
+-	config        config
+-	logger        *jsonlog.Logger
+-	match         *engine.Match
+-	wg            sync.WaitGroup
+-	presenceMu    sync.Mutex
+-	presenceMap   map[string]time.Time
++	config      config
++	logger      *jsonlog.Logger
++	match       *engine.Match
++	wg          sync.WaitGroup
++	presenceMu  sync.Mutex
++	presenceMap map[string]time.Time
+ }
+ 
+ func main() {
+@@ -30,6 +31,7 @@
+ 	flag.IntVar(&cfg.port, "port", 8081, "Game server port")
+ 	flag.StringVar(&cfg.env, "env", "development", "Environment (Development | Production)")
+ 
++	flag.StringVar(&cfg.staticDir, "static-dir", os.Getenv("DIST_DIR"), "Directory containing the Godot Web export")
+ 	flag.Parse()
+ 
+ 	logger := jsonlog.New(os.Stdout, jsonlog.LevelInfo)
+--- before/warbase-godot/server/cmd/stress/main.go
++++ after/warbase-godot/server/cmd/stress/main.go
+@@ -17,7 +17,7 @@
+ 
+ var (
+ 	serverHost  = flag.String("host", "localhost:8081", "Server address")
+-	roomID      = flag.String("room", "stress-test-60p", "Room to test")
++	roomID      = flag.String("room", "industrial-public", "Room to test")
+ 	playerCount = flag.Int("players", 60, "Number of simulated players")
+ 	duration    = flag.Duration("duration", 10*time.Second, "Test duration")
+ )
+@@ -49,9 +49,9 @@
+ 			defer wg.Done()
+ 
+ 			u := url.URL{
+-				Scheme: "ws",
+-				Host:   *serverHost,
+-				Path:   "/connect",
++				Scheme:   "ws",
++				Host:     *serverHost,
++				Path:     "/connect",
+ 				RawQuery: fmt.Sprintf("user=%s&room=%s&cid=stress_%s", id, *roomID, id),
+ 			}
+ 
+@@ -65,6 +65,8 @@
+ 			connectedPlayers.Add(1)
+ 			defer connectedPlayers.Add(-1)
+ 
++			var positionMu sync.Mutex
++			var posX, posZ float32
+ 			// Reader loop
+ 			go func() {
+ 				for {
+@@ -72,6 +74,22 @@
+ 					if err != nil {
+ 						return
+ 					}
++					serverMessage := &engine.ServerMessage{}
++					if proto.Unmarshal(msg, serverMessage) == nil {
++						positionMu.Lock()
++						if respawn := serverMessage.GetServerEvent().GetRespawn(); respawn != nil {
++							posX = respawn.X
++							posZ = respawn.Z
++						}
++						if state := serverMessage.GetGameState().GetPlayers()[id]; state != nil {
++							dx, dz := state.X-posX, state.Z-posZ
++							if dx*dx+dz*dz > 4 {
++								posX = state.X
++								posZ = state.Z
++							}
++						}
++						positionMu.Unlock()
++					}
+ 					totalBytesRecv.Add(int64(len(msg)))
+ 					totalPacketsRecv.Add(1)
+ 				}
+@@ -82,8 +100,7 @@
+ 			defer ticker.Stop()
+ 
+ 			// Initial position scattered over a 500m map
+-			posX := (rand.Float32() - 0.5) * 450.0
+-			posZ := (rand.Float32() - 0.5) * 450.0
++
+ 			speed := float32(18.0) // 65 km/h for vehicles, 6.2 m/s for infantry
+ 			if !driving {
+ 				speed = 6.2
+@@ -102,6 +119,7 @@
+ 					return
+ 				case <-ticker.C:
+ 					// Move around
++					positionMu.Lock()
+ 					posX += (rand.Float32() - 0.5) * (speed / 60.0)
+ 					posZ += (rand.Float32() - 0.5) * (speed / 60.0)
+ 
+@@ -123,6 +141,7 @@
+ 						},
+ 					}
+ 
++					positionMu.Unlock()
+ 					data, err := proto.Marshal(event)
+ 					if err != nil {
+ 						continue

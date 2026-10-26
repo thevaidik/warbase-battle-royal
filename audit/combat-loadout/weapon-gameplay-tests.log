@@ -1,0 +1,84 @@
+GODOT="/Applications/Godot.app/Contents/MacOS/Godot" python3 scripts/check_godot.py
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+ERROR: Condition "ret != noErr" is true. Returning: ""
+   at: get_system_ca_certificates (platform/macos/os_macos.mm:1035)
+ERROR: Connection to remote host failed!
+   at: connect_to_host (core/io/stream_peer_tcp.cpp:90)
+ERROR: Connection to remote host failed!
+   at: connect_to_host (core/io/stream_peer_tcp.cpp:90)
+ERROR: Connection to remote host failed!
+   at: connect_to_host (core/io/stream_peer_tcp.cpp:90)
+ERROR: Connection to remote host failed!
+   at: connect_to_host (core/io/stream_peer_tcp.cpp:90)
+CHECK PASS AK consumes one cartridge
+CHECK PASS draw animation blocks firing
+CHECK PASS pistol consumes one cartridge
+CHECK PASS switch preserves rifle magazine
+CHECK PASS switch preserves pistol magazine
+CHECK PASS switch cancels reload without free ammo
+CHECK PASS 8x zoom uses optical FOV ratio
+CHECK PASS sniper uses scope aperture
+CHECK PASS recoil spring settles through frame spikes
+CHECK PASS bots and parked vehicles retain finite physics
+CHECK PASS pause suspends practice simulation
+CHECK PASS respawn resets weapon state
+CHECK PASS M4 Carbine fires and consumes ammo
+CHECK PASS weapon ID roundtrip
+CHECK PASS new weapon has muzzle and animated magazine
+CHECK PASS MP5 SMG fires and consumes ammo
+CHECK PASS weapon ID roundtrip
+CHECK PASS new weapon has muzzle and animated magazine
+CHECK PASS DMR-52 fires and consumes ammo
+CHECK PASS weapon ID roundtrip
+CHECK PASS new weapon has muzzle and animated magazine
+CHECK PASS DMR starts at 4x
+CHECK PASS DMR supports 6x
+CHECK PASS DMR requires trigger release between shots
+CHECK PASS DMR ADS displays the scope reticle
+CHECK PASS cannot equip a weapon outside selected slots
+CHECK PASS tracer uses rifle muzzle velocity
+WEAPON TEST: 0 failures
+WARNING: 18 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+ERROR: Condition "ret != noErr" is true. Returning: ""
+   at: get_system_ca_certificates (platform/macos/os_macos.mm:1035)
+AUTOTEST: deployed map=industrial player_at=(-22.0, 1.5, -22.0)
+ERROR: Connection to remote host failed!
+   at: connect_to_host (core/io/stream_peer_tcp.cpp:90)
+ERROR: Connection to remote host failed!
+   at: connect_to_host (core/io/stream_peer_tcp.cpp:90)
+ERROR: Connection to remote host failed!
+   at: connect_to_host (core/io/stream_peer_tcp.cpp:90)
+ERROR: Connection to remote host failed!
+   at: connect_to_host (core/io/stream_peer_tcp.cpp:90)
+AUTOTEST: server fire decode kind=fire shooter=BOT_1 wall=true
+AUTOTEST: state bytes=57
+AUTOTEST: moving forward, pos=(-22.0, 0.918089, -22.0)
+AUTOTEST: moved to (-22.0, 0.918089, -27.76996)
+AUTOTEST: fired, ammo=29 tracers_active=1
+AUTOTEST: grenade thrown, bots=7
+AUTOTEST: bot damaged hp=66.0
+AUTOTEST: bot killed dead=true
+AUTOTEST: player hp=75.0
+AUTOTEST: local kills=1
+AUTOTEST: roster entries=8 player_kills=1
+AUTOTEST: switched to pistol ammo=12
+AUTOTEST: switched to HMG ammo=60 name=M2 .50 HMG
+AUTOTEST: back to AK ammo=29
+AUTOTEST: vehicle entered! jeep_pos=(-20.0, 0.784834, 19.99997) vel=(0.0, 0.030673, 0.008335)
+AUTOTEST: vehicle transmission verified! Gear 1=52km/h (climb), Gear 2=115km/h (speed)
+AUTOTEST: vehicle toggled to wide 3rd person chase! is_wide=true spring_len=8.80000019073486
+AUTOTEST: vehicle toggled back to normal 3rd person chase! is_wide=false spring_len=6.19999980926514
+AUTOTEST: vehicle exited safely! player_pos=(-22.4, 1.057683, -1.808267) driving=false
+AUTOTEST: scoreboard open=true mouse_mode=0
+AUTOTEST: bot_damage_enabled=false
+AUTOTEST: peaceful test hp_before=100.0 hp_after=100.0 (damage prevented=true)
+AUTOTEST: scoreboard closed, mouse_mode=0
+AUTOTEST: DONE pos=(-22.4, 1.057683, -1.808267) hp=100.0 phase=1 fps=415.0 phys_ms=3.99
+WARNING: 4 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+

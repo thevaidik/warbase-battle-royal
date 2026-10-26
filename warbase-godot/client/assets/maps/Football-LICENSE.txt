@@ -1,0 +1,9 @@
+New Football Map / free fire New Football Map
+Uploader: kyrox (https://sketchfab.com/kyroxffx)
+Source: https://sketchfab.com/3d-models/new-football-map-5993a290e7df41b9ac554c205ff22199
+Embedded metadata and listing licence: CC BY 4.0, https://creativecommons.org/licenses/by/4.0/
+The listing also references Garena Free Fire and states: "Please do not re-upload, redistribute, or resell this asset without permission."
+These conflicting source claims have not been resolved. Public/commercial distribution rights require verification with the rights holder.
+WarBase changes: collision, lighting response, authored alpha mask retained, validated spawns, navigation, lobby preview, optional web download. Original texture resolution and lossless import are retained. Removed 803 identically oriented coincident triangles to eliminate z-fighting; vertex and texture data are unchanged. Restored authored back-face culling.
+
+Additional geometry repair: subtracted same-facing coplanar overlaps while interpolating original UV/normal data onto retained portions; original 8K image data unchanged.

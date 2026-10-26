@@ -1,0 +1,30 @@
+=== RUN   TestOnlineBotPopulation
+--- PASS: TestOnlineBotPopulation (0.86s)
+=== RUN   TestNavigationRoutesAroundWall
+--- PASS: TestNavigationRoutesAroundWall (0.00s)
+=== RUN   TestAuthoredMapNavigation
+=== RUN   TestAuthoredMapNavigation/industrial
+    bots_test.go:69: nodes=1091 reachable spawns=12/12 build=2.450875ms
+=== RUN   TestAuthoredMapNavigation/village
+    bots_test.go:69: nodes=978 reachable spawns=12/12 build=103.220083ms
+=== RUN   TestAuthoredMapNavigation/arena
+    bots_test.go:69: nodes=156 reachable spawns=9/12 build=17.895208ms
+=== RUN   TestAuthoredMapNavigation/loft
+    bots_test.go:69: nodes=80 reachable spawns=11/12 build=5.751625ms
+=== RUN   TestAuthoredMapNavigation/shipment
+    bots_test.go:69: nodes=563 reachable spawns=12/12 build=66.165ms
+=== RUN   TestAuthoredMapNavigation/desert_oasis
+    bots_test.go:69: nodes=870 reachable spawns=12/12 build=85.105667ms
+--- PASS: TestAuthoredMapNavigation (0.28s)
+    --- PASS: TestAuthoredMapNavigation/industrial (0.00s)
+    --- PASS: TestAuthoredMapNavigation/village (0.10s)
+    --- PASS: TestAuthoredMapNavigation/arena (0.02s)
+    --- PASS: TestAuthoredMapNavigation/loft (0.01s)
+    --- PASS: TestAuthoredMapNavigation/shipment (0.07s)
+    --- PASS: TestAuthoredMapNavigation/desert_oasis (0.09s)
+=== RUN   TestBotPerceptionOcclusionAndRespawn
+--- PASS: TestBotPerceptionOcclusionAndRespawn (0.00s)
+=== RUN   TestBotsUseAuthorityAndRespectTeams
+--- PASS: TestBotsUseAuthorityAndRespectTeams (0.00s)
+PASS
+ok  	warbase-server/internal/engine	1.714s

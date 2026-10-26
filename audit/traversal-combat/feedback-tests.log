@@ -1,0 +1,11 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 4.1 Metal - 91.7 - Compatibility - Using Device: Apple - Apple M4
+
+PASS: four selectable daylight presets replace total night
+PASS: overcast visibility remains bright
+PASS: incoming damage creates visible blood feedback
+PASS: lethal damage enters the death presentation
+PASS: death drops the view and hides first-person weapons
+PASS: death creates a bounded ground blood stain
+PASS: respawn restores the camera, weapons and clear screen
+COMBAT FEEDBACK TEST: 0 failures

@@ -1,37 +1,34 @@
-.PHONY: build run run-release dev-client build-server docker swift dev
-
-# Build the Web Client (Vite/TypeScript)
-build:
-	@echo "Building Frontend Client..."
-	@cd client && npm run build
-
-# Build and start the Swift Game Server locally (Development mode)
-run: build
-	@echo "Starting Unified Game Server (Swift Hummingbird, Port 8081)..."
-	@cd server-swift && PORT=8081 ENV=development swift run App
-
-# Compile optimized Swift release binary
+GODOT ?= /Applications/Godot.app/Contents/MacOS/Godot
+.PHONY: test-web run-server build-server test test-server test-godot stress-test docker run-godot export-godot-mac export-godot-web export-map-data proto
+run-server:
+	cd warbase-godot/server && go run ./cmd/game
 build-server:
-	@echo "Compiling Optimized Swift Server Binary (-c release)..."
-	@cd server-swift && swift build -c release
-
-# Run the compiled Swift release binary (Production mode)
-run-release: build build-server
-	@echo "Starting Optimized Swift Server (Release Binary, Port 8081)..."
-	@cd server-swift && PORT=8081 ENV=production ./.build/release/App
-
-# Run Vite dev server for rapid frontend development
-dev-client:
-	@echo "Starting Vite Dev Server..."
-	@cd client && npm run dev
-
-# Build and start the Docker production stack
+	cd warbase-godot/server && go build -o warbase-server ./cmd/game
+test: test-server test-godot
+test-server:
+	cd warbase-godot/server && go test -race ./... && go vet ./...
+test-godot:
+	GODOT="$(GODOT)" python3 scripts/check_godot.py
+stress-test:
+	cd warbase-godot/server && go run ./cmd/stress -players=60 -duration=10s
 docker:
-	@echo "Starting Swift Server in Docker Container..."
-	@docker compose up --build
+	docker compose -f warbase-godot/docker-compose.yml up --build
+run-godot:
+	"$(GODOT)" --path warbase-godot/client res://scenes/Main.tscn
+export-godot-mac:
+	mkdir -p build
+	"$(GODOT)" --headless --path warbase-godot/client --export-release macOS ../../build/WarBase-macOS.zip
+export-godot-web:
+	mkdir -p warbase-godot/client/dist
+	"$(GODOT)" --headless --path warbase-godot/client --export-release Web dist/index.html
+	"$(GODOT)" --headless --path warbase-godot/client --script res://scripts/tools/export_optional_maps.gd
+	python3 scripts/compress_web.py
+export-map-data:
+	"$(GODOT)" --headless --path warbase-godot/client --script res://scripts/tools/export_server_maps.gd
+	python3 scripts/compress_maps.py
+proto:
+	protoc -I shared/proto/fps --go_out=warbase-godot/server --go_opt=module=warbase-server shared/proto/fps/packets.proto
 
-# Aliases
-swift: run
-dev: run
-
-
+test-web:
+	python3 scripts/check_web_export.py
+	GODOT="$(GODOT)" python3 scripts/check_optional_maps.py

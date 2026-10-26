@@ -1,0 +1,12 @@
+python3 scripts/check_web_export.py
+WEB CHECK PASS: 168 packed files; gzip and Brotli are byte-identical; hashed URLs verified
+{
+  "identity": 67151049,
+  "gzip": 36871881,
+  "br": 34606870
+}
+GODOT="/Applications/Godot.app/Contents/MacOS/Godot" python3 scripts/check_optional_maps.py
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+OPTIONAL PACK TEST: PASS - excluded from startup, mounted successfully, 12 spawns, full 8K atlas
+

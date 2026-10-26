@@ -1,0 +1,10 @@
+=== RUN   TestSniperOneHitAtEveryRangeAndHeight
+--- PASS: TestSniperOneHitAtEveryRangeAndHeight (0.00s)
+=== RUN   TestBotEvadesVisibleGrenade
+--- PASS: TestBotEvadesVisibleGrenade (0.64s)
+=== RUN   TestBotKeepsVisibleTarget
+--- PASS: TestBotKeepsVisibleTarget (0.00s)
+=== RUN   TestBotCannotSenseGrenadeThroughWall
+--- PASS: TestBotCannotSenseGrenadeThroughWall (0.00s)
+PASS
+ok  	warbase-server/internal/engine	1.207s

@@ -1,0 +1,14 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+ERROR: Condition "ret != noErr" is true. Returning: ""
+   at: get_system_ca_certificates (platform/macos/os_macos.mm:1035)
+PACK MAP PASS industrial spawns=12
+PACK MAP PASS village spawns=12
+PACK MAP PASS arena spawns=12
+PACK MAP PASS shipment spawns=12
+PACK MAP PASS dust2 spawns=12
+PACK MAP PASS nuketown spawns=12
+PACK MAP PASS canyon spawns=12
+PACK MAP PASS desert_oasis spawns=12
+PACK MAP PASS resoforge spawns=12
+PACK CHECK PASS: 9 maps, grenade scene, ResoForge attribution

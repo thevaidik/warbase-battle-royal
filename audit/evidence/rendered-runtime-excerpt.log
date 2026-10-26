@@ -1,0 +1,308 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 4.1 Metal - 91.7 - Compatibility - Using Device: Apple - Apple M4
+
+ENGINE TELEMETRY: fps=1.0 ms=1000.0 focused=false draw_calls=73.0 phys_ms=205.304
+ENGINE TELEMETRY: fps=1.0 ms=1000.0 focused=true draw_calls=91.0 phys_ms=0.228
+ENGINE TELEMETRY: fps=1.0 ms=1000.0 focused=true draw_calls=91.0 phys_ms=0.228
+ENGINE TELEMETRY: fps=1.0 ms=1000.0 focused=true draw_calls=91.0 phys_ms=0.228
+ENGINE TELEMETRY: fps=1.0 ms=1000.0 focused=true draw_calls=91.0 phys_ms=0.228
+ENGINE TELEMETRY: fps=51.0 ms=19.6078431372549 focused=true draw_calls=91.0 phys_ms=0.108
+ENGINE TELEMETRY: fps=51.0 ms=19.6078431372549 focused=true draw_calls=91.0 phys_ms=0.108
+ENGINE TELEMETRY: fps=51.0 ms=19.6078431372549 focused=true draw_calls=974.0 phys_ms=0.108
+ENGINE TELEMETRY: fps=19.0 ms=52.6315789473684 focused=true draw_calls=978.0 phys_ms=10.51
+ENGINE TELEMETRY: fps=19.0 ms=52.6315789473684 focused=true draw_calls=977.0 phys_ms=10.51
+ENGINE TELEMETRY: fps=25.0 ms=40.0 focused=true draw_calls=977.0 phys_ms=0.659
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+     at: normalize (./core/math/vector3.h:551)
+     GDScript backtrace (most recent call first):
+         [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+     at: normalize (./core/math/vector3.h:551)
+     GDScript backtrace (most recent call first):
+         [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+     at: normalize (./core/math/vector3.h:551)
+     GDScript backtrace (most recent call first):
+         [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+     at: normalize (./core/math/vector3.h:551)
+     GDScript backtrace (most recent call first):
+         [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+     at: normalize (./core/math/vector3.h:551)
+     GDScript backtrace (most recent call first):
+         [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+     at: normalize (./core/math/vector3.h:551)
+     GDScript backtrace (most recent call first):
+         [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+     at: normalize (./core/math/vector3.h:551)
+     GDScript backtrace (most recent call first):
+         [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+     at: normalize (./core/math/vector3.h:551)
+     GDScript backtrace (most recent call first):
+         [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+     at: normalize (./core/math/vector3.h:551)
+     GDScript backtrace (most recent call first):
+         [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+     at: normalize (./core/math/vector3.h:551)
+     GDScript backtrace (most recent call first):
+         [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+     at: normalize (./core/math/vector3.h:551)
+     GDScript backtrace (most recent call first):
+         [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+     at: normalize (./core/math/vector3.h:551)
+     GDScript backtrace (most recent call first):
+         [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+     at: normalize (./core/math/vector3.h:551)
+     GDScript backtrace (most recent call first):
+         [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+     at: normalize (./core/math/vector3.h:551)
+     GDScript backtrace (most recent call first):
+         [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+     at: normalize (./core/math/vector3.h:551)
+     GDScript backtrace (most recent call first):
+         [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+     at: normalize (./core/math/vector3.h:551)
+     GDScript backtrace (most recent call first):
+         [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+     at: normalize (./core/math/vector3.h:551)
+     GDScript backtrace (most recent call first):
+         [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+     at: normalize (./core/math/vector3.h:551)
+     GDScript backtrace (most recent call first):
+         [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+     at: normalize (./core/math/vector3.h:551)
+     GDScript backtrace (most recent call first):
+         [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+     at: normalize (./core/math/vector3.h:551)
+     GDScript backtrace (most recent call first):
+         [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+     at: normalize (./core/math/vector3.h:551)
+     GDScript backtrace (most recent call first):
+         [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+     at: normalize (./core/math/vector3.h:551)
+     GDScript backtrace (most recent call first):
+         [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+     at: normalize (./core/math/vector3.h:551)
+     GDScript backtrace (most recent call first):
+         [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+     at: normalize (./core/math/vector3.h:551)
+     GDScript backtrace (most recent call first):
+         [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+     at: normalize (./core/math/vector3.h:551)
+     GDScript backtrace (most recent call first):
+         [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+     at: normalize (./core/math/vector3.h:551)
+     GDScript backtrace (most recent call first):
+         [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+     at: normalize (./core/math/vector3.h:551)
+     GDScript backtrace (most recent call first):
+         [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+     at: normalize (./core/math/vector3.h:551)
+     GDScript backtrace (most recent call first):
+         [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+     at: normalize (./core/math/vector3.h:551)
+     GDScript backtrace (most recent call first):
+         [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+     at: normalize (./core/math/vector3.h:551)
+     GDScript backtrace (most recent call first):
+         [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+     at: normalize (./core/math/vector3.h:551)
+     GDScript backtrace (most recent call first):
+         [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+     at: normalize (./core/math/vector3.h:551)
+     GDScript backtrace (most recent call first):
+         [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+     at: normalize (./core/math/vector3.h:551)
+     GDScript backtrace (most recent call first):
+         [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+     at: normalize (./core/math/vector3.h:551)
+     GDScript backtrace (most recent call first):
+         [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+     at: normalize (./core/math/vector3.h:551)
+     GDScript backtrace (most recent call first):
+         [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+     at: normalize (./core/math/vector3.h:551)
+     GDScript backtrace (most recent call first):
+         [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+     at: normalize (./core/math/vector3.h:551)
+     GDScript backtrace (most recent call first):
+         [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+     at: normalize (./core/math/vector3.h:551)
+     GDScript backtrace (most recent call first):
+         [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+     at: normalize (./core/math/vector3.h:551)
+     GDScript backtrace (most recent call first):
+         [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+     at: normalize (./core/math/vector3.h:551)
+     GDScript backtrace (most recent call first):
+         [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+     at: normalize (./core/math/vector3.h:551)
+     GDScript backtrace (most recent call first):
+         [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+     at: normalize (./core/math/vector3.h:551)
+     GDScript backtrace (most recent call first):
+         [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+     at: normalize (./core/math/vector3.h:551)
+     GDScript backtrace (most recent call first):
+         [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+     at: normalize (./core/math/vector3.h:551)
+     GDScript backtrace (most recent call first):
+         [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+     at: normalize (./core/math/vector3.h:551)
+     GDScript backtrace (most recent call first):
+         [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+     at: normalize (./core/math/vector3.h:551)
+     GDScript backtrace (most recent call first):
+         [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+     at: normalize (./core/math/vector3.h:551)
+     GDScript backtrace (most recent call first):
+         [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+     at: normalize (./core/math/vector3.h:551)
+     GDScript backtrace (most recent call first):
+         [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+     at: normalize (./core/math/vector3.h:551)
+     GDScript backtrace (most recent call first):
+         [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+     at: normalize (./core/math/vector3.h:551)
+     GDScript backtrace (most recent call first):
+         [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+     at: normalize (./core/math/vector3.h:551)
+     GDScript backtrace (most recent call first):
+         [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+     at: normalize (./core/math/vector3.h:551)
+     GDScript backtrace (most recent call first):
+         [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+     at: normalize (./core/math/vector3.h:551)
+     GDScript backtrace (most recent call first):
+         [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+     at: normalize (./core/math/vector3.h:551)
+     GDScript backtrace (most recent call first):
+         [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+     at: normalize (./core/math/vector3.h:551)
+     GDScript backtrace (most recent call first):
+         [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+     at: normalize (./core/math/vector3.h:551)
+     GDScript backtrace (most recent call first):
+         [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+     at: normalize (./core/math/vector3.h:551)
+     GDScript backtrace (most recent call first):
+         [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+     at: normalize (./core/math/vector3.h:551)
+     GDScript backtrace (most recent call first):
+         [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+     at: normalize (./core/math/vector3.h:551)
+     GDScript backtrace (most recent call first):
+         [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+     at: normalize (./core/math/vector3.h:551)
+     GDScript backtrace (most recent call first):
+         [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+     at: normalize (./core/math/vector3.h:551)
+     GDScript backtrace (most recent call first):
+         [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+     at: normalize (./core/math/vector3.h:551)
+     GDScript backtrace (most recent call first):
+         [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+     at: normalize (./core/math/vector3.h:551)
+     GDScript backtrace (most recent call first):
+         [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+     at: normalize (./core/math/vector3.h:551)
+     GDScript backtrace (most recent call first):
+         [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+     at: normalize (./core/math/vector3.h:551)
+     GDScript backtrace (most recent call first):
+         [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+     at: normalize (./core/math/vector3.h:551)
+     GDScript backtrace (most recent call first):
+         [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+     at: normalize (./core/math/vector3.h:551)
+     GDScript backtrace (most recent call first):
+         [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+     at: normalize (./core/math/vector3.h:551)
+     GDScript backtrace (most recent call first):
+         [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+     at: normalize (./core/math/vector3.h:551)
+     GDScript backtrace (most recent call first):
+         [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+     at: normalize (./core/math/vector3.h:551)
+     GDScript backtrace (most recent call first):
+         [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+     at: normalize (./core/math/vector3.h:551)
+     GDScript backtrace (most recent call first):
+         [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+     at: normalize (./core/math/vector3.h:551)
+     GDScript backtrace (most recent call first):
+         [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+     at: normalize (./core/math/vector3.h:551)
+     GDScript backtrace (most recent call first):
+         [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vect
+[Repeated warnings omitted. Original run was terminated at 18-second deadline.]

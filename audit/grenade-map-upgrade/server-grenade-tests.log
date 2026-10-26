@@ -1,0 +1,12 @@
+=== RUN   TestImpactGrenadeTimingAndDamage
+--- PASS: TestImpactGrenadeTimingAndDamage (0.73s)
+=== RUN   TestGrenadeBallisticArcBounceAndRest
+    grenade_ballistics_test.go:30: landing frame=172 final=[39.684258 0.062 0]
+--- PASS: TestGrenadeBallisticArcBounceAndRest (0.00s)
+=== RUN   TestGrenadeThinWallAndImpact
+--- PASS: TestGrenadeThinWallAndImpact (0.00s)
+=== RUN   TestResoforgeMapSpawnsAndNavigation
+    resoforge_test.go:25: ResoForge: 274 navigation nodes, all 12 spawns accessible
+--- PASS: TestResoforgeMapSpawnsAndNavigation (0.02s)
+PASS
+ok  	warbase-server/internal/engine	1.294s

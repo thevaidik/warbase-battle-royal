@@ -1,76 +1,78 @@
-# Warbase Battle Royale
+# WarBase
 
-A high-performance, real-time multiplayer FPS game with unified cross-platform clients (Web Babylon.js + visionOS RealityKit) powered by a high-throughput **Swift 6 + Hummingbird 2.0** server.
+Godot 4.7.2 FPS client and Go multiplayer service. The game supports FFA/TDM rooms, seven selectable weapons, custom primary/secondary/throwable slots, variable optics, online AI squads, and offline practice with bots and vehicles.
 
----
+## Play locally
 
-## System Architecture
+Install Godot 4.7.2 and Go 1.23 or later. Web release packaging also requires Node.js for built-in Brotli compression. On macOS, the Makefile defaults to `/Applications/Godot.app/Contents/MacOS/Godot`; override `GODOT` for another installation.
 
-The game utilizes an **authoritative server architecture** streaming 60Hz binary Protocol Buffer messages over WebSockets with client-side prediction and server-side anti-cheat validation.
+- Start the service with `make run-server`.
+- Start the native client with `make run-godot`. Set **Settings → Server Host** to `localhost:8081` for local online play. The existing remote host remains the native default.
+- Use **Join server** for online matches with AI and human players. The optional **Offline** switch starts a local sandbox. Home, Loadout, Operator, and Settings remain in the top bar.
+- For the browser, install the matching Godot export templates, run `make export-godot-web`, start the service, and open `http://localhost:8081`.
 
-```mermaid
-graph TD
-    subgraph Clients [Cross-Platform Clients]
-        Web[Babylon.js Web Client - TypeScript]
-        Vision[visionOS Client - RealityKit / SwiftUI]
-    end
+The Web client connects to the same host and port that serves it. Online play uses protocol version 4; update the client and service together. Old exported clients are incompatible with the custom inventory, vehicle, and room-lighting protocol.
 
-    subgraph Server [Swift Hummingbird 2.0 Backend]
-        Router[App.swift - HTTP & WebSocket Upgrade]
-        Match[Match.swift - 60Hz Game Loop & State Broadcast]
-        AntiCheat[Player.swift - Fire Rate, Speed & Hit Verification]
-        Proto[Packets.swift - Binary Protobuf Serialization]
-    end
+## Controls
 
-    Web <-->|Binary Protobuf / WebSocket| Router
-    Vision <-->|Binary Protobuf / WebSocket| Router
-    Router --> Match
-    Match --> AntiCheat
-    Match --> Proto
-```
+| Action | Input |
+| --- | --- |
+| Move / jump / crouch | WASD / Space / C |
+| Fire / aim | Left / right mouse button |
+| Reload | R |
+| Optic magnification | V on weapons with variable optics |
+| Steady scoped aim | Hold Shift while stationary and aimed |
+| Primary / secondary | 1 / 2; mouse wheel swaps between them |
+| Equipped throwable | G; two per life |
+| Inspect | I |
+| Scoreboard / pause | Tab / Esc |
+| Vehicle enter / exit | E near an unoccupied car; online and offline |
+| Drive / brake / camera | WASD / Space / mouse; C changes chase view |
 
----
+Click **Loadout** on the home screen to open the full equipment picker. Any two different guns can occupy the primary and secondary slots; choose an M67 frag or impact grenade. Choices are saved automatically and applied when you deploy.
 
-## Directory Structure
+Automatic weapons require roughly 0.32–0.40 seconds of perfect close-range body hits to eliminate a full-health target. Damage falls with distance except for the one-shot M2010 sniper. Spawn protection lasts 2.5 seconds and ends when firing or throwing. Health recovers at 15 HP/second after five seconds without damage.
 
-```
-WarBase/
-├── client/           # Babylon.js Web Client (TypeScript, Vite, Havok Physics)
-├── WarBaseClient/    # Native Apple visionOS Client (RealityKit, SwiftUI)
-├── server-swift/     # Authoritative Game Server (Swift 6, Hummingbird 2.0, Swift-NIO)
-├── shared/           # Canonical Protocol Buffer definitions (packets.proto)
-├── context mds/      # Game mechanics, networking, and anti-cheat documentation
-├── docker-compose.yml# Production Docker deployment stack
-└── Makefile          # Unified build and run commands
-```
+Switching preserves each magazine and cancels an unfinished reload. Firing is blocked while drawing, reloading, cycling the sniper bolt, or throwing. The scope’s angular markings are for aiming references; the game uses hitscan rather than ballistic bullet drop. Exhausted breath must recover after releasing Shift.
 
----
+## Validate
 
-## Getting Started
+- `make test-server`: Go tests under the race detector, then `go vet`.
+- `make test-web`: validates versioned web asset URLs, unused-asset removal, and lossless gzip/Brotli round trips after export.
+- `make test-godot`: bounded handling and gameplay regressions; fails on script/physics errors or missing completion markers.
+- With a local service on port 18091, run Godot with `--headless --path warbase-godot/client --script res://scripts/tests/test_online_sync.gd` to check two-client roster and grenade consistency.
+- `make stress-test`: 60 simulated connections for ten seconds against localhost:8081. Clients marked as drivers generate traffic; this is not a vehicle-physics benchmark.
 
-### 1. Run the Unified Game Server Locally
-Builds the web client and starts the Swift game server on port `8081`:
-```bash
-make run
-```
-Open your browser at `http://localhost:8081` to play!
+Confirmed infantry hits produce small pooled blood effects and hit reactions. Tactical bots avoid visible grenades, search last-known locations, maintain squad spacing, and recover from blocked routes without changing aim accuracy.
 
-### 2. Run Optimized Release Server
-Compiles with Swift release optimizations (`-c release`):
-```bash
-make run-release
-```
+The security suite covers firing cadence, shot replay, server-derived damage, reloads, respawn restrictions, teleport attempts, map occlusion, grenade authority, atomic admission, concurrent joins/leaves, and AOI snapshot coalescing.
 
-### 3. Run Web Client Dev Server
-For rapid frontend iteration with hot module reloading:
-```bash
-make dev-client
-```
+## Build and deploy
 
-### 4. Deploy with Docker
-```bash
-make docker
-# Or via Docker Compose:
-docker compose up -d --build
-```
+1. Run `make test` and `make export-godot-web`.
+2. Run `docker compose -f warbase-godot/docker-compose.yml build`.
+3. Start the container with `docker compose -f warbase-godot/docker-compose.yml up -d`.
 
+The Docker build expects the matching Web export in `warbase-godot/client/dist/`. It intentionally fails when that export is absent. It builds Go from the actual source directory and runs with a non-root user, a read-only filesystem, bounded resources, and a health check. Configure TLS at your reverse proxy; forward `/connect` WebSocket upgrades. `/healthcheck` returns unavailable if the match loop stops progressing.
+
+For a standalone service, `--static-dir=/absolute/path/to/dist` or `DIST_DIR` chooses the Web directory. Profiling routes are disabled in production. Web assets have lossless Brotli and gzip companions. The service negotiates the encoding, including q=0 exclusions. Content-hashed engine/game URLs use immutable caching; unchanged engine files are reused across game releases, and one preceding release remains available.
+
+Native macOS export: `make export-godot-mac`. Distribution signing/notarization still requires your release credentials.
+
+## Map and protocol sources
+
+- `warbase-godot/client/scripts/maps/MapBuilder.gd` constructs client maps.
+- `make export-map-data` regenerates server collision triangles and authored spawn points from those same shapes, then compresses the result for embedding. Re-run this whenever collision geometry or spawns change.
+- `shared/proto/fps/packets.proto` is the FPS schema. Install `protoc` and a matching `protoc-gen-go`, then run `make proto` after schema changes. `shared/proto/packets.proto` is a legacy strategy schema and is not used by this game.
+
+Rooms use Dawn (06:00), Noon (12:00), Dusk (18:00), or Night (00:00). Public servers choose randomly and may change on a new round; custom servers retain the time selected at creation. The server list and HUD show the preset. Loft 17 is no longer playable or advertised.
+
+The service simulates at 60 Hz and sends interpolated world snapshots at 30 Hz, with distance tiers for remote entities. Incoming transforms are coalesced, and unsent partial snapshots preserve rare AOI entities when replaced.
+
+## Release status
+
+See [the implementation notes](audit/implementation/CHANGES.md) and [the original audit](audit/PRODUCTION_READINESS_AUDIT.md).
+
+This update improves handling, stability, combat validation, authoritative grenade damage, and release tooling. It does not certify a production release. Online cars now use server-owned seats, input-driven kinematic movement, terrain and chassis collision checks, health, destruction, roadkills, and respawning. Offline cars retain local four-wheel physics. Online transport does not implement mounted turret combat; infantry fire is blocked while driving. Movement still uses validated client transforms with map collision checks rather than a complete server input simulation with rewind. Long-duration soak tests, full network-impairment testing, cross-device browser QA, asset licensing, and release signing remain launch gates.
+
+Football Stadium is included in native builds. For web releases, use `make export-godot-web` to generate the initial game and its optional stadium pack together, and serve all generated files in `warbase-godot/client/dist`. The stadium downloads on first join and retains its full-resolution atlas. `make test-web` validates compression and optional-pack mounting. See `audit/football-map/README.md` for validation and the source-rights caveat.

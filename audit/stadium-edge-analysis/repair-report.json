@@ -1,0 +1,9 @@
+{
+  "source_triangles": 27831,
+  "output_triangles": 34422,
+  "affected_triangles": 736,
+  "fully_covered_triangles_removed": 405,
+  "source_projected_area": 93317.960927027,
+  "retained_projected_area": 88994.32278995837,
+  "atlas_data_unchanged": true
+}

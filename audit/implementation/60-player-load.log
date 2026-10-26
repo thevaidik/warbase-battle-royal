@@ -1,0 +1,14 @@
+2026/10/26 10:56:40 === WARBASE 60-PLAYER + 30-VEHICLE NETCODE STRESS TEST ===
+2026/10/26 10:56:40 Target Host: localhost:18091 | Room: industrial-public | Simulated Players: 60 | Duration: 5s
+2026/10/26 10:56:41 All 60 simulated players connecting...
+2026/10/26 10:56:42 [T+01s] Active: 60 | Up: 281.3 KB/s (5764 pkts) | Down: 9217.2 KB/s (72.01 Mbps, 2944 pkts) | Per-Player Down: 153.6 KB/s
+2026/10/26 10:56:43 [T+02s] Active: 60 | Up: 174.0 KB/s (3599 pkts) | Down: 6459.2 KB/s (50.46 Mbps, 1856 pkts) | Per-Player Down: 107.7 KB/s
+2026/10/26 10:56:44 [T+03s] Active: 60 | Up: 174.1 KB/s (3601 pkts) | Down: 6476.5 KB/s (50.60 Mbps, 1803 pkts) | Per-Player Down: 107.9 KB/s
+2026/10/26 10:56:45 [T+04s] Active: 60 | Up: 174.0 KB/s (3600 pkts) | Down: 6419.6 KB/s (50.15 Mbps, 1801 pkts) | Per-Player Down: 107.0 KB/s
+2026/10/26 10:56:46 === FINAL AUDIT RESULTS ===
+2026/10/26 10:56:46 Total Duration: 5.000006792s
+2026/10/26 10:56:46 Connected Players: 0
+2026/10/26 10:56:46 Total Sent: 20164 packets (0.95 MB)
+2026/10/26 10:56:46 Total Received: 10162 packets (34.06 MB)
+2026/10/26 10:56:46 Aggregate Download Throughput: 6975.32 KB/s (54.49 Mbps)
+2026/10/26 10:56:46 Per-Player Download Rate: 116.26 KB/s (0.91 Mbps)

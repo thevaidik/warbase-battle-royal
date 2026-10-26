@@ -17,4 +17,12 @@ DerivedData/
 mixamo/
 ./dist
 .aider*
+.godot/
+*.pck
+*.wasm
+*.zip
+asset_backups/
+warbase-godot/server/server_bin*
+warbase-godot/server/warbase-server
+warbase-godot/server/game
 

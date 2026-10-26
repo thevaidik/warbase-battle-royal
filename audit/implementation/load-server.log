@@ -1,0 +1,68 @@
+{"level":"INFO","time":"2026-10-26T05:26:39Z","message":"starting the server on http://localhost:18091","properties":{"add":":18091","env":"production"}}
+2026/10/26 10:56:44 network error for player sync_alpha: websocket: close 1000 (normal)
+2026/10/26 10:56:44 network error for player sync_bravo: websocket: close 1000 (normal)
+2026/10/26 10:56:44 Player sync_alpha disconnected from room industrial-public
+2026/10/26 10:56:44 Player sync_bravo disconnected from room industrial-public
+2026/10/26 10:56:46 Player BOT_STRESS_23 disconnected from room industrial-public
+2026/10/26 10:56:46 Player BOT_STRESS_50 disconnected from room industrial-public
+2026/10/26 10:56:46 Player BOT_STRESS_05 disconnected from room industrial-public
+2026/10/26 10:56:46 Player BOT_STRESS_06 disconnected from room industrial-public
+2026/10/26 10:56:46 Player BOT_STRESS_13 disconnected from room industrial-public
+2026/10/26 10:56:46 Player BOT_STRESS_18 disconnected from room industrial-public
+2026/10/26 10:56:46 Player BOT_STRESS_40 disconnected from room industrial-public
+2026/10/26 10:56:46 Player BOT_STRESS_52 disconnected from room industrial-public
+2026/10/26 10:56:46 Player BOT_STRESS_19 disconnected from room industrial-public
+2026/10/26 10:56:46 Player BOT_STRESS_47 disconnected from room industrial-public
+2026/10/26 10:56:46 Player BOT_STRESS_42 disconnected from room industrial-public
+2026/10/26 10:56:46 Player BOT_STRESS_08 disconnected from room industrial-public
+2026/10/26 10:56:46 Player BOT_STRESS_09 disconnected from room industrial-public
+2026/10/26 10:56:46 Player BOT_STRESS_46 disconnected from room industrial-public
+2026/10/26 10:56:46 Player BOT_STRESS_51 disconnected from room industrial-public
+2026/10/26 10:56:46 Player BOT_STRESS_45 disconnected from room industrial-public
+2026/10/26 10:56:46 Player BOT_STRESS_56 disconnected from room industrial-public
+2026/10/26 10:56:46 Player BOT_STRESS_53 disconnected from room industrial-public
+2026/10/26 10:56:46 Player BOT_STRESS_49 disconnected from room industrial-public
+2026/10/26 10:56:46 Player BOT_STRESS_14 disconnected from room industrial-public
+2026/10/26 10:56:46 Player BOT_STRESS_57 disconnected from room industrial-public
+2026/10/26 10:56:46 Player BOT_STRESS_35 disconnected from room industrial-public
+2026/10/26 10:56:46 Player BOT_STRESS_28 disconnected from room industrial-public
+2026/10/26 10:56:46 Player BOT_STRESS_29 disconnected from room industrial-public
+2026/10/26 10:56:46 Player BOT_STRESS_48 disconnected from room industrial-public
+2026/10/26 10:56:46 Player BOT_STRESS_27 disconnected from room industrial-public
+2026/10/26 10:56:46 Player BOT_STRESS_24 disconnected from room industrial-public
+2026/10/26 10:56:46 Player BOT_STRESS_37 disconnected from room industrial-public
+2026/10/26 10:56:46 Player BOT_STRESS_04 disconnected from room industrial-public
+2026/10/26 10:56:46 Player BOT_STRESS_33 disconnected from room industrial-public
+2026/10/26 10:56:46 Player BOT_STRESS_43 disconnected from room industrial-public
+2026/10/26 10:56:46 Player BOT_STRESS_03 disconnected from room industrial-public
+2026/10/26 10:56:46 Player BOT_STRESS_44 disconnected from room industrial-public
+2026/10/26 10:56:46 Player BOT_STRESS_02 disconnected from room industrial-public
+2026/10/26 10:56:46 Player BOT_STRESS_30 disconnected from room industrial-public
+2026/10/26 10:56:46 Player BOT_STRESS_41 disconnected from room industrial-public
+2026/10/26 10:56:46 Player BOT_STRESS_38 disconnected from room industrial-public
+2026/10/26 10:56:46 Player BOT_STRESS_25 disconnected from room industrial-public
+2026/10/26 10:56:46 Player BOT_STRESS_32 disconnected from room industrial-public
+2026/10/26 10:56:46 Player BOT_STRESS_21 disconnected from room industrial-public
+2026/10/26 10:56:46 Player BOT_STRESS_01 disconnected from room industrial-public
+2026/10/26 10:56:46 Player BOT_STRESS_39 disconnected from room industrial-public
+2026/10/26 10:56:46 Player BOT_STRESS_07 disconnected from room industrial-public
+2026/10/26 10:56:46 Player BOT_STRESS_26 disconnected from room industrial-public
+2026/10/26 10:56:46 Player BOT_STRESS_17 disconnected from room industrial-public
+2026/10/26 10:56:46 Player BOT_STRESS_31 disconnected from room industrial-public
+2026/10/26 10:56:46 Player BOT_STRESS_15 disconnected from room industrial-public
+2026/10/26 10:56:46 Player BOT_STRESS_10 disconnected from room industrial-public
+2026/10/26 10:56:46 Player BOT_STRESS_12 disconnected from room industrial-public
+2026/10/26 10:56:46 Player BOT_STRESS_20 disconnected from room industrial-public
+2026/10/26 10:56:46 Player BOT_STRESS_59 disconnected from room industrial-public
+2026/10/26 10:56:46 Player BOT_STRESS_00 disconnected from room industrial-public
+2026/10/26 10:56:46 Player BOT_STRESS_22 disconnected from room industrial-public
+2026/10/26 10:56:46 Player BOT_STRESS_58 disconnected from room industrial-public
+2026/10/26 10:56:46 Player BOT_STRESS_55 disconnected from room industrial-public
+2026/10/26 10:56:46 Player BOT_STRESS_16 disconnected from room industrial-public
+2026/10/26 10:56:46 Player BOT_STRESS_11 disconnected from room industrial-public
+2026/10/26 10:56:46 Player BOT_STRESS_54 disconnected from room industrial-public
+2026/10/26 10:56:46 Player BOT_STRESS_34 disconnected from room industrial-public
+2026/10/26 10:56:46 Player BOT_STRESS_36 disconnected from room industrial-public
+{"level":"INFO","time":"2026-10-26T05:26:47Z","message":"shutting down server","properties":{"signal":"terminated"}}
+{"level":"INFO","time":"2026-10-26T05:26:47Z","message":"completing background tasks","properties":{"add":":18091"}}
+{"level":"INFO","time":"2026-10-26T05:26:47Z","message":"stopped server","properties":{"add":":18091"}}

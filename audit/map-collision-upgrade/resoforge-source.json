@@ -1,0 +1,14 @@
+{
+  "uid": "d41a19f699ea421a9aa32b407cb7537b",
+  "name": "LOWPOLY | FPS | TDM | GAME | MAP by ResoForge",
+  "description": "**Next models:** https://sketchfab.com/resoforge\n\n**Channel**: https://t.me/ResoForge_org",
+  "license": {
+    "uri": "https://api.sketchfab.com/v3/licenses/322a749bcfa841b29dff1e8a1bb74b0b",
+    "label": "CC Attribution",
+    "fullName": "Creative Commons Attribution",
+    "requirements": "Author must be credited. Commercial use is allowed.",
+    "url": "http://creativecommons.org/licenses/by/4.0/",
+    "slug": "by"
+  },
+  "isDownloadable": true
+}

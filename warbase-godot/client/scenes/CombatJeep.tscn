@@ -1,0 +1,11 @@
+[gd_scene load_steps=2 format=3 uid="uid://warbase_combat_jeep_01"]
+
+[ext_resource type="Script" path="res://scripts/vehicles/CombatJeep.gd" id="1"]
+
+[node name="CombatJeep" type="VehicleBody3D"]
+collision_layer = 4
+collision_mask = 5
+mass = 2800.0
+linear_damp = 3.5
+angular_damp = 6.0
+script = ExtResource("1")

@@ -1,0 +1,14 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+ERROR: Condition "ret != noErr" is true. Returning: ""
+   at: get_system_ca_certificates (platform/macos/os_macos.mm:1035)
+PASS: level aim has a deliberate overhand loft
+PASS: vertical aim keeps vertical throw control
+PASS: grenade retains speed and follows a ballistic arc after one second
+PASS: first impact bounces without erasing forward momentum
+PASS: level throw lands roughly 28 metres away
+PASS: grenade settles on the floor without sinking or rolling indefinitely
+PASS: sweep rebounds from a thin wall without tunnelling
+PASS: armed impact grenade stops on first contact
+PASS: visual grenade uses the shared flight model
+GRENADE BALLISTICS TEST: 0 failures; landing_x=28.079 final=(39.68426, 0.062, 0.0)

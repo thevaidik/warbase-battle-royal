@@ -1,0 +1,6 @@
+LOWPOLY | FPS | TDM | GAME | MAP by ResoForge
+Creator: ResoForge (old profile), @aslbekburonbey
+Source: https://sketchfab.com/3d-models/lowpoly-fps-tdm-game-map-by-resoforge-d41a19f699ea421a9aa32b407cb7537b
+Licensed under Creative Commons Attribution 4.0 International (CC BY 4.0).
+https://creativecommons.org/licenses/by/4.0/
+Changes for WarBase: scaled to gameplay metres, adjusted materials, generated collision, configured spawns and lighting, rendered lobby preview. No endorsement by the creator is implied.

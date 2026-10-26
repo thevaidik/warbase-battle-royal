@@ -1,0 +1,9 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+ERROR: Condition "ret != noErr" is true. Returning: ""
+   at: get_system_ca_certificates (platform/macos/os_macos.mm:1035)
+EAST ROAD z=-40.0 hit=(69.0, 1.4, -40.0) collider=PerimeterWall_3:<StaticBody3D#38084282032>
+EAST ROAD z=-20.0 hit=(69.0, 1.4, -20.0) collider=PerimeterWall_3:<StaticBody3D#38084282032>
+EAST ROAD z=0.0 hit=(69.0, 1.4, 0.0) collider=PerimeterWall_3:<StaticBody3D#38084282032>
+EAST ROAD z=20.0 hit=(69.0, 1.4, 20.0) collider=PerimeterWall_3:<StaticBody3D#38084282032>
+EAST ROAD z=35.0 hit=(69.0, 1.4, 35.0) collider=PerimeterWall_3:<StaticBody3D#38084282032>

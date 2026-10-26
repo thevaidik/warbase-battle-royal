@@ -1,0 +1,13 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+ERROR: Condition "ret != noErr" is true. Returning: ""
+   at: get_system_ca_certificates (platform/macos/os_macos.mm:1035)
+PACK ASSET CHECK industrial spawns=12
+PACK ASSET CHECK village spawns=12
+PACK ASSET CHECK arena spawns=12
+PACK ASSET CHECK shipment spawns=12
+PACK ASSET CHECK dust2 spawns=12
+PACK ASSET CHECK canyon spawns=12
+PACK ASSET CHECK desert_oasis spawns=12
+PACK ASSET CHECK nuketown spawns=12
+PACK ASSET CHECK COMPLETE maps=8

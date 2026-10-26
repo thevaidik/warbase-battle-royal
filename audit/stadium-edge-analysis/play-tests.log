@@ -1,0 +1,12 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 4.1 Metal - 91.7 - Compatibility - Using Device: Apple - Apple M4
+
+PASS: actual game viewport uses 4x multisampling
+PASS: actual game viewport renders at full resolution
+PASS: native frame presentation is synchronized
+RENDER CONFIG: framebuffer=(3024, 1898) msaa=2 scale=1.0
+Movement sample seconds=1.502768 reported FPS=100.0
+PASS: movement exercised the stadium concourse
+PASS: sun and stadium transforms remain fixed during movement
+PASS: camera uses the tighter depth range
+STADIUM REPAIR PLAY TEST: 0 failures; moved 8.80m

@@ -1,0 +1,7 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 4.1 Metal - 91.7 - Compatibility - Using Device: Apple - Apple M4
+
+PASS: movement exercised the stadium concourse
+PASS: sun and stadium transforms remain fixed during movement
+PASS: camera uses the tighter depth range
+MOVEMENT RENDER TEST: 0 failures; moved 8.68m

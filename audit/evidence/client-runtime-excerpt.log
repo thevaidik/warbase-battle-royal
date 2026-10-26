@@ -1,0 +1,841 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+ERROR: Condition "ret != noErr" is true. Returning: ""
+   at: get_system_ca_certificates (platform/macos/os_macos.mm:1035)
+ERROR: Connection to remote host failed!
+   at: connect_to_host (core/io/stream_peer_tcp.cpp:90)
+   GDScript backtrace (most recent call first):
+       [0] _do_connect (res://scripts/net/NetworkManager.gd:66)
+       [1] connect_to (res://scripts/net/NetworkManager.gd:35)
+       [2] _start_match (res://scripts/core/Main.gd:145)
+       [3] _on_deploy (res://scripts/core/Main.gd:96)
+       [4] _process (res://scripts/core/Main.gd:485)
+ERROR: Connection to remote host failed!
+   at: connect_to_host (core/io/stream_peer_tcp.cpp:90)
+   GDScript backtrace (most recent call first):
+       [0] _do_connect (res://scripts/net/NetworkManager.gd:66)
+       [1] connect_to (res://scripts/net/NetworkManager.gd:35)
+       [2] _start_match (res://scripts/core/Main.gd:145)
+       [3] _on_deploy (res://scripts/core/Main.gd:96)
+       [4] _process (res://scripts/core/Main.gd:485)
+WARNING: WS connect error: 1
+   at: push_warning (core/variant/variant_utility.cpp:1033)
+   GDScript backtrace (most recent call first):
+       [0] _do_connect (res://scripts/net/NetworkManager.gd:68)
+       [1] connect_to (res://scripts/net/NetworkManager.gd:35)
+       [2] _start_match (res://scripts/core/Main.gd:145)
+       [3] _on_deploy (res://scripts/core/Main.gd:96)
+       [4] _process (res://scripts/core/Main.gd:485)
+AUTOTEST: deployed map=industrial player_at=(-22.0, 1.5, -22.0)
+ENGINE TELEMETRY: fps=1.0 ms=1000.0 focused=true draw_calls=0.0 phys_ms=0.0
+ERROR: Connection to remote host failed!
+   at: connect_to_host (core/io/stream_peer_tcp.cpp:90)
+ERROR: Connection to remote host failed!
+   at: connect_to_host (core/io/stream_peer_tcp.cpp:90)
+ERROR: Connection to remote host failed!
+   at: connect_to_host (core/io/stream_peer_tcp.cpp:90)
+ERROR: Connection to remote host failed!
+   at: connect_to_host (core/io/stream_peer_tcp.cpp:90)
+ENGINE TELEMETRY: fps=1.0 ms=1000.0 focused=true draw_calls=0.0 phys_ms=0.0
+ENGINE TELEMETRY: fps=36.0 ms=27.7777777777778 focused=true draw_calls=0.0 phys_ms=2.652
+AUTOTEST: server fire decode kind=fire shooter=BOT_1 wall=true
+AUTOTEST: state bytes=57
+ENGINE TELEMETRY: fps=36.0 ms=27.7777777777778 focused=true draw_calls=0.0 phys_ms=2.652
+ENGINE TELEMETRY: fps=36.0 ms=27.7777777777778 focused=true draw_calls=0.0 phys_ms=2.652
+ERROR: Connection to remote host failed!
+   at: connect_to_host (core/io/stream_peer_tcp.cpp:90)
+   GDScript backtrace (most recent call first):
+       [0] _do_connect (res://scripts/net/NetworkManager.gd:66)
+       [1] _process (res://scripts/net/NetworkManager.gd:117)
+ERROR: Connection to remote host failed!
+   at: connect_to_host (core/io/stream_peer_tcp.cpp:90)
+   GDScript backtrace (most recent call first):
+       [0] _do_connect (res://scripts/net/NetworkManager.gd:66)
+       [1] _process (res://scripts/net/NetworkManager.gd:117)
+WARNING: WS connect error: 1
+   at: push_warning (core/variant/variant_utility.cpp:1033)
+   GDScript backtrace (most recent call first):
+       [0] _do_connect (res://scripts/net/NetworkManager.gd:68)
+       [1] _process (res://scripts/net/NetworkManager.gd:117)
+ENGINE TELEMETRY: fps=36.0 ms=27.7777777777778 focused=true draw_calls=0.0 phys_ms=2.652
+ENGINE TELEMETRY: fps=36.0 ms=27.7777777777778 focused=true draw_calls=0.0 phys_ms=2.652
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+AUTOTEST: moving forward, pos=(-22.0, 0.918089, -22.0)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+ERROR: Condition "!v.is_finite()" is true.
+   at: instance_set_transform (servers/rendering/renderer_scene_cull.cpp:1000)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+   GDScript backtrace (most recent call first):
+       [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+   GDScript backtrace (most recent call first):
+       [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+   GDScript backtrace (most recent call first):
+       [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+   GDScript backtrace (most recent call first):
+       [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+   GDScript backtrace (most recent call first):
+       [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+   GDScript backtrace (most recent call first):
+       [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+   GDScript backtrace (most recent call first):
+       [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+   GDScript backtrace (most recent call first):
+       [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+   GDScript backtrace (most recent call first):
+       [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+   GDScript backtrace (most recent call first):
+       [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+   GDScript backtrace (most recent call first):
+       [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+   GDScript backtrace (most recent call first):
+       [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+   GDScript backtrace (most recent call first):
+       [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+   GDScript backtrace (most recent call first):
+       [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+   GDScript backtrace (most recent call first):
+       [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+   GDScript backtrace (most recent call first):
+       [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+   GDScript backtrace (most recent call first):
+       [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+   GDScript backtrace (most recent call first):
+       [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+   GDScript backtrace (most recent call first):
+       [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+   GDScript backtrace (most recent call first):
+       [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+   GDScript backtrace (most recent call first):
+       [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+   GDScript backtrace (most recent call first):
+       [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+   GDScript backtrace (most recent call first):
+       [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+   GDScript backtrace (most recent call first):
+       [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+   GDScript backtrace (most recent call first):
+       [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+   GDScript backtrace (most recent call first):
+       [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+   GDScript backtrace (most recent call first):
+       [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+   GDScript backtrace (most recent call first):
+       [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+   GDScript backtrace (most recent call first):
+       [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+   GDScript backtrace (most recent call first):
+       [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+   GDScript backtrace (most recent call first):
+       [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+   GDScript backtrace (most recent call first):
+       [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+   GDScript backtrace (most recent call first):
+       [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+   GDScript backtrace (most recent call first):
+       [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+   GDScript backtrace (most recent call first):
+       [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+   GDScript backtrace (most recent call first):
+       [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+   GDScript backtrace (most recent call first):
+       [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+   GDScript backtrace (most recent call first):
+       [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+   GDScript backtrace (most recent call first):
+       [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+   GDScript backtrace (most recent call first):
+       [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+   GDScript backtrace (most recent call first):
+       [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+   GDScript backtrace (most recent call first):
+       [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+   GDScript backtrace (most recent call first):
+       [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+   GDScript backtrace (most recent call first):
+       [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+   GDScript backtrace (most recent call first):
+       [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+   GDScript backtrace (most recent call first):
+       [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+   GDScript backtrace (most recent call first):
+       [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+   GDScript backtrace (most recent call first):
+       [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+   GDScript backtrace (most recent call first):
+       [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+   GDScript backtrace (most recent call first):
+       [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+   GDScript backtrace (most recent call first):
+       [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+   GDScript backtrace (most recent call first):
+       [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+   GDScript backtrace (most recent call first):
+       [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+   GDScript backtrace (most recent call first):
+       [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+   GDScript backtrace (most recent call first):
+       [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+   GDScript backtrace (most recent call first):
+       [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+   GDScript backtrace (most recent call first):
+       [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+   GDScript backtrace (most recent call first):
+       [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+   GDScript backtrace (most rece
+[large repeated output omitted]
+
+   GDScript backtrace (most recent call first):
+       [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+   GDScript backtrace (most recent call first):
+       [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+   GDScript backtrace (most recent call first):
+       [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+   GDScript backtrace (most recent call first):
+       [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+   GDScript backtrace (most recent call first):
+       [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+   GDScript backtrace (most recent call first):
+       [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+   GDScript backtrace (most recent call first):
+       [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+   GDScript backtrace (most recent call first):
+       [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+   GDScript backtrace (most recent call first):
+       [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+   GDScript backtrace (most recent call first):
+       [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+   GDScript backtrace (most recent call first):
+       [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+   GDScript backtrace (most recent call first):
+       [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+   GDScript backtrace (most recent call first):
+       [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+   GDScript backtrace (most recent call first):
+       [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+   GDScript backtrace (most recent call first):
+       [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+   GDScript backtrace (most recent call first):
+       [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+   GDScript backtrace (most recent call first):
+       [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+   GDScript backtrace (most recent call first):
+       [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+   GDScript backtrace (most recent call first):
+       [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+   GDScript backtrace (most recent call first):
+       [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+   GDScript backtrace (most recent call first):
+       [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+   GDScript backtrace (most recent call first):
+       [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+   GDScript backtrace (most recent call first):
+       [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+   GDScript backtrace (most recent call first):
+       [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+   GDScript backtrace (most recent call first):
+       [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+   GDScript backtrace (most recent call first):
+       [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+   GDScript backtrace (most recent call first):
+       [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+   GDScript backtrace (most recent call first):
+       [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+   GDScript backtrace (most recent call first):
+       [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+   GDScript backtrace (most recent call first):
+       [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+   GDScript backtrace (most recent call first):
+       [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+   GDScript backtrace (most recent call first):
+       [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+   GDScript backtrace (most recent call first):
+       [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+   GDScript backtrace (most recent call first):
+       [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+   GDScript backtrace (most recent call first):
+       [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+   GDScript backtrace (most recent call first):
+       [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+   GDScript backtrace (most recent call first):
+       [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+   GDScript backtrace (most recent call first):
+       [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+   GDScript backtrace (most recent call first):
+       [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+   GDScript backtrace (most recent call first):
+       [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+   GDScript backtrace (most recent call first):
+       [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+   GDScript backtrace (most recent call first):
+       [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+   GDScript backtrace (most recent call first):
+       [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+   GDScript backtrace (most recent call first):
+       [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+   GDScript backtrace (most recent call first):
+       [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+   GDScript backtrace (most recent call first):
+       [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+   GDScript backtrace (most recent call first):
+       [0] _physics_process (res://scripts/bots/Bot.gd:706)
+WARNING: Vector3 cannot be normalized, the elements must be finite. Making (0, 0, 0) as a fallback.
+   at: normalize (./core/math/vector3.h:551)
+   GDScript backtrace (most recent call first):
+       [0] _physics_process (res://scripts/bots/Bot.gd:706)

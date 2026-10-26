@@ -1,0 +1,4 @@
+=== RUN   TestVehiclePacketsAcrossWebSocket
+--- PASS: TestVehiclePacketsAcrossWebSocket (8.48s)
+PASS
+ok  	warbase-server/internal/engine	10.079s

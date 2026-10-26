@@ -1,0 +1,17 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+ERROR: Condition "ret != noErr" is true. Returning: ""
+   at: get_system_ca_certificates (platform/macos/os_macos.mm:1035)
+EAST ROAD z=-40.0 hit=(71.52822, 1.4, -40.0) collider=@StaticBody3D@20:<StaticBody3D#37329307268>
+EAST ROAD z=-20.0 hit=<null> collider=<null>
+EAST ROAD z=0.0 hit=<null> collider=<null>
+EAST ROAD z=20.0 hit=<null> collider=<null>
+EAST ROAD z=35.0 hit=<null> collider=<null>
+FENCE z=-20.0 hit={ "position": (78.8858, 1.4, -20.0), "normal": (-1.0, 0.0, 0.0), "face_index": 879, "collider_id": 37480302221, "collider": @StaticBody3D@24:<StaticBody3D#37480302221>, "shape": 0, "rid": RID(395136991235) }
+FENCE z=0.0 hit={ "position": (73.1205, 1.4, 0.0), "normal": (-1.0, 0.0, 0.0), "face_index": 6, "collider_id": 37631297174, "collider": @StaticBody3D@28:<StaticBody3D#37631297174>, "shape": 0, "rid": RID(412316860421) }
+FENCE z=20.0 hit={ "position": (78.8638, 1.4, 20.0), "normal": (-1.0, 0.0, 0.0), "face_index": 157, "collider_id": 37480302221, "collider": @StaticBody3D@24:<StaticBody3D#37480302221>, "shape": 0, "rid": RID(395136991235) }
+FENCE z=35.0 hit={ "position": (78.8638, 1.4, 35.0), "normal": (-1.0, 0.0, 0.0), "face_index": 173, "collider_id": 37480302221, "collider": @StaticBody3D@24:<StaticBody3D#37480302221>, "shape": 0, "rid": RID(395136991235) }
+WAREHOUSE z=-30.0 hit={  }
+WAREHOUSE z=-20.0 hit={ "position": (39.64594, 2.0, -20.0), "normal": (-0.999996, 0.002734, -0.0), "face_index": 2806, "collider_id": 37547411089, "collider": @StaticBody3D@26:<StaticBody3D#37547411089>, "shape": 0, "rid": RID(403726925828) }
+WAREHOUSE z=-10.0 hit={ "position": (-9.904078, 2.0, -10.0), "normal": (-0.999996, 0.002734, -0.0), "face_index": 2797, "collider_id": 37547411089, "collider": @StaticBody3D@26:<StaticBody3D#37547411089>, "shape": 0, "rid": RID(403726925828) }
+WAREHOUSE z=0.0 hit={  }

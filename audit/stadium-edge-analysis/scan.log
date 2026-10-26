@@ -1,0 +1,7 @@
+{
+  "triangles": 27831,
+  "plane_groups": 11096,
+  "tested_pairs": 27069,
+  "positive_overlap_pairs": 2942,
+  "projected_overlap_area": 5170.475758618962
+}

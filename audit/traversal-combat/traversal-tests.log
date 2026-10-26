@@ -1,0 +1,11 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+ERROR: Condition "ret != noErr" is true. Returning: ""
+   at: get_system_ca_certificates (platform/macos/os_macos.mm:1035)
+PASS: map collision blocks both sides like the authority
+PASS: capsule climbs a low step without mantling or clipping
+PASS: low ceiling rejects the entire step-up capsule
+PASS: releasing crouch cannot grow the body into a ceiling
+PASS: standing resumes after clearing low cover
+PASS: valid stadium surfaces below -4m do not trigger a teleport
+TRAVERSAL SAFETY TEST: 0 failures

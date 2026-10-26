@@ -1,0 +1,21 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+CHECK PASS online authority connected
+CHECK PASS selected primary applied by authority
+CHECK PASS selected secondary switches online
+CHECK PASS selected impact grenade replicated and detonated
+CHECK PASS online throwable inventory authoritative
+CHECK PASS room lighting synchronized
+CHECK PASS online map vehicles registered
+CHECK PASS seat snapshot activates online vehicle camera
+CHECK PASS exit snapshot restores infantry control
+CHECK PASS infantry has no invisible vehicle collider
+CHECK PASS online bots are not simulated on client
+CHECK PASS seven server bots replicated
+CHECK PASS desert has no industrial scene
+ONLINE AI: remotes=7 moving=7 shots=93
+CHECK PASS AI navigates the arena
+CHECK PASS server AI perceives and fires at opponents
+CHECK PASS AI combat produces authoritative damage
+CHECK PASS AI included in scoreboard
+ONLINE AI TEST: 0 failures

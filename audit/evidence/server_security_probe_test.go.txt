@@ -1,0 +1,71 @@
+package engine
+
+import (
+ "testing"
+ "time"
+ "google.golang.org/protobuf/proto"
+)
+
+func TestAuditRapidFire(t *testing.T) {
+ for _, id := range []string{"ak47", "pistol", "hmg"} {
+  p := NewPlayer("shooter"); p.ActiveWeapon = Weapons[id]; p.AmmoCount = p.ActiveWeapon.MagSize
+  if err := p.ValidateAndApplyFire(); err != nil { t.Fatal(err) }
+  if err := p.ValidateAndApplyFire(); err == nil { t.Errorf("%s accepted a second shot immediately", id) }
+ }
+}
+func TestAuditUnbackedHit(t *testing.T) {
+ p, target := NewPlayer("shooter"), NewPlayer("victim")
+ target.State.X = 10000
+ if _, err := p.ValidateAndApplyHit(target, 100); err == nil { t.Errorf("accepted 100 damage at 10km without any shot; health=%d", target.State.Health) }
+}
+func TestAuditNetworkRules(t *testing.T) {
+ m := NewMatch(); go m.Run()
+ s := NewGameSession(m, nil, "probe", "industrial-public"); m.Register(s)
+ send := func(ev *ClientEvent) { b, err := proto.Marshal(ev); if err != nil { t.Fatal(err) }; m.Broadcast(Message{SenderID:s.PlayerID, RoomID:s.RoomID, Data:b}) }
+ read := func(pred func(*ServerMessage) bool) *ServerMessage {
+  timeout := time.After(time.Second)
+  for { select {
+   case b := <-s.stateQueue: v := &ServerMessage{}; _ = proto.Unmarshal(b,v); if pred(v) { return v }
+   case b := <-s.eventQueue: v := &ServerMessage{}; _ = proto.Unmarshal(b,v); if pred(v) { return v }
+   case <-timeout: t.Fatal("no matching server message"); return nil
+  } }
+ }
+ state := func(x float32, anim string) { send(&ClientEvent{Event:&ClientEvent_StateUpdate{StateUpdate:&PlayerStateUpdate{X:x, Y:1, Rw:1, Animation:anim, WeaponId:"ak47"}}}) }
+ state(0,"idle")
+ read(func(v *ServerMessage) bool { return v.GetGameState().GetPlayers()["probe"] != nil })
+ send(&ClientEvent{Event:&ClientEvent_RespawnRequest{RespawnRequest:&RespawnRequestEvent{}}})
+ v := read(func(v *ServerMessage) bool { return v.GetServerEvent().GetRespawn() != nil })
+ if v.GetServerEvent().GetRespawn() != nil { t.Error("server accepted RespawnRequest from living player") }
+ state(0,"idle")
+ for i:=0;i<4;i++ { state(10000,"run") }
+ v = read(func(v *ServerMessage) bool { p:=v.GetGameState().GetPlayers()["probe"]; return p != nil && p.X==10000 })
+ if v.GetGameState().GetPlayers()["probe"].X==10000 { t.Error("server accepted teleport to x=10000 after four updates") }
+}
+
+func TestAuditReplayRemoteHit(t *testing.T) {
+ m := NewMatch(); go m.Run()
+ shooter := NewGameSession(m, nil, "shooter", "industrial-public")
+ victim := NewGameSession(m, nil, "victim", "industrial-public")
+ m.Register(shooter); m.Register(victim)
+ send := func(s *GameSession, e *ClientEvent) { b,_:=proto.Marshal(e); m.Broadcast(Message{SenderID:s.PlayerID,RoomID:s.RoomID,Data:b}) }
+ for _,s:=range []*GameSession{shooter,victim} {
+  x:=float32(0); if s==victim {x=10000}
+  send(s,&ClientEvent{Event:&ClientEvent_StateUpdate{StateUpdate:&PlayerStateUpdate{X:x,Y:1,Rw:1,Animation:"idle",WeaponId:"ak47"}}})
+ }
+ timeout:=time.After(time.Second)
+ ready:=false
+ for !ready { select {
+ case b:= <-shooter.stateQueue:
+  v:=&ServerMessage{}; _=proto.Unmarshal(b,v); ready=len(v.GetGameState().GetPlayers())==2
+ case <-timeout: t.Fatal("players not ready")
+ } }
+ send(shooter,&ClientEvent{Event:&ClientEvent_Fire{Fire:&FireEvent{}}})
+ for i:=0;i<3;i++ {send(shooter,&ClientEvent{Event:&ClientEvent_Hit{Hit:&HitEvent{TargetId:"victim",Damage:34}}})}
+ timeout=time.After(time.Second)
+ for {select {
+ case b:= <-shooter.stateQueue:
+  v:=&ServerMessage{}; _=proto.Unmarshal(b,v)
+  if p:=v.GetGameState().GetPlayers()["victim"];p!=nil && p.IsDead {t.Fatal("one Fire plus three Hit claims killed victim 10km away")}
+ case <-timeout:return
+ } }
+}
