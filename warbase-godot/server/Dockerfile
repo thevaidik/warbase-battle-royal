@@ -11,7 +11,7 @@ RUN apk add --no-cache ca-certificates && adduser -D -H -u 10001 warbase
 WORKDIR /app
 COPY --from=backend-builder /warbase-server /app/warbase-server
 COPY warbase-godot/client/dist/ /app/dist/
-RUN test -s /app/dist/index.html && test -s /app/dist/index.pck && test -s /app/dist/index.wasm
+RUN test -s /app/dist/index.html && test -s /app/dist/web-manifest.json
 USER warbase
 EXPOSE 8081
 HEALTHCHECK --interval=30s --timeout=3s --start-period=20s CMD wget -q -O /dev/null http://127.0.0.1:8081/healthcheck || exit 1
