@@ -1,0 +1,6 @@
+{
+  "pack": "game-8f3a40c0ceb42bac.pck",
+  "server_sha256": "3f37389ac882deb12ef57a3cc5fb1e726f93bc956e22e3b8ad03cc21d73a5194",
+  "image": "warbase_server-warbase-server:final-20261028",
+  "environment": "production"
+}

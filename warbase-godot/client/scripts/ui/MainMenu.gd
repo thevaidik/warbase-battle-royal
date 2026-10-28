@@ -353,17 +353,7 @@ func _build_settings_content() -> void:
 		GameState.save_settings()
 	)
 	drawer_content.add_child(sensitivity)
-	drawer_content.add_child(_mk_label("SOUND EFFECTS", 12, WarUI.MUTED))
-	var volume := HSlider.new()
-	volume.max_value = 1.0
-	volume.step = 0.05
-	volume.value = Audio.sfx_volume
-	volume.custom_minimum_size.y = 32
-	volume.value_changed.connect(func(value: float) -> void:
-		Audio.sfx_volume = value
-		GameState.save_settings()
-	)
-	drawer_content.add_child(volume)
+	drawer_content.add_child(_mk_label("AUDIO DISABLED", 12, WarUI.MUTED))
 	drawer_content.add_child(_mk_label("ONLINE SERVICE", 12, WarUI.MUTED))
 	var host := LineEdit.new()
 	host.text = GameState.server_host

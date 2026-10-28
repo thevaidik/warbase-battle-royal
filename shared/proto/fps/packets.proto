@@ -15,11 +15,14 @@ message ClientEvent {
     LoadoutEvent loadout = 9;
     VehicleSeatEvent vehicle_seat = 10;
     VehicleInputEvent vehicle_input = 11;
+    DeliveryAckEvent delivery_ack = 12;
   }
 }
 
+message DeliveryAckEvent { uint64 sequence = 1; bool supports_gzip_stream = 2; }
+
 message VehicleSeatEvent { string vehicle_id = 1; bool enter = 2; }
-message VehicleInputEvent { float throttle = 1; float steer = 2; bool brake = 3; int32 gear = 4; }
+message VehicleInputEvent { float throttle = 1; float steer = 2; bool brake = 3; int32 gear = 4; uint64 input_sequence = 5; }
 message VehicleState { string id = 1; string driver = 2; float x = 3; float y = 4; float z = 5; float yaw = 6; float speed = 7; int32 health = 8; }
 
 message LoadoutEvent {
@@ -40,6 +43,7 @@ message PlayerStateUpdate {
     string platform_id = 9;
     int32 ping = 10;
     string weapon_id = 11;
+    uint64 input_sequence = 12;
 }
 
 message HitEvent {
@@ -95,6 +99,11 @@ message ServerMessage {
     GameState game_state = 1;
     ServerEvent server_event = 2;
   }
+  repeated ServerEvent events = 3;
+  uint64 delivery_sequence = 4;
+  bytes compressed_payload = 5; // Gzip payload, max 256 KiB decoded.
+  uint32 compression_kind = 6; // 0: independent gzip; 1: negotiated continuous gzip stream.
+  uint32 uncompressed_size = 7; // Required and bounded for stream fragments.
 }
 
 message GameState {
@@ -108,6 +117,7 @@ message GameState {
     uint32 protocol_version = 8;
     string time_of_day = 9;
     map<string, VehicleState> vehicles = 10;
+    repeated string removed_player_ids = 11;
 }
 
 message PlayerState {
@@ -133,6 +143,7 @@ message PlayerState {
     int32 grenades_remaining = 20;
     bool spawn_protected = 21;
     string driving_vehicle_id = 22;
+    uint64 ack_input_sequence = 23;
 }
 
 message ServerEvent {

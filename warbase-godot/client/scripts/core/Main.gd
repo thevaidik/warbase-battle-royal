@@ -31,6 +31,7 @@ var _online_vehicles: Dictionary = {}
 
 var _send_acc := 0.0
 var _respawn_t := 0.0
+var _next_respawn_request_ms := 0
 var _deploy_pending := false
 var _grenade_cd := 0.0
 var _grenade_aiming := false
@@ -40,9 +41,11 @@ const GrenadeFlight = preload("res://scripts/weapons/GrenadeBallistics.gd")
 var _last_winner := ""
 var _last_round_finished := false
 var _network_correction_count := 0
+var _reconcile_after_sequence := 0
 var _last_damage_feedback_ms := -1000
 
 var _autotest := false
+var _qa_active := false
 var _test_t := 0.0
 var _test_stage := 0
 
@@ -118,8 +121,22 @@ func _ready() -> void:
 	net.connection_changed.connect(_on_conn)
 	net.connection_error.connect(func(reason: String) -> void:
 		GameState.online_ready = false
-		hud.feed(reason + " — press ESC to return to the lobby.", Color(1, 0.4, 0.3))
+		if phase != Phase.MENU: call_deferred("_return_after_connection_error", reason)
 	)
+
+	if "qa_official" in OS.get_cmdline_user_args():
+		_qa_active = true
+		var probe = load("res://scripts/qa/OfficialProbe.gd").new()
+		add_child(probe)
+		probe.begin(self)
+
+func _capture_mouse() -> void:
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE if _qa_active else Input.MOUSE_MODE_CAPTURED
+
+func _return_after_connection_error(reason: String) -> void:
+	if phase == Phase.MENU: return
+	_quit_to_menu()
+	menu._show_toast(reason + ". Select a room to reconnect.", false)
 
 func _configure_ui_scale() -> void:
 	# Keep UI readable on large windows without squeezing the compact layout.
@@ -156,6 +173,9 @@ func _on_deploy() -> void:
 
 func _start_match() -> void:
 	GameState.online_ready = GameState.practice_mode
+	_reconcile_after_sequence = net.input_sequence
+	_network_correction_count = 0
+	hud.set_connection_status("Synchronizing match…" if not GameState.practice_mode else "")
 	GameState.reset_match_stats()
 	
 	# Map generation
@@ -220,14 +240,14 @@ func _start_match() -> void:
 	phase = Phase.PLAYING
 	hud.visible = true
 	hud.update_player_header(GameState.username, GameState.local_team, GameState.selected_mode)
-	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	_capture_mouse()
 	hud.feed("Deployed to %s [%s]" % [GameState.selected_map.to_upper(), GameState.selected_mode], Color(0.2, 0.9, 0.4))
 
 func _input(event: InputEvent) -> void:
 	if phase == Phase.MENU:
 		return
 	if phase == Phase.PLAYING and not hud.is_board_visible() and Input.mouse_mode != Input.MOUSE_MODE_CAPTURED and event is InputEventMouseButton and event.pressed:
-		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+		_capture_mouse()
 	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED and phase == Phase.PLAYING:
 		var mm := event as InputEventMouseMotion
 		if current_driven_jeep != null:
@@ -291,14 +311,14 @@ func _toggle_scoreboard() -> void:
 	if hud.is_board_visible():
 		hud.hide_board()
 		if phase == Phase.PLAYING:
-			Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+			_capture_mouse()
 	else:
 		hud.show_board(get_full_scoreboard_roster(), GameState.username)
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 
 func _on_scoreboard_closed() -> void:
 	if phase == Phase.PLAYING:
-		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+		_capture_mouse()
 
 func _handle_vehicle_interact() -> void:
 	if phase != Phase.PLAYING: return
@@ -359,7 +379,7 @@ func _toggle_pause() -> void:
 	elif phase == Phase.PAUSED:
 		phase = Phase.PLAYING
 		get_tree().paused = false
-		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+		_capture_mouse()
 		hud.set_paused(false)
 
 func _quit_to_menu() -> void:
@@ -581,20 +601,33 @@ func _on_state(state: Dictionary) -> void:
 		if weapons and not GameState.practice_mode:
 			weapons.reconcile_ammo(me)
 		GameState.online_ready = true
+		hud.set_connection_status("")
 		GameState.throwables_remaining = int(me.get("grenades", 2))
 		var remote_hp := int(me.get("health", 100))
-		if not GameState.practice_mode and is_instance_valid(player) and not player.is_dead:
-			var authoritative_pos := Vector3(float(me.get("x", 0)), float(me.get("y", 0)), float(me.get("z", 0)))
-			if player.global_position.distance_to(authoritative_pos) > 2.5:
-				_network_correction_count += 1
-				if _network_correction_count >= 3:
-					player.global_position = authoritative_pos
-					player.velocity = Vector3.ZERO
-					player._step_active = false
-					player.reset_physics_interpolation()
-					_network_correction_count = 0
-			else:
-				_network_correction_count = 0
+		# A respawn event and an older death snapshot can share a delivery batch.
+		# Once waiting for respawn, an authoritative living snapshot also restores
+		# the client, rather than leaving the death screen latched indefinitely.
+		if is_instance_valid(player) and player.is_dead and player.get_meta("respawn_requested", false) and not bool(me.get("is_dead", false)) and remote_hp > 0:
+			_on_net_respawn(Vector3(float(me.get("x", 0)), float(me.get("y", 0)), float(me.get("z", 0))) + Vector3.UP * 0.2)
+		if not GameState.practice_mode and is_instance_valid(player) and not player.is_dead and not player.is_driving:
+			var sequence := int(me.get("ack_input_sequence",0))
+			var acknowledged = net.take_acknowledged_position(sequence)
+			if acknowledged is Vector3 and sequence > _reconcile_after_sequence:
+				var authoritative_pos := Vector3(float(me.get("x",0)),float(me.get("y",0)),float(me.get("z",0)))
+				var error: Vector3 = authoritative_pos - acknowledged
+				if error.length() > 0.35:
+					_network_correction_count += 1
+					if _network_correction_count >= 3:
+						# Rebase from the acknowledged input, retaining later valid movement.
+						var collision = player.move_and_collide(error, true)
+						if collision or error.length() > 3.0: player.global_position = authoritative_pos
+						else: player.global_position += error
+						player.velocity = Vector3.ZERO
+						player._step_active = false
+						player.reset_physics_interpolation()
+						_network_correction_count = 0
+						_reconcile_after_sequence = net.input_sequence
+				else: _network_correction_count = 0
 		if is_instance_valid(player):
 			if remote_hp < player.health and not player.is_dead:
 				if Time.get_ticks_msec() - _last_damage_feedback_ms > 150: hud.add_damage_indicator(Vector3.ZERO)
@@ -668,15 +701,18 @@ func _on_conn(connected_now: bool) -> void:
 	if phase == Phase.MENU or GameState.practice_mode:
 		return
 	if connected_now:
-		hud.feed("Connected. Synchronizing match…", Color(0.4, 0.8, 0.65))
+		hud.set_connection_status("Synchronizing match…")
 		net.send_loadout(GameState.selected_primary, GameState.selected_secondary, GameState.selected_throwable)
 		if weapons:
 			net.send_switch(String(weapons.current_config()["id"]))
 	else:
 		GameState.online_ready = false
-		hud.feed("Connection lost. Reconnecting…", Color(1.0, 0.65, 0.3))
+		hud.set_connection_status("Connection interrupted. Reconnecting…")
 
 func _on_net_respawn(pos: Vector3) -> void:
+	_reconcile_after_sequence = net.input_sequence
+	_network_correction_count = 0
+	net._sent_positions.clear()
 	_do_respawn(pos - Vector3(0, 0.2, 0))
 	if weapons:
 		net.send_switch(String(weapons.current_config()["id"]))
@@ -692,6 +728,7 @@ func _on_dead() -> void:
 	hud.set_health(0)
 	phase = Phase.DEAD
 	_respawn_t = 3.0
+	_next_respawn_request_ms = 0
 	hud.set_dead(true, 3)
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	GameState.record_local_death()
@@ -712,7 +749,7 @@ func _do_respawn(pos: Vector3) -> void:
 	phase = Phase.PLAYING
 	hud.set_dead(false, 0)
 	hud.set_health(100)
-	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	_capture_mouse()
 
 func _process(delta: float) -> void:
 	_grenade_cd = maxf(0.0, _grenade_cd - delta)
@@ -737,9 +774,10 @@ func _process(delta: float) -> void:
 			
 		if _respawn_t <= 0.0:
 			if net.connected:
-				if not player.get_meta("respawn_requested", false):
+				if not player.get_meta("respawn_requested", false) or Time.get_ticks_msec() >= _next_respawn_request_ms:
 					net.send_respawn()
 					player.set_meta("respawn_requested", true)
+					_next_respawn_request_ms = Time.get_ticks_msec() + 1000
 
 			else:
 				var sp: Vector3 = map_builder.spawn_points[randi() % map_builder.spawn_points.size()] if map_builder and not map_builder.spawn_points.is_empty() else Vector3(randf_range(-15, 15), 1.0, randf_range(-15, 15))
@@ -786,14 +824,12 @@ func _process(delta: float) -> void:
 				break
 		hud.set_vehicle_prompt(nearby_jeep != null)
 
-	# 60Hz state sync
+	# Movement and vehicle input at 30 Hz; rendering/physics remain independent.
 	_send_acc += delta
-	if _send_acc >= 1.0 / 60.0:
+	if _send_acc >= 1.0 / 30.0:
 		_send_acc = 0.0
 		if current_driven_jeep != null:
 			player.global_position = current_driven_jeep.global_position
-			var v_quat: Quaternion = current_driven_jeep.global_transform.basis.orthonormalized().get_rotation_quaternion()
-			net.send_state(current_driven_jeep.global_position, v_quat, "drive", "vehicle")
 			if not GameState.practice_mode:
 				net.send_vehicle_input(Input.get_axis("move_back", "move_forward"), Input.get_axis("move_left", "move_right"), Input.is_action_pressed("jump"), current_driven_jeep.current_gear)
 		else:

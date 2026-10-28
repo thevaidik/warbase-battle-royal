@@ -8,6 +8,8 @@ import (
 
 // Player represents the server's authoritative internal view
 type Player struct {
+	LastValidationLog                               time.Time
+	RejectedEvents                                  uint64
 	LastImpactPoint, LastImpactDirection            vector
 	SelectedPrimary, SelectedSecondary, ThrowableID string
 	LoadoutApplied                                  bool
@@ -72,14 +74,16 @@ func NewPlayer(id string) *Player {
 }
 
 func (p *Player) ValidateAndApplyFire() error {
+	return p.validateAndApplyFireAt(time.Now())
+}
+
+func (p *Player) validateAndApplyFireAt(now time.Time) error {
 	if p.State.IsDead || p.State.DrivingVehicleId != "" {
 		return errors.New("cannot fire while dead or driving")
 	}
-	if time.Now().Before(p.DrawUntil) {
+	if now.Before(p.DrawUntil) {
 		return errors.New("weapon is still being drawn")
 	}
-
-	now := time.Now()
 
 	// 1. Validate Reload Status
 	if p.IsReloading {
@@ -191,6 +195,10 @@ func (p *Player) ValidateAndApplyHit(target *Player, clientDamage int) (bool, er
 
 // ValidateFireRay ties accepted shots to finite, nearby origins and a bounded range.
 func (p *Player) ValidateFireRay(f *FireEvent) error {
+	return p.validateFireRayAt(f, time.Now())
+}
+
+func (p *Player) validateFireRayAt(f *FireEvent, now time.Time) error {
 	if f == nil {
 		return errors.New("missing fire event")
 	}
@@ -209,7 +217,7 @@ func (p *Player) ValidateFireRay(f *FireEvent) error {
 	if ox*ox+oy*oy+oz*oz > 9 || dx*dx+dy*dy+dz*dz > 305*305 || dx*dx+dy*dy+dz*dz < 0.001 {
 		return errors.New("impossible fire ray")
 	}
-	if err := p.ValidateAndApplyFire(); err != nil {
+	if err := p.validateAndApplyFireAt(now); err != nil {
 		return err
 	}
 	p.ProtectedUntil = time.Time{}

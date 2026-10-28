@@ -35,6 +35,18 @@ config["executable"] = engine
 config["mainPack"] = pack
 config["fileSizes"] = {renames.get(name, name): size for name, size in config["fileSizes"].items()}
 html = html[:match.start(1)] + json.dumps(config, separators=(",", ":")) + html[match.end(1):]
+# Explicit QA URLs exercise the exported Web client with the same input probe
+# used by the native binary. Ordinary URLs keep the original configuration.
+qa_bootstrap = """
+const qaParams=new URLSearchParams(window.location.search);
+if(window.location.hostname==='war.vaidik.blog' && qaParams.get('qa_official')==='1' && /^[0-9a-f-]{36}$/.test(qaParams.get('qa_room')||'')) {
+ const qaMaps=['industrial','football','desert_oasis'];
+ const qaMap=qaMaps.includes(qaParams.get('qa_map'))?qaParams.get('qa_map'):'industrial';
+ const qaSeconds=Math.max(1,Math.min(1800,Number(qaParams.get('qa_seconds'))||180));
+ GODOT_CONFIG.args=['--','qa_official','qa_room='+qaParams.get('qa_room'),'qa_map='+qaMap,'qa_seconds='+qaSeconds];
+}
+"""
+html=html.replace('const engine = new Engine(GODOT_CONFIG);',qa_bootstrap+'\nconst engine = new Engine(GODOT_CONFIG);')
 html_path.write_text(html.replace('src="index.js"', f'src="{engine}.js"'))
 optional_path = folder / "optional-maps.json"
 optional = json.loads(optional_path.read_text()) if optional_path.exists() else {}

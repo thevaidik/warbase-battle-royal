@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 	"warbase-server/internal/engine"
 	"warbase-server/internal/jsonlog"
 )
@@ -84,5 +85,24 @@ func TestCompressedImmutableAssets(t *testing.T) {
 		if response.Header().Get("Content-Type") != "application/wasm" {
 			t.Fatal("encoded asset lost its MIME type")
 		}
+	}
+}
+
+type deadlineResponse struct {
+	*httptest.ResponseRecorder
+	deadlines []time.Time
+}
+
+func (w *deadlineResponse) SetWriteDeadline(deadline time.Time) error {
+	w.deadlines = append(w.deadlines, deadline)
+	return nil
+}
+func TestAssetTransferRefreshesDeadlineForEveryChunk(t *testing.T) {
+	underlying := &deadlineResponse{ResponseRecorder: httptest.NewRecorder()}
+	writer := progressAssetWriter{underlying}
+	writer.Write([]byte("one"))
+	writer.Write([]byte("two"))
+	if len(underlying.deadlines) != 2 || time.Until(underlying.deadlines[1]) < 29*time.Second || underlying.Body.String() != "onetwo" {
+		t.Fatal("large asset transfer retains the original whole-response deadline")
 	}
 }

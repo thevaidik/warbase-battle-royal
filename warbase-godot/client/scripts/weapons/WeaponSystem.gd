@@ -98,7 +98,7 @@ var _dust_idx := 0
 var _dust_container: Node3D
 
 var _hitscan_query: PhysicsRayQueryParameters3D = null
-var _decals: Array[MeshInstance3D] = []
+var _decals: Array[WeakRef] = []
 
 static var _casing_mesh: CylinderMesh = null
 static var _casing_mat: StandardMaterial3D = null
@@ -577,14 +577,19 @@ func spawn_death_blood(feet: Vector3) -> void:
 	var tangent := normal.cross(Vector3.FORWARD).normalized()
 	stain.global_transform = Transform3D(Basis(tangent, normal.cross(tangent), normal), hit.position + normal * 0.012)
 	stain.rotate_object_local(Vector3.FORWARD, randf() * TAU)
-	_decals.append(stain)
-	while _decals.size() > MAX_DECALS:
-		var old := _decals.pop_front() as MeshInstance3D
-		if is_instance_valid(old): old.queue_free()
+	_track_decal(stain)
 	var fade := stain.create_tween()
 	fade.tween_interval(12.0)
 	fade.tween_property(material, "albedo_color:a", 0.0, 6.0)
 	fade.tween_callback(stain.queue_free)
+
+func _track_decal(decal: MeshInstance3D) -> void:
+	for index in range(_decals.size()-1,-1,-1):
+		if not is_instance_valid(_decals[index].get_ref()): _decals.remove_at(index)
+	_decals.append(weakref(decal))
+	while _decals.size() > MAX_DECALS:
+		var old = _decals.pop_front().get_ref()
+		if is_instance_valid(old): old.queue_free()
 
 func queue_impact(pos: Vector3, normal: Vector3, travel: float) -> void:
 	if _pending_impacts.size() >= 64: _pending_impacts.pop_front()
@@ -637,11 +642,7 @@ func _spawn_impact(pos: Vector3, normal: Vector3) -> void:
 	dslot["active"] = true
 	dmi.visible = true
 		
-	# Bullet hole decal ring buffer (max 32 active decals)
-	if _decals.size() >= MAX_DECALS:
-		var oldest: MeshInstance3D = _decals.pop_front()
-		if is_instance_valid(oldest):
-			oldest.queue_free()
+	# Decal lifetime and capacity are managed through weak references.
 
 	if not _decal_mesh:
 		_decal_mesh = QuadMesh.new()
@@ -671,7 +672,7 @@ func _spawn_impact(pos: Vector3, normal: Vector3) -> void:
 	di.global_position = pos + normal * 0.01
 	var up_vec := Vector3.UP if absf(normal.y) < 0.9 else Vector3.RIGHT
 	di.look_at(pos + normal, up_vec)
-	_decals.append(di)
+	_track_decal(di)
 
 func start_inspect() -> void:
 	if is_reloading or player.is_dead or ads_amount > 0.15:
@@ -722,7 +723,9 @@ func _process(delta: float) -> void:
 	if not is_instance_valid(player):
 		return
 	var cfg := current_config()
-	var input_enabled := GameState.online_ready and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED and not player.is_dead and not player.is_driving
+	var active_scene := get_tree().current_scene
+	var qa_input := is_instance_valid(active_scene) and bool(active_scene.get("_qa_active"))
+	var input_enabled := GameState.online_ready and (Input.mouse_mode == Input.MOUSE_MODE_CAPTURED or qa_input) and not player.is_dead and not player.is_driving
 	is_firing = input_enabled and Input.is_action_pressed("fire")
 	if not input_enabled:
 		player.aim_sway = Vector2.ZERO
@@ -1067,6 +1070,8 @@ func _process(delta: float) -> void:
 			mi.global_position = (slot["start_pos"] as Vector3) + (slot["normal"] as Vector3) * (0.16 * k)
 
 func clear() -> void:
+	_decals.clear()
+	_pending_impacts.clear()
 	if is_instance_valid(_tracer_container):
 		_tracer_container.queue_free()
 	_tracers.clear()

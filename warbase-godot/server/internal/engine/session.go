@@ -19,30 +19,51 @@ const (
 
 // GameSession acts as the bridge between a physical network connection and the active Match.
 type GameSession struct {
-	match        *Match
-	networkConn  *websocket.Conn
-	eventQueue   chan []byte // Direct events (Pong, HitConfirmed, KillConfirmed, Respawn, Fire, Grenade)
-	stateQueue   chan []byte // World snapshots (capacity 1, auto-evicting to eliminate bufferbloat)
-	PlayerID     string
-	RoomID       string
-	closeOnce    sync.Once
-	pendingState atomic.Pointer[PlayerStateUpdate]
+	match               *Match
+	networkConn         *websocket.Conn
+	eventQueue          chan []byte // Direct events (Pong, HitConfirmed, KillConfirmed, Respawn, Fire, Grenade)
+	stateQueue          chan []byte // World snapshots (capacity 1, auto-evicting to eliminate bufferbloat)
+	PlayerID            string
+	RoomID              string
+	closeOnce           sync.Once
+	deliveryFailureOnce sync.Once
+	pendingState        atomic.Pointer[PlayerStateUpdate]
+	pendingVehicle      atomic.Pointer[VehicleInputEvent]
+	snapshotMu          sync.Mutex
+	pendingPlayers      map[string][]byte
+	pendingDepartures   map[string]bool
+	pendingVehicles     map[string][]byte
+	vehiclesInitialized bool
+	pendingMetadata     []byte
+	deliveryAware       atomic.Bool
+	streamCompression   atomic.Bool
+	compressionStream   *deliveryStream
+	deliveryStarted     chan struct{}
+	done                chan struct{}
+	lastSent            atomic.Uint64
+	lastAck             atomic.Uint64
+	lastAckAt           atomic.Int64
+	cosmeticQueue       chan []byte
 }
 
 // NewGameSession initializes a new websocket client safely
 func NewGameSession(match *Match, conn *websocket.Conn, playerID string, roomID string) *GameSession {
 	return &GameSession{
-		match:       match,
-		networkConn: conn,
-		eventQueue:  make(chan []byte, 64),
-		stateQueue:  make(chan []byte, 1),
-		PlayerID:    playerID,
-		RoomID:      roomID,
+		match:           match,
+		networkConn:     conn,
+		eventQueue:      make(chan []byte, 256),
+		stateQueue:      make(chan []byte, 1),
+		deliveryStarted: make(chan struct{}), done: make(chan struct{}),
+		cosmeticQueue: make(chan []byte, 64),
+		PlayerID:      playerID,
+		RoomID:        roomID,
 	}
 }
 
 func (s *GameSession) SafeClose() {
 	s.closeOnce.Do(func() {
+		close(s.done)
+		close(s.cosmeticQueue)
 		close(s.eventQueue)
 		close(s.stateQueue)
 	})
@@ -50,11 +71,32 @@ func (s *GameSession) SafeClose() {
 
 // EnqueueDirectEvent sends a critical direct event without delay
 func (s *GameSession) EnqueueDirectEvent(data []byte) {
+	if s.deliveryAware.Load() {
+		if isCosmeticEvent(data) {
+			select {
+			case s.cosmeticQueue <- data:
+			default:
+			}
+			return
+		}
+	}
 	select {
 	case s.eventQueue <- data:
 	default:
-		log.Printf("Warning: event queue full for %s", s.PlayerID)
+		// Critical events must never disappear silently. A stalled peer reconnects
+		// to an authoritative state rather than playing through a missing respawn.
+		s.recordDeliveryFailure("critical_queue_full", nil)
+		if s.networkConn != nil {
+			_ = s.networkConn.Close()
+		}
 	}
+}
+
+// Record one bounded diagnostic per connection without logging packet contents.
+func (s *GameSession) recordDeliveryFailure(reason string, err error) {
+	s.deliveryFailureOnce.Do(func() {
+		log.Printf("delivery stopped player=%q room=%q reason=%s sent=%d ack=%d critical_pending=%d error=%v", s.PlayerID, s.RoomID, reason, s.lastSent.Load(), s.lastAck.Load(), len(s.eventQueue), err)
+	})
 }
 
 // EnqueueStateUpdate queues the latest world snapshot; if the network loop hasn't sent the previous snapshot,
@@ -110,7 +152,7 @@ func (s *GameSession) ListenForPlayerInputs() {
 		return nil
 	})
 
-	tokens := 180.0
+	tokens := 240.0
 	lastRefill := time.Now()
 	for {
 		_, message, err := s.networkConn.ReadMessage()
@@ -123,11 +165,17 @@ func (s *GameSession) ListenForPlayerInputs() {
 
 		now := time.Now()
 		tokens += now.Sub(lastRefill).Seconds() * 120
-		if tokens > 180 {
-			tokens = 180
+		if tokens > 240 {
+			tokens = 240
 		}
 		lastRefill = now
 		if tokens < 1 {
+			// Ordinary TCP bursts can contain several frames' worth of replaceable
+			// inputs. Drop these instead of ejecting a legitimate driving player.
+			event := &ClientEvent{}
+			if proto.Unmarshal(message, event) == nil && (event.GetStateUpdate() != nil || event.GetVehicleInput() != nil || event.GetDeliveryAck() != nil) {
+				continue
+			}
 			return
 		}
 		tokens--
@@ -137,6 +185,19 @@ func (s *GameSession) ListenForPlayerInputs() {
 		if proto.Unmarshal(message, event) != nil {
 			continue
 		}
+		if ack := event.GetDeliveryAck(); ack != nil {
+			if ack.SupportsGzipStream {
+				s.streamCompression.Store(true)
+			}
+			s.networkConn.SetReadDeadline(now.Add(networkPongWait))
+			s.acknowledgeDelivery(ack.Sequence)
+			continue
+		}
+		if input := event.GetVehicleInput(); input != nil {
+			s.pendingVehicle.Store(input)
+			continue
+		}
+		s.networkConn.SetReadDeadline(now.Add(networkPongWait))
 		if state := event.GetStateUpdate(); state != nil {
 			s.pendingState.Store(state)
 			continue
@@ -158,6 +219,9 @@ func (s *GameSession) StreamUpdatesToPlayer() {
 
 	for {
 		select {
+		case <-s.deliveryStarted:
+			s.streamBoundedUpdates()
+			return
 		case eventMsg, ok := <-s.eventQueue:
 			if !ok {
 				s.networkConn.WriteMessage(websocket.CloseMessage, []byte{})

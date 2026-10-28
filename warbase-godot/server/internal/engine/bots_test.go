@@ -8,6 +8,7 @@ import (
 
 func TestOnlineBotPopulation(t *testing.T) {
 	m, room, session, _ := fixture(t)
+	room.Navigation = navigationFor(room.Geometry)
 	m.syncBots(room)
 	if len(room.Bots) != 7 || len(room.PlayerEntities) != 8 {
 		t.Fatalf("expected human + 7 bots, got %d entities", len(room.PlayerEntities))
@@ -126,14 +127,19 @@ func TestBotsUseAuthorityAndRespectTeams(t *testing.T) {
 	room.PlayerIndices = map[string]int{p.ID: 0, target.ID: 1}
 	p = &room.PlayerEntities[0]
 	target = &room.PlayerEntities[1]
-	m.fireBot(room, p, target, time.Now())
+	now := time.Now()
+	m.fireBot(room, p, target, now)
 	if p.AmmoCount != 29 {
 		t.Fatal("bot shot did not consume authoritative ammo")
 	}
 	ammo := p.AmmoCount
-	m.fireBot(room, p, target, time.Now())
+	m.fireBot(room, p, target, now)
 	if p.AmmoCount != ammo {
 		t.Fatal("bot bypassed RPM limit")
+	}
+	m.fireBot(room, p, target, now.Add(time.Minute/time.Duration(p.ActiveWeapon.RPM)))
+	if p.AmmoCount != ammo-1 {
+		t.Fatal("bot failed to fire after its legal cooldown")
 	}
 	if enemies(room, p, p) {
 		t.Fatal("bot targets itself")
@@ -146,5 +152,30 @@ func TestBotsUseAuthorityAndRespectTeams(t *testing.T) {
 	m.recordKill(room, p)
 	if room.ScoreTeamA != 1 || room.CachedGameState.ScoreTeamA != 1 {
 		t.Fatal("bot kill not scored")
+	}
+}
+
+func TestColdNavigationDoesNotBlockLiveMatches(t *testing.T) {
+	m, r, _, _ := fixture(t)
+	geometry := &mapGeometry{}
+	r.Geometry = geometry
+	started, release := make(chan struct{}), make(chan struct{})
+	navigationCache.Store(geometry, func() *navigation { close(started); <-release; return &navigation{} })
+	defer navigationCache.Delete(geometry)
+	defer close(release)
+	done := make(chan struct{})
+	go func() { m.syncBots(r); close(done) }()
+	select {
+	case <-done:
+	case <-time.After(time.Second):
+		t.Fatal("cold map blocked live match processing")
+	}
+	select {
+	case <-started:
+	case <-time.After(time.Second):
+		t.Fatal("navigation preparation did not start")
+	}
+	if len(r.Bots) != 0 || r.preparedNavigation.Load() != nil {
+		t.Fatal("bots spawned before their walk graph was ready")
 	}
 }

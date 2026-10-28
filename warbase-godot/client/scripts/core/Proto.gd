@@ -57,7 +57,7 @@ static func _boolf(field: int, b: bool) -> PackedByteArray:
 		return PackedByteArray()
 	return _tag(field, 0) + _varint(1)
 
-static func encode_state(x: float, y: float, z: float, rx: float, ry: float, rz: float, rw: float, anim: String, ping: int, weapon: String) -> PackedByteArray:
+static func encode_state(x: float, y: float, z: float, rx: float, ry: float, rz: float, rw: float, anim: String, ping: int, weapon: String, input_sequence: int = 0) -> PackedByteArray:
 	var p := PackedByteArray()
 	p += _f32f(1, x); p += _f32f(2, y); p += _f32f(3, z)
 	p += _f32f(4, rx); p += _f32f(5, ry); p += _f32f(6, rz); p += _f32f(7, rw)
@@ -65,6 +65,7 @@ static func encode_state(x: float, y: float, z: float, rx: float, ry: float, rz:
 	p += _strf(9, "godot")
 	p += _i32f(10, ping)
 	p += _strf(11, weapon)
+	p += _tag(12, 0) + _varint(input_sequence)
 	return _len(CE_STATE, p)
 
 static func encode_hit(target: String, damage: int, shot_id: int = 0) -> PackedByteArray:
@@ -106,8 +107,11 @@ static func encode_loadout(primary: String, secondary: String, throwable: String
 static func encode_vehicle_seat(id: String, enter: bool) -> PackedByteArray:
 	return _len(10, _strf(1, id) + _boolf(2, enter))
 
-static func encode_vehicle_input(throttle: float, steer: float, brake: bool, gear: int) -> PackedByteArray:
-	return _len(11, _f32f(1, throttle) + _f32f(2, steer) + _boolf(3, brake) + _i32f(4, gear))
+static func encode_vehicle_input(throttle: float, steer: float, brake: bool, gear: int, input_sequence: int = 0) -> PackedByteArray:
+	return _len(11, _f32f(1, throttle) + _f32f(2, steer) + _boolf(3, brake) + _i32f(4, gear) + _tag(5,0) + _varint(input_sequence))
+
+static func encode_delivery_ack(sequence: int) -> PackedByteArray:
+	return _len(12, _tag(1, 0) + _varint(sequence) + _boolf(2,true))
 
 static func encode_ping(ms: int) -> PackedByteArray:
 	var p := PackedByteArray()
@@ -169,12 +173,58 @@ static func _parse_msg(data: PackedByteArray) -> Dictionary:
 
 ## Returns Dictionary {kind: String, ...}. kind in game_state/fire/hit_confirmed/
 ## kill_confirmed/grenade/respawn/pong/unknown
+static func decode_frame(data: PackedByteArray, stream: StreamPeerGZIP = null) -> Dictionary:
+	var envelope := _parse_msg(data)
+	if envelope.has(5):
+		var compressed: PackedByteArray = envelope[5]
+		var unpacked: PackedByteArray
+		var kind := int(envelope.get(6,0))
+		if kind == 1:
+			var size := int(envelope.get(7,0))
+			if stream == null or size <= 0 or size > 262144: return {"error":true,"messages":[]}
+			var written := stream.put_partial_data(compressed)
+			if written[0] != OK or written[1] != compressed.size() or stream.get_available_bytes() != size: return {"error":true,"messages":[]}
+			var result := stream.get_data(size)
+			if result[0] != OK: return {"error":true,"messages":[]}
+			unpacked = result[1]
+		elif kind == 0:
+			unpacked = compressed.decompress_dynamic(262144,FileAccess.COMPRESSION_GZIP)
+		else: return {"error":true,"messages":[]}
+		if unpacked.is_empty() or _parse_msg(unpacked).has(5): return {"error":true,"sequence":0,"messages":[]}
+		return _decode_uncompressed_frame(unpacked)
+	return _decode_uncompressed_frame(data)
+
+static func _decode_uncompressed_frame(data: PackedByteArray) -> Dictionary:
+	var reader := _Reader.new(data)
+	var messages: Array[Dictionary] = []
+	var snapshot := PackedByteArray()
+	var sequence := 0
+	while not reader.eof():
+		var tag := reader.read_varint()
+		var field := tag >> 3
+		match tag & 7:
+			0:
+				var value := reader.read_varint()
+				if field == 4: sequence = value
+			1: reader.read_bytes(8)
+			2:
+				var size := reader.read_varint()
+				var payload := reader.read_bytes(size)
+				if field == 1: snapshot = payload
+				elif field in [2, 3]: messages.append(decode_server(_len(2, payload)))
+			5: reader.read_f32()
+			_: return {"sequence":0,"messages":[]}
+	# Discrete events precede the newest authoritative world state.
+	if not snapshot.is_empty(): messages.append(decode_server(_len(1,snapshot)))
+	return {"sequence":sequence,"messages":messages}
+
 static func decode_server(data: PackedByteArray) -> Dictionary:
 	var top := _parse_msg(data)
 	if top.has(1):
 		var r := _Reader.new(top[1])
 		var players := {}
 		var vehicles := {}
+		var removed_players: Array[String] = []
 		var room_mode := "FFA"
 		var room_state := "PLAYING"
 		var score_a := 0
@@ -232,6 +282,8 @@ static func decode_server(data: PackedByteArray) -> Dictionary:
 						var key: String = entry.get(1, PackedByteArray()).get_string_from_utf8()
 						var car := _parse_msg(entry.get(2, PackedByteArray()))
 						vehicles[key] = {"driver":car.get(2, PackedByteArray()).get_string_from_utf8(), "pos":Vector3(car.get(3,0.0),car.get(4,0.0),car.get(5,0.0)), "yaw":car.get(6,0.0), "speed":car.get(7,0.0), "health":car.get(8,0)}
+					elif field == 11:
+						removed_players.append(b.get_string_from_utf8())
 					elif field == 2:
 						room_mode = b.get_string_from_utf8()
 					elif field == 3:
@@ -248,7 +300,7 @@ static func decode_server(data: PackedByteArray) -> Dictionary:
 					break
 		return {
 			"kind": "game_state",
-			"players": players, "vehicles":vehicles,
+			"players": players, "vehicles":vehicles,"removed_players":removed_players,
 			"room_mode": room_mode,
 			"room_state": room_state,
 			"score_a": score_a,
@@ -304,7 +356,7 @@ static func _parse_player(data: PackedByteArray) -> Dictionary:
 		"rx": f.get(4, 0.0), "ry": f.get(5, 0.0), "rz": f.get(6, 0.0), "rw": f.get(7, default_rw),
 		"anim": s.call(8), "health": 0 if is_dead else f.get(9, 100), "kills": f.get(10, 0),
 		"deaths": f.get(11, 0), "is_dead": is_dead,
-		"driving_vehicle": s.call(22),
+		"driving_vehicle": s.call(22), "ack_input_sequence": int(f.get(23, 0)),
 		"platform": s.call(13), "ping": f.get(14, 0),
 		"weapon": s.call(15), "team": s.call(16),
 		"grenades": f.get(20, 0), "protected": f.get(21, 0) == 1,

@@ -1,15 +1,7 @@
 class_name WarCombatJeep
 extends VehicleBody3D
-## Studio-Grade Military Combat Tactical Jeep (M1151 Armed Technical).
-## Features:
-## 1. True 4-wheel independent spring suspension via VehicleWheel3D.
-## 2. Speed-sensitive steering, 4WD torque distribution, and handbrake drifting.
-## 3. Overhead 360° .50 Cal heavy machine gun turret with fiery muzzle bursts, tracers, and impact craters.
-## 4. Multi-stage damage fire VFX: radiator steam -> heavy oil smoke -> intense engine fire -> catastrophic blast.
-## 5. Exhaust backfire flame bursts on throttle / gear shifts.
-## 6. Real-time procedural V8 engine audio synthesizer with RPM pitch modulation & tire screech.
-## 7. Interactive enter/exit system with dynamic 3rd-person chase camera & 1st-person cockpit view.
-## 8. High-speed kinetic roadkill physics against enemy bots.
+## Armored vehicle with local suspension, server-controlled online motion,
+## third-person driving cameras and damage effects. Audio is disabled.
 
 signal player_entered(jeep: Node)
 signal player_exited(jeep: Node)
@@ -69,6 +61,11 @@ func shift_gear(new_gear: int) -> void:
 
 # Visual Components & VFX
 var _wheels: Array[VehicleWheel3D] = []
+var _wheel_visual_mounts: Array[Node3D] = []
+var _wheel_mount_positions: Array[Vector3] = []
+var _network_wheel_roll := 0.0
+var _network_wheel_steer := 0.0
+var _previous_wheel_yaw := 0.0
 var _headlights: Array[SpotLight3D] = []
 var _brakelights: Array[OmniLight3D] = []
 var _brakelight_mats: Array[StandardMaterial3D] = []
@@ -206,15 +203,21 @@ func _build_vehicle_mesh_and_wheels() -> void:
 		vw.use_as_steering = bool(wc["steer"])
 		vw.use_as_traction = bool(wc["drive"])
 		
-		# Visual wheel model cloned from authentic 3D model
+		# Visuals are siblings of the physics wheels. Frozen VehicleWheel3D nodes
+		# retain stale world transforms when an online car is moved by snapshots.
+		var visual_mount := Node3D.new()
+		visual_mount.name = String(wc["name"]) + "Visual"
+		visual_mount.position = wc["pos"]
+		add_child(visual_mount)
+		_wheel_visual_mounts.append(visual_mount)
+		_wheel_mount_positions.append(wc["pos"])
+		# Preserve the imported wheel orientation, including right-side hubs.
 		var src_wheel: Node = wc["src"]
 		if is_instance_valid(src_wheel):
 			var visual_wheel := src_wheel.duplicate() as Node3D
 			visual_wheel.visible = true
-			visual_wheel.scale = Vector3.ONE
-			visual_wheel.position = Vector3.ZERO
-			visual_wheel.rotation = Vector3(0.0, -PI * 0.5 if wc["side"] == "left" else PI * 0.5, 0.0)
-			vw.add_child(visual_wheel)
+			visual_wheel.transform = Transform3D((global_transform.basis.inverse() * src_wheel.global_transform.basis).orthonormalized(), Vector3.ZERO)
+			visual_mount.add_child(visual_wheel)
 			
 		add_child(vw)
 		_wheels.append(vw)
@@ -363,6 +366,7 @@ func _setup_vfx() -> void:
 # PROCEDURAL V8 ENGINE AUDIO SYNTHESIZER
 # ==============================================================================
 func _setup_audio() -> void:
+	if not WarAudioManager.AUDIO_ENABLED: return
 	_engine_audio = AudioStreamPlayer3D.new()
 	_engine_audio.name = "EngineAudio"
 	_engine_audio.bus = "Master"
@@ -497,6 +501,7 @@ func _process(delta: float) -> void:
 	if network_controlled:
 		global_position = global_position.lerp(network_position, 1.0-exp(-18.0*delta))
 		rotation.y = lerp_angle(rotation.y, network_yaw, 1.0-exp(-18.0*delta))
+	_update_wheel_visuals(delta)
 	if not is_driven or is_destroyed:
 		return
 	if is_instance_valid(chase_camera_pivot):
@@ -514,6 +519,21 @@ func _process(delta: float) -> void:
 			_cam_yaw = lerp_angle(_cam_yaw, target_heading, clampf(2.2 * delta, 0.0, 1.0))
 			
 		chase_camera_pivot.rotation = Vector3(_cam_pitch, _cam_yaw, 0.0)
+
+func _update_wheel_visuals(delta: float) -> void:
+	if network_controlled:
+		var travel := current_speed_kmh / 3.6 * delta * (-1.0 if is_reversing else 1.0)
+		_network_wheel_roll = wrapf(_network_wheel_roll - travel / 0.67, -PI, PI)
+		var yaw_change := angle_difference(_previous_wheel_yaw, rotation.y)
+		var target_steer := clampf(atan2(yaw_change * 3.99, absf(travel)), -MAX_STEER_ANGLE, MAX_STEER_ANGLE) if absf(travel) > 0.005 else 0.0
+		_network_wheel_steer = lerpf(_network_wheel_steer, target_steer, 1.0-exp(-12.0*delta))
+		for i in _wheel_visual_mounts.size():
+			var steer := _network_wheel_steer if i < 2 else 0.0
+			_wheel_visual_mounts[i].transform = Transform3D(Basis(Vector3.UP, steer) * Basis(Vector3.RIGHT, _network_wheel_roll), _wheel_mount_positions[i])
+	else:
+		for i in _wheel_visual_mounts.size():
+			_wheel_visual_mounts[i].transform = _wheels[i].transform
+	_previous_wheel_yaw = rotation.y
 
 # ==============================================================================
 # REAL-TIME DRIVING PHYSICS & TURRET COMBAT LOOP
@@ -742,14 +762,15 @@ func _process_roadkill_damage() -> void:
 # AUDIO SYNTHESIS & REAL-TIME FX
 # ==============================================================================
 func _update_audio_and_fx(delta: float) -> void:
-	if is_driven and is_instance_valid(_engine_audio):
+	if is_driven:
 		# Pitch shift V8 engine rumble dynamically with speed & throttle relative to gear
 		var target_rpm := 750.0 + (current_speed_kmh / get_top_speed()) * 3600.0
 		if Input.is_action_pressed("move_forward"):
 			target_rpm += 450.0
 		_rpm = lerpf(_rpm, target_rpm, 8.0 * delta)
-		_engine_audio.pitch_scale = clampf(_rpm / 850.0, 0.65, 2.4)
-		_engine_audio.unit_size = 10.0
+		if is_instance_valid(_engine_audio):
+			_engine_audio.pitch_scale = clampf(_rpm / 850.0, 0.65, 2.4)
+			_engine_audio.unit_size = 10.0
 		
 		# Exhaust backfire flame bursts on high RPM throttle shift
 		_exhaust_timer -= delta

@@ -2,6 +2,10 @@ package main
 
 import (
 	"flag"
+	"fmt"
+	"net"
+	"net/http"
+	"net/http/pprof"
 	"os"
 	"sync"
 	"time"
@@ -11,9 +15,10 @@ import (
 )
 
 type config struct {
-	port      int
-	staticDir string
-	env       string
+	port            int
+	diagnosticsPort int
+	staticDir       string
+	env             string
 }
 
 type application struct {
@@ -32,9 +37,22 @@ func main() {
 	flag.StringVar(&cfg.env, "env", "development", "Environment (Development | Production)")
 
 	flag.StringVar(&cfg.staticDir, "static-dir", os.Getenv("DIST_DIR"), "Directory containing the Godot Web export")
+	flag.IntVar(&cfg.diagnosticsPort, "diagnostics-port", 0, "Optional container-loopback profiling port (0 disables)")
 	flag.Parse()
 
 	logger := jsonlog.New(os.Stdout, jsonlog.LevelInfo)
+
+	if cfg.diagnosticsPort > 0 {
+		listener, err := net.Listen("tcp", fmt.Sprintf("127.0.0.1:%d", cfg.diagnosticsPort))
+		if err != nil {
+			logger.PrintFatal(err, nil)
+		}
+		defer listener.Close()
+		diagnostics := http.NewServeMux()
+		diagnostics.HandleFunc("/debug/pprof/profile", pprof.Profile)
+		diagnostics.HandleFunc("/debug/pprof/", pprof.Index)
+		go http.Serve(listener, diagnostics)
+	}
 
 	match := engine.NewMatch()
 	// The Match engine automatically creates permanent public rooms internally via seedDefaultRoomsLocked.

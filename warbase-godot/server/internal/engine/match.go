@@ -33,34 +33,49 @@ type Message struct {
 }
 
 type Room struct {
-	Vehicles        map[string]*serverVehicle
-	TimeOfDay       string
-	RandomTime      bool
-	Bots            map[string]bool
-	BotSequence     int
-	Navigation      *navigation
-	botCount        atomic.Int32
-	Grenades        []*serverGrenade
-	NextGrenade     uint64
-	Geometry        *mapGeometry
-	ID              string
-	Name            string
-	MapName         string
-	PlayerEntities  []Player
-	PlayerIndices   map[string]int
-	CachedGameState *GameState
-	CachedServerMsg *ServerMessage
-	playerCount     atomic.Int32
-	Sessions        map[*GameSession]bool
-	EmptySince      time.Time
-	IsPermanent     bool
-	Mode            string
-	State           string
-	ScoreTeamA      int32
-	ScoreTeamB      int32
-	WinnerID        string
-	StateTimer      time.Time
-	ReplicationMgr  *ReplicationManager
+	Vehicles           map[string]*serverVehicle
+	TimeOfDay          string
+	RandomTime         bool
+	Bots               map[string]bool
+	BotSequence        int
+	Navigation         *navigation
+	navigationStarted  bool
+	preparedNavigation atomic.Pointer[navigation]
+	botCount           atomic.Int32
+	Grenades           []*serverGrenade
+	NextGrenade        uint64
+	Geometry           *mapGeometry
+	ID                 string
+	Name               string
+	MapName            string
+	PlayerEntities     []Player
+	PlayerIndices      map[string]int
+	CachedGameState    *GameState
+	CachedServerMsg    *ServerMessage
+	playerCount        atomic.Int32
+	Sessions           map[*GameSession]bool
+	EmptySince         time.Time
+	IsPermanent        bool
+	wasOccupied        bool
+	Mode               string
+	State              string
+	ScoreTeamA         int32
+	ScoreTeamB         int32
+	WinnerID           string
+	StateTimer         time.Time
+	ReplicationMgr     *ReplicationManager
+}
+
+// Initial joins may need the optional 50 MB map before opening a connection.
+func (r *Room) emptyExpired(now time.Time) bool {
+	if r.IsPermanent || r.playerCount.Load() > 0 {
+		return false
+	}
+	grace := 5 * time.Minute
+	if r.wasOccupied {
+		grace = time.Minute
+	}
+	return now.Sub(r.EmptySince) > grace
 }
 
 func NewRoom(id string, name string, mapName string, mode string) *Room {
@@ -381,6 +396,7 @@ func (m *Match) Run() {
 						room.PlayerEntities = room.PlayerEntities[:lastIdx]
 						delete(room.PlayerIndices, session.PlayerID)
 						delete(room.CachedGameState.Players, session.PlayerID)
+						room.notifyDeparture(session.PlayerID)
 						room.playerCount.Add(-1)
 
 						if room.playerCount.Load() == 0 {
@@ -403,6 +419,9 @@ func (m *Match) Run() {
 				if state := session.pendingState.Swap(nil); state != nil {
 					inputs = append(inputs, Message{Session: session, SenderID: session.PlayerID, RoomID: session.RoomID, Event: &ClientEvent{Event: &ClientEvent_StateUpdate{StateUpdate: state}}})
 				}
+				if vehicle := session.pendingVehicle.Swap(nil); vehicle != nil {
+					inputs = append(inputs, Message{Session: session, SenderID: session.PlayerID, RoomID: session.RoomID, Event: &ClientEvent{Event: &ClientEvent_VehicleInput{VehicleInput: vehicle}}})
+				}
 			}
 			m.roomsMutex.RUnlock()
 			for _, input := range inputs {
@@ -416,8 +435,8 @@ func (m *Match) Run() {
 
 			m.roomsMutex.Lock()
 			for _, room := range m.rooms {
-				// Mark for GC if non-permanent and empty for 30s
-				if !room.IsPermanent && room.playerCount.Load() == 0 && now.Sub(room.EmptySince) > 30*time.Second {
+				// Preserve newly created rooms while a client downloads its map.
+				if room.emptyExpired(now) {
 					emptyRooms = append(emptyRooms, room.ID)
 					continue
 				}
@@ -476,7 +495,7 @@ func (m *Match) Run() {
 					p.State.IsReloading = p.IsReloading
 				}
 				// Spatial Area of Interest (AOI) & Tiered Priority Replication
-				if m.snapshotTick%2 == 0 {
+				if m.snapshotTick%3 == 0 {
 					room.ReplicationMgr.BroadcastRoomState(room)
 				}
 			}
@@ -488,7 +507,7 @@ func (m *Match) Run() {
 				for _, id := range emptyRooms {
 					room, ok := m.rooms[id]
 					// Final check in case someone joined between RUnlock and Lock
-					if ok && room.playerCount.Load() == 0 && time.Since(room.EmptySince) > 1*time.Minute {
+					if ok && room.emptyExpired(time.Now()) {
 						delete(m.rooms, id)
 						log.Printf("Garbage collected empty room: %s", id)
 					}
@@ -562,6 +581,7 @@ func (m *Match) processMessage(message Message) {
 				if idx, ok := room.PlayerIndices[message.SenderID]; ok && event.VehicleInput != nil {
 					p := &room.PlayerEntities[idx]
 					input := event.VehicleInput
+					p.State.AckInputSequence = max(p.State.AckInputSequence, input.InputSequence)
 					if v := room.Vehicles[p.State.DrivingVehicleId]; v != nil && v.state.Driver == p.ID && isValidFloat32(input.Throttle) && isValidFloat32(input.Steer) && math.Abs(float64(input.Throttle)) <= 1 && math.Abs(float64(input.Steer)) <= 1 {
 						v.throttle = input.Throttle
 						v.steer = input.Steer
@@ -581,6 +601,7 @@ func (m *Match) processMessage(message Message) {
 					continue
 				}
 				player := &room.PlayerEntities[idx]
+				player.State.AckInputSequence = max(player.State.AckInputSequence, event.StateUpdate.InputSequence)
 
 				if player.State.IsDead || player.State.DrivingVehicleId != "" {
 					continue
@@ -662,11 +683,10 @@ func (m *Match) processMessage(message Message) {
 					shooterTmp := &room.PlayerEntities[shooterIdx]
 					isDriving := shooterTmp.State.Animation == "drive" || shooterTmp.State.WeaponId == "vehicle"
 					if !isDriving && time.Since(shooterTmp.LastShotTime) > 800*time.Millisecond {
-						log.Printf("[Room %s] Hit rejected: no recent Fire from %s", message.RoomID, message.SenderID)
+						logRejected(shooterTmp, "hit", errors.New("no recent fire"))
 						continue
 					}
 				}
-				log.Printf("[Room %s] Received Hit: Shooter=%s, Target=%s, Damage=%d", message.RoomID, message.SenderID, event.Hit.TargetId, event.Hit.Damage)
 
 				if okTarget && okShooter {
 					target := &room.PlayerEntities[targetIdx]
@@ -682,9 +702,6 @@ func (m *Match) processMessage(message Message) {
 					}
 					previousHealth := target.State.Health
 					isKill, err := shooter.ValidateAndApplyHit(target, int(event.Hit.Damage))
-					if err != nil {
-						log.Printf("Hit Invalid: %s", err.Error())
-					}
 					if err == nil {
 						m.broadcastDamage(room, shooter, target, previousHealth-target.State.Health)
 						// Valid hit! Send feedback to shooter
@@ -711,7 +728,7 @@ func (m *Match) processMessage(message Message) {
 							})
 						}
 					} else {
-						log.Printf("Hit denied from %s: %v", shooter.ID, err)
+						logRejected(shooter, "hit", err)
 					}
 				}
 
@@ -777,13 +794,13 @@ func (m *Match) processMessage(message Message) {
 						}
 						if outData, err := proto.Marshal(fireMsg); err == nil {
 							for session := range room.Sessions {
-								if session.PlayerID != message.SenderID {
+								if session.PlayerID != message.SenderID && relevantFire(room, session.PlayerID, f) {
 									session.EnqueueDirectEvent(outData)
 								}
 							}
 						}
 					} else {
-						log.Printf("Fire denied from %s: %v", shooter.ID, err)
+						logRejected(shooter, "fire", err)
 					}
 				}
 
@@ -792,7 +809,7 @@ func (m *Match) processMessage(message Message) {
 				if ok {
 					shooter := &room.PlayerEntities[idx]
 					if err := shooter.ValidateAndApplyReload(); err != nil {
-						log.Printf("Reload denied from %s: %v", shooter.ID, err)
+						logRejected(shooter, "reload", err)
 					}
 				}
 
@@ -905,7 +922,7 @@ func (m *Match) respawnPlayer(room *Room, p *Player) {
 	bestDistance := float32(-1)
 	// Choose a clear authored spawn farthest from existing opponents.
 	if room.Geometry != nil {
-		for _, candidate := range room.Geometry.spawns {
+		for _, candidate := range room.Geometry.safeSpawnCandidates() {
 			if room.vehicleMovementBlocked(candidate, candidate) {
 				continue
 			}
@@ -984,6 +1001,7 @@ func (m *Match) addHuman(room *Room, id string) int {
 	room.PlayerIndices[id] = idx
 	room.CachedGameState.Players[id] = room.PlayerEntities[idx].State
 	room.playerCount.Add(1)
+	room.wasOccupied = true
 	m.respawnPlayer(room, &room.PlayerEntities[idx])
 	return idx
 }

@@ -4,6 +4,7 @@ extends Node3D
 ## Mirrors client/src/network/MultiplayerEntities.ts triggerFire + updateNetworkState.
 
 var remotes: Dictionary = {}
+var _pending_remotes: Dictionary = {}
 var net: WarNetwork
 var world: Node3D
 var local_name := ""
@@ -18,6 +19,12 @@ func setup(net_ref: WarNetwork, world_ref: Node3D, lname: String) -> void:
 	net.explosion_received.connect(_on_explosion)
 
 func _on_state(state: Dictionary) -> void:
+	for pid in state.get("removed_players",[]):
+		_pending_remotes.erase(pid)
+		if remotes.has(pid):
+			if is_instance_valid(remotes[pid]): remotes[pid].queue_free()
+			remotes.erase(pid)
+		GameState.players.erase(pid)
 	var players: Dictionary = state.get("players", {})
 	for pid in players.keys():
 		if pid == local_name or pid == GameState.username:
@@ -49,12 +56,7 @@ func _on_state(state: Dictionary) -> void:
 			continue
 		var st: Dictionary = players[pid]
 		if not remotes.has(pid):
-			var r := WarRemote.create(pid, st)
-			r.set_meta("last_seen", now_ms)
-			remotes[pid] = r
-			world.add_child(r)
-			var pos := Vector3(float(st.get("x", 0.0)), float(st.get("y", 0.0)), float(st.get("z", 0.0)))
-			r.global_position = pos
+			_pending_remotes[pid] = {"state":st,"seen":now_ms}
 		else:
 			var r: WarRemote = remotes[pid]
 			r.set_meta("last_seen", now_ms)
@@ -86,6 +88,20 @@ func _on_state(state: Dictionary) -> void:
 			GameState.local_deaths = int(me.get("deaths"))
 
 func _process(delta: float) -> void:
+	# Join bursts must not build dozens of skinned soldiers and guns in one frame.
+	var created := 0
+	for pid in _pending_remotes.keys():
+		if created >= 1: break
+		var pending: Dictionary = _pending_remotes[pid]
+		_pending_remotes.erase(pid)
+		if Time.get_ticks_msec() - int(pending.seen) > 3000: continue
+		var st: Dictionary = pending.state
+		var remote := WarRemote.create(pid,st)
+		remote.set_meta("last_seen",pending.seen)
+		remotes[pid] = remote
+		world.add_child(remote)
+		remote.global_position = Vector3(float(st.get("x",0)),float(st.get("y",0)),float(st.get("z",0)))
+		created += 1
 	for r in remotes.values():
 		(r as WarRemote).interpolate(delta)
 
@@ -103,6 +119,7 @@ func _on_grenade(_shooter: String, pos: Vector3, vel: Vector3, grenade_id: int, 
 		grenade.set_meta("server_id", grenade_id)
 
 func clear() -> void:
+	_pending_remotes.clear()
 	for r in remotes.values():
 		if is_instance_valid(r):
 			(r as Node).queue_free()

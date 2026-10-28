@@ -26,6 +26,36 @@ var _host := "localhost:8081"
 var _ping_t := 0.0
 var _ping_sent_ms := 0
 var _reconnect_t := -1.0
+var _connect_started_ms := 0
+var _last_state_ms := 0
+var _last_pong_ms := 0
+var _last_delivery_sequence := 0
+var _last_ack_sent := 0
+var _healthy_since_ms := 0
+var _compression_stream: StreamPeerGZIP
+var input_sequence := 0
+var _sent_positions: Dictionary = {}
+var _inflight_inputs: Array[int] = []
+
+func _ready() -> void:
+	process_mode = Node.PROCESS_MODE_ALWAYS
+
+func take_acknowledged_position(sequence: int) -> Variant:
+	var result = _sent_positions.get(sequence)
+	for key in _sent_positions.keys():
+		if key <= sequence: _sent_positions.erase(key)
+	return result
+
+func _drop_stalled_connection() -> void:
+	if not _want_connection: return
+	# Replacing the peer discards queued TCP/browser traffic on the old connection.
+	ws.close()
+	_compression_stream = StreamPeerGZIP.new()
+	_compression_stream.start_decompression(false,262145)
+	ws = WebSocketPeer.new()
+	_set_connected(false)
+	_schedule_reconnect()
+
 
 func connect_to(username: String, room: String, host: String) -> void:
 	ws.close()
@@ -38,7 +68,17 @@ func connect_to(username: String, room: String, host: String) -> void:
 	_do_connect()
 
 func _do_connect() -> void:
+	_compression_stream = StreamPeerGZIP.new()
+	_compression_stream.start_decompression(false,262145)
 	ws = WebSocketPeer.new()
+	_connect_started_ms = Time.get_ticks_msec()
+	_last_state_ms = 0
+	_last_pong_ms = 0
+	_last_delivery_sequence = 0
+	_last_ack_sent = 0
+	_healthy_since_ms = 0
+	_sent_positions.clear()
+	_inflight_inputs.clear()
 	var scheme := "wss"
 	if _host.begins_with("localhost") or _host.begins_with("127."):
 		scheme = "ws"
@@ -94,31 +134,47 @@ func _set_connected(v: bool) -> void:
 
 func _process(delta: float) -> void:
 	ws.poll()
+	var now := Time.get_ticks_msec()
 	var st := ws.get_ready_state()
 	if st == WebSocketPeer.STATE_OPEN:
 		if not connected:
+			_send(WarProto.encode_delivery_ack(0))
+			_last_state_ms = now
+			_last_pong_ms = now
+			_ping_t = 1.0
 			_set_connected(true)
-		_reconnect_attempts = 0
-		while ws.get_available_packet_count() > 0:
-			var pkt := ws.get_packet()
-			_handle(pkt)
+		# A packet burst must not monopolize a rendered frame.
+		var processed := 0
+		var processing_peer := ws
+		while ws.get_available_packet_count() > 0 and processed < 64:
+			_handle(ws.get_packet())
+			if ws != processing_peer: return
+			processed += 1
+		if _last_delivery_sequence > _last_ack_sent:
+			if _send(WarProto.encode_delivery_ack(_last_delivery_sequence)):
+				_last_ack_sent = _last_delivery_sequence
 		_ping_t += delta
 		if _ping_t >= 1.0:
 			_ping_t = 0.0
-			_ping_sent_ms = int(Time.get_ticks_msec())
-			_send(WarProto.encode_ping(_ping_sent_ms))
+			_ping_sent_ms = now
+			_send(WarProto.encode_ping(now))
+		if now - _last_state_ms > 5000 or now - _last_pong_ms > 5000:
+			_drop_stalled_connection()
+			return
+		if _healthy_since_ms > 0 and now - _healthy_since_ms > 10000:
+			_reconnect_attempts = 0
+	elif st == WebSocketPeer.STATE_CONNECTING and now - _connect_started_ms > 10000:
+		_drop_stalled_connection()
+		return
 	elif st == WebSocketPeer.STATE_CLOSED or st == WebSocketPeer.STATE_CLOSING:
 		if st == WebSocketPeer.STATE_CLOSED and ws.get_close_code() == 1008 and _want_connection:
 			_want_connection = false
 			connection_error.emit(ws.get_close_reason())
 		_set_connected(false)
-		if _want_connection:
-			if _reconnect_t < 0.0:
-				_schedule_reconnect()
+		if _want_connection and _reconnect_t < 0.0: _schedule_reconnect()
 	if _want_connection and _reconnect_t >= 0.0:
 		_reconnect_t -= delta
-		if _reconnect_t < 0.0:
-			_do_connect()
+		if _reconnect_t < 0.0: _do_connect()
 
 func _schedule_reconnect() -> void:
 	if _reconnect_attempts >= _max_reconnect:
@@ -130,9 +186,27 @@ func _schedule_reconnect() -> void:
 	_reconnect_t = delay
 
 func _handle(pkt: PackedByteArray) -> void:
-	var msg := WarProto.decode_server(pkt)
+	var frame := WarProto.decode_frame(pkt, _compression_stream)
+	if frame.get("error",false):
+		_drop_stalled_connection()
+		return
+	var sequence := int(frame.get("sequence",0))
+	if sequence > 0:
+		if sequence <= _last_delivery_sequence: return
+		_last_delivery_sequence = sequence
+	var source_peer := ws
+	for msg in frame.get("messages",[]):
+		_dispatch_message(msg)
+		if ws != source_peer: return
+
+func _dispatch_message(msg: Dictionary) -> void:
 	match msg.get("kind", "unknown"):
 		"game_state":
+			var me: Dictionary = msg.get("players",{}).get(_username,{})
+			var acknowledged := int(me.get("ack_input_sequence",0))
+			while not _inflight_inputs.is_empty() and _inflight_inputs[0] <= acknowledged:
+				_inflight_inputs.pop_front()
+			_last_state_ms = Time.get_ticks_msec()
 			state_received.emit(msg)
 		"fire":
 			fire_received.emit(msg["shooter"], msg["origin"], msg["hit"], msg["normal"], msg["wall"])
@@ -150,11 +224,20 @@ func _handle(pkt: PackedByteArray) -> void:
 			respawn_received.emit(Vector3(msg["x"], msg["y"], msg["z"]))
 		"pong":
 			current_ping = int(Time.get_ticks_msec()) - int(msg.get("t", 0))
+			if current_ping > 5000:
+				_drop_stalled_connection()
+				return
+			_last_pong_ms = Time.get_ticks_msec()
+			if _healthy_since_ms == 0: _healthy_since_ms = _last_pong_ms
 
-func _send(data: PackedByteArray) -> void:
-	if ws.get_ready_state() != WebSocketPeer.STATE_OPEN:
-		return
-	ws.send(data)
+func _send(data: PackedByteArray, replaceable: bool = false) -> bool:
+	if ws.get_ready_state() != WebSocketPeer.STATE_OPEN: return false
+	var pending := ws.get_current_outbound_buffered_amount()
+	if replaceable and pending > 8192: return false
+	if pending > 32768:
+		_drop_stalled_connection()
+		return false
+	return ws.send(data) == OK
 
 func _valid(v: Vector3) -> bool:
 	return is_finite(v.x) and is_finite(v.y) and is_finite(v.z)
@@ -162,7 +245,12 @@ func _valid(v: Vector3) -> bool:
 func send_state(pos: Vector3, quat: Quaternion, anim: String, weapon: String) -> void:
 	if not _valid(pos):
 		return
-	_send(WarProto.encode_state(pos.x, pos.y, pos.z, quat.x, quat.y, quat.z, quat.w, anim, current_ping, weapon))
+	if _last_delivery_sequence > 0 and _inflight_inputs.size() >= 8: return
+	input_sequence += 1
+	if _send(WarProto.encode_state(pos.x, pos.y, pos.z, quat.x, quat.y, quat.z, quat.w, anim, current_ping, weapon, input_sequence), true):
+		_sent_positions[input_sequence] = pos
+		if _last_delivery_sequence > 0: _inflight_inputs.append(input_sequence)
+		while _sent_positions.size() > 256: _sent_positions.erase(_sent_positions.keys()[0])
 
 func send_fire(o: Vector3, h: Vector3, n: Vector3, wall: bool, shot_id: int = 0) -> void:
 	_send(WarProto.encode_fire(o, h, n, wall, shot_id))
@@ -189,7 +277,10 @@ func send_vehicle_seat(id: String, enter: bool) -> void:
 	_send(WarProto.encode_vehicle_seat(id, enter))
 
 func send_vehicle_input(throttle: float, steer: float, brake: bool, gear: int) -> void:
-	_send(WarProto.encode_vehicle_input(throttle, steer, brake, gear))
+	if _last_delivery_sequence > 0 and _inflight_inputs.size() >= 8: return
+	input_sequence += 1
+	if _send(WarProto.encode_vehicle_input(throttle, steer, brake, gear, input_sequence), true):
+		if _last_delivery_sequence > 0: _inflight_inputs.append(input_sequence)
 
 func send_ping_now() -> void:
 	_ping_sent_ms = int(Time.get_ticks_msec())

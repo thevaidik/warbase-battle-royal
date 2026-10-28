@@ -13,6 +13,13 @@ signal scoreboard_closed
 var _bot_damage_btn: Button
 var _pause_bot_btn: Button
 
+var _connection_status: Label
+
+func set_connection_status(message: String) -> void:
+	if not is_instance_valid(_connection_status): return
+	_connection_status.text = message
+	_connection_status.visible = not message.is_empty()
+
 var _menu_scrim: ColorRect
 var _practice_bar: PanelContainer
 var _controls_hint: Label
@@ -176,6 +183,14 @@ func _mk_label(text: String, size: int, color: Color) -> Label:
 	return l
 
 func build() -> void:
+	_connection_status = _mk_label("", 20, WarUI.ACCENT)
+	_connection_status.set_anchors_preset(Control.PRESET_CENTER_TOP)
+	_connection_status.position = Vector2(-320,100)
+	_connection_status.size = Vector2(640,50)
+	_connection_status.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_connection_status.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_connection_status.visible = false
+	add_child(_connection_status)
 	# Low Health Vignette
 	low_hp_vignette = ColorRect.new()
 	low_hp_vignette.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -386,20 +401,7 @@ func build() -> void:
 	sens_box.add_child(sens_slider)
 	pv.add_child(sens_box)
 	
-	# Master Volume Slider
-	var vol_box := HBoxContainer.new()
-	vol_box.add_child(_mk_label("SFX VOLUME ", 12, Color.LIGHT_GRAY))
-	var vol_slider := HSlider.new()
-	vol_slider.min_value = 0.0
-	vol_slider.max_value = 1.0
-	vol_slider.step = 0.05
-	vol_slider.value = Audio.sfx_volume
-	vol_slider.custom_minimum_size = Vector2(180, 20)
-	vol_slider.value_changed.connect(func(v: float) -> void:
-		Audio.sfx_volume = v
-		GameState.save_settings())
-	vol_box.add_child(vol_slider)
-	pv.add_child(vol_box)
+	pv.add_child(_mk_label("AUDIO DISABLED", 12, Color.LIGHT_GRAY))
 	
 	var pause_bot_btn := Button.new()
 	pause_bot_btn.custom_minimum_size = Vector2(0, 36)

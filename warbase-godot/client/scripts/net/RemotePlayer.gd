@@ -7,6 +7,18 @@ extends Node3D
 const SCENE: PackedScene = preload("res://scenes/RemotePlayer.tscn")
 const VEHICLE_MODEL: PackedScene = preload("res://assets/models/armored_combat_van.glb")
 
+static var _remote_weapon_scenes: Dictionary = {}
+
+static func _shared_weapon(wid: String) -> Node3D:
+	if not _remote_weapon_scenes.has(wid):
+		var model := WeaponView.build(wid)
+		for child in model.find_children("*","Node",true,false): child.owner = model
+		var packed := PackedScene.new()
+		packed.pack(model)
+		model.free()
+		_remote_weapon_scenes[wid] = packed
+	return (_remote_weapon_scenes[wid] as PackedScene).instantiate() as Node3D
+
 var player_id := ""
 var team := "A"
 var weapon_id := "ak47"
@@ -220,7 +232,7 @@ func _update_equipped_weapon(wid: String) -> void:
 		return
 	if is_instance_valid(_equipped_gun):
 		_equipped_gun.queue_free()
-	_equipped_gun = WeaponView.build(wid)
+	_equipped_gun = _shared_weapon(wid)
 	_equipped_gun.name = "RemoteGun"
 	_equipped_gun.visible = (not is_driving) and (not dead)
 	
@@ -485,6 +497,11 @@ func _update_distance_lod() -> void:
 	if not cam:
 		return
 	var d := global_position.distance_to(cam.global_position)
+	# Fade out only the intersecting third-person presentation; hitboxes stay authoritative.
+	var camera_inside := Vector2(global_position.x-cam.global_position.x, global_position.z-cam.global_position.z).length() < 0.65 and absf(global_position.y+1.1-cam.global_position.y) < 1.2
+	if is_instance_valid(soldier): soldier.visible = not camera_inside and not (is_driving and not GameState.practice_mode)
+	if is_instance_valid(_equipped_gun): _equipped_gun.visible = not camera_inside and not is_driving and not dead
+	_render_delay = 0.08 if d <= 35.0 else (0.12 if d <= 120.0 else 0.28)
 	if d > 120.0:
 		_set_lod(2)
 	elif d > 45.0:

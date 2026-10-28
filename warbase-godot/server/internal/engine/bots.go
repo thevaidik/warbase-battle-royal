@@ -46,12 +46,24 @@ func (m *Match) syncBots(room *Room) {
 		delete(room.PlayerIndices, id)
 		delete(room.CachedGameState.Players, id)
 		delete(room.Bots, id)
+		room.notifyDeparture(id)
 	}
 	if len(room.Bots) >= desired {
 		room.botCount.Store(int32(len(room.Bots)))
 		return
 	}
-	room.Navigation = navigationFor(room.Geometry)
+	if room.Navigation == nil {
+		if !room.navigationStarted {
+			room.navigationStarted = true
+			geometry := room.Geometry
+			go func() { room.preparedNavigation.Store(navigationFor(geometry)) }()
+		}
+		room.Navigation = room.preparedNavigation.Load()
+		if room.Navigation == nil {
+			room.botCount.Store(int32(len(room.Bots)))
+			return
+		}
+	}
 	for len(room.Bots) < desired {
 		room.BotSequence++
 		id := fmt.Sprintf("[BOT] %s-%02d", []string{"VIPER", "KESTREL", "GHOST", "ROOK", "NOMAD", "LYNX", "WRAITH"}[(room.BotSequence-1)%7], room.BotSequence)
@@ -328,7 +340,7 @@ func (m *Match) fireBot(room *Room, p, target *Player, now time.Time) {
 		end[k] = origin[k] + delta[k]*min(300/length, 1.08)
 	}
 	f := &FireEvent{ShotId: p.State.LastShotId + 1, OriginX: origin[0], OriginY: origin[1], OriginZ: origin[2], HitX: end[0], HitY: end[1], HitZ: end[2]}
-	if p.ValidateFireRay(f) != nil {
+	if p.validateFireRayAt(f, now) != nil {
 		return
 	}
 	if fraction, normal, hit := room.Geometry.trace(origin, end); hit {

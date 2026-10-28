@@ -23,8 +23,9 @@ var allowedOrigins = map[string]bool{
 }
 
 var upgrader = websocket.Upgrader{
-	ReadBufferSize:  8192,
-	WriteBufferSize: 0,
+	ReadBufferSize:    8192,
+	WriteBufferSize:   8192,
+	EnableCompression: true,
 	CheckOrigin: func(r *http.Request) bool {
 		origin := r.Header.Get("Origin")
 		if origin == "" {
@@ -116,6 +117,8 @@ func (app *application) connectToServerHandler(w http.ResponseWriter, r *http.Re
 	if tcpConn, ok := conn.NetConn().(*net.TCPConn); ok {
 		tcpConn.SetNoDelay(true)
 	}
+
+	conn.SetCompressionLevel(1) // BestSpeed, outside the simulation loop.
 
 	// 3. Create the session:
 	session := engine.NewGameSession(app.match, conn, username, room)

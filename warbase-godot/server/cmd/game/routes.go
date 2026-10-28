@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
+	"time"
 )
 
 var immutableAsset = regexp.MustCompile(`^(engine-[0-9a-f]{16}\.(wasm|js|audio\.worklet\.js|audio\.position\.worklet\.js)|(game|map-football)-[0-9a-f]{16}\.pck)$`)
@@ -17,6 +18,16 @@ func init() {
 	_ = mime.AddExtensionType(".pck", "application/octet-stream")
 	_ = mime.AddExtensionType(".js", "application/javascript")
 }
+
+// Refresh the deadline on each chunk: large game packs must be allowed to
+// download over a slow connection without allowing a stalled write forever.
+type progressAssetWriter struct{ http.ResponseWriter }
+
+func (w progressAssetWriter) Write(data []byte) (int, error) {
+	_ = http.NewResponseController(w.ResponseWriter).SetWriteDeadline(time.Now().Add(30 * time.Second))
+	return w.ResponseWriter.Write(data)
+}
+func (w progressAssetWriter) Unwrap() http.ResponseWriter { return w.ResponseWriter }
 
 func enableCORS(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -120,14 +131,14 @@ func (app *application) routes() http.Handler {
 			}
 			if info, err := os.Stat(targetFile + suffix); err == nil && !info.IsDir() {
 				w.Header().Set("Content-Encoding", encoding)
-				http.ServeFile(w, r, targetFile+suffix)
+				http.ServeFile(progressAssetWriter{w}, r, targetFile+suffix)
 				return
 			}
 		}
 
 		// Fallback to uncompressed file
 		if info, err := os.Stat(targetFile); err == nil && !info.IsDir() {
-			http.ServeFile(w, r, targetFile)
+			http.ServeFile(progressAssetWriter{w}, r, targetFile)
 			return
 		}
 

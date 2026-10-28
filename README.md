@@ -41,7 +41,7 @@ Switching preserves each magazine and cancels an unfinished reload. Firing is bl
 - `make test-web`: validates versioned web asset URLs, unused-asset removal, and lossless gzip/Brotli round trips after export.
 - `make test-godot`: bounded handling and gameplay regressions; fails on script/physics errors or missing completion markers.
 - With a local service on port 18091, run Godot with `--headless --path warbase-godot/client --script res://scripts/tests/test_online_sync.gd` to check two-client roster and grenade consistency.
-- `make stress-test`: 60 simulated connections for ten seconds against localhost:8081. Clients marked as drivers generate traffic; this is not a vehicle-physics benchmark.
+- `make stress-test`: 60 protocol clients for ten seconds against localhost:8081. The bounded `cmd/stress` tool also accepts `-host=war.vaidik.blog`, `-room=<existing room ID>`, `-players=1..64`, `-duration=<up to 30m>`, `-combat=false`, `-drivers=0`, and `-output=<report.json>`. Drivers seek authored cars and send real seat/input events. It reports round-trip latency, snapshot gaps, confirmed seats, and observed car travel. Socket count alone does not prove a healthy match: verify `/api/rooms` occupancy and use rendered native/web observers.
 
 Confirmed infantry hits produce small pooled blood effects and hit reactions. Tactical bots avoid visible grenades, search last-known locations, maintain squad spacing, and recover from blocked routes without changing aim accuracy.
 
@@ -76,3 +76,7 @@ See [the implementation notes](audit/implementation/CHANGES.md) and [the origina
 This update improves handling, stability, combat validation, authoritative grenade damage, and release tooling. It does not certify a production release. Online cars now use server-owned seats, input-driven kinematic movement, terrain and chassis collision checks, health, destruction, roadkills, and respawning. Offline cars retain local four-wheel physics. Online transport does not implement mounted turret combat; infantry fire is blocked while driving. Movement still uses validated client transforms with map collision checks rather than a complete server input simulation with rewind. Long-duration soak tests, full network-impairment testing, cross-device browser QA, asset licensing, and release signing remain launch gates.
 
 Football Stadium is included in native builds. For web releases, use `make export-godot-web` to generate the initial game and its optional stadium pack together, and serve all generated files in `warbase-godot/client/dist`. The stadium downloads on first join and retains its full-resolution atlas. `make test-web` validates compression and optional-pack mounting. See `audit/football-map/README.md` for validation and the source-rights caveat.
+
+Current official release, measured capacity and remaining distribution checks: [28 October follow-up](audit/production-followup-2026-10-28/REPORT.md).
+
+Audio is disabled throughout the game. Gunfire, footsteps, UI and vehicle audio methods are silent, and Settings shows **AUDIO DISABLED**.

@@ -1,17 +1,19 @@
 package engine
 
 import (
+	"bytes"
 	"hash/fnv"
 	"sync"
 
+	"google.golang.org/protobuf/encoding/protowire"
 	"google.golang.org/protobuf/proto"
 )
 
 const (
 	// Area of Interest (AOI) squared distance thresholds (in meters²)
-	NearDistSq = 75.0 * 75.0   // <= 75m: Full 30Hz tick replication (combat / auditory zone)
-	MidDistSq  = 220.0 * 220.0 // 75m - 220m: 10Hz tick replication (medium engagement zone)
-	// > 220m: 3Hz tick replication (horizon / strategic zone)
+	NearDistSq = 35.0 * 35.0   // <=35m: 20Hz active combat
+	MidDistSq  = 120.0 * 120.0 // 35-120m: 10Hz active movement
+	// >120m: 4Hz active movement
 
 	// Movement dormancy threshold (squared meters)
 	// If a player moves less than 5cm, their position is considered stationary
@@ -21,8 +23,9 @@ const (
 // ReplicationManager handles spatial partitioning, Area of Interest (AOI) culling,
 // frequency throttling, and tailored message encoding.
 type ReplicationManager struct {
-	tickCount uint64
-	mu        sync.Mutex
+	tickCount    uint64
+	lastVehicles map[string][]byte
+	mu           sync.Mutex
 }
 
 func NewReplicationManager() *ReplicationManager {
@@ -41,7 +44,44 @@ func (rm *ReplicationManager) BroadcastRoomState(room *Room) {
 	rm.mu.Lock()
 	rm.tickCount++
 	currentTick := rm.tickCount
-	rm.mu.Unlock()
+	defer rm.mu.Unlock()
+
+	// Immutable wire entries are shared by every viewer for this update.
+	encodedPlayers := make(map[string][]byte, len(room.PlayerEntities))
+	for i := range room.PlayerEntities {
+		p := &room.PlayerEntities[i]
+		state, _ := proto.Marshal(p.State)
+		entry := protowire.AppendTag(nil, 1, protowire.BytesType)
+		entry = protowire.AppendString(entry, p.ID)
+		entry = protowire.AppendTag(entry, 2, protowire.BytesType)
+		encodedPlayers[p.ID] = protowire.AppendBytes(entry, state)
+	}
+	metadata, _ := proto.Marshal(&GameState{RoomMode: room.Mode, RoomState: room.State, ScoreTeamA: room.ScoreTeamA, ScoreTeamB: room.ScoreTeamB, WinnerId: room.WinnerID, MapName: room.MapName, ProtocolVersion: 4, TimeOfDay: room.TimeOfDay})
+
+	if rm.lastVehicles == nil {
+		rm.lastVehicles = make(map[string][]byte)
+	}
+	allVehicles, changedVehicles := make(map[string][]byte), make(map[string][]byte)
+	for id, state := range room.CachedGameState.Vehicles {
+		encoded, _ := proto.Marshal(state)
+		entry := protowire.AppendTag(nil, 1, protowire.BytesType)
+		entry = protowire.AppendString(entry, id)
+		entry = protowire.AppendTag(entry, 2, protowire.BytesType)
+		entry = protowire.AppendBytes(entry, encoded)
+		allVehicles[id] = entry
+		if !bytes.Equal(rm.lastVehicles[id], encoded) {
+			changedVehicles[id] = entry
+			rm.lastVehicles[id] = encoded
+		}
+	}
+	queueSnapshot := func(session *GameSession, players map[string]*PlayerState) {
+		vehicles := changedVehicles
+		if !session.vehiclesInitialized {
+			vehicles = allVehicles
+			session.vehiclesInitialized = true
+		}
+		session.enqueueWireSnapshot(metadata, players, encodedPlayers, vehicles)
+	}
 
 	// If 4 or fewer players in room, send full snapshot to all (negligible bandwidth)
 	numPlayers := len(room.PlayerEntities)
@@ -52,7 +92,11 @@ func (rm *ReplicationManager) BroadcastRoomState(room *Room) {
 		stateData, err := proto.Marshal(room.CachedServerMsg)
 		if err == nil {
 			for session := range room.Sessions {
-				session.EnqueueStateUpdate(stateData)
+				if session.deliveryAware.Load() {
+					queueSnapshot(session, room.CachedGameState.Players)
+				} else {
+					session.EnqueueStateUpdate(stateData)
+				}
 			}
 		}
 		return
@@ -115,31 +159,18 @@ func (rm *ReplicationManager) BroadcastRoomState(room *Room) {
 				shouldInclude := false
 
 				if distSq <= NearDistSq {
-					// NEAR TIER (< 75m):
-					// Active players -> 30 Hz (every tick)
-					// Stationary players -> 10 Hz (every 3rd tick)
-					if isMoving {
-						shouldInclude = true
-					} else {
-						shouldInclude = (currentTick+tHash)%3 == 0
-					}
+					shouldInclude = isMoving || (currentTick+tHash)%4 == 0
 				} else if distSq <= MidDistSq {
-					// MID TIER (75m - 220m):
-					// Active players -> 10 Hz (every 3rd tick)
-					// Stationary players -> 2 Hz (every 30th tick keepalive)
 					if isMoving {
-						shouldInclude = (currentTick+tHash)%3 == 0
+						shouldInclude = (currentTick+tHash)%2 == 0
 					} else {
-						shouldInclude = (currentTick+tHash)%15 == 0
+						shouldInclude = (currentTick+tHash)%10 == 0
 					}
 				} else {
-					// FAR TIER (> 220m):
-					// Active players -> 3 Hz (every 10th tick)
-					// Stationary players -> 1 Hz (every 30th tick keepalive)
 					if isMoving {
-						shouldInclude = (currentTick+tHash)%10 == 0
+						shouldInclude = (currentTick+tHash)%5 == 0
 					} else {
-						shouldInclude = (currentTick+tHash)%30 == 0
+						shouldInclude = (currentTick+tHash)%20 == 0
 					}
 				}
 
@@ -147,6 +178,11 @@ func (rm *ReplicationManager) BroadcastRoomState(room *Room) {
 					tailoredPlayers[target.ID] = target.State
 				}
 			}
+		}
+
+		if session.deliveryAware.Load() {
+			queueSnapshot(session, tailoredPlayers)
+			continue
 		}
 
 		// Construct tailored snapshot message

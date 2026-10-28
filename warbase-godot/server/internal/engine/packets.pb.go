@@ -36,6 +36,7 @@ type ClientEvent struct {
 	//	*ClientEvent_Loadout
 	//	*ClientEvent_VehicleSeat
 	//	*ClientEvent_VehicleInput
+	//	*ClientEvent_DeliveryAck
 	Event         isClientEvent_Event `protobuf_oneof:"event"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -177,6 +178,15 @@ func (x *ClientEvent) GetVehicleInput() *VehicleInputEvent {
 	return nil
 }
 
+func (x *ClientEvent) GetDeliveryAck() *DeliveryAckEvent {
+	if x != nil {
+		if x, ok := x.Event.(*ClientEvent_DeliveryAck); ok {
+			return x.DeliveryAck
+		}
+	}
+	return nil
+}
+
 type isClientEvent_Event interface {
 	isClientEvent_Event()
 }
@@ -225,6 +235,10 @@ type ClientEvent_VehicleInput struct {
 	VehicleInput *VehicleInputEvent `protobuf:"bytes,11,opt,name=vehicle_input,json=vehicleInput,proto3,oneof"`
 }
 
+type ClientEvent_DeliveryAck struct {
+	DeliveryAck *DeliveryAckEvent `protobuf:"bytes,12,opt,name=delivery_ack,json=deliveryAck,proto3,oneof"`
+}
+
 func (*ClientEvent_StateUpdate) isClientEvent_Event() {}
 
 func (*ClientEvent_Hit) isClientEvent_Event() {}
@@ -247,6 +261,60 @@ func (*ClientEvent_VehicleSeat) isClientEvent_Event() {}
 
 func (*ClientEvent_VehicleInput) isClientEvent_Event() {}
 
+func (*ClientEvent_DeliveryAck) isClientEvent_Event() {}
+
+type DeliveryAckEvent struct {
+	state              protoimpl.MessageState `protogen:"open.v1"`
+	Sequence           uint64                 `protobuf:"varint,1,opt,name=sequence,proto3" json:"sequence,omitempty"`
+	SupportsGzipStream bool                   `protobuf:"varint,2,opt,name=supports_gzip_stream,json=supportsGzipStream,proto3" json:"supports_gzip_stream,omitempty"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
+}
+
+func (x *DeliveryAckEvent) Reset() {
+	*x = DeliveryAckEvent{}
+	mi := &file_packets_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeliveryAckEvent) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeliveryAckEvent) ProtoMessage() {}
+
+func (x *DeliveryAckEvent) ProtoReflect() protoreflect.Message {
+	mi := &file_packets_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeliveryAckEvent.ProtoReflect.Descriptor instead.
+func (*DeliveryAckEvent) Descriptor() ([]byte, []int) {
+	return file_packets_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *DeliveryAckEvent) GetSequence() uint64 {
+	if x != nil {
+		return x.Sequence
+	}
+	return 0
+}
+
+func (x *DeliveryAckEvent) GetSupportsGzipStream() bool {
+	if x != nil {
+		return x.SupportsGzipStream
+	}
+	return false
+}
+
 type VehicleSeatEvent struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	VehicleId     string                 `protobuf:"bytes,1,opt,name=vehicle_id,json=vehicleId,proto3" json:"vehicle_id,omitempty"`
@@ -257,7 +325,7 @@ type VehicleSeatEvent struct {
 
 func (x *VehicleSeatEvent) Reset() {
 	*x = VehicleSeatEvent{}
-	mi := &file_packets_proto_msgTypes[1]
+	mi := &file_packets_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -269,7 +337,7 @@ func (x *VehicleSeatEvent) String() string {
 func (*VehicleSeatEvent) ProtoMessage() {}
 
 func (x *VehicleSeatEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_packets_proto_msgTypes[1]
+	mi := &file_packets_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -282,7 +350,7 @@ func (x *VehicleSeatEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use VehicleSeatEvent.ProtoReflect.Descriptor instead.
 func (*VehicleSeatEvent) Descriptor() ([]byte, []int) {
-	return file_packets_proto_rawDescGZIP(), []int{1}
+	return file_packets_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *VehicleSeatEvent) GetVehicleId() string {
@@ -305,13 +373,14 @@ type VehicleInputEvent struct {
 	Steer         float32                `protobuf:"fixed32,2,opt,name=steer,proto3" json:"steer,omitempty"`
 	Brake         bool                   `protobuf:"varint,3,opt,name=brake,proto3" json:"brake,omitempty"`
 	Gear          int32                  `protobuf:"varint,4,opt,name=gear,proto3" json:"gear,omitempty"`
+	InputSequence uint64                 `protobuf:"varint,5,opt,name=input_sequence,json=inputSequence,proto3" json:"input_sequence,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *VehicleInputEvent) Reset() {
 	*x = VehicleInputEvent{}
-	mi := &file_packets_proto_msgTypes[2]
+	mi := &file_packets_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -323,7 +392,7 @@ func (x *VehicleInputEvent) String() string {
 func (*VehicleInputEvent) ProtoMessage() {}
 
 func (x *VehicleInputEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_packets_proto_msgTypes[2]
+	mi := &file_packets_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -336,7 +405,7 @@ func (x *VehicleInputEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use VehicleInputEvent.ProtoReflect.Descriptor instead.
 func (*VehicleInputEvent) Descriptor() ([]byte, []int) {
-	return file_packets_proto_rawDescGZIP(), []int{2}
+	return file_packets_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *VehicleInputEvent) GetThrottle() float32 {
@@ -367,6 +436,13 @@ func (x *VehicleInputEvent) GetGear() int32 {
 	return 0
 }
 
+func (x *VehicleInputEvent) GetInputSequence() uint64 {
+	if x != nil {
+		return x.InputSequence
+	}
+	return 0
+}
+
 type VehicleState struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -383,7 +459,7 @@ type VehicleState struct {
 
 func (x *VehicleState) Reset() {
 	*x = VehicleState{}
-	mi := &file_packets_proto_msgTypes[3]
+	mi := &file_packets_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -395,7 +471,7 @@ func (x *VehicleState) String() string {
 func (*VehicleState) ProtoMessage() {}
 
 func (x *VehicleState) ProtoReflect() protoreflect.Message {
-	mi := &file_packets_proto_msgTypes[3]
+	mi := &file_packets_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -408,7 +484,7 @@ func (x *VehicleState) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use VehicleState.ProtoReflect.Descriptor instead.
 func (*VehicleState) Descriptor() ([]byte, []int) {
-	return file_packets_proto_rawDescGZIP(), []int{3}
+	return file_packets_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *VehicleState) GetId() string {
@@ -478,7 +554,7 @@ type LoadoutEvent struct {
 
 func (x *LoadoutEvent) Reset() {
 	*x = LoadoutEvent{}
-	mi := &file_packets_proto_msgTypes[4]
+	mi := &file_packets_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -490,7 +566,7 @@ func (x *LoadoutEvent) String() string {
 func (*LoadoutEvent) ProtoMessage() {}
 
 func (x *LoadoutEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_packets_proto_msgTypes[4]
+	mi := &file_packets_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -503,7 +579,7 @@ func (x *LoadoutEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LoadoutEvent.ProtoReflect.Descriptor instead.
 func (*LoadoutEvent) Descriptor() ([]byte, []int) {
-	return file_packets_proto_rawDescGZIP(), []int{4}
+	return file_packets_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *LoadoutEvent) GetPrimary() string {
@@ -540,13 +616,14 @@ type PlayerStateUpdate struct {
 	PlatformId    string                 `protobuf:"bytes,9,opt,name=platform_id,json=platformId,proto3" json:"platform_id,omitempty"`
 	Ping          int32                  `protobuf:"varint,10,opt,name=ping,proto3" json:"ping,omitempty"`
 	WeaponId      string                 `protobuf:"bytes,11,opt,name=weapon_id,json=weaponId,proto3" json:"weapon_id,omitempty"`
+	InputSequence uint64                 `protobuf:"varint,12,opt,name=input_sequence,json=inputSequence,proto3" json:"input_sequence,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *PlayerStateUpdate) Reset() {
 	*x = PlayerStateUpdate{}
-	mi := &file_packets_proto_msgTypes[5]
+	mi := &file_packets_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -558,7 +635,7 @@ func (x *PlayerStateUpdate) String() string {
 func (*PlayerStateUpdate) ProtoMessage() {}
 
 func (x *PlayerStateUpdate) ProtoReflect() protoreflect.Message {
-	mi := &file_packets_proto_msgTypes[5]
+	mi := &file_packets_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -571,7 +648,7 @@ func (x *PlayerStateUpdate) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PlayerStateUpdate.ProtoReflect.Descriptor instead.
 func (*PlayerStateUpdate) Descriptor() ([]byte, []int) {
-	return file_packets_proto_rawDescGZIP(), []int{5}
+	return file_packets_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *PlayerStateUpdate) GetX() float32 {
@@ -651,6 +728,13 @@ func (x *PlayerStateUpdate) GetWeaponId() string {
 	return ""
 }
 
+func (x *PlayerStateUpdate) GetInputSequence() uint64 {
+	if x != nil {
+		return x.InputSequence
+	}
+	return 0
+}
+
 type HitEvent struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	TargetId      string                 `protobuf:"bytes,1,opt,name=target_id,json=targetId,proto3" json:"target_id,omitempty"`
@@ -662,7 +746,7 @@ type HitEvent struct {
 
 func (x *HitEvent) Reset() {
 	*x = HitEvent{}
-	mi := &file_packets_proto_msgTypes[6]
+	mi := &file_packets_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -674,7 +758,7 @@ func (x *HitEvent) String() string {
 func (*HitEvent) ProtoMessage() {}
 
 func (x *HitEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_packets_proto_msgTypes[6]
+	mi := &file_packets_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -687,7 +771,7 @@ func (x *HitEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use HitEvent.ProtoReflect.Descriptor instead.
 func (*HitEvent) Descriptor() ([]byte, []int) {
-	return file_packets_proto_rawDescGZIP(), []int{6}
+	return file_packets_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *HitEvent) GetTargetId() string {
@@ -730,7 +814,7 @@ type FireEvent struct {
 
 func (x *FireEvent) Reset() {
 	*x = FireEvent{}
-	mi := &file_packets_proto_msgTypes[7]
+	mi := &file_packets_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -742,7 +826,7 @@ func (x *FireEvent) String() string {
 func (*FireEvent) ProtoMessage() {}
 
 func (x *FireEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_packets_proto_msgTypes[7]
+	mi := &file_packets_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -755,7 +839,7 @@ func (x *FireEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FireEvent.ProtoReflect.Descriptor instead.
 func (*FireEvent) Descriptor() ([]byte, []int) {
-	return file_packets_proto_rawDescGZIP(), []int{7}
+	return file_packets_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *FireEvent) GetOriginX() float32 {
@@ -843,7 +927,7 @@ type ReloadEvent struct {
 
 func (x *ReloadEvent) Reset() {
 	*x = ReloadEvent{}
-	mi := &file_packets_proto_msgTypes[8]
+	mi := &file_packets_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -855,7 +939,7 @@ func (x *ReloadEvent) String() string {
 func (*ReloadEvent) ProtoMessage() {}
 
 func (x *ReloadEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_packets_proto_msgTypes[8]
+	mi := &file_packets_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -868,7 +952,7 @@ func (x *ReloadEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReloadEvent.ProtoReflect.Descriptor instead.
 func (*ReloadEvent) Descriptor() ([]byte, []int) {
-	return file_packets_proto_rawDescGZIP(), []int{8}
+	return file_packets_proto_rawDescGZIP(), []int{9}
 }
 
 type SwitchWeaponEvent struct {
@@ -880,7 +964,7 @@ type SwitchWeaponEvent struct {
 
 func (x *SwitchWeaponEvent) Reset() {
 	*x = SwitchWeaponEvent{}
-	mi := &file_packets_proto_msgTypes[9]
+	mi := &file_packets_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -892,7 +976,7 @@ func (x *SwitchWeaponEvent) String() string {
 func (*SwitchWeaponEvent) ProtoMessage() {}
 
 func (x *SwitchWeaponEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_packets_proto_msgTypes[9]
+	mi := &file_packets_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -905,7 +989,7 @@ func (x *SwitchWeaponEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SwitchWeaponEvent.ProtoReflect.Descriptor instead.
 func (*SwitchWeaponEvent) Descriptor() ([]byte, []int) {
-	return file_packets_proto_rawDescGZIP(), []int{9}
+	return file_packets_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *SwitchWeaponEvent) GetWeaponId() string {
@@ -923,7 +1007,7 @@ type RespawnRequestEvent struct {
 
 func (x *RespawnRequestEvent) Reset() {
 	*x = RespawnRequestEvent{}
-	mi := &file_packets_proto_msgTypes[10]
+	mi := &file_packets_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -935,7 +1019,7 @@ func (x *RespawnRequestEvent) String() string {
 func (*RespawnRequestEvent) ProtoMessage() {}
 
 func (x *RespawnRequestEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_packets_proto_msgTypes[10]
+	mi := &file_packets_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -948,7 +1032,7 @@ func (x *RespawnRequestEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RespawnRequestEvent.ProtoReflect.Descriptor instead.
 func (*RespawnRequestEvent) Descriptor() ([]byte, []int) {
-	return file_packets_proto_rawDescGZIP(), []int{10}
+	return file_packets_proto_rawDescGZIP(), []int{11}
 }
 
 type ThrowGrenadeEvent struct {
@@ -966,7 +1050,7 @@ type ThrowGrenadeEvent struct {
 
 func (x *ThrowGrenadeEvent) Reset() {
 	*x = ThrowGrenadeEvent{}
-	mi := &file_packets_proto_msgTypes[11]
+	mi := &file_packets_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -978,7 +1062,7 @@ func (x *ThrowGrenadeEvent) String() string {
 func (*ThrowGrenadeEvent) ProtoMessage() {}
 
 func (x *ThrowGrenadeEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_packets_proto_msgTypes[11]
+	mi := &file_packets_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -991,7 +1075,7 @@ func (x *ThrowGrenadeEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ThrowGrenadeEvent.ProtoReflect.Descriptor instead.
 func (*ThrowGrenadeEvent) Descriptor() ([]byte, []int) {
-	return file_packets_proto_rawDescGZIP(), []int{11}
+	return file_packets_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *ThrowGrenadeEvent) GetPx() float32 {
@@ -1052,7 +1136,7 @@ type ServerPongEvent struct {
 
 func (x *ServerPongEvent) Reset() {
 	*x = ServerPongEvent{}
-	mi := &file_packets_proto_msgTypes[12]
+	mi := &file_packets_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1064,7 +1148,7 @@ func (x *ServerPongEvent) String() string {
 func (*ServerPongEvent) ProtoMessage() {}
 
 func (x *ServerPongEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_packets_proto_msgTypes[12]
+	mi := &file_packets_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1077,7 +1161,7 @@ func (x *ServerPongEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ServerPongEvent.ProtoReflect.Descriptor instead.
 func (*ServerPongEvent) Descriptor() ([]byte, []int) {
-	return file_packets_proto_rawDescGZIP(), []int{12}
+	return file_packets_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *ServerPongEvent) GetClientTime() int64 {
@@ -1096,7 +1180,7 @@ type PingEvent struct {
 
 func (x *PingEvent) Reset() {
 	*x = PingEvent{}
-	mi := &file_packets_proto_msgTypes[13]
+	mi := &file_packets_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1108,7 +1192,7 @@ func (x *PingEvent) String() string {
 func (*PingEvent) ProtoMessage() {}
 
 func (x *PingEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_packets_proto_msgTypes[13]
+	mi := &file_packets_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1121,7 +1205,7 @@ func (x *PingEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PingEvent.ProtoReflect.Descriptor instead.
 func (*PingEvent) Descriptor() ([]byte, []int) {
-	return file_packets_proto_rawDescGZIP(), []int{13}
+	return file_packets_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *PingEvent) GetClientTime() int64 {
@@ -1137,14 +1221,19 @@ type ServerMessage struct {
 	//
 	//	*ServerMessage_GameState
 	//	*ServerMessage_ServerEvent
-	Message       isServerMessage_Message `protobuf_oneof:"message"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	Message           isServerMessage_Message `protobuf_oneof:"message"`
+	Events            []*ServerEvent          `protobuf:"bytes,3,rep,name=events,proto3" json:"events,omitempty"`
+	DeliverySequence  uint64                  `protobuf:"varint,4,opt,name=delivery_sequence,json=deliverySequence,proto3" json:"delivery_sequence,omitempty"`
+	CompressedPayload []byte                  `protobuf:"bytes,5,opt,name=compressed_payload,json=compressedPayload,proto3" json:"compressed_payload,omitempty"` // Gzip payload, max 256 KiB decoded.
+	CompressionKind   uint32                  `protobuf:"varint,6,opt,name=compression_kind,json=compressionKind,proto3" json:"compression_kind,omitempty"`      // 0: independent gzip; 1: negotiated continuous gzip stream.
+	UncompressedSize  uint32                  `protobuf:"varint,7,opt,name=uncompressed_size,json=uncompressedSize,proto3" json:"uncompressed_size,omitempty"`   // Required and bounded for stream fragments.
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
 }
 
 func (x *ServerMessage) Reset() {
 	*x = ServerMessage{}
-	mi := &file_packets_proto_msgTypes[14]
+	mi := &file_packets_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1156,7 +1245,7 @@ func (x *ServerMessage) String() string {
 func (*ServerMessage) ProtoMessage() {}
 
 func (x *ServerMessage) ProtoReflect() protoreflect.Message {
-	mi := &file_packets_proto_msgTypes[14]
+	mi := &file_packets_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1169,7 +1258,7 @@ func (x *ServerMessage) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ServerMessage.ProtoReflect.Descriptor instead.
 func (*ServerMessage) Descriptor() ([]byte, []int) {
-	return file_packets_proto_rawDescGZIP(), []int{14}
+	return file_packets_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *ServerMessage) GetMessage() isServerMessage_Message {
@@ -1197,6 +1286,41 @@ func (x *ServerMessage) GetServerEvent() *ServerEvent {
 	return nil
 }
 
+func (x *ServerMessage) GetEvents() []*ServerEvent {
+	if x != nil {
+		return x.Events
+	}
+	return nil
+}
+
+func (x *ServerMessage) GetDeliverySequence() uint64 {
+	if x != nil {
+		return x.DeliverySequence
+	}
+	return 0
+}
+
+func (x *ServerMessage) GetCompressedPayload() []byte {
+	if x != nil {
+		return x.CompressedPayload
+	}
+	return nil
+}
+
+func (x *ServerMessage) GetCompressionKind() uint32 {
+	if x != nil {
+		return x.CompressionKind
+	}
+	return 0
+}
+
+func (x *ServerMessage) GetUncompressedSize() uint32 {
+	if x != nil {
+		return x.UncompressedSize
+	}
+	return 0
+}
+
 type isServerMessage_Message interface {
 	isServerMessage_Message()
 }
@@ -1214,24 +1338,25 @@ func (*ServerMessage_GameState) isServerMessage_Message() {}
 func (*ServerMessage_ServerEvent) isServerMessage_Message() {}
 
 type GameState struct {
-	state           protoimpl.MessageState   `protogen:"open.v1"`
-	Players         map[string]*PlayerState  `protobuf:"bytes,1,rep,name=players,proto3" json:"players,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	RoomMode        string                   `protobuf:"bytes,2,opt,name=room_mode,json=roomMode,proto3" json:"room_mode,omitempty"`
-	RoomState       string                   `protobuf:"bytes,3,opt,name=room_state,json=roomState,proto3" json:"room_state,omitempty"`
-	ScoreTeamA      int32                    `protobuf:"varint,4,opt,name=score_team_a,json=scoreTeamA,proto3" json:"score_team_a,omitempty"`
-	ScoreTeamB      int32                    `protobuf:"varint,5,opt,name=score_team_b,json=scoreTeamB,proto3" json:"score_team_b,omitempty"`
-	WinnerId        string                   `protobuf:"bytes,6,opt,name=winner_id,json=winnerId,proto3" json:"winner_id,omitempty"`
-	MapName         string                   `protobuf:"bytes,7,opt,name=map_name,json=mapName,proto3" json:"map_name,omitempty"`
-	ProtocolVersion uint32                   `protobuf:"varint,8,opt,name=protocol_version,json=protocolVersion,proto3" json:"protocol_version,omitempty"`
-	TimeOfDay       string                   `protobuf:"bytes,9,opt,name=time_of_day,json=timeOfDay,proto3" json:"time_of_day,omitempty"`
-	Vehicles        map[string]*VehicleState `protobuf:"bytes,10,rep,name=vehicles,proto3" json:"vehicles,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	unknownFields   protoimpl.UnknownFields
-	sizeCache       protoimpl.SizeCache
+	state            protoimpl.MessageState   `protogen:"open.v1"`
+	Players          map[string]*PlayerState  `protobuf:"bytes,1,rep,name=players,proto3" json:"players,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	RoomMode         string                   `protobuf:"bytes,2,opt,name=room_mode,json=roomMode,proto3" json:"room_mode,omitempty"`
+	RoomState        string                   `protobuf:"bytes,3,opt,name=room_state,json=roomState,proto3" json:"room_state,omitempty"`
+	ScoreTeamA       int32                    `protobuf:"varint,4,opt,name=score_team_a,json=scoreTeamA,proto3" json:"score_team_a,omitempty"`
+	ScoreTeamB       int32                    `protobuf:"varint,5,opt,name=score_team_b,json=scoreTeamB,proto3" json:"score_team_b,omitempty"`
+	WinnerId         string                   `protobuf:"bytes,6,opt,name=winner_id,json=winnerId,proto3" json:"winner_id,omitempty"`
+	MapName          string                   `protobuf:"bytes,7,opt,name=map_name,json=mapName,proto3" json:"map_name,omitempty"`
+	ProtocolVersion  uint32                   `protobuf:"varint,8,opt,name=protocol_version,json=protocolVersion,proto3" json:"protocol_version,omitempty"`
+	TimeOfDay        string                   `protobuf:"bytes,9,opt,name=time_of_day,json=timeOfDay,proto3" json:"time_of_day,omitempty"`
+	Vehicles         map[string]*VehicleState `protobuf:"bytes,10,rep,name=vehicles,proto3" json:"vehicles,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	RemovedPlayerIds []string                 `protobuf:"bytes,11,rep,name=removed_player_ids,json=removedPlayerIds,proto3" json:"removed_player_ids,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
 }
 
 func (x *GameState) Reset() {
 	*x = GameState{}
-	mi := &file_packets_proto_msgTypes[15]
+	mi := &file_packets_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1243,7 +1368,7 @@ func (x *GameState) String() string {
 func (*GameState) ProtoMessage() {}
 
 func (x *GameState) ProtoReflect() protoreflect.Message {
-	mi := &file_packets_proto_msgTypes[15]
+	mi := &file_packets_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1256,7 +1381,7 @@ func (x *GameState) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GameState.ProtoReflect.Descriptor instead.
 func (*GameState) Descriptor() ([]byte, []int) {
-	return file_packets_proto_rawDescGZIP(), []int{15}
+	return file_packets_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *GameState) GetPlayers() map[string]*PlayerState {
@@ -1329,6 +1454,13 @@ func (x *GameState) GetVehicles() map[string]*VehicleState {
 	return nil
 }
 
+func (x *GameState) GetRemovedPlayerIds() []string {
+	if x != nil {
+		return x.RemovedPlayerIds
+	}
+	return nil
+}
+
 type PlayerState struct {
 	state             protoimpl.MessageState `protogen:"open.v1"`
 	X                 float32                `protobuf:"fixed32,1,opt,name=x,proto3" json:"x,omitempty"`
@@ -1353,13 +1485,14 @@ type PlayerState struct {
 	GrenadesRemaining int32                  `protobuf:"varint,20,opt,name=grenades_remaining,json=grenadesRemaining,proto3" json:"grenades_remaining,omitempty"`
 	SpawnProtected    bool                   `protobuf:"varint,21,opt,name=spawn_protected,json=spawnProtected,proto3" json:"spawn_protected,omitempty"`
 	DrivingVehicleId  string                 `protobuf:"bytes,22,opt,name=driving_vehicle_id,json=drivingVehicleId,proto3" json:"driving_vehicle_id,omitempty"`
+	AckInputSequence  uint64                 `protobuf:"varint,23,opt,name=ack_input_sequence,json=ackInputSequence,proto3" json:"ack_input_sequence,omitempty"`
 	unknownFields     protoimpl.UnknownFields
 	sizeCache         protoimpl.SizeCache
 }
 
 func (x *PlayerState) Reset() {
 	*x = PlayerState{}
-	mi := &file_packets_proto_msgTypes[16]
+	mi := &file_packets_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1371,7 +1504,7 @@ func (x *PlayerState) String() string {
 func (*PlayerState) ProtoMessage() {}
 
 func (x *PlayerState) ProtoReflect() protoreflect.Message {
-	mi := &file_packets_proto_msgTypes[16]
+	mi := &file_packets_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1384,7 +1517,7 @@ func (x *PlayerState) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PlayerState.ProtoReflect.Descriptor instead.
 func (*PlayerState) Descriptor() ([]byte, []int) {
-	return file_packets_proto_rawDescGZIP(), []int{16}
+	return file_packets_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *PlayerState) GetX() float32 {
@@ -1541,6 +1674,13 @@ func (x *PlayerState) GetDrivingVehicleId() string {
 	return ""
 }
 
+func (x *PlayerState) GetAckInputSequence() uint64 {
+	if x != nil {
+		return x.AckInputSequence
+	}
+	return 0
+}
+
 type ServerEvent struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Types that are valid to be assigned to Event:
@@ -1560,7 +1700,7 @@ type ServerEvent struct {
 
 func (x *ServerEvent) Reset() {
 	*x = ServerEvent{}
-	mi := &file_packets_proto_msgTypes[17]
+	mi := &file_packets_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1572,7 +1712,7 @@ func (x *ServerEvent) String() string {
 func (*ServerEvent) ProtoMessage() {}
 
 func (x *ServerEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_packets_proto_msgTypes[17]
+	mi := &file_packets_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1585,7 +1725,7 @@ func (x *ServerEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ServerEvent.ProtoReflect.Descriptor instead.
 func (*ServerEvent) Descriptor() ([]byte, []int) {
-	return file_packets_proto_rawDescGZIP(), []int{17}
+	return file_packets_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *ServerEvent) GetEvent() isServerEvent_Event {
@@ -1730,7 +1870,7 @@ type RespawnEvent struct {
 
 func (x *RespawnEvent) Reset() {
 	*x = RespawnEvent{}
-	mi := &file_packets_proto_msgTypes[18]
+	mi := &file_packets_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1742,7 +1882,7 @@ func (x *RespawnEvent) String() string {
 func (*RespawnEvent) ProtoMessage() {}
 
 func (x *RespawnEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_packets_proto_msgTypes[18]
+	mi := &file_packets_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1755,7 +1895,7 @@ func (x *RespawnEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RespawnEvent.ProtoReflect.Descriptor instead.
 func (*RespawnEvent) Descriptor() ([]byte, []int) {
-	return file_packets_proto_rawDescGZIP(), []int{18}
+	return file_packets_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *RespawnEvent) GetX() float32 {
@@ -1798,7 +1938,7 @@ type ServerFireEvent struct {
 
 func (x *ServerFireEvent) Reset() {
 	*x = ServerFireEvent{}
-	mi := &file_packets_proto_msgTypes[19]
+	mi := &file_packets_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1810,7 +1950,7 @@ func (x *ServerFireEvent) String() string {
 func (*ServerFireEvent) ProtoMessage() {}
 
 func (x *ServerFireEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_packets_proto_msgTypes[19]
+	mi := &file_packets_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1823,7 +1963,7 @@ func (x *ServerFireEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ServerFireEvent.ProtoReflect.Descriptor instead.
 func (*ServerFireEvent) Descriptor() ([]byte, []int) {
-	return file_packets_proto_rawDescGZIP(), []int{19}
+	return file_packets_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *ServerFireEvent) GetShooterId() string {
@@ -1911,7 +2051,7 @@ type HitConfirmedEvent struct {
 
 func (x *HitConfirmedEvent) Reset() {
 	*x = HitConfirmedEvent{}
-	mi := &file_packets_proto_msgTypes[20]
+	mi := &file_packets_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1923,7 +2063,7 @@ func (x *HitConfirmedEvent) String() string {
 func (*HitConfirmedEvent) ProtoMessage() {}
 
 func (x *HitConfirmedEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_packets_proto_msgTypes[20]
+	mi := &file_packets_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1936,7 +2076,7 @@ func (x *HitConfirmedEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use HitConfirmedEvent.ProtoReflect.Descriptor instead.
 func (*HitConfirmedEvent) Descriptor() ([]byte, []int) {
-	return file_packets_proto_rawDescGZIP(), []int{20}
+	return file_packets_proto_rawDescGZIP(), []int{21}
 }
 
 type KillConfirmedEvent struct {
@@ -1947,7 +2087,7 @@ type KillConfirmedEvent struct {
 
 func (x *KillConfirmedEvent) Reset() {
 	*x = KillConfirmedEvent{}
-	mi := &file_packets_proto_msgTypes[21]
+	mi := &file_packets_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1959,7 +2099,7 @@ func (x *KillConfirmedEvent) String() string {
 func (*KillConfirmedEvent) ProtoMessage() {}
 
 func (x *KillConfirmedEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_packets_proto_msgTypes[21]
+	mi := &file_packets_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1972,7 +2112,7 @@ func (x *KillConfirmedEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use KillConfirmedEvent.ProtoReflect.Descriptor instead.
 func (*KillConfirmedEvent) Descriptor() ([]byte, []int) {
-	return file_packets_proto_rawDescGZIP(), []int{21}
+	return file_packets_proto_rawDescGZIP(), []int{22}
 }
 
 type ServerThrowGrenadeEvent struct {
@@ -1992,7 +2132,7 @@ type ServerThrowGrenadeEvent struct {
 
 func (x *ServerThrowGrenadeEvent) Reset() {
 	*x = ServerThrowGrenadeEvent{}
-	mi := &file_packets_proto_msgTypes[22]
+	mi := &file_packets_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2004,7 +2144,7 @@ func (x *ServerThrowGrenadeEvent) String() string {
 func (*ServerThrowGrenadeEvent) ProtoMessage() {}
 
 func (x *ServerThrowGrenadeEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_packets_proto_msgTypes[22]
+	mi := &file_packets_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2017,7 +2157,7 @@ func (x *ServerThrowGrenadeEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ServerThrowGrenadeEvent.ProtoReflect.Descriptor instead.
 func (*ServerThrowGrenadeEvent) Descriptor() ([]byte, []int) {
-	return file_packets_proto_rawDescGZIP(), []int{22}
+	return file_packets_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *ServerThrowGrenadeEvent) GetShooterId() string {
@@ -2097,7 +2237,7 @@ type ServerExplosionEvent struct {
 
 func (x *ServerExplosionEvent) Reset() {
 	*x = ServerExplosionEvent{}
-	mi := &file_packets_proto_msgTypes[23]
+	mi := &file_packets_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2109,7 +2249,7 @@ func (x *ServerExplosionEvent) String() string {
 func (*ServerExplosionEvent) ProtoMessage() {}
 
 func (x *ServerExplosionEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_packets_proto_msgTypes[23]
+	mi := &file_packets_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2122,7 +2262,7 @@ func (x *ServerExplosionEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ServerExplosionEvent.ProtoReflect.Descriptor instead.
 func (*ServerExplosionEvent) Descriptor() ([]byte, []int) {
-	return file_packets_proto_rawDescGZIP(), []int{23}
+	return file_packets_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *ServerExplosionEvent) GetGrenadeId() uint64 {
@@ -2183,7 +2323,7 @@ type DamageEvent struct {
 
 func (x *DamageEvent) Reset() {
 	*x = DamageEvent{}
-	mi := &file_packets_proto_msgTypes[24]
+	mi := &file_packets_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2195,7 +2335,7 @@ func (x *DamageEvent) String() string {
 func (*DamageEvent) ProtoMessage() {}
 
 func (x *DamageEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_packets_proto_msgTypes[24]
+	mi := &file_packets_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2208,7 +2348,7 @@ func (x *DamageEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DamageEvent.ProtoReflect.Descriptor instead.
 func (*DamageEvent) Descriptor() ([]byte, []int) {
-	return file_packets_proto_rawDescGZIP(), []int{24}
+	return file_packets_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *DamageEvent) GetTargetId() string {
@@ -2271,7 +2411,7 @@ var File_packets_proto protoreflect.FileDescriptor
 
 const file_packets_proto_rawDesc = "" +
 	"\n" +
-	"\rpackets.proto\x12\awarbase\"\x87\x05\n" +
+	"\rpackets.proto\x12\awarbase\"\xc7\x05\n" +
 	"\vClientEvent\x12?\n" +
 	"\fstate_update\x18\x01 \x01(\v2\x1a.warbase.PlayerStateUpdateH\x00R\vstateUpdate\x12%\n" +
 	"\x03hit\x18\x02 \x01(\v2\x11.warbase.HitEventH\x00R\x03hit\x12(\n" +
@@ -2284,17 +2424,22 @@ const file_packets_proto_rawDesc = "" +
 	"\aloadout\x18\t \x01(\v2\x15.warbase.LoadoutEventH\x00R\aloadout\x12>\n" +
 	"\fvehicle_seat\x18\n" +
 	" \x01(\v2\x19.warbase.VehicleSeatEventH\x00R\vvehicleSeat\x12A\n" +
-	"\rvehicle_input\x18\v \x01(\v2\x1a.warbase.VehicleInputEventH\x00R\fvehicleInputB\a\n" +
-	"\x05event\"G\n" +
+	"\rvehicle_input\x18\v \x01(\v2\x1a.warbase.VehicleInputEventH\x00R\fvehicleInput\x12>\n" +
+	"\fdelivery_ack\x18\f \x01(\v2\x19.warbase.DeliveryAckEventH\x00R\vdeliveryAckB\a\n" +
+	"\x05event\"`\n" +
+	"\x10DeliveryAckEvent\x12\x1a\n" +
+	"\bsequence\x18\x01 \x01(\x04R\bsequence\x120\n" +
+	"\x14supports_gzip_stream\x18\x02 \x01(\bR\x12supportsGzipStream\"G\n" +
 	"\x10VehicleSeatEvent\x12\x1d\n" +
 	"\n" +
 	"vehicle_id\x18\x01 \x01(\tR\tvehicleId\x12\x14\n" +
-	"\x05enter\x18\x02 \x01(\bR\x05enter\"o\n" +
+	"\x05enter\x18\x02 \x01(\bR\x05enter\"\x96\x01\n" +
 	"\x11VehicleInputEvent\x12\x1a\n" +
 	"\bthrottle\x18\x01 \x01(\x02R\bthrottle\x12\x14\n" +
 	"\x05steer\x18\x02 \x01(\x02R\x05steer\x12\x14\n" +
 	"\x05brake\x18\x03 \x01(\bR\x05brake\x12\x12\n" +
-	"\x04gear\x18\x04 \x01(\x05R\x04gear\"\xa0\x01\n" +
+	"\x04gear\x18\x04 \x01(\x05R\x04gear\x12%\n" +
+	"\x0einput_sequence\x18\x05 \x01(\x04R\rinputSequence\"\xa0\x01\n" +
 	"\fVehicleState\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x16\n" +
 	"\x06driver\x18\x02 \x01(\tR\x06driver\x12\f\n" +
@@ -2307,7 +2452,7 @@ const file_packets_proto_rawDesc = "" +
 	"\fLoadoutEvent\x12\x18\n" +
 	"\aprimary\x18\x01 \x01(\tR\aprimary\x12\x1c\n" +
 	"\tsecondary\x18\x02 \x01(\tR\tsecondary\x12\x1c\n" +
-	"\tthrowable\x18\x03 \x01(\tR\tthrowable\"\xed\x01\n" +
+	"\tthrowable\x18\x03 \x01(\tR\tthrowable\"\x94\x02\n" +
 	"\x11PlayerStateUpdate\x12\f\n" +
 	"\x01x\x18\x01 \x01(\x02R\x01x\x12\f\n" +
 	"\x01y\x18\x02 \x01(\x02R\x01y\x12\f\n" +
@@ -2321,7 +2466,8 @@ const file_packets_proto_rawDesc = "" +
 	"platformId\x12\x12\n" +
 	"\x04ping\x18\n" +
 	" \x01(\x05R\x04ping\x12\x1b\n" +
-	"\tweapon_id\x18\v \x01(\tR\bweaponId\"X\n" +
+	"\tweapon_id\x18\v \x01(\tR\bweaponId\x12%\n" +
+	"\x0einput_sequence\x18\f \x01(\x04R\rinputSequence\"X\n" +
 	"\bHitEvent\x12\x1b\n" +
 	"\ttarget_id\x18\x01 \x01(\tR\btargetId\x12\x16\n" +
 	"\x06damage\x18\x02 \x01(\x05R\x06damage\x12\x17\n" +
@@ -2356,12 +2502,17 @@ const file_packets_proto_rawDesc = "" +
 	"clientTime\",\n" +
 	"\tPingEvent\x12\x1f\n" +
 	"\vclient_time\x18\x01 \x01(\x03R\n" +
-	"clientTime\"\x8a\x01\n" +
+	"clientTime\"\xec\x02\n" +
 	"\rServerMessage\x123\n" +
 	"\n" +
 	"game_state\x18\x01 \x01(\v2\x12.warbase.GameStateH\x00R\tgameState\x129\n" +
-	"\fserver_event\x18\x02 \x01(\v2\x14.warbase.ServerEventH\x00R\vserverEventB\t\n" +
-	"\amessage\"\xad\x04\n" +
+	"\fserver_event\x18\x02 \x01(\v2\x14.warbase.ServerEventH\x00R\vserverEvent\x12,\n" +
+	"\x06events\x18\x03 \x03(\v2\x14.warbase.ServerEventR\x06events\x12+\n" +
+	"\x11delivery_sequence\x18\x04 \x01(\x04R\x10deliverySequence\x12-\n" +
+	"\x12compressed_payload\x18\x05 \x01(\fR\x11compressedPayload\x12)\n" +
+	"\x10compression_kind\x18\x06 \x01(\rR\x0fcompressionKind\x12+\n" +
+	"\x11uncompressed_size\x18\a \x01(\rR\x10uncompressedSizeB\t\n" +
+	"\amessage\"\xdb\x04\n" +
 	"\tGameState\x129\n" +
 	"\aplayers\x18\x01 \x03(\v2\x1f.warbase.GameState.PlayersEntryR\aplayers\x12\x1b\n" +
 	"\troom_mode\x18\x02 \x01(\tR\broomMode\x12\x1d\n" +
@@ -2376,13 +2527,14 @@ const file_packets_proto_rawDesc = "" +
 	"\x10protocol_version\x18\b \x01(\rR\x0fprotocolVersion\x12\x1e\n" +
 	"\vtime_of_day\x18\t \x01(\tR\ttimeOfDay\x12<\n" +
 	"\bvehicles\x18\n" +
-	" \x03(\v2 .warbase.GameState.VehiclesEntryR\bvehicles\x1aP\n" +
+	" \x03(\v2 .warbase.GameState.VehiclesEntryR\bvehicles\x12,\n" +
+	"\x12removed_player_ids\x18\v \x03(\tR\x10removedPlayerIds\x1aP\n" +
 	"\fPlayersEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12*\n" +
 	"\x05value\x18\x02 \x01(\v2\x14.warbase.PlayerStateR\x05value:\x028\x01\x1aR\n" +
 	"\rVehiclesEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12+\n" +
-	"\x05value\x18\x02 \x01(\v2\x15.warbase.VehicleStateR\x05value:\x028\x01\"\xc4\x04\n" +
+	"\x05value\x18\x02 \x01(\v2\x15.warbase.VehicleStateR\x05value:\x028\x01\"\xf2\x04\n" +
 	"\vPlayerState\x12\f\n" +
 	"\x01x\x18\x01 \x01(\x02R\x01x\x12\f\n" +
 	"\x01y\x18\x02 \x01(\x02R\x01y\x12\f\n" +
@@ -2409,7 +2561,8 @@ const file_packets_proto_rawDesc = "" +
 	"lastShotId\x12-\n" +
 	"\x12grenades_remaining\x18\x14 \x01(\x05R\x11grenadesRemaining\x12'\n" +
 	"\x0fspawn_protected\x18\x15 \x01(\bR\x0espawnProtected\x12,\n" +
-	"\x12driving_vehicle_id\x18\x16 \x01(\tR\x10drivingVehicleId\"\xea\x03\n" +
+	"\x12driving_vehicle_id\x18\x16 \x01(\tR\x10drivingVehicleId\x12,\n" +
+	"\x12ack_input_sequence\x18\x17 \x01(\x04R\x10ackInputSequence\"\xea\x03\n" +
 	"\vServerEvent\x121\n" +
 	"\arespawn\x18\x01 \x01(\v2\x15.warbase.RespawnEventH\x00R\arespawn\x12.\n" +
 	"\x04fire\x18\x02 \x01(\v2\x18.warbase.ServerFireEventH\x00R\x04fire\x12A\n" +
@@ -2483,67 +2636,70 @@ func file_packets_proto_rawDescGZIP() []byte {
 	return file_packets_proto_rawDescData
 }
 
-var file_packets_proto_msgTypes = make([]protoimpl.MessageInfo, 27)
+var file_packets_proto_msgTypes = make([]protoimpl.MessageInfo, 28)
 var file_packets_proto_goTypes = []any{
 	(*ClientEvent)(nil),             // 0: warbase.ClientEvent
-	(*VehicleSeatEvent)(nil),        // 1: warbase.VehicleSeatEvent
-	(*VehicleInputEvent)(nil),       // 2: warbase.VehicleInputEvent
-	(*VehicleState)(nil),            // 3: warbase.VehicleState
-	(*LoadoutEvent)(nil),            // 4: warbase.LoadoutEvent
-	(*PlayerStateUpdate)(nil),       // 5: warbase.PlayerStateUpdate
-	(*HitEvent)(nil),                // 6: warbase.HitEvent
-	(*FireEvent)(nil),               // 7: warbase.FireEvent
-	(*ReloadEvent)(nil),             // 8: warbase.ReloadEvent
-	(*SwitchWeaponEvent)(nil),       // 9: warbase.SwitchWeaponEvent
-	(*RespawnRequestEvent)(nil),     // 10: warbase.RespawnRequestEvent
-	(*ThrowGrenadeEvent)(nil),       // 11: warbase.ThrowGrenadeEvent
-	(*ServerPongEvent)(nil),         // 12: warbase.ServerPongEvent
-	(*PingEvent)(nil),               // 13: warbase.PingEvent
-	(*ServerMessage)(nil),           // 14: warbase.ServerMessage
-	(*GameState)(nil),               // 15: warbase.GameState
-	(*PlayerState)(nil),             // 16: warbase.PlayerState
-	(*ServerEvent)(nil),             // 17: warbase.ServerEvent
-	(*RespawnEvent)(nil),            // 18: warbase.RespawnEvent
-	(*ServerFireEvent)(nil),         // 19: warbase.ServerFireEvent
-	(*HitConfirmedEvent)(nil),       // 20: warbase.HitConfirmedEvent
-	(*KillConfirmedEvent)(nil),      // 21: warbase.KillConfirmedEvent
-	(*ServerThrowGrenadeEvent)(nil), // 22: warbase.ServerThrowGrenadeEvent
-	(*ServerExplosionEvent)(nil),    // 23: warbase.ServerExplosionEvent
-	(*DamageEvent)(nil),             // 24: warbase.DamageEvent
-	nil,                             // 25: warbase.GameState.PlayersEntry
-	nil,                             // 26: warbase.GameState.VehiclesEntry
+	(*DeliveryAckEvent)(nil),        // 1: warbase.DeliveryAckEvent
+	(*VehicleSeatEvent)(nil),        // 2: warbase.VehicleSeatEvent
+	(*VehicleInputEvent)(nil),       // 3: warbase.VehicleInputEvent
+	(*VehicleState)(nil),            // 4: warbase.VehicleState
+	(*LoadoutEvent)(nil),            // 5: warbase.LoadoutEvent
+	(*PlayerStateUpdate)(nil),       // 6: warbase.PlayerStateUpdate
+	(*HitEvent)(nil),                // 7: warbase.HitEvent
+	(*FireEvent)(nil),               // 8: warbase.FireEvent
+	(*ReloadEvent)(nil),             // 9: warbase.ReloadEvent
+	(*SwitchWeaponEvent)(nil),       // 10: warbase.SwitchWeaponEvent
+	(*RespawnRequestEvent)(nil),     // 11: warbase.RespawnRequestEvent
+	(*ThrowGrenadeEvent)(nil),       // 12: warbase.ThrowGrenadeEvent
+	(*ServerPongEvent)(nil),         // 13: warbase.ServerPongEvent
+	(*PingEvent)(nil),               // 14: warbase.PingEvent
+	(*ServerMessage)(nil),           // 15: warbase.ServerMessage
+	(*GameState)(nil),               // 16: warbase.GameState
+	(*PlayerState)(nil),             // 17: warbase.PlayerState
+	(*ServerEvent)(nil),             // 18: warbase.ServerEvent
+	(*RespawnEvent)(nil),            // 19: warbase.RespawnEvent
+	(*ServerFireEvent)(nil),         // 20: warbase.ServerFireEvent
+	(*HitConfirmedEvent)(nil),       // 21: warbase.HitConfirmedEvent
+	(*KillConfirmedEvent)(nil),      // 22: warbase.KillConfirmedEvent
+	(*ServerThrowGrenadeEvent)(nil), // 23: warbase.ServerThrowGrenadeEvent
+	(*ServerExplosionEvent)(nil),    // 24: warbase.ServerExplosionEvent
+	(*DamageEvent)(nil),             // 25: warbase.DamageEvent
+	nil,                             // 26: warbase.GameState.PlayersEntry
+	nil,                             // 27: warbase.GameState.VehiclesEntry
 }
 var file_packets_proto_depIdxs = []int32{
-	5,  // 0: warbase.ClientEvent.state_update:type_name -> warbase.PlayerStateUpdate
-	6,  // 1: warbase.ClientEvent.hit:type_name -> warbase.HitEvent
-	7,  // 2: warbase.ClientEvent.fire:type_name -> warbase.FireEvent
-	8,  // 3: warbase.ClientEvent.reload:type_name -> warbase.ReloadEvent
-	9,  // 4: warbase.ClientEvent.switch_weapon:type_name -> warbase.SwitchWeaponEvent
-	10, // 5: warbase.ClientEvent.respawn_request:type_name -> warbase.RespawnRequestEvent
-	11, // 6: warbase.ClientEvent.throw_grenade:type_name -> warbase.ThrowGrenadeEvent
-	13, // 7: warbase.ClientEvent.ping:type_name -> warbase.PingEvent
-	4,  // 8: warbase.ClientEvent.loadout:type_name -> warbase.LoadoutEvent
-	1,  // 9: warbase.ClientEvent.vehicle_seat:type_name -> warbase.VehicleSeatEvent
-	2,  // 10: warbase.ClientEvent.vehicle_input:type_name -> warbase.VehicleInputEvent
-	15, // 11: warbase.ServerMessage.game_state:type_name -> warbase.GameState
-	17, // 12: warbase.ServerMessage.server_event:type_name -> warbase.ServerEvent
-	25, // 13: warbase.GameState.players:type_name -> warbase.GameState.PlayersEntry
-	26, // 14: warbase.GameState.vehicles:type_name -> warbase.GameState.VehiclesEntry
-	18, // 15: warbase.ServerEvent.respawn:type_name -> warbase.RespawnEvent
-	19, // 16: warbase.ServerEvent.fire:type_name -> warbase.ServerFireEvent
-	20, // 17: warbase.ServerEvent.hit_confirmed:type_name -> warbase.HitConfirmedEvent
-	21, // 18: warbase.ServerEvent.kill_confirmed:type_name -> warbase.KillConfirmedEvent
-	22, // 19: warbase.ServerEvent.throw_grenade:type_name -> warbase.ServerThrowGrenadeEvent
-	12, // 20: warbase.ServerEvent.pong:type_name -> warbase.ServerPongEvent
-	23, // 21: warbase.ServerEvent.explosion:type_name -> warbase.ServerExplosionEvent
-	24, // 22: warbase.ServerEvent.damage:type_name -> warbase.DamageEvent
-	16, // 23: warbase.GameState.PlayersEntry.value:type_name -> warbase.PlayerState
-	3,  // 24: warbase.GameState.VehiclesEntry.value:type_name -> warbase.VehicleState
-	25, // [25:25] is the sub-list for method output_type
-	25, // [25:25] is the sub-list for method input_type
-	25, // [25:25] is the sub-list for extension type_name
-	25, // [25:25] is the sub-list for extension extendee
-	0,  // [0:25] is the sub-list for field type_name
+	6,  // 0: warbase.ClientEvent.state_update:type_name -> warbase.PlayerStateUpdate
+	7,  // 1: warbase.ClientEvent.hit:type_name -> warbase.HitEvent
+	8,  // 2: warbase.ClientEvent.fire:type_name -> warbase.FireEvent
+	9,  // 3: warbase.ClientEvent.reload:type_name -> warbase.ReloadEvent
+	10, // 4: warbase.ClientEvent.switch_weapon:type_name -> warbase.SwitchWeaponEvent
+	11, // 5: warbase.ClientEvent.respawn_request:type_name -> warbase.RespawnRequestEvent
+	12, // 6: warbase.ClientEvent.throw_grenade:type_name -> warbase.ThrowGrenadeEvent
+	14, // 7: warbase.ClientEvent.ping:type_name -> warbase.PingEvent
+	5,  // 8: warbase.ClientEvent.loadout:type_name -> warbase.LoadoutEvent
+	2,  // 9: warbase.ClientEvent.vehicle_seat:type_name -> warbase.VehicleSeatEvent
+	3,  // 10: warbase.ClientEvent.vehicle_input:type_name -> warbase.VehicleInputEvent
+	1,  // 11: warbase.ClientEvent.delivery_ack:type_name -> warbase.DeliveryAckEvent
+	16, // 12: warbase.ServerMessage.game_state:type_name -> warbase.GameState
+	18, // 13: warbase.ServerMessage.server_event:type_name -> warbase.ServerEvent
+	18, // 14: warbase.ServerMessage.events:type_name -> warbase.ServerEvent
+	26, // 15: warbase.GameState.players:type_name -> warbase.GameState.PlayersEntry
+	27, // 16: warbase.GameState.vehicles:type_name -> warbase.GameState.VehiclesEntry
+	19, // 17: warbase.ServerEvent.respawn:type_name -> warbase.RespawnEvent
+	20, // 18: warbase.ServerEvent.fire:type_name -> warbase.ServerFireEvent
+	21, // 19: warbase.ServerEvent.hit_confirmed:type_name -> warbase.HitConfirmedEvent
+	22, // 20: warbase.ServerEvent.kill_confirmed:type_name -> warbase.KillConfirmedEvent
+	23, // 21: warbase.ServerEvent.throw_grenade:type_name -> warbase.ServerThrowGrenadeEvent
+	13, // 22: warbase.ServerEvent.pong:type_name -> warbase.ServerPongEvent
+	24, // 23: warbase.ServerEvent.explosion:type_name -> warbase.ServerExplosionEvent
+	25, // 24: warbase.ServerEvent.damage:type_name -> warbase.DamageEvent
+	17, // 25: warbase.GameState.PlayersEntry.value:type_name -> warbase.PlayerState
+	4,  // 26: warbase.GameState.VehiclesEntry.value:type_name -> warbase.VehicleState
+	27, // [27:27] is the sub-list for method output_type
+	27, // [27:27] is the sub-list for method input_type
+	27, // [27:27] is the sub-list for extension type_name
+	27, // [27:27] is the sub-list for extension extendee
+	0,  // [0:27] is the sub-list for field type_name
 }
 
 func init() { file_packets_proto_init() }
@@ -2563,12 +2719,13 @@ func file_packets_proto_init() {
 		(*ClientEvent_Loadout)(nil),
 		(*ClientEvent_VehicleSeat)(nil),
 		(*ClientEvent_VehicleInput)(nil),
+		(*ClientEvent_DeliveryAck)(nil),
 	}
-	file_packets_proto_msgTypes[14].OneofWrappers = []any{
+	file_packets_proto_msgTypes[15].OneofWrappers = []any{
 		(*ServerMessage_GameState)(nil),
 		(*ServerMessage_ServerEvent)(nil),
 	}
-	file_packets_proto_msgTypes[17].OneofWrappers = []any{
+	file_packets_proto_msgTypes[18].OneofWrappers = []any{
 		(*ServerEvent_Respawn)(nil),
 		(*ServerEvent_Fire)(nil),
 		(*ServerEvent_HitConfirmed)(nil),
@@ -2584,7 +2741,7 @@ func file_packets_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_packets_proto_rawDesc), len(file_packets_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   27,
+			NumMessages:   28,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

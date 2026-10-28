@@ -29,10 +29,12 @@ type collisionNode struct {
 	faces       []triangle
 }
 type mapGeometry struct {
-	navStep       float32
-	vehicleSpawns [][4]float32
-	spawns        []vector
-	root          *collisionNode
+	spawnOnce       sync.Once
+	spawnCandidates []vector
+	navStep         float32
+	vehicleSpawns   [][4]float32
+	spawns          []vector
+	root            *collisionNode
 }
 
 var geometryOnce sync.Once
@@ -111,8 +113,8 @@ func buildCollision(faces []triangle) *collisionNode {
 	n.right = buildCollision(faces[mid:])
 	return n
 }
-func (b bounds) intersects(origin, delta vector) bool {
-	low, high := float32(0), float32(1)
+func (b bounds) intersects(origin, delta vector, limit float32) bool {
+	low, high := float32(0), min(float32(1), limit)
 	for k := 0; k < 3; k++ {
 		if math.Abs(float64(delta[k])) < 1e-8 {
 			if origin[k] < b.min[k] || origin[k] > b.max[k] {
@@ -159,7 +161,7 @@ func triangleFraction(t triangle, origin, delta vector) (float32, bool) {
 	return fraction, fraction >= 0 && fraction <= 1
 }
 func (n *collisionNode) ray(origin, delta vector, nearest *float32, normal *vector) {
-	if n == nil || !n.box.intersects(origin, delta) {
+	if n == nil || !n.box.intersects(origin, delta, *nearest) {
 		return
 	}
 	for _, face := range n.faces {
