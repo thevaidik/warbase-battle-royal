@@ -17,23 +17,23 @@ func deliveryState(x float32) []byte {
 }
 func TestDeliveryWindowBoundsTransportBacklog(t *testing.T) {
 	s := NewGameSession(nil, nil, "p", "r")
-	s.acknowledgeDelivery(0)
+	base := time.Now()
+	s.acknowledgeDeliveryAt(0, base)
 	for i := 0; i < deliveryWindow; i++ {
-		if !s.deliveryAvailable(time.Now()) {
+		if !s.deliveryAvailable(base.Add(time.Duration(i+1) * time.Millisecond)) {
 			t.Fatal("window stopped early")
 		}
 		s.EnqueueStateUpdate(deliveryState(float32(i)))
 		s.nextDeliveryFrame()
+		s.recordSentAt(s.lastSent.Load(), base.Add(time.Duration(i+1)*time.Millisecond))
 	}
-	if s.deliveryAvailable(time.Now()) {
+	if s.deliveryAvailable(base.Add(10 * time.Millisecond)) {
 		t.Fatal("unacknowledged frames can accumulate in transport")
 	}
-	s.acknowledgeDelivery(999)
-	if s.deliveryAvailable(time.Now()) {
+	if s.acknowledgeDeliveryAt(999, base.Add(11*time.Millisecond)) || s.deliveryAvailable(base.Add(11*time.Millisecond)) {
 		t.Fatal("future acknowledgement bypassed flow control")
 	}
-	s.acknowledgeDelivery(deliveryWindow)
-	if !s.deliveryAvailable(time.Now()) {
+	if !s.acknowledgeDeliveryAt(deliveryWindow, base.Add(12*time.Millisecond)) || !s.deliveryAvailable(base.Add(12*time.Millisecond)) {
 		t.Fatal("acknowledgement did not release window")
 	}
 	for i := 0; i < 200; i++ {

@@ -1,0 +1,1682 @@
+[
+  {
+    "weapon": "ak47",
+    "range_m": 0,
+    "zone": "head",
+    "damage": 61
+  },
+  {
+    "weapon": "ak47",
+    "range_m": 0,
+    "zone": "torso",
+    "damage": 34
+  },
+  {
+    "weapon": "ak47",
+    "range_m": 0,
+    "zone": "stomach",
+    "damage": 29
+  },
+  {
+    "weapon": "ak47",
+    "range_m": 0,
+    "zone": "arm",
+    "damage": 29
+  },
+  {
+    "weapon": "ak47",
+    "range_m": 0,
+    "zone": "leg",
+    "damage": 29
+  },
+  {
+    "weapon": "ak47",
+    "range_m": 10,
+    "zone": "head",
+    "damage": 61
+  },
+  {
+    "weapon": "ak47",
+    "range_m": 10,
+    "zone": "torso",
+    "damage": 34
+  },
+  {
+    "weapon": "ak47",
+    "range_m": 10,
+    "zone": "stomach",
+    "damage": 29
+  },
+  {
+    "weapon": "ak47",
+    "range_m": 10,
+    "zone": "arm",
+    "damage": 29
+  },
+  {
+    "weapon": "ak47",
+    "range_m": 10,
+    "zone": "leg",
+    "damage": 29
+  },
+  {
+    "weapon": "ak47",
+    "range_m": 20,
+    "zone": "head",
+    "damage": 61
+  },
+  {
+    "weapon": "ak47",
+    "range_m": 20,
+    "zone": "torso",
+    "damage": 34
+  },
+  {
+    "weapon": "ak47",
+    "range_m": 20,
+    "zone": "stomach",
+    "damage": 29
+  },
+  {
+    "weapon": "ak47",
+    "range_m": 20,
+    "zone": "arm",
+    "damage": 29
+  },
+  {
+    "weapon": "ak47",
+    "range_m": 20,
+    "zone": "leg",
+    "damage": 29
+  },
+  {
+    "weapon": "ak47",
+    "range_m": 35,
+    "zone": "head",
+    "damage": 56
+  },
+  {
+    "weapon": "ak47",
+    "range_m": 35,
+    "zone": "torso",
+    "damage": 31
+  },
+  {
+    "weapon": "ak47",
+    "range_m": 35,
+    "zone": "stomach",
+    "damage": 26
+  },
+  {
+    "weapon": "ak47",
+    "range_m": 35,
+    "zone": "arm",
+    "damage": 26
+  },
+  {
+    "weapon": "ak47",
+    "range_m": 35,
+    "zone": "leg",
+    "damage": 26
+  },
+  {
+    "weapon": "ak47",
+    "range_m": 55,
+    "zone": "head",
+    "damage": 49
+  },
+  {
+    "weapon": "ak47",
+    "range_m": 55,
+    "zone": "torso",
+    "damage": 27
+  },
+  {
+    "weapon": "ak47",
+    "range_m": 55,
+    "zone": "stomach",
+    "damage": 23
+  },
+  {
+    "weapon": "ak47",
+    "range_m": 55,
+    "zone": "arm",
+    "damage": 23
+  },
+  {
+    "weapon": "ak47",
+    "range_m": 55,
+    "zone": "leg",
+    "damage": 23
+  },
+  {
+    "weapon": "ak47",
+    "range_m": 100,
+    "zone": "head",
+    "damage": 36
+  },
+  {
+    "weapon": "ak47",
+    "range_m": 100,
+    "zone": "torso",
+    "damage": 20
+  },
+  {
+    "weapon": "ak47",
+    "range_m": 100,
+    "zone": "stomach",
+    "damage": 17
+  },
+  {
+    "weapon": "ak47",
+    "range_m": 100,
+    "zone": "arm",
+    "damage": 17
+  },
+  {
+    "weapon": "ak47",
+    "range_m": 100,
+    "zone": "leg",
+    "damage": 17
+  },
+  {
+    "weapon": "ak47",
+    "range_m": 150,
+    "zone": "head",
+    "damage": 36
+  },
+  {
+    "weapon": "ak47",
+    "range_m": 150,
+    "zone": "torso",
+    "damage": 20
+  },
+  {
+    "weapon": "ak47",
+    "range_m": 150,
+    "zone": "stomach",
+    "damage": 17
+  },
+  {
+    "weapon": "ak47",
+    "range_m": 150,
+    "zone": "arm",
+    "damage": 17
+  },
+  {
+    "weapon": "ak47",
+    "range_m": 150,
+    "zone": "leg",
+    "damage": 17
+  },
+  {
+    "weapon": "ak47",
+    "range_m": 300,
+    "zone": "head",
+    "damage": 36
+  },
+  {
+    "weapon": "ak47",
+    "range_m": 300,
+    "zone": "torso",
+    "damage": 20
+  },
+  {
+    "weapon": "ak47",
+    "range_m": 300,
+    "zone": "stomach",
+    "damage": 17
+  },
+  {
+    "weapon": "ak47",
+    "range_m": 300,
+    "zone": "arm",
+    "damage": 17
+  },
+  {
+    "weapon": "ak47",
+    "range_m": 300,
+    "zone": "leg",
+    "damage": 17
+  },
+  {
+    "weapon": "m4",
+    "range_m": 0,
+    "zone": "head",
+    "damage": 45
+  },
+  {
+    "weapon": "m4",
+    "range_m": 0,
+    "zone": "torso",
+    "damage": 25
+  },
+  {
+    "weapon": "m4",
+    "range_m": 0,
+    "zone": "stomach",
+    "damage": 21
+  },
+  {
+    "weapon": "m4",
+    "range_m": 0,
+    "zone": "arm",
+    "damage": 21
+  },
+  {
+    "weapon": "m4",
+    "range_m": 0,
+    "zone": "leg",
+    "damage": 21
+  },
+  {
+    "weapon": "m4",
+    "range_m": 10,
+    "zone": "head",
+    "damage": 45
+  },
+  {
+    "weapon": "m4",
+    "range_m": 10,
+    "zone": "torso",
+    "damage": 25
+  },
+  {
+    "weapon": "m4",
+    "range_m": 10,
+    "zone": "stomach",
+    "damage": 21
+  },
+  {
+    "weapon": "m4",
+    "range_m": 10,
+    "zone": "arm",
+    "damage": 21
+  },
+  {
+    "weapon": "m4",
+    "range_m": 10,
+    "zone": "leg",
+    "damage": 21
+  },
+  {
+    "weapon": "m4",
+    "range_m": 20,
+    "zone": "head",
+    "damage": 45
+  },
+  {
+    "weapon": "m4",
+    "range_m": 20,
+    "zone": "torso",
+    "damage": 25
+  },
+  {
+    "weapon": "m4",
+    "range_m": 20,
+    "zone": "stomach",
+    "damage": 21
+  },
+  {
+    "weapon": "m4",
+    "range_m": 20,
+    "zone": "arm",
+    "damage": 21
+  },
+  {
+    "weapon": "m4",
+    "range_m": 20,
+    "zone": "leg",
+    "damage": 21
+  },
+  {
+    "weapon": "m4",
+    "range_m": 35,
+    "zone": "head",
+    "damage": 41
+  },
+  {
+    "weapon": "m4",
+    "range_m": 35,
+    "zone": "torso",
+    "damage": 23
+  },
+  {
+    "weapon": "m4",
+    "range_m": 35,
+    "zone": "stomach",
+    "damage": 19
+  },
+  {
+    "weapon": "m4",
+    "range_m": 35,
+    "zone": "arm",
+    "damage": 19
+  },
+  {
+    "weapon": "m4",
+    "range_m": 35,
+    "zone": "leg",
+    "damage": 19
+  },
+  {
+    "weapon": "m4",
+    "range_m": 55,
+    "zone": "head",
+    "damage": 36
+  },
+  {
+    "weapon": "m4",
+    "range_m": 55,
+    "zone": "torso",
+    "damage": 20
+  },
+  {
+    "weapon": "m4",
+    "range_m": 55,
+    "zone": "stomach",
+    "damage": 17
+  },
+  {
+    "weapon": "m4",
+    "range_m": 55,
+    "zone": "arm",
+    "damage": 17
+  },
+  {
+    "weapon": "m4",
+    "range_m": 55,
+    "zone": "leg",
+    "damage": 17
+  },
+  {
+    "weapon": "m4",
+    "range_m": 100,
+    "zone": "head",
+    "damage": 27
+  },
+  {
+    "weapon": "m4",
+    "range_m": 100,
+    "zone": "torso",
+    "damage": 15
+  },
+  {
+    "weapon": "m4",
+    "range_m": 100,
+    "zone": "stomach",
+    "damage": 13
+  },
+  {
+    "weapon": "m4",
+    "range_m": 100,
+    "zone": "arm",
+    "damage": 13
+  },
+  {
+    "weapon": "m4",
+    "range_m": 100,
+    "zone": "leg",
+    "damage": 13
+  },
+  {
+    "weapon": "m4",
+    "range_m": 150,
+    "zone": "head",
+    "damage": 27
+  },
+  {
+    "weapon": "m4",
+    "range_m": 150,
+    "zone": "torso",
+    "damage": 15
+  },
+  {
+    "weapon": "m4",
+    "range_m": 150,
+    "zone": "stomach",
+    "damage": 13
+  },
+  {
+    "weapon": "m4",
+    "range_m": 150,
+    "zone": "arm",
+    "damage": 13
+  },
+  {
+    "weapon": "m4",
+    "range_m": 150,
+    "zone": "leg",
+    "damage": 13
+  },
+  {
+    "weapon": "m4",
+    "range_m": 300,
+    "zone": "head",
+    "damage": 27
+  },
+  {
+    "weapon": "m4",
+    "range_m": 300,
+    "zone": "torso",
+    "damage": 15
+  },
+  {
+    "weapon": "m4",
+    "range_m": 300,
+    "zone": "stomach",
+    "damage": 13
+  },
+  {
+    "weapon": "m4",
+    "range_m": 300,
+    "zone": "arm",
+    "damage": 13
+  },
+  {
+    "weapon": "m4",
+    "range_m": 300,
+    "zone": "leg",
+    "damage": 13
+  },
+  {
+    "weapon": "mp5",
+    "range_m": 0,
+    "zone": "head",
+    "damage": 40
+  },
+  {
+    "weapon": "mp5",
+    "range_m": 0,
+    "zone": "torso",
+    "damage": 25
+  },
+  {
+    "weapon": "mp5",
+    "range_m": 0,
+    "zone": "stomach",
+    "damage": 21
+  },
+  {
+    "weapon": "mp5",
+    "range_m": 0,
+    "zone": "arm",
+    "damage": 21
+  },
+  {
+    "weapon": "mp5",
+    "range_m": 0,
+    "zone": "leg",
+    "damage": 21
+  },
+  {
+    "weapon": "mp5",
+    "range_m": 10,
+    "zone": "head",
+    "damage": 40
+  },
+  {
+    "weapon": "mp5",
+    "range_m": 10,
+    "zone": "torso",
+    "damage": 25
+  },
+  {
+    "weapon": "mp5",
+    "range_m": 10,
+    "zone": "stomach",
+    "damage": 21
+  },
+  {
+    "weapon": "mp5",
+    "range_m": 10,
+    "zone": "arm",
+    "damage": 21
+  },
+  {
+    "weapon": "mp5",
+    "range_m": 10,
+    "zone": "leg",
+    "damage": 21
+  },
+  {
+    "weapon": "mp5",
+    "range_m": 20,
+    "zone": "head",
+    "damage": 34
+  },
+  {
+    "weapon": "mp5",
+    "range_m": 20,
+    "zone": "torso",
+    "damage": 21
+  },
+  {
+    "weapon": "mp5",
+    "range_m": 20,
+    "zone": "stomach",
+    "damage": 18
+  },
+  {
+    "weapon": "mp5",
+    "range_m": 20,
+    "zone": "arm",
+    "damage": 18
+  },
+  {
+    "weapon": "mp5",
+    "range_m": 20,
+    "zone": "leg",
+    "damage": 18
+  },
+  {
+    "weapon": "mp5",
+    "range_m": 35,
+    "zone": "head",
+    "damage": 24
+  },
+  {
+    "weapon": "mp5",
+    "range_m": 35,
+    "zone": "torso",
+    "damage": 15
+  },
+  {
+    "weapon": "mp5",
+    "range_m": 35,
+    "zone": "stomach",
+    "damage": 13
+  },
+  {
+    "weapon": "mp5",
+    "range_m": 35,
+    "zone": "arm",
+    "damage": 13
+  },
+  {
+    "weapon": "mp5",
+    "range_m": 35,
+    "zone": "leg",
+    "damage": 13
+  },
+  {
+    "weapon": "mp5",
+    "range_m": 55,
+    "zone": "head",
+    "damage": 18
+  },
+  {
+    "weapon": "mp5",
+    "range_m": 55,
+    "zone": "torso",
+    "damage": 11
+  },
+  {
+    "weapon": "mp5",
+    "range_m": 55,
+    "zone": "stomach",
+    "damage": 9
+  },
+  {
+    "weapon": "mp5",
+    "range_m": 55,
+    "zone": "arm",
+    "damage": 9
+  },
+  {
+    "weapon": "mp5",
+    "range_m": 55,
+    "zone": "leg",
+    "damage": 9
+  },
+  {
+    "weapon": "mp5",
+    "range_m": 100,
+    "zone": "head",
+    "damage": 18
+  },
+  {
+    "weapon": "mp5",
+    "range_m": 100,
+    "zone": "torso",
+    "damage": 11
+  },
+  {
+    "weapon": "mp5",
+    "range_m": 100,
+    "zone": "stomach",
+    "damage": 9
+  },
+  {
+    "weapon": "mp5",
+    "range_m": 100,
+    "zone": "arm",
+    "damage": 9
+  },
+  {
+    "weapon": "mp5",
+    "range_m": 100,
+    "zone": "leg",
+    "damage": 9
+  },
+  {
+    "weapon": "mp5",
+    "range_m": 150,
+    "zone": "head",
+    "damage": 18
+  },
+  {
+    "weapon": "mp5",
+    "range_m": 150,
+    "zone": "torso",
+    "damage": 11
+  },
+  {
+    "weapon": "mp5",
+    "range_m": 150,
+    "zone": "stomach",
+    "damage": 9
+  },
+  {
+    "weapon": "mp5",
+    "range_m": 150,
+    "zone": "arm",
+    "damage": 9
+  },
+  {
+    "weapon": "mp5",
+    "range_m": 150,
+    "zone": "leg",
+    "damage": 9
+  },
+  {
+    "weapon": "mp5",
+    "range_m": 300,
+    "zone": "head",
+    "damage": 18
+  },
+  {
+    "weapon": "mp5",
+    "range_m": 300,
+    "zone": "torso",
+    "damage": 11
+  },
+  {
+    "weapon": "mp5",
+    "range_m": 300,
+    "zone": "stomach",
+    "damage": 9
+  },
+  {
+    "weapon": "mp5",
+    "range_m": 300,
+    "zone": "arm",
+    "damage": 9
+  },
+  {
+    "weapon": "mp5",
+    "range_m": 300,
+    "zone": "leg",
+    "damage": 9
+  },
+  {
+    "weapon": "hmg",
+    "range_m": 0,
+    "zone": "head",
+    "damage": 61
+  },
+  {
+    "weapon": "hmg",
+    "range_m": 0,
+    "zone": "torso",
+    "damage": 34
+  },
+  {
+    "weapon": "hmg",
+    "range_m": 0,
+    "zone": "stomach",
+    "damage": 29
+  },
+  {
+    "weapon": "hmg",
+    "range_m": 0,
+    "zone": "arm",
+    "damage": 29
+  },
+  {
+    "weapon": "hmg",
+    "range_m": 0,
+    "zone": "leg",
+    "damage": 29
+  },
+  {
+    "weapon": "hmg",
+    "range_m": 10,
+    "zone": "head",
+    "damage": 61
+  },
+  {
+    "weapon": "hmg",
+    "range_m": 10,
+    "zone": "torso",
+    "damage": 34
+  },
+  {
+    "weapon": "hmg",
+    "range_m": 10,
+    "zone": "stomach",
+    "damage": 29
+  },
+  {
+    "weapon": "hmg",
+    "range_m": 10,
+    "zone": "arm",
+    "damage": 29
+  },
+  {
+    "weapon": "hmg",
+    "range_m": 10,
+    "zone": "leg",
+    "damage": 29
+  },
+  {
+    "weapon": "hmg",
+    "range_m": 20,
+    "zone": "head",
+    "damage": 61
+  },
+  {
+    "weapon": "hmg",
+    "range_m": 20,
+    "zone": "torso",
+    "damage": 34
+  },
+  {
+    "weapon": "hmg",
+    "range_m": 20,
+    "zone": "stomach",
+    "damage": 29
+  },
+  {
+    "weapon": "hmg",
+    "range_m": 20,
+    "zone": "arm",
+    "damage": 29
+  },
+  {
+    "weapon": "hmg",
+    "range_m": 20,
+    "zone": "leg",
+    "damage": 29
+  },
+  {
+    "weapon": "hmg",
+    "range_m": 35,
+    "zone": "head",
+    "damage": 56
+  },
+  {
+    "weapon": "hmg",
+    "range_m": 35,
+    "zone": "torso",
+    "damage": 31
+  },
+  {
+    "weapon": "hmg",
+    "range_m": 35,
+    "zone": "stomach",
+    "damage": 26
+  },
+  {
+    "weapon": "hmg",
+    "range_m": 35,
+    "zone": "arm",
+    "damage": 26
+  },
+  {
+    "weapon": "hmg",
+    "range_m": 35,
+    "zone": "leg",
+    "damage": 26
+  },
+  {
+    "weapon": "hmg",
+    "range_m": 55,
+    "zone": "head",
+    "damage": 49
+  },
+  {
+    "weapon": "hmg",
+    "range_m": 55,
+    "zone": "torso",
+    "damage": 27
+  },
+  {
+    "weapon": "hmg",
+    "range_m": 55,
+    "zone": "stomach",
+    "damage": 23
+  },
+  {
+    "weapon": "hmg",
+    "range_m": 55,
+    "zone": "arm",
+    "damage": 23
+  },
+  {
+    "weapon": "hmg",
+    "range_m": 55,
+    "zone": "leg",
+    "damage": 23
+  },
+  {
+    "weapon": "hmg",
+    "range_m": 100,
+    "zone": "head",
+    "damage": 36
+  },
+  {
+    "weapon": "hmg",
+    "range_m": 100,
+    "zone": "torso",
+    "damage": 20
+  },
+  {
+    "weapon": "hmg",
+    "range_m": 100,
+    "zone": "stomach",
+    "damage": 17
+  },
+  {
+    "weapon": "hmg",
+    "range_m": 100,
+    "zone": "arm",
+    "damage": 17
+  },
+  {
+    "weapon": "hmg",
+    "range_m": 100,
+    "zone": "leg",
+    "damage": 17
+  },
+  {
+    "weapon": "hmg",
+    "range_m": 150,
+    "zone": "head",
+    "damage": 36
+  },
+  {
+    "weapon": "hmg",
+    "range_m": 150,
+    "zone": "torso",
+    "damage": 20
+  },
+  {
+    "weapon": "hmg",
+    "range_m": 150,
+    "zone": "stomach",
+    "damage": 17
+  },
+  {
+    "weapon": "hmg",
+    "range_m": 150,
+    "zone": "arm",
+    "damage": 17
+  },
+  {
+    "weapon": "hmg",
+    "range_m": 150,
+    "zone": "leg",
+    "damage": 17
+  },
+  {
+    "weapon": "hmg",
+    "range_m": 300,
+    "zone": "head",
+    "damage": 36
+  },
+  {
+    "weapon": "hmg",
+    "range_m": 300,
+    "zone": "torso",
+    "damage": 20
+  },
+  {
+    "weapon": "hmg",
+    "range_m": 300,
+    "zone": "stomach",
+    "damage": 17
+  },
+  {
+    "weapon": "hmg",
+    "range_m": 300,
+    "zone": "arm",
+    "damage": 17
+  },
+  {
+    "weapon": "hmg",
+    "range_m": 300,
+    "zone": "leg",
+    "damage": 17
+  },
+  {
+    "weapon": "pistol",
+    "range_m": 0,
+    "zone": "head",
+    "damage": 61
+  },
+  {
+    "weapon": "pistol",
+    "range_m": 0,
+    "zone": "torso",
+    "damage": 34
+  },
+  {
+    "weapon": "pistol",
+    "range_m": 0,
+    "zone": "stomach",
+    "damage": 29
+  },
+  {
+    "weapon": "pistol",
+    "range_m": 0,
+    "zone": "arm",
+    "damage": 29
+  },
+  {
+    "weapon": "pistol",
+    "range_m": 0,
+    "zone": "leg",
+    "damage": 29
+  },
+  {
+    "weapon": "pistol",
+    "range_m": 10,
+    "zone": "head",
+    "damage": 61
+  },
+  {
+    "weapon": "pistol",
+    "range_m": 10,
+    "zone": "torso",
+    "damage": 34
+  },
+  {
+    "weapon": "pistol",
+    "range_m": 10,
+    "zone": "stomach",
+    "damage": 29
+  },
+  {
+    "weapon": "pistol",
+    "range_m": 10,
+    "zone": "arm",
+    "damage": 29
+  },
+  {
+    "weapon": "pistol",
+    "range_m": 10,
+    "zone": "leg",
+    "damage": 29
+  },
+  {
+    "weapon": "pistol",
+    "range_m": 20,
+    "zone": "head",
+    "damage": 54
+  },
+  {
+    "weapon": "pistol",
+    "range_m": 20,
+    "zone": "torso",
+    "damage": 30
+  },
+  {
+    "weapon": "pistol",
+    "range_m": 20,
+    "zone": "stomach",
+    "damage": 25
+  },
+  {
+    "weapon": "pistol",
+    "range_m": 20,
+    "zone": "arm",
+    "damage": 25
+  },
+  {
+    "weapon": "pistol",
+    "range_m": 20,
+    "zone": "leg",
+    "damage": 25
+  },
+  {
+    "weapon": "pistol",
+    "range_m": 35,
+    "zone": "head",
+    "damage": 41
+  },
+  {
+    "weapon": "pistol",
+    "range_m": 35,
+    "zone": "torso",
+    "damage": 23
+  },
+  {
+    "weapon": "pistol",
+    "range_m": 35,
+    "zone": "stomach",
+    "damage": 19
+  },
+  {
+    "weapon": "pistol",
+    "range_m": 35,
+    "zone": "arm",
+    "damage": 19
+  },
+  {
+    "weapon": "pistol",
+    "range_m": 35,
+    "zone": "leg",
+    "damage": 19
+  },
+  {
+    "weapon": "pistol",
+    "range_m": 55,
+    "zone": "head",
+    "damage": 31
+  },
+  {
+    "weapon": "pistol",
+    "range_m": 55,
+    "zone": "torso",
+    "damage": 17
+  },
+  {
+    "weapon": "pistol",
+    "range_m": 55,
+    "zone": "stomach",
+    "damage": 14
+  },
+  {
+    "weapon": "pistol",
+    "range_m": 55,
+    "zone": "arm",
+    "damage": 14
+  },
+  {
+    "weapon": "pistol",
+    "range_m": 55,
+    "zone": "leg",
+    "damage": 14
+  },
+  {
+    "weapon": "pistol",
+    "range_m": 100,
+    "zone": "head",
+    "damage": 31
+  },
+  {
+    "weapon": "pistol",
+    "range_m": 100,
+    "zone": "torso",
+    "damage": 17
+  },
+  {
+    "weapon": "pistol",
+    "range_m": 100,
+    "zone": "stomach",
+    "damage": 14
+  },
+  {
+    "weapon": "pistol",
+    "range_m": 100,
+    "zone": "arm",
+    "damage": 14
+  },
+  {
+    "weapon": "pistol",
+    "range_m": 100,
+    "zone": "leg",
+    "damage": 14
+  },
+  {
+    "weapon": "pistol",
+    "range_m": 150,
+    "zone": "head",
+    "damage": 31
+  },
+  {
+    "weapon": "pistol",
+    "range_m": 150,
+    "zone": "torso",
+    "damage": 17
+  },
+  {
+    "weapon": "pistol",
+    "range_m": 150,
+    "zone": "stomach",
+    "damage": 14
+  },
+  {
+    "weapon": "pistol",
+    "range_m": 150,
+    "zone": "arm",
+    "damage": 14
+  },
+  {
+    "weapon": "pistol",
+    "range_m": 150,
+    "zone": "leg",
+    "damage": 14
+  },
+  {
+    "weapon": "pistol",
+    "range_m": 300,
+    "zone": "head",
+    "damage": 31
+  },
+  {
+    "weapon": "pistol",
+    "range_m": 300,
+    "zone": "torso",
+    "damage": 17
+  },
+  {
+    "weapon": "pistol",
+    "range_m": 300,
+    "zone": "stomach",
+    "damage": 14
+  },
+  {
+    "weapon": "pistol",
+    "range_m": 300,
+    "zone": "arm",
+    "damage": 14
+  },
+  {
+    "weapon": "pistol",
+    "range_m": 300,
+    "zone": "leg",
+    "damage": 14
+  },
+  {
+    "weapon": "dmr",
+    "range_m": 0,
+    "zone": "head",
+    "damage": 85
+  },
+  {
+    "weapon": "dmr",
+    "range_m": 0,
+    "zone": "torso",
+    "damage": 50
+  },
+  {
+    "weapon": "dmr",
+    "range_m": 0,
+    "zone": "stomach",
+    "damage": 46
+  },
+  {
+    "weapon": "dmr",
+    "range_m": 0,
+    "zone": "arm",
+    "damage": 46
+  },
+  {
+    "weapon": "dmr",
+    "range_m": 0,
+    "zone": "leg",
+    "damage": 46
+  },
+  {
+    "weapon": "dmr",
+    "range_m": 10,
+    "zone": "head",
+    "damage": 85
+  },
+  {
+    "weapon": "dmr",
+    "range_m": 10,
+    "zone": "torso",
+    "damage": 50
+  },
+  {
+    "weapon": "dmr",
+    "range_m": 10,
+    "zone": "stomach",
+    "damage": 46
+  },
+  {
+    "weapon": "dmr",
+    "range_m": 10,
+    "zone": "arm",
+    "damage": 46
+  },
+  {
+    "weapon": "dmr",
+    "range_m": 10,
+    "zone": "leg",
+    "damage": 46
+  },
+  {
+    "weapon": "dmr",
+    "range_m": 20,
+    "zone": "head",
+    "damage": 85
+  },
+  {
+    "weapon": "dmr",
+    "range_m": 20,
+    "zone": "torso",
+    "damage": 50
+  },
+  {
+    "weapon": "dmr",
+    "range_m": 20,
+    "zone": "stomach",
+    "damage": 46
+  },
+  {
+    "weapon": "dmr",
+    "range_m": 20,
+    "zone": "arm",
+    "damage": 46
+  },
+  {
+    "weapon": "dmr",
+    "range_m": 20,
+    "zone": "leg",
+    "damage": 46
+  },
+  {
+    "weapon": "dmr",
+    "range_m": 35,
+    "zone": "head",
+    "damage": 85
+  },
+  {
+    "weapon": "dmr",
+    "range_m": 35,
+    "zone": "torso",
+    "damage": 50
+  },
+  {
+    "weapon": "dmr",
+    "range_m": 35,
+    "zone": "stomach",
+    "damage": 46
+  },
+  {
+    "weapon": "dmr",
+    "range_m": 35,
+    "zone": "arm",
+    "damage": 46
+  },
+  {
+    "weapon": "dmr",
+    "range_m": 35,
+    "zone": "leg",
+    "damage": 46
+  },
+  {
+    "weapon": "dmr",
+    "range_m": 55,
+    "zone": "head",
+    "damage": 82
+  },
+  {
+    "weapon": "dmr",
+    "range_m": 55,
+    "zone": "torso",
+    "damage": 48
+  },
+  {
+    "weapon": "dmr",
+    "range_m": 55,
+    "zone": "stomach",
+    "damage": 44
+  },
+  {
+    "weapon": "dmr",
+    "range_m": 55,
+    "zone": "arm",
+    "damage": 44
+  },
+  {
+    "weapon": "dmr",
+    "range_m": 55,
+    "zone": "leg",
+    "damage": 44
+  },
+  {
+    "weapon": "dmr",
+    "range_m": 100,
+    "zone": "head",
+    "damage": 73
+  },
+  {
+    "weapon": "dmr",
+    "range_m": 100,
+    "zone": "torso",
+    "damage": 43
+  },
+  {
+    "weapon": "dmr",
+    "range_m": 100,
+    "zone": "stomach",
+    "damage": 39
+  },
+  {
+    "weapon": "dmr",
+    "range_m": 100,
+    "zone": "arm",
+    "damage": 39
+  },
+  {
+    "weapon": "dmr",
+    "range_m": 100,
+    "zone": "leg",
+    "damage": 39
+  },
+  {
+    "weapon": "dmr",
+    "range_m": 150,
+    "zone": "head",
+    "damage": 65
+  },
+  {
+    "weapon": "dmr",
+    "range_m": 150,
+    "zone": "torso",
+    "damage": 38
+  },
+  {
+    "weapon": "dmr",
+    "range_m": 150,
+    "zone": "stomach",
+    "damage": 35
+  },
+  {
+    "weapon": "dmr",
+    "range_m": 150,
+    "zone": "arm",
+    "damage": 35
+  },
+  {
+    "weapon": "dmr",
+    "range_m": 150,
+    "zone": "leg",
+    "damage": 35
+  },
+  {
+    "weapon": "dmr",
+    "range_m": 300,
+    "zone": "head",
+    "damage": 65
+  },
+  {
+    "weapon": "dmr",
+    "range_m": 300,
+    "zone": "torso",
+    "damage": 38
+  },
+  {
+    "weapon": "dmr",
+    "range_m": 300,
+    "zone": "stomach",
+    "damage": 35
+  },
+  {
+    "weapon": "dmr",
+    "range_m": 300,
+    "zone": "arm",
+    "damage": 35
+  },
+  {
+    "weapon": "dmr",
+    "range_m": 300,
+    "zone": "leg",
+    "damage": 35
+  },
+  {
+    "weapon": "m2010",
+    "range_m": 0,
+    "zone": "head",
+    "damage": 180
+  },
+  {
+    "weapon": "m2010",
+    "range_m": 0,
+    "zone": "torso",
+    "damage": 100
+  },
+  {
+    "weapon": "m2010",
+    "range_m": 0,
+    "zone": "stomach",
+    "damage": 100
+  },
+  {
+    "weapon": "m2010",
+    "range_m": 0,
+    "zone": "arm",
+    "damage": 100
+  },
+  {
+    "weapon": "m2010",
+    "range_m": 0,
+    "zone": "leg",
+    "damage": 100
+  },
+  {
+    "weapon": "m2010",
+    "range_m": 10,
+    "zone": "head",
+    "damage": 180
+  },
+  {
+    "weapon": "m2010",
+    "range_m": 10,
+    "zone": "torso",
+    "damage": 100
+  },
+  {
+    "weapon": "m2010",
+    "range_m": 10,
+    "zone": "stomach",
+    "damage": 100
+  },
+  {
+    "weapon": "m2010",
+    "range_m": 10,
+    "zone": "arm",
+    "damage": 100
+  },
+  {
+    "weapon": "m2010",
+    "range_m": 10,
+    "zone": "leg",
+    "damage": 100
+  },
+  {
+    "weapon": "m2010",
+    "range_m": 20,
+    "zone": "head",
+    "damage": 180
+  },
+  {
+    "weapon": "m2010",
+    "range_m": 20,
+    "zone": "torso",
+    "damage": 100
+  },
+  {
+    "weapon": "m2010",
+    "range_m": 20,
+    "zone": "stomach",
+    "damage": 100
+  },
+  {
+    "weapon": "m2010",
+    "range_m": 20,
+    "zone": "arm",
+    "damage": 100
+  },
+  {
+    "weapon": "m2010",
+    "range_m": 20,
+    "zone": "leg",
+    "damage": 100
+  },
+  {
+    "weapon": "m2010",
+    "range_m": 35,
+    "zone": "head",
+    "damage": 180
+  },
+  {
+    "weapon": "m2010",
+    "range_m": 35,
+    "zone": "torso",
+    "damage": 100
+  },
+  {
+    "weapon": "m2010",
+    "range_m": 35,
+    "zone": "stomach",
+    "damage": 100
+  },
+  {
+    "weapon": "m2010",
+    "range_m": 35,
+    "zone": "arm",
+    "damage": 100
+  },
+  {
+    "weapon": "m2010",
+    "range_m": 35,
+    "zone": "leg",
+    "damage": 100
+  },
+  {
+    "weapon": "m2010",
+    "range_m": 55,
+    "zone": "head",
+    "damage": 180
+  },
+  {
+    "weapon": "m2010",
+    "range_m": 55,
+    "zone": "torso",
+    "damage": 100
+  },
+  {
+    "weapon": "m2010",
+    "range_m": 55,
+    "zone": "stomach",
+    "damage": 100
+  },
+  {
+    "weapon": "m2010",
+    "range_m": 55,
+    "zone": "arm",
+    "damage": 100
+  },
+  {
+    "weapon": "m2010",
+    "range_m": 55,
+    "zone": "leg",
+    "damage": 100
+  },
+  {
+    "weapon": "m2010",
+    "range_m": 100,
+    "zone": "head",
+    "damage": 180
+  },
+  {
+    "weapon": "m2010",
+    "range_m": 100,
+    "zone": "torso",
+    "damage": 100
+  },
+  {
+    "weapon": "m2010",
+    "range_m": 100,
+    "zone": "stomach",
+    "damage": 100
+  },
+  {
+    "weapon": "m2010",
+    "range_m": 100,
+    "zone": "arm",
+    "damage": 100
+  },
+  {
+    "weapon": "m2010",
+    "range_m": 100,
+    "zone": "leg",
+    "damage": 100
+  },
+  {
+    "weapon": "m2010",
+    "range_m": 150,
+    "zone": "head",
+    "damage": 180
+  },
+  {
+    "weapon": "m2010",
+    "range_m": 150,
+    "zone": "torso",
+    "damage": 100
+  },
+  {
+    "weapon": "m2010",
+    "range_m": 150,
+    "zone": "stomach",
+    "damage": 100
+  },
+  {
+    "weapon": "m2010",
+    "range_m": 150,
+    "zone": "arm",
+    "damage": 100
+  },
+  {
+    "weapon": "m2010",
+    "range_m": 150,
+    "zone": "leg",
+    "damage": 100
+  },
+  {
+    "weapon": "m2010",
+    "range_m": 300,
+    "zone": "head",
+    "damage": 180
+  },
+  {
+    "weapon": "m2010",
+    "range_m": 300,
+    "zone": "torso",
+    "damage": 100
+  },
+  {
+    "weapon": "m2010",
+    "range_m": 300,
+    "zone": "stomach",
+    "damage": 100
+  },
+  {
+    "weapon": "m2010",
+    "range_m": 300,
+    "zone": "arm",
+    "damage": 100
+  },
+  {
+    "weapon": "m2010",
+    "range_m": 300,
+    "zone": "leg",
+    "damage": 100
+  }
+]

@@ -13,7 +13,11 @@ func TestSniperOneHitAtEveryRangeAndHeight(t *testing.T) {
 			p.ActiveWeapon = Weapons["m2010"]
 			p.AmmoCount = 5
 			target.State.Z = -metres
-			event := &FireEvent{ShotId: 1, OriginY: 1.6, HitY: height, HitZ: -metres}
+			hitX := float32(0)
+			if height == 0.35 {
+				hitX = 0.12 // Aim at the anatomical leg instead of the gap between the feet.
+			}
+			event := &FireEvent{ShotId: 1, OriginY: 1.6, HitX: hitX, HitY: height, HitZ: -metres}
 			if err := p.ValidateFireRay(event); err != nil {
 				t.Fatal(err)
 			}

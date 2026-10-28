@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-func fire(id uint64) *FireEvent { return &FireEvent{OriginY: 1, HitY: 1, HitZ: -5, ShotId: id} }
+func fire(id uint64) *FireEvent { return &FireEvent{OriginY: 1.2, HitY: 1.2, HitZ: -5, ShotId: id} }
 func TestFireCadence(t *testing.T) {
 	for id, weapon := range Weapons {
 		t.Run(id, func(t *testing.T) {
@@ -47,7 +47,7 @@ func TestHitIsSingleUseAndServerDamage(t *testing.T) {
 	if _, err := p.ValidateAndApplyHit(target, 9999); err != nil {
 		t.Fatal(err)
 	}
-	if target.State.Health != 78 {
+	if target.State.Health != 100-int32(p.ActiveWeapon.DamageForZone(5, "torso")) {
 		t.Fatalf("server did not derive torso damage: %d", target.State.Health)
 	}
 	if _, err := p.ValidateAndApplyHit(target, 34); err == nil {

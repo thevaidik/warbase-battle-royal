@@ -68,11 +68,13 @@ static func encode_state(x: float, y: float, z: float, rx: float, ry: float, rz:
 	p += _tag(12, 0) + _varint(input_sequence)
 	return _len(CE_STATE, p)
 
-static func encode_hit(target: String, damage: int, shot_id: int = 0) -> PackedByteArray:
+static func encode_hit(target: String, damage: int, shot_id: int = 0, view_time_ms: int = 0) -> PackedByteArray:
 	var p := PackedByteArray()
 	p += _strf(1, target)
 	p += _i32f(2, damage)
 	p += _i32f(3, shot_id)
+	if view_time_ms > 0:
+		p += _tag(4, 0) + _varint(view_time_ms)
 	return _len(CE_HIT, p)
 
 static func encode_fire(o: Vector3, h: Vector3, n: Vector3, wall: bool, shot_id: int = 0) -> PackedByteArray:
@@ -356,7 +358,7 @@ static func _parse_player(data: PackedByteArray) -> Dictionary:
 		"rx": f.get(4, 0.0), "ry": f.get(5, 0.0), "rz": f.get(6, 0.0), "rw": f.get(7, default_rw),
 		"anim": s.call(8), "health": 0 if is_dead else f.get(9, 100), "kills": f.get(10, 0),
 		"deaths": f.get(11, 0), "is_dead": is_dead,
-		"driving_vehicle": s.call(22), "ack_input_sequence": int(f.get(23, 0)),
+		"driving_vehicle": s.call(22), "ack_input_sequence": int(f.get(23, 0)), "animation_time": float(f.get(24, 0.0)), "pose_time_ms": int(f.get(25, 0)),
 		"platform": s.call(13), "ping": f.get(14, 0),
 		"weapon": s.call(15), "team": s.call(16),
 		"grenades": f.get(20, 0), "protected": f.get(21, 0) == 1,

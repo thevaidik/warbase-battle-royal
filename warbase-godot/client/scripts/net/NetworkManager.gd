@@ -255,8 +255,8 @@ func send_state(pos: Vector3, quat: Quaternion, anim: String, weapon: String) ->
 func send_fire(o: Vector3, h: Vector3, n: Vector3, wall: bool, shot_id: int = 0) -> void:
 	_send(WarProto.encode_fire(o, h, n, wall, shot_id))
 
-func send_hit(target: String, damage: int, shot_id: int = 0) -> void:
-	_send(WarProto.encode_hit(target, damage, shot_id))
+func send_hit(target: String, damage: int, shot_id: int = 0, view_time_ms: int = 0) -> void:
+	_send(WarProto.encode_hit(target, damage, shot_id, view_time_ms))
 
 func send_reload() -> void:
 	_send(WarProto.encode_reload())

@@ -158,11 +158,12 @@ func TestVehicleDamageAndRespawn(t *testing.T) {
 		t.Fatal(err)
 	}
 	m.hitVehicle(r, shooter, v, 1)
-	if v.state.Health != 1178 {
+	wantHealth := int32(1200 - Weapons["ak47"].DamageAtRange(5))
+	if v.state.Health != wantHealth {
 		t.Fatalf("vehicle did not take authoritative damage: %d", v.state.Health)
 	}
 	m.hitVehicle(r, shooter, v, 1)
-	if v.state.Health != 1178 {
+	if v.state.Health != wantHealth {
 		t.Fatal("reused shot on vehicle")
 	}
 	if !m.enterVehicle(r, p, "CAR_0") {

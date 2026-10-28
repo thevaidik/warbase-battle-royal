@@ -25,7 +25,7 @@ func run() -> void:
 	main.player.global_position = current
 	main._reconcile_after_sequence = 0
 	var me := {"x":baseline.x,"y":baseline.y,"z":baseline.z,"health":100,"ammo":30,"weapon":"ak47","team":"A"}
-	var snapshot := {"protocol_version":4,"map_name":"industrial","players":{state.username:me},"vehicles":{},"time_of_day":"noon"}
+	var snapshot := {"protocol_version":5,"map_name":"industrial","players":{state.username:me},"vehicles":{},"time_of_day":"noon"}
 	for seq in range(1,4):
 		main.net._sent_positions[seq] = baseline
 		me["ack_input_sequence"] = seq

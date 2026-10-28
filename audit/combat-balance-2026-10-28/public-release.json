@@ -1,0 +1,15 @@
+{
+  "/healthcheck": {
+    "status": 200,
+    "body": "{\"status\":\"available\",\"system_info\":{\"environment\":\"production\",\"version\":\"1.0.0\"}}\n"
+  },
+  "/web-manifest.json": {
+    "status": 200,
+    "body": "{\n  \"assets\": [\n    \"index.html\",\n    \"engine-53ec26073f0ba9ba.audio.position.worklet.js\",\n    \"engine-53ec26073f0ba9ba.audio.worklet.js\",\n    \"engine-53ec26073f0ba9ba.js\",\n    \"engine-53ec26073f0ba9ba.wasm\",\n    \"game-ae08372d77d11dd3.pck\",\n    \"optional-maps.json\"\n  ],\n  \"optional\": {\n    \"football\": {\n      \"bytes\": 49150948,\n      \"file\": \"map-football-997a092552696fd9.pck\",\n      \"sha256\": \"997a092552696fd98ad1e26acb0402334f584f220c275c484e692227ab13ce21\",\n      \"uids\": {\n        \"uid://c3ghd30axll6u\": \"res://assets/maps/football.glb\",\n        \"uid://qw38abujx3yj\": \"res://assets/maps/football_0.png\"\n      }\n    }\n  },\n  \"engine\": \"engine-53ec26073f0ba9ba\",\n  \"pack\": \"game-ae08372d77d11dd3.pck\",\n  \"bytes\": {\n    \"identity\": 67600539,\n    \"gzip\": 36958132,\n    \"br\": 34683032\n  }\n}\n"
+  },
+  "/debug/pprof/": {
+    "status": 404,
+    "body": "404 page not found\n"
+  },
+  "pack_headers": "HTTP/2 200 \ndate: Wed, 28 Oct 2026 08:49:24 GMT\ncontent-type: application/octet-stream\nreport-to: {\"group\":\"cf-nel\",\"max_age\":604800,\"endpoints\":[{\"url\":\"https://a.nel.cloudflare.com/report/v4?s=EpX1n9RVi12Z0jHTJB1tydmGi6d7akdUo24j5HCpDQeFhLE%2Fl4K3tIcipjDfnrt2zd0pSrm05JRa0gy4VTwqJ7vb99MNWTJa2KNGqyRhViWdK9%2BOdZAL1jh27NrBAuWx9lY%3D\"}]}\naccess-control-allow-headers: Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, Origin\naccess-control-allow-methods: GET, POST, PUT, DELETE, OPTIONS\naccess-control-allow-origin: *\ncache-control: public, max-age=31536000, immutable\nnel: {\"report_to\":\"cf-nel\",\"success_fraction\":0.0,\"max_age\":604800}\ncross-origin-embedder-policy: require-corp\ncross-origin-opener-policy: same-origin\netag: W/\"game-ae08372d77d11dd3.pck\"\nreferrer-policy: no-referrer\nvary: Accept-Encoding\nx-content-type-options: nosniff\ncf-cache-status: DYNAMIC\nserver: cloudflare\ncf-ray: a518afda7b6ff5c5-MRS\nalt-svc: h3=\":443\"; ma=86400\n\n"
+}

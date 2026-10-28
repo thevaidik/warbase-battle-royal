@@ -11,7 +11,7 @@ Install Godot 4.7.2 and Go 1.23 or later. Web release packaging also requires No
 - Use **Join server** for online matches with AI and human players. The optional **Offline** switch starts a local sandbox. Home, Loadout, Operator, and Settings remain in the top bar.
 - For the browser, install the matching Godot export templates, run `make export-godot-web`, start the service, and open `http://localhost:8081`.
 
-The Web client connects to the same host and port that serves it. Online play uses protocol version 4; update the client and service together. Old exported clients are incompatible with the custom inventory, vehicle, and room-lighting protocol.
+The Web client connects to the same host and port that serves it. Online play uses protocol version 5; update the client and service together. Old exported clients are incompatible with the animation-phase and viewed-pose hit-validation protocol.
 
 ## Controls
 
@@ -31,7 +31,7 @@ The Web client connects to the same host and port that serves it. Online play us
 
 Click **Loadout** on the home screen to open the full equipment picker. Any two different guns can occupy the primary and secondary slots; choose an M67 frag or impact grenade. Choices are saved automatically and applied when you deploy.
 
-Automatic weapons require roughly 0.32–0.40 seconds of perfect close-range body hits to eliminate a full-health target. Damage falls with distance except for the one-shot M2010 sniper. Spawn protection lasts 2.5 seconds and ends when firing or throwing. Health recovers at 15 HP/second after five seconds without damage.
+Automatic primaries require roughly 0.20–0.24 seconds of perfect close-range chest hits to eliminate a full-health target. Lower torso and limb hits deal less damage; online hitboxes follow the synchronized animated skeleton, with bounded validation against the exact viewed server pose. Damage falls with distance except for the one-shot M2010 sniper. Spawn protection lasts 2.5 seconds and ends when firing or throwing. Health recovers at 15 HP/second after five seconds without damage.
 
 Switching preserves each magazine and cancels an unfinished reload. Firing is blocked while drawing, reloading, cycling the sniper bolt, or throwing. The scope’s angular markings are for aiming references; the game uses hitscan rather than ballistic bullet drop. Exhausted breath must recover after releasing Shift.
 
@@ -77,6 +77,6 @@ This update improves handling, stability, combat validation, authoritative grena
 
 Football Stadium is included in native builds. For web releases, use `make export-godot-web` to generate the initial game and its optional stadium pack together, and serve all generated files in `warbase-godot/client/dist`. The stadium downloads on first join and retains its full-resolution atlas. `make test-web` validates compression and optional-pack mounting. See `audit/football-map/README.md` for validation and the source-rights caveat.
 
-Current official release, measured capacity and remaining distribution checks: [28 October follow-up](audit/production-followup-2026-10-28/REPORT.md).
+Current combat release and hitbox verification: [28 October combat audit](audit/combat-balance-2026-10-28/REPORT.md). Earlier capacity and distribution checks: [production follow-up](audit/production-followup-2026-10-28/REPORT.md).
 
 Audio is disabled throughout the game. Gunfire, footsteps, UI and vehicle audio methods are silent, and Settings shows **AUDIO DISABLED**.

@@ -5,7 +5,7 @@ extends Node
 
 const WEAPONS: Array = [
 	{
-		"id": "ak47", "name": "AK-47", "damage": 22.0, "headshot_mult": 1.8,
+		"id": "ak47", "name": "AK-47", "damage": 34.0, "headshot_mult": 1.8,
 		"fire_rate": 600.0, "mag_size": 30, "reload_time": 2.5,
 		"base_spread": 1.2, "bloom_per_shot": 0.4, "max_spread": 5.0, "bloom_recovery": 8.0,
 		"recoil_vertical": 0.02, "recoil_horizontal": 0.008, "recoil_recovery": 6.0,
@@ -14,7 +14,7 @@ const WEAPONS: Array = [
 		"is_auto": true,
 	},
 	{
-		"id": "pistol", "name": "Pistol .50", "damage": 24.0, "headshot_mult": 1.8,
+		"id": "pistol", "name": "Pistol .50", "damage": 34.0, "headshot_mult": 1.8,
 		"fire_rate": 400.0, "mag_size": 12, "reload_time": 1.5,
 		"base_spread": 1.0, "bloom_per_shot": 0.8, "max_spread": 6.0, "bloom_recovery": 12.0,
 		"recoil_vertical": 0.04, "recoil_horizontal": 0.005, "recoil_recovery": 10.0,
@@ -32,7 +32,7 @@ const WEAPONS: Array = [
 		"is_auto": false,
 	},
 	{
-		"id": "hmg", "name": "WB-46 LMG", "damage": 26.0, "headshot_mult": 1.8,
+		"id": "hmg", "name": "WB-46 LMG", "damage": 34.0, "headshot_mult": 1.8,
 		"fire_rate": 520.0, "mag_size": 60, "reload_time": 3.4,
 		"base_spread": 2.2, "bloom_per_shot": 0.45, "max_spread": 6.8, "bloom_recovery": 7.5,
 		"recoil_vertical": 0.032, "recoil_horizontal": 0.010, "recoil_recovery": 5.5,
@@ -41,7 +41,7 @@ const WEAPONS: Array = [
 		"is_auto": true,
 	},
 	{
-		"id": "m4", "name": "M4 Carbine", "damage": 20.0, "headshot_mult": 1.8,
+		"id": "m4", "name": "M4 Carbine", "damage": 25.0, "headshot_mult": 1.8,
 		"fire_rate": 750.0, "mag_size": 30, "reload_time": 2.2,
 		"base_spread": 0.85, "bloom_per_shot": 0.28, "max_spread": 4.2, "bloom_recovery": 10.0,
 		"recoil_vertical": 0.014, "recoil_horizontal": 0.005, "recoil_recovery": 8.0,
@@ -50,7 +50,7 @@ const WEAPONS: Array = [
 		"is_auto": true, "zoom_levels": [1, 2],
 	},
 	{
-		"id": "mp5", "name": "MP5 SMG", "damage": 17.0, "headshot_mult": 1.6,
+		"id": "mp5", "name": "MP5 SMG", "damage": 25.0, "headshot_mult": 1.6,
 		"fire_rate": 850.0, "mag_size": 30, "reload_time": 1.8,
 		"base_spread": 1.4, "bloom_per_shot": 0.32, "max_spread": 5.0, "bloom_recovery": 12.0,
 		"recoil_vertical": 0.01, "recoil_horizontal": 0.006, "recoil_recovery": 8.0,
@@ -59,7 +59,7 @@ const WEAPONS: Array = [
 		"is_auto": true, "zoom_levels": [1],
 	},
 	{
-		"id": "dmr", "name": "DMR-52", "damage": 40.0, "headshot_mult": 1.7,
+		"id": "dmr", "name": "DMR-52", "damage": 50.0, "headshot_mult": 1.7,
 		"fire_rate": 240.0, "mag_size": 20, "reload_time": 2.6,
 		"base_spread": 0.35, "bloom_per_shot": 0.65, "max_spread": 3.5, "bloom_recovery": 7.0,
 		"recoil_vertical": 0.028, "recoil_horizontal": 0.004, "recoil_recovery": 8.0,
@@ -199,14 +199,23 @@ func equip(slot: String, id: String) -> void:
 
 func damage_at_range(config: Dictionary, metres: float) -> float:
 	if config["id"] == "m2010": return 100.0
-	var start := 15.0
-	var end := 70.0
-	var minimum := 0.55
+	var start := 20.0
+	var end := 90.0
+	var minimum := 0.60
 	match String(config["id"]):
 		"mp5": start = 10; end = 45; minimum = 0.45
 		"pistol": start = 10; end = 50; minimum = 0.5
-		"dmr", "m2010": start = 35; end = 150; minimum = 0.75
+		"dmr": start = 35; end = 150; minimum = 0.75
 	return roundf(float(config["damage"]) * lerpf(1, minimum, clampf((metres-start)/(end-start), 0, 1)))
+
+func damage_for_zone(config: Dictionary, metres: float, zone: String) -> int:
+	var weapon_id := String(config.get("id", ""))
+	var damage := damage_at_range(config, metres)
+	match zone:
+		"head": damage *= float(config.get("headshot_mult", 1.0))
+		"stomach", "arm", "leg": damage *= 0.91 if weapon_id == "dmr" else 0.84
+	if weapon_id == "m2010": damage = maxf(damage, 100.0)
+	return roundi(damage)
 
 func save_settings() -> void:
 	var preferences := ConfigFile.new()

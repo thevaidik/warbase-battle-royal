@@ -227,11 +227,12 @@ func setup(p: WarPlayer, cam: Camera3D, sway: Node3D, net_ref: WarNetwork, world
 		_tracer_container.add_child(mi)
 		_tracers.append({"node": mi, "t": 0.0, "dur": 0.0, "from": Vector3.ZERO, "to": Vector3.ZERO, "active": false})
 		
-	# Pre-allocate zero-allocation hitscan query (Strict layers 1 | 2 | 4)
+	# Query world/vehicle solids and anatomical combatant areas. Exclude layer 2:
+	# a bot's broad CharacterBody capsule would otherwise mask its layer-4 hitboxes.
 	_hitscan_query = PhysicsRayQueryParameters3D.new()
 	_hitscan_query.collide_with_areas = true
 	_hitscan_query.collide_with_bodies = true
-	_hitscan_query.collision_mask = 1 | 2 | 4
+	_hitscan_query.collision_mask = 1 | 4
 	
 	# Pre-allocate casing pool
 	_casing_container = Node3D.new()
@@ -347,6 +348,41 @@ func _muzzle_global() -> Vector3:
 			return (mz as Node3D).global_position
 	return sway_root.global_position + -sway_root.global_transform.basis.z * 0.6
 
+func resolve_same_actor_center_through_limb(space: PhysicsDirectSpaceState3D, query: PhysicsRayQueryParameters3D, first_hit: Dictionary) -> Dictionary:
+	if first_hit.is_empty():
+		return first_hit
+	var first_collider: Object = first_hit.get("collider")
+	if not first_collider is Area3D or not first_collider.has_meta("hitbox"):
+		return first_hit
+	var first_zone := String(first_collider.get_meta("zone", ""))
+	if first_zone != "arm" and first_zone != "leg":
+		return first_hit
+	var actor := (first_collider as Node).get_parent()
+	if actor == null:
+		return first_hit
+	var excluded: Array[RID] = []
+	for rid in query.exclude:
+		excluded.append(rid)
+	var added_limb := false
+	for child in actor.get_children():
+		if child is Area3D and child.has_meta("hitbox") and String(child.get_meta("zone", "")) in ["arm", "leg"]:
+			excluded.append((child as Area3D).get_rid())
+			added_limb = true
+	if not added_limb:
+		return first_hit
+	query.exclude = excluded
+	var deeper_hit := space.intersect_ray(query)
+	if deeper_hit.is_empty():
+		return first_hit
+	var deeper_collider: Object = deeper_hit.get("collider")
+	if not deeper_collider is Area3D or not deeper_collider.has_meta("hitbox"):
+		return first_hit
+	if (deeper_collider as Node).get_parent() != actor:
+		return first_hit
+	if String(deeper_collider.get_meta("zone", "")) not in ["head", "torso", "stomach"]:
+		return first_hit
+	return deeper_hit
+
 func _ejector_global() -> Transform3D:
 	if active_index < _views.size():
 		var v: Node3D = _views[active_index]
@@ -422,16 +458,22 @@ func try_fire() -> void:
 	var up := camera.global_transform.basis.y.normalized()
 	var dir := (cam_dir + right * cos(ang) * r + up * sin(ang) * r).normalized()
 	
+	var shot_origin := _muzzle_global()
 	_hitscan_query.from = cam_pos
 	_hitscan_query.to = cam_pos + dir * 300.0
 	_hitscan_query.exclude = [player.get_rid()]
 	var space := world.get_world_3d().direct_space_state
 	var hit := space.intersect_ray(_hitscan_query)
+	hit = resolve_same_actor_center_through_limb(space, _hitscan_query, hit)
 	# Resolve the muzzle-to-aim path too: the camera cannot fire a barrel through cover.
 	var aim_point: Vector3 = hit.get("position", cam_pos + dir * 300.0)
-	_hitscan_query.from = _muzzle_global()
+	_hitscan_query.from = shot_origin
 	_hitscan_query.to = aim_point
+	_hitscan_query.exclude = [player.get_rid()]
 	var muzzle_hit := space.intersect_ray(_hitscan_query)
+	muzzle_hit = resolve_same_actor_center_through_limb(space, _hitscan_query, muzzle_hit)
+	# The muzzle path is the physical shot path used by the server, so its nearest
+	# intersection also determines the client-side zone and damage feedback.
 	if not muzzle_hit.is_empty():
 		hit = muzzle_hit
 	var hit_pos: Vector3 = cam_pos + dir * 300.0
@@ -440,6 +482,7 @@ func try_fire() -> void:
 	var has_hit_target := false
 	var hit_target := ""
 	var hit_dmg := 0
+	var hit_view_time_ms := 0
 	
 	if not hit.is_empty():
 		hit_pos = hit["position"]
@@ -462,15 +505,10 @@ func try_fire() -> void:
 				bot_node = collider as Node
 				target = String(bot_node.get_meta("server_vehicle_id", "")) if bot_node.has_meta("server_vehicle_id") else (bot_node.bot_name if "bot_name" in bot_node else (bot_node.player_id if "player_id" in bot_node else "BOT"))
 				zone = "torso"
+			if is_instance_valid(bot_node) and bot_node.has_method("get_hit_view_time_ms"):
+				hit_view_time_ms = int(bot_node.get_hit_view_time_ms())
 				
-			var mult := 1.0
-			if zone == "head":
-				mult = float(cfg["headshot_mult"])
-			elif zone == "arm":
-				mult = 0.8
-			elif zone == "leg":
-				mult = 0.6
-			var dmg := int(round(GameState.damage_at_range(cfg, cam_pos.distance_to(hit_pos)) * (maxf(mult, 1.0) if cfg["id"] == "m2010" else mult)))
+			var dmg := GameState.damage_for_zone(cfg, shot_origin.distance_to(hit_pos), zone)
 			var is_head := (zone == "head")
 			
 			# Check if hitting a local bot
@@ -491,7 +529,7 @@ func try_fire() -> void:
 			queue_impact(hit_pos, hit_norm, _muzzle_global().distance_to(hit_pos) / float(MUZZLE_SPEEDS.get(cfg["id"], 715.0)))
 			
 	# Muzzle visual & tracer
-	var start := _muzzle_global()
+	var start := shot_origin
 	_spawn_tracer(start, hit_pos)
 	_flash(start, dir)
 	_eject_shell()
@@ -510,10 +548,9 @@ func try_fire() -> void:
 	
 	if net and net.connected:
 		net.send_fire(start, hit_pos, hit_norm, hit_wall, _shot_seq)
-		if has_hit_target and not hit_target.is_empty() and not hit_target.begins_with("BOT_"):
-			net.send_hit(hit_target, hit_dmg, _shot_seq)
+		if has_hit_target and not hit_target.is_empty():
+			net.send_hit(hit_target, hit_dmg, _shot_seq, hit_view_time_ms)
 	fired.emit(active_index)
-
 func _flash(pos: Vector3, _dir: Vector3) -> void:
 	_flash_mesh.global_position = pos
 	_flash_mesh.global_basis = camera.global_basis

@@ -43,7 +43,15 @@ type GameSession struct {
 	lastSent            atomic.Uint64
 	lastAck             atomic.Uint64
 	lastAckAt           atomic.Int64
+	sentFramesMu        sync.Mutex
+	sentFrames          [16]sentFrameRecord
+	rttNanos            atomic.Int64
 	cosmeticQueue       chan []byte
+}
+
+type sentFrameRecord struct {
+	sequence uint64
+	sentAt   time.Time
 }
 
 // NewGameSession initializes a new websocket client safely

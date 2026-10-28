@@ -1,0 +1,7 @@
+{
+  "pack": "game-ae08372d77d11dd3.pck",
+  "server_sha256": "33519d5c20dad42cf1d5f269097e66e8728d648e8e4697feca1e1fa782ead64d",
+  "image": "warbase_server-warbase-server:combat-final-20261028",
+  "protocol": 5,
+  "environment": "production"
+}

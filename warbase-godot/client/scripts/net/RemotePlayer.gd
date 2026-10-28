@@ -6,6 +6,7 @@ extends Node3D
 
 const SCENE: PackedScene = preload("res://scenes/RemotePlayer.tscn")
 const VEHICLE_MODEL: PackedScene = preload("res://assets/models/armored_combat_van.glb")
+const SkeletalHitboxesScript: Script = preload("res://scripts/core/skeletal_hitboxes.gd")
 
 static var _remote_weapon_scenes: Dictionary = {}
 
@@ -24,6 +25,7 @@ var team := "A"
 var weapon_id := "ak47"
 var current_anim := ""
 var health := 100.0
+var hit_view_time_ms := 0
 var _hit_react := 0.0
 var dead := false
 var is_driving := false
@@ -34,6 +36,7 @@ var _equipped_gun: Node3D
 var _vehicle_root: Node3D
 var _claimed_jeep: Node3D
 var _hitbox_areas: Array[Area3D] = []
+var _hitbox_helper: Node
 var _head_area: Area3D
 var _torso_area: Area3D
 var _limb_areas: Array[Area3D] = []
@@ -80,12 +83,17 @@ func _ready() -> void:
 	_update_equipped_weapon(weapon_id)
 	
 	# Anatomical hitboxes
-	_add_hitbox("head", 2.5, Vector3(0, 1.62, 0), _cap(0.38, 0.12))
-	_add_hitbox("torso", 1.0, Vector3(0, 1.05, 0), _box(Vector3(0.42, 0.6, 0.32)))
-	_add_hitbox("arm", 0.8, Vector3(-0.3, 1.2, 0), _cap(0.26, 0.07))
-	_add_hitbox("arm", 0.8, Vector3(0.3, 1.2, 0), _cap(0.26, 0.07))
-	_add_hitbox("leg", 0.6, Vector3(-0.12, 0.45, 0), _cap(0.6, 0.09))
-	_add_hitbox("leg", 0.6, Vector3(0.12, 0.45, 0), _cap(0.6, 0.09))
+	var hit_skeleton := soldier.get_node_or_null("Armature/Skeleton3D") as Skeleton3D
+	_hitbox_helper = SkeletalHitboxesScript.new()
+	_hitbox_areas = _hitbox_helper.setup(self, hit_skeleton, player_id)
+	for area in _hitbox_areas:
+		match String(area.get_meta("zone", "")):
+			"head":
+				if not is_instance_valid(_head_area): _head_area = area
+			"torso":
+				if not is_instance_valid(_torso_area): _torso_area = area
+			_:
+				_limb_areas.append(area)
 	
 	if is_instance_valid(name_label):
 		name_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
@@ -101,7 +109,6 @@ func _ready() -> void:
 		name_label.text = " %s  [%d HP]" % [player_id, int(health)]
 		
 	push_state(st)
-	_sync_anim(String(st.get("anim", "idle")), bool(st.get("is_dead", false)))
 
 func _exit_tree() -> void:
 	_release_claimed_map_jeep()
@@ -152,13 +159,13 @@ func _set_driving_state(driving: bool) -> void:
 	for b in _beacons:
 		if is_instance_valid(b):
 			b.visible = (not driving) and (_current_lod < 2)
+	for area in _hitbox_areas:
+		if is_instance_valid(area): area.collision_layer = 0 if driving or dead else 4
 	if is_instance_valid(name_label):
 		name_label.position = Vector3(0, 3.20, 0) if driving else Vector3(0, 2.30, 0)
 	if not GameState.practice_mode:
 		if is_instance_valid(soldier): soldier.visible = not driving
 		if is_instance_valid(_vehicle_root): _vehicle_root.visible = false
-		for area in _hitbox_areas:
-			if is_instance_valid(area): area.collision_layer = 0 if driving or dead else 4
 		return
 	if driving:
 		_claim_nearby_map_jeep()
@@ -255,39 +262,6 @@ func _update_equipped_weapon(wid: String) -> void:
 		_equipped_gun.position = Vector3(0.20, 1.20, -0.30)
 		add_child(_equipped_gun)
 
-func _cap(h: float, r: float) -> CapsuleShape3D:
-	var c := CapsuleShape3D.new()
-	c.height = h
-	c.radius = r
-	return c
-
-func _box(s: Vector3) -> BoxShape3D:
-	var b := BoxShape3D.new()
-	b.size = s
-	return b
-
-func _add_hitbox(zone: String, mult: float, offset: Vector3, shape: Shape3D) -> void:
-	var area := Area3D.new()
-	area.set_meta("hitbox", true)
-	area.set_meta("player_id", player_id)
-	area.set_meta("zone", zone)
-	area.set_meta("mult", mult)
-	area.collision_layer = 4
-	area.collision_mask = 0
-	area.monitoring = false
-	var col := CollisionShape3D.new()
-	col.shape = shape
-	area.position = offset
-	area.add_child(col)
-	add_child(area)
-	_hitbox_areas.append(area)
-	if zone == "head":
-		_head_area = area
-	elif zone == "torso":
-		_torso_area = area
-	else:
-		_limb_areas.append(area)
-
 func _sanitize_soldier_materials(n: Node) -> void:
 	if n is MeshInstance3D:
 		var mi := n as MeshInstance3D
@@ -322,12 +296,31 @@ func _anim_for(server_anim: String, is_dead: bool) -> String:
 		_:
 			return "Rifle Idle"
 
-func _sync_anim(server_anim: String, is_dead: bool) -> void:
+func _sync_anim(server_anim: String, is_dead: bool, phase: float = 0.0) -> void:
 	var target := _anim_for(server_anim, is_dead)
+	if is_dead:
+		if target != current_anim:
+			current_anim = target
+			if anim and anim.has_animation(target):
+				anim.speed_scale = 1.0
+				anim.play(target, 0.2)
+		return
 	if target != current_anim:
 		current_anim = target
 		if anim and anim.has_animation(target):
-			anim.play(target, 0.2)
+			anim.speed_scale = 0.0
+			anim.play(target, 0.0)
+	if anim and anim.has_animation(target):
+		var clip := anim.get_animation(target)
+		var seek_time := phase
+		if clip.loop_mode != Animation.LOOP_NONE and clip.length > 0.0001:
+			seek_time = fposmod(phase, clip.length)
+		else:
+			seek_time = clampf(phase, 0.0, clip.length)
+		anim.seek(seek_time, true)
+		var hit_skeleton := soldier.get_node_or_null("Armature/Skeleton3D") as Skeleton3D
+		if is_instance_valid(hit_skeleton): hit_skeleton.force_update_all_bone_transforms()
+		if is_instance_valid(_hitbox_helper): _hitbox_helper.update_from_skeleton()
 
 func take_damage(dmg: float, _zone: String = "torso") -> void:
 	if dead:
@@ -370,6 +363,20 @@ func _safe_quat(s: Dictionary) -> Quaternion:
 	if lsq < 0.0001 or not is_finite(lsq):
 		return Quaternion.IDENTITY
 	return q / sqrt(lsq)
+
+func get_hit_view_time_ms() -> int:
+	return hit_view_time_ms
+
+func _lerp_pose_time_ms(a: Dictionary, b: Dictionary, weight: float) -> int:
+	var first := int(a.get("pose_time_ms", 0))
+	var last := int(b.get("pose_time_ms", first))
+	return first + int(round(float(last - first) * clampf(weight, 0.0, 1.0)))
+
+func _project_snapshot_weight(previous: Vector3, latest: Vector3, rendered: Vector3) -> float:
+	var segment := latest - previous
+	if segment.length_squared() < 0.000001:
+		return 1.0
+	return clampf((rendered - previous).dot(segment) / segment.length_squared(), 0.0, 1.0)
 
 func push_state(st: Dictionary) -> void:
 	var now := Time.get_ticks_msec() / 1000.0
@@ -418,10 +425,11 @@ func push_state(st: Dictionary) -> void:
 			if is_instance_valid(a):
 				a.monitorable = true
 				a.collision_layer = 4
-		_sync_anim(anim_str, false)
+		_sync_anim(anim_str, false, float(st.get("animation_time", 0.0)))
 				
 	if is_node_ready() and not dead:
-		_sync_anim(anim_str, false)
+		if _buf.size() == 1:
+			_sync_anim(anim_str, false, float(st.get("animation_time", 0.0)))
 		if is_instance_valid(name_label):
 			name_label.visible = (_current_lod < 2)
 			name_label.modulate = Color(0.35, 0.65, 1.0) if _is_friendly() else Color(1.0, 0.35, 0.3)
@@ -445,6 +453,7 @@ func interpolate(delta: float = 0.016) -> void:
 			var s: Dictionary = _buf[0]["st"]
 			global_position = _safe_pos(s)
 			quaternion = _safe_quat(s)
+			_render_animation(s, s, 0.0)
 		_sync_claimed_jeep_transform()
 		return
 	var rt: float = Time.get_ticks_msec() / 1000.0 - _render_delay
@@ -454,6 +463,7 @@ func interpolate(delta: float = 0.016) -> void:
 	if i >= _buf.size() - 1:
 		# Render time caught up to latest state — frame-rate independent smooth lerp
 		var latest: Dictionary = _buf.back()["st"]
+		var previous: Dictionary = _buf[maxi(0, _buf.size() - 2)]["st"]
 		var target_pos := _safe_pos(latest)
 		if global_position.distance_to(target_pos) > snap_dist:
 			global_position = target_pos
@@ -467,12 +477,15 @@ func interpolate(delta: float = 0.016) -> void:
 		if slerped.length_squared() > 0.0001:
 			quaternion = slerped.normalized()
 		_sync_claimed_jeep_transform()
+		var pose_weight := _project_snapshot_weight(_safe_pos(previous), target_pos, global_position)
+		_render_animation(previous, latest, pose_weight)
 		return
 	var s0: Dictionary = _buf[i]["st"]
 	var s1: Dictionary = _buf[i + 1]["st"]
 	var t0: float = _buf[i]["t"]
 	var t1: float = _buf[i + 1]["t"]
 	if t1 - t0 < 0.000001:
+		_render_animation(s1, s1, 0.0)
 		return
 	var k := clampf((rt - t0) / (t1 - t0), 0.0, 1.0)
 	var p0 := _safe_pos(s0)
@@ -488,6 +501,19 @@ func interpolate(delta: float = 0.016) -> void:
 	if interp_q.length_squared() > 0.0001:
 		quaternion = interp_q.normalized()
 	_sync_claimed_jeep_transform()
+	_render_animation(s0, s1, k)
+
+func _render_animation(a: Dictionary, b: Dictionary, weight: float) -> void:
+	hit_view_time_ms = _lerp_pose_time_ms(a, b, weight)
+	if dead:
+		return
+	var anim_a := String(a.get("anim", "idle"))
+	var anim_b := String(b.get("anim", anim_a))
+	var selected := anim_a if weight < 0.5 or anim_a == anim_b else anim_b
+	var phase_a := float(a.get("animation_time", 0.0))
+	var phase_b := float(b.get("animation_time", phase_a))
+	var phase := lerpf(phase_a, phase_b, weight) if anim_a == anim_b else (phase_a if selected == anim_a else phase_b)
+	_sync_anim(selected, false, phase)
 
 func _sync_claimed_jeep_transform() -> void:
 	pass
@@ -512,47 +538,37 @@ func _update_distance_lod() -> void:
 		name_label.visible = not dead and d >= 2.0 and d <= 60.0
 
 func _set_lod(new_lod: int) -> void:
-	if is_driving and not GameState.practice_mode:
+	if is_driving:
 		for area in _hitbox_areas:
 			if is_instance_valid(area): area.collision_layer = 0
 		return
-	if _current_lod == new_lod or dead:
+	if dead:
 		return
+	var lod_changed := _current_lod != new_lod
 	_current_lod = new_lod
+	# Collision stays anatomically complete at every visual distance. Only
+	# presentation details are reduced by LOD.
+	for area in _hitbox_areas:
+		if is_instance_valid(area): area.collision_layer = 4
+	if not lod_changed:
+		return
 
 	match _current_lod:
-		0: # Near (<45m): Full fidelity, all hitboxes & beacons active
-			for a in _limb_areas:
-				if is_instance_valid(a):
-					a.collision_layer = 4
+		0: # Near (<45m): Full fidelity and beacons active
 			if is_instance_valid(name_label):
 				name_label.visible = true
 				name_label.outline_size = 12
 			for b in _beacons:
 				if is_instance_valid(b):
 					b.visible = not is_driving
-		1: # Mid (45m - 120m): Disable arm/leg hitboxes, simplify nameplate outline
-			for a in _limb_areas:
-				if is_instance_valid(a):
-					a.collision_layer = 4
-			if is_instance_valid(_head_area):
-				_head_area.collision_layer = 4
-			if is_instance_valid(_torso_area):
-				_torso_area.collision_layer = 4
+		1: # Mid (45m - 120m): Simplify nameplate outline
 			if is_instance_valid(name_label):
 				name_label.visible = true
 				name_label.outline_size = 0
 			for b in _beacons:
 				if is_instance_valid(b):
 					b.visible = not is_driving
-		2: # Far (>120m): Disable limb hitboxes, hide beacons & far billboard
-			for a in _limb_areas:
-				if is_instance_valid(a):
-					a.collision_layer = 4
-			if is_instance_valid(_head_area):
-				_head_area.collision_layer = 4
-			if is_instance_valid(_torso_area):
-				_torso_area.collision_layer = 4
+		2: # Far (>120m): Hide beacons and far billboard
 			if is_instance_valid(name_label):
 				name_label.visible = false
 			for b in _beacons:

@@ -3,11 +3,12 @@ package engine
 import (
 	"bytes"
 	"compress/gzip"
+	"sync"
+	"time"
+
 	"github.com/gorilla/websocket"
 	"google.golang.org/protobuf/encoding/protowire"
 	"google.golang.org/protobuf/proto"
-	"sync"
-	"time"
 )
 
 var deliveryCompressors = sync.Pool{New: func() any { w, _ := gzip.NewWriterLevel(nil, gzip.BestSpeed); return w }}
@@ -59,23 +60,108 @@ const deliveryWindow = 4
 const streamDeliveryWindow = 6
 const deliveryTimeout = 5 * time.Second
 
-// Clients opt in explicitly. Old clients keep their original wire format.
-func (s *GameSession) acknowledgeDelivery(sequence uint64) {
-	if sequence > s.lastSent.Load() {
+func (s *GameSession) recordSentAt(sequence uint64, sentAt time.Time) {
+	if sequence == 0 {
 		return
 	}
+	s.sentFramesMu.Lock()
+	s.sentFrames[sequence%uint64(len(s.sentFrames))] = sentFrameRecord{sequence: sequence, sentAt: sentAt}
+	s.sentFramesMu.Unlock()
+}
+
+func (s *GameSession) sentAtFor(sequence uint64) (time.Time, bool) {
+	if sequence == 0 {
+		return time.Time{}, false
+	}
+	s.sentFramesMu.Lock()
+	record := s.sentFrames[sequence%uint64(len(s.sentFrames))]
+	s.sentFramesMu.Unlock()
+	if record.sequence != sequence || record.sentAt.IsZero() {
+		return time.Time{}, false
+	}
+	return record.sentAt, true
+}
+
+// Clients opt in explicitly. Old clients keep their original wire format.
+func (s *GameSession) acknowledgeDelivery(sequence uint64) {
+	s.acknowledgeDeliveryAt(sequence, time.Now())
+}
+
+func (s *GameSession) acknowledgeDeliveryAt(sequence uint64, ackAt time.Time) bool {
+	if sequence > s.lastSent.Load() {
+		return false
+	}
+	previous := s.lastAck.Load()
+	var sentAt time.Time
+	if sequence > previous {
+		var ok bool
+		sentAt, ok = s.sentAtFor(sequence)
+		if !ok || ackAt.Before(sentAt) {
+			return false
+		}
+	}
 	if !s.deliveryAware.Load() {
-		s.lastAckAt.Store(time.Now().UnixNano())
+		s.lastAckAt.Store(ackAt.UnixNano())
 		if s.deliveryAware.CompareAndSwap(false, true) {
 			close(s.deliveryStarted)
 		}
 	}
-	for previous := s.lastAck.Load(); sequence > previous; previous = s.lastAck.Load() {
+	for sequence > previous {
 		if s.lastAck.CompareAndSwap(previous, sequence) {
-			s.lastAckAt.Store(time.Now().UnixNano())
-			break
+			sample := ackAt.Sub(sentAt)
+			if sample > 0 {
+				s.updateRTT(sample)
+			}
+			s.lastAckAt.Store(ackAt.UnixNano())
+			return true
+		}
+		previous = s.lastAck.Load()
+	}
+	return false
+}
+
+func (s *GameSession) updateRTT(sample time.Duration) {
+	for previous := s.rttNanos.Load(); ; previous = s.rttNanos.Load() {
+		next := int64(sample)
+		if previous > 0 {
+			next = previous*7/8 + int64(sample)/8
+		}
+		if s.rttNanos.CompareAndSwap(previous, next) {
+			return
 		}
 	}
+}
+
+// hitRewindWindow estimates the server-side rewind budget from validated frame RTT.
+func (s *GameSession) hitRewindWindow(distanceMetres float64) time.Duration {
+	return s.hitRewindWindowAt(distanceMetres, time.Now())
+}
+
+func (s *GameSession) hitRewindWindowAt(distanceMetres float64, now time.Time) time.Duration {
+	lastAckNanos := s.lastAckAt.Load()
+	if lastAckNanos == 0 {
+		return 0
+	}
+	lastAckAt := time.Unix(0, lastAckNanos)
+	if now.Before(lastAckAt) || now.Sub(lastAckAt) >= deliveryTimeout {
+		return 0
+	}
+	rtt := time.Duration(s.rttNanos.Load())
+	if rtt <= 0 {
+		return 0
+	}
+	renderDelay := 280 * time.Millisecond
+	switch {
+	case distanceMetres <= 35:
+		renderDelay = 80 * time.Millisecond
+	case distanceMetres <= 120:
+		renderDelay = 120 * time.Millisecond
+	}
+	window := rtt + renderDelay + 50*time.Millisecond
+	if window > 750*time.Millisecond {
+		return 750 * time.Millisecond
+	}
+	return window
 }
 
 func (s *GameSession) deliveryAvailable(now time.Time) bool {
@@ -155,6 +241,7 @@ func (s *GameSession) streamBoundedUpdates() {
 				continue
 			}
 			s.networkConn.SetWriteDeadline(now.Add(2 * time.Second))
+			s.recordSentAt(s.lastSent.Load(), time.Now())
 			if err := s.networkConn.WriteMessage(websocket.BinaryMessage, data); err != nil {
 				s.recordDeliveryFailure("write_failed", err)
 				return

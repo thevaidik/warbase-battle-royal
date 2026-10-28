@@ -50,6 +50,7 @@ message HitEvent {
     string target_id = 1;
     int32 damage = 2;
     uint64 shot_id = 3;
+    uint64 view_time_ms = 4; // Target pose timestamp rendered by the shooter.
 }
 
 message FireEvent {
@@ -144,6 +145,8 @@ message PlayerState {
     bool spawn_protected = 21;
     string driving_vehicle_id = 22;
     uint64 ack_input_sequence = 23;
+    float animation_time = 24; // Authoritative clip time, synchronized with hit geometry.
+    uint64 pose_time_ms = 25; // Server timestamp for this exact position/animation sample.
 }
 
 message ServerEvent {

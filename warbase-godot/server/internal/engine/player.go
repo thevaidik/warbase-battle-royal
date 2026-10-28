@@ -2,7 +2,6 @@ package engine
 
 import (
 	"errors"
-	"math"
 	"time"
 )
 
@@ -37,6 +36,11 @@ type Player struct {
 	ShotOrigin      [3]float32
 	ShotEnd         [3]float32
 	ShotID          uint64
+	HitRewindWindow time.Duration
+	HitViewTime     time.Time
+	hitHistory      hitPoseHistory
+	animationName   string
+	animationStart  time.Time
 	IsReloading     bool
 	ReloadStart     time.Time
 	DeathTime       time.Time
@@ -99,7 +103,11 @@ func (p *Player) validateAndApplyFireAt(now time.Time) error {
 
 	// Preserve cadence across packet jitter without granting sustained extra RPM.
 	interval := time.Minute / time.Duration(p.ActiveWeapon.RPM)
-	if now.Add(5 * time.Millisecond).Before(p.NextShotTime) {
+	grace := 35 * time.Millisecond
+	if halfInterval := interval / 2; halfInterval < grace {
+		grace = halfInterval
+	}
+	if !p.NextShotTime.IsZero() && now.Add(grace).Before(p.NextShotTime) {
 		return errors.New("firing rate exceeds limit")
 	}
 
@@ -112,7 +120,7 @@ func (p *Player) validateAndApplyFireAt(now time.Time) error {
 	p.AmmoCount--
 	p.AmmoStore[p.ActiveWeapon.ID] = p.AmmoCount
 	p.LastShotTime = now
-	if p.NextShotTime.Before(now) {
+	if p.NextShotTime.IsZero() || now.Sub(p.NextShotTime) > interval {
 		p.NextShotTime = now
 	}
 	p.NextShotTime = p.NextShotTime.Add(interval)
@@ -139,46 +147,46 @@ func (p *Player) ValidateAndApplyReload() error {
 
 // Returns (isKill, error)
 func (p *Player) ValidateAndApplyHit(target *Player, clientDamage int) (bool, error) {
+	return p.validateAndApplyHitAt(target, clientDamage, time.Now())
+}
+
+func (p *Player) validateAndApplyHitAt(target *Player, clientDamage int, now time.Time) (bool, error) {
 	if p.State.IsDead {
 		return false, errors.New("shooter is dead")
 	}
 	if target.State.IsDead {
 		return false, errors.New("target is already dead")
 	}
-	if p.IsReloading || !p.PendingHit || time.Since(p.LastShotTime) > 800*time.Millisecond {
+	if target.State.DrivingVehicleId != "" {
+		return false, errors.New("target is inside a vehicle")
+	}
+	if p.IsReloading || !p.PendingHit || now.Sub(p.LastShotTime) > 800*time.Millisecond {
 		return false, errors.New("no unconsumed shot")
 	}
 	// One accepted firing event can resolve damage only once.
 	p.PendingHit = false
-	dx, dy, dz := p.ShotEnd[0]-p.ShotOrigin[0], p.ShotEnd[1]-p.ShotOrigin[1], p.ShotEnd[2]-p.ShotOrigin[2]
-	lengthSq := dx*dx + dy*dy + dz*dz
-	if lengthSq < 0.001 {
-		return false, errors.New("invalid shot segment")
-	}
-	tx, ty, tz := target.State.X-p.ShotOrigin[0], target.State.Y+1-p.ShotOrigin[1], target.State.Z-p.ShotOrigin[2]
-	fraction := (tx*dx + ty*dy + tz*dz) / lengthSq
-	if fraction < 0 || fraction > 1.02 {
-		return false, errors.New("target outside shot range")
-	}
-	cx, cy, cz := p.ShotOrigin[0]+fraction*dx, p.ShotOrigin[1]+fraction*dy, p.ShotOrigin[2]+fraction*dz
-	// Horizontal capsule and vertical extent, with modest interpolation tolerance.
-	if (cx-target.State.X)*(cx-target.State.X)+(cz-target.State.Z)*(cz-target.State.Z) > 0.75*0.75 || cy < target.State.Y-0.25 || cy > target.State.Y+2.1 {
+	origin := vector(p.ShotOrigin)
+	end := vector(p.ShotEnd)
+	zone, fraction, hit := traceShotPlayerHit(p, target, now)
+	if !hit {
 		return false, errors.New("shot misses target")
 	}
-	if time.Now().Before(target.ProtectedUntil) {
+	if now.Before(target.ProtectedUntil) {
 		return false, errors.New("target has spawn protection")
 	}
-	damage := p.ActiveWeapon.DamageAtRange(float64(distance(vector(p.ShotOrigin), position(target))))
-	if cy > target.State.Y+1.45 {
-		damage = int(math.Round(float64(damage) * p.ActiveWeapon.HeadshotMultiplier))
-	}
+	dx, dy, dz := end[0]-origin[0], end[1]-origin[1], end[2]-origin[2]
+	hitPoint := vector{origin[0] + fraction*dx, origin[1] + fraction*dy, origin[2] + fraction*dz}
+	damage := p.ActiveWeapon.DamageForZone(float64(distance(origin, hitPoint)), zone)
 	// Damage comes from the server; clientDamage is not trusted.
 	_ = clientDamage
 
-	target.LastImpactPoint = vector{cx, cy, cz}
-	length := float32(math.Sqrt(float64(lengthSq)))
+	target.LastImpactPoint = hitPoint
+	length := float32(distance(origin, end))
+	if length <= 0 || !finite(float64(length)) {
+		return false, errors.New("invalid shot segment")
+	}
 	target.LastImpactDirection = vector{dx / length, dy / length, dz / length}
-	target.LastDamageTime = time.Now()
+	target.LastDamageTime = now
 	target.RegenRemainder = 0
 	target.State.Health -= int32(damage)
 	if target.State.Health <= 0 {
@@ -186,7 +194,7 @@ func (p *Player) ValidateAndApplyHit(target *Player, clientDamage int) (bool, er
 		target.State.IsDead = true
 		target.State.Deaths++
 		target.State.Animation = "death"
-		target.DeathTime = time.Now()
+		target.DeathTime = now
 		p.State.Kills++
 		return true, nil
 	}

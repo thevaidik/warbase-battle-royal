@@ -90,7 +90,7 @@ func NewRoom(id string, name string, mapName string, mode string) *Room {
 		State:           "PLAYING",
 		PlayerEntities:  make([]Player, 0, 128),
 		PlayerIndices:   make(map[string]int),
-		CachedGameState: &GameState{Players: make(map[string]*PlayerState), RoomMode: mode, RoomState: "PLAYING", MapName: mapName, ProtocolVersion: 4},
+		CachedGameState: &GameState{Players: make(map[string]*PlayerState), RoomMode: mode, RoomState: "PLAYING", MapName: mapName, ProtocolVersion: 5},
 		CachedServerMsg: &ServerMessage{},
 		Sessions:        make(map[*GameSession]bool),
 		EmptySince:      time.Now(),
@@ -692,16 +692,28 @@ func (m *Match) processMessage(message Message) {
 					target := &room.PlayerEntities[targetIdx]
 					shooter := &room.PlayerEntities[shooterIdx]
 
-					if room.Mode == "TDM" && shooter.State.Team == target.State.Team && shooter.State.Team != "NONE" {
-						// Friendly fire disabled
+					if event.Hit.ShotId != shooter.ShotID || !shooter.PendingHit {
 						continue
 					}
-
-					if event.Hit.ShotId != shooter.ShotID {
+					if room.Mode == "TDM" && shooter.State.Team == target.State.Team && shooter.State.Team != "NONE" {
+						shooter.PendingHit = false
+						continue
+					}
+					hitTime := time.Now()
+					shooter.HitViewTime = time.Time{}
+					if event.Hit.ViewTimeMs > 0 {
+						if event.Hit.ViewTimeMs > uint64(hitTime.UnixMilli()) || shooter.HitRewindWindow <= 0 {
+							shooter.PendingHit = false
+							continue
+						}
+						shooter.HitViewTime = time.UnixMilli(int64(event.Hit.ViewTimeMs))
+					}
+					if shotBlockedByPlayer(room, shooter, target, hitTime) {
+						shooter.PendingHit = false
 						continue
 					}
 					previousHealth := target.State.Health
-					isKill, err := shooter.ValidateAndApplyHit(target, int(event.Hit.Damage))
+					isKill, err := shooter.validateAndApplyHitAt(target, int(event.Hit.Damage), hitTime)
 					if err == nil {
 						m.broadcastDamage(room, shooter, target, previousHealth-target.State.Health)
 						// Valid hit! Send feedback to shooter
@@ -747,6 +759,11 @@ func (m *Match) processMessage(message Message) {
 						f := event.Fire
 						// Occluded shots still spend ammo and acknowledge their ID; only damage is rejected.
 						origin, end := vector{f.OriginX, f.OriginY, f.OriginZ}, vector{f.HitX, f.HitY, f.HitZ}
+						shooter.HitRewindWindow = 0
+						shooter.HitViewTime = time.Time{}
+						if message.Session != nil {
+							shooter.HitRewindWindow = message.Session.hitRewindWindow(float64(distance(origin, end)))
+						}
 						for _, vehicle := range room.Vehicles {
 							if fraction, hit := vehicleRay(vehicle, origin, end); hit && fraction > 0.001 && fraction < 0.999 {
 								delta := sub(end, origin)
@@ -951,6 +968,12 @@ func (m *Match) respawnPlayer(room *Room, p *Player) {
 	if p.State.DrivingVehicleId != "" {
 		m.releaseVehicle(room, p)
 	}
+	p.hitHistory = hitPoseHistory{}
+	p.HitRewindWindow = 0
+	p.HitViewTime = time.Time{}
+	p.animationStart = time.Time{}
+	p.animationName = ""
+	p.State.AnimationTime = 0
 	p.State.Health = 100
 	p.State.IsDead = false
 	p.State.Animation = "idle"

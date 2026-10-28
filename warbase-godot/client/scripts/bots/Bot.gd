@@ -12,6 +12,7 @@ extends CharacterBody3D
 signal died(bot_name: String, killer: String, is_headshot: bool, source: String)
 
 const SCENE: PackedScene = preload("res://scenes/Bot.tscn")
+const SkeletalHitboxesScript: Script = preload("res://scripts/core/skeletal_hitboxes.gd")
 
 enum AIState {
 	PATROL,
@@ -60,6 +61,7 @@ var _burst_recoil_climb := 0.0
 # Visuals & Components
 var _current_anim := ""
 var _hitbox_areas: Array[Area3D] = []
+var _hitbox_helper: Node
 var _weapon_model: Node3D
 var _bone_attachment: BoneAttachment3D
 var _nameplate: Label3D
@@ -114,12 +116,9 @@ func _ready() -> void:
 	_nameplate.modulate = Color(1.0, 0.35, 0.3) if team == "B" else Color(0.35, 0.65, 1.0)
 	add_child(_nameplate)
 	
-	_add_hitbox("head", 2.5, Vector3(0, 1.62, 0), _capsule_shape(0.38, 0.12))
-	_add_hitbox("torso", 1.0, Vector3(0, 1.05, 0), _box_shape(Vector3(0.42, 0.6, 0.32)))
-	_add_hitbox("arm", 0.8, Vector3(-0.3, 1.2, 0), _capsule_shape(0.26, 0.07))
-	_add_hitbox("arm", 0.8, Vector3(0.3, 1.2, 0), _capsule_shape(0.26, 0.07))
-	_add_hitbox("leg", 0.6, Vector3(-0.12, 0.45, 0), _capsule_shape(0.6, 0.09))
-	_add_hitbox("leg", 0.6, Vector3(0.12, 0.45, 0), _capsule_shape(0.6, 0.09))
+	var hit_skeleton := soldier.get_node_or_null("Armature/Skeleton3D") as Skeleton3D
+	_hitbox_helper = SkeletalHitboxesScript.new()
+	_hitbox_areas = _hitbox_helper.setup(self, hit_skeleton, bot_name)
 	
 	_play("Rifle Idle")
 
@@ -183,35 +182,6 @@ func _play(anim_name: String) -> void:
 	_current_anim = anim_name
 	if anim and anim.has_animation(anim_name):
 		anim.play(anim_name, 0.22)
-
-func _capsule_shape(h: float, r: float) -> CapsuleShape3D:
-	var c := CapsuleShape3D.new()
-	c.height = h
-	c.radius = r
-	return c
-
-func _box_shape(s: Vector3) -> BoxShape3D:
-	var b := BoxShape3D.new()
-	b.size = s
-	return b
-
-func _add_hitbox(zone: String, mult: float, offset: Vector3, shape: Shape3D) -> void:
-	var area := Area3D.new()
-	area.name = "hitbox_%s" % zone
-	area.set_meta("hitbox", true)
-	area.set_meta("player_id", bot_name)
-	area.set_meta("zone", zone)
-	area.set_meta("mult", mult)
-	area.collision_layer = 4
-	area.collision_mask = 0
-	area.monitoring = false
-	area.monitorable = true
-	var col := CollisionShape3D.new()
-	col.shape = shape
-	area.position = offset
-	area.add_child(col)
-	add_child(area)
-	_hitbox_areas.append(area)
 
 func set_target(t: Node3D) -> void:
 	_target = t

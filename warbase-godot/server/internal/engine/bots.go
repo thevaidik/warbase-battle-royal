@@ -365,30 +365,8 @@ func (m *Match) fireBot(room *Room, p, target *Player, now time.Time) {
 		m.damageVehicle(room, p, hitCar, int32(p.ActiveWeapon.DamageAtRange(float64(distance(origin, end)))))
 	}
 	p.ShotEnd = [3]float32(end)
-	// First capsule along the ray wins, including friendly bodies that block shots.
-	var victim *Player
-	nearest := float32(math.MaxFloat32)
-	for i := range room.PlayerEntities {
-		other := &room.PlayerEntities[i]
-		if other.ID == p.ID || other.State.IsDead {
-			continue
-		}
-		ray := sub(end, origin)
-		square := dot(ray, ray)
-		if square < 0.001 {
-			continue
-		}
-		fraction := dot(sub(vector{other.State.X, other.State.Y + 1, other.State.Z}, origin), ray) / square
-		if fraction < 0 || fraction > 1 {
-			continue
-		}
-		point := vector{origin[0] + ray[0]*fraction, origin[1] + ray[1]*fraction, origin[2] + ray[2]*fraction}
-		dx, dz := point[0]-other.State.X, point[2]-other.State.Z
-		if dx*dx+dz*dz <= 0.42*0.42 && point[1] >= other.State.Y && point[1] <= other.State.Y+1.8 && fraction < nearest {
-			victim = other
-			nearest = fraction
-		}
-	}
+	// The first anatomical hit wins, including friendly bodies that block shots.
+	victim := firstPlayerOnShot(room, p, origin, end)
 	if hitCar == nil && victim != nil && enemies(room, p, victim) && !room.Geometry.blocked(origin, eye(victim)) {
 		previousHealth := victim.State.Health
 		if killed, err := p.ValidateAndApplyHit(victim, 0); err == nil {
@@ -411,6 +389,23 @@ func (m *Match) fireBot(room *Room, p, target *Player, now time.Time) {
 		b.shots = 0
 		b.burstUntil = now.Add(time.Duration(450+b.rng.IntN(350)) * time.Millisecond)
 	}
+}
+
+func firstPlayerOnShot(room *Room, shooter *Player, origin, end vector) *Player {
+	var victim *Player
+	nearest := float32(math.MaxFloat32)
+	for i := range room.PlayerEntities {
+		other := &room.PlayerEntities[i]
+		if other.ID == shooter.ID || other.State.IsDead || other.State.DrivingVehicleId != "" {
+			continue
+		}
+		pose := currentHitPose(other, time.Now())
+		if _, fraction, hit := traceAnimatedPlayerHit(origin, end, pose.position, pose.rotation, pose.animation, pose.phase); hit && fraction < nearest {
+			victim = other
+			nearest = fraction
+		}
+	}
+	return victim
 }
 
 // Called once after authoritative damage has incremented the shooter's kills.

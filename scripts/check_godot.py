@@ -18,6 +18,7 @@ commands = [
     (["--script", "res://scripts/tests/test_grenade_ballistics.gd", "--fixed-fps", "60"], "GRENADE BALLISTICS TEST: 0 failures"),
     (["--script", "res://scripts/tests/test_industrial_collision.gd", "--fixed-fps", "60"], "INDUSTRIAL COLLISION TEST: 0 failures"),
     (["--script", "res://scripts/tests/test_weapon_handling.gd", "--fixed-fps", "60"], "WEAPON TEST: 0 failures"),
+    (["--script", "res://scripts/tests/test_hitboxes.gd", "--fixed-fps", "60"], "HITBOX TEST: 0 failures"),
     (["res://scenes/Main.tscn", "--fixed-fps", "60", "--", "autotest", "host=localhost:18091"], "AUTOTEST: DONE"),
 ]
 for arguments, marker in commands:

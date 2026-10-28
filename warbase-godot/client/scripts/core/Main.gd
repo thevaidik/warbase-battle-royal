@@ -541,6 +541,8 @@ func bot_shoot_fx(from: Vector3, to: Vector3) -> void:
 	Audio.shoot("ak47")
 
 func _on_local_hit_confirmed(_target: String, _damage: int, is_kill: bool, is_headshot: bool) -> void:
+	if not GameState.practice_mode:
+		return
 	hud.flash_hitmarker(is_kill, is_headshot)
 	Audio.hitmarker(is_kill)
 
@@ -581,9 +583,9 @@ func _on_player_damaged(attacker_dir: Vector3, amount: float) -> void:
 		hud.add_damage_indicator(rel)
 
 func _on_state(state: Dictionary) -> void:
-	if not GameState.practice_mode and int(state.get("protocol_version", 0)) != 4:
+	if not GameState.practice_mode and int(state.get("protocol_version", 0)) != 5:
 		net.disconnect_from()
-		hud.feed("Server version mismatch. Update the client and server together.", Color(1, 0.4, 0.3))
+		hud.feed("Game updated. Refresh the page or reopen the latest build.", Color(1, 0.4, 0.3))
 		return
 	var server_map := String(state.get("map_name", ""))
 	if not GameState.practice_mode and not server_map.is_empty() and server_map != GameState.selected_map:

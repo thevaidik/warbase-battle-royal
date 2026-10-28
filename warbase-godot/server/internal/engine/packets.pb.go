@@ -740,6 +740,7 @@ type HitEvent struct {
 	TargetId      string                 `protobuf:"bytes,1,opt,name=target_id,json=targetId,proto3" json:"target_id,omitempty"`
 	Damage        int32                  `protobuf:"varint,2,opt,name=damage,proto3" json:"damage,omitempty"`
 	ShotId        uint64                 `protobuf:"varint,3,opt,name=shot_id,json=shotId,proto3" json:"shot_id,omitempty"`
+	ViewTimeMs    uint64                 `protobuf:"varint,4,opt,name=view_time_ms,json=viewTimeMs,proto3" json:"view_time_ms,omitempty"` // Target pose timestamp rendered by the shooter.
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -791,6 +792,13 @@ func (x *HitEvent) GetDamage() int32 {
 func (x *HitEvent) GetShotId() uint64 {
 	if x != nil {
 		return x.ShotId
+	}
+	return 0
+}
+
+func (x *HitEvent) GetViewTimeMs() uint64 {
+	if x != nil {
+		return x.ViewTimeMs
 	}
 	return 0
 }
@@ -1486,6 +1494,8 @@ type PlayerState struct {
 	SpawnProtected    bool                   `protobuf:"varint,21,opt,name=spawn_protected,json=spawnProtected,proto3" json:"spawn_protected,omitempty"`
 	DrivingVehicleId  string                 `protobuf:"bytes,22,opt,name=driving_vehicle_id,json=drivingVehicleId,proto3" json:"driving_vehicle_id,omitempty"`
 	AckInputSequence  uint64                 `protobuf:"varint,23,opt,name=ack_input_sequence,json=ackInputSequence,proto3" json:"ack_input_sequence,omitempty"`
+	AnimationTime     float32                `protobuf:"fixed32,24,opt,name=animation_time,json=animationTime,proto3" json:"animation_time,omitempty"` // Authoritative clip time, synchronized with hit geometry.
+	PoseTimeMs        uint64                 `protobuf:"varint,25,opt,name=pose_time_ms,json=poseTimeMs,proto3" json:"pose_time_ms,omitempty"`         // Server timestamp for this exact position/animation sample.
 	unknownFields     protoimpl.UnknownFields
 	sizeCache         protoimpl.SizeCache
 }
@@ -1677,6 +1687,20 @@ func (x *PlayerState) GetDrivingVehicleId() string {
 func (x *PlayerState) GetAckInputSequence() uint64 {
 	if x != nil {
 		return x.AckInputSequence
+	}
+	return 0
+}
+
+func (x *PlayerState) GetAnimationTime() float32 {
+	if x != nil {
+		return x.AnimationTime
+	}
+	return 0
+}
+
+func (x *PlayerState) GetPoseTimeMs() uint64 {
+	if x != nil {
+		return x.PoseTimeMs
 	}
 	return 0
 }
@@ -2467,11 +2491,13 @@ const file_packets_proto_rawDesc = "" +
 	"\x04ping\x18\n" +
 	" \x01(\x05R\x04ping\x12\x1b\n" +
 	"\tweapon_id\x18\v \x01(\tR\bweaponId\x12%\n" +
-	"\x0einput_sequence\x18\f \x01(\x04R\rinputSequence\"X\n" +
+	"\x0einput_sequence\x18\f \x01(\x04R\rinputSequence\"z\n" +
 	"\bHitEvent\x12\x1b\n" +
 	"\ttarget_id\x18\x01 \x01(\tR\btargetId\x12\x16\n" +
 	"\x06damage\x18\x02 \x01(\x05R\x06damage\x12\x17\n" +
-	"\ashot_id\x18\x03 \x01(\x04R\x06shotId\"\xa0\x02\n" +
+	"\ashot_id\x18\x03 \x01(\x04R\x06shotId\x12 \n" +
+	"\fview_time_ms\x18\x04 \x01(\x04R\n" +
+	"viewTimeMs\"\xa0\x02\n" +
 	"\tFireEvent\x12\x19\n" +
 	"\borigin_x\x18\x01 \x01(\x02R\aoriginX\x12\x19\n" +
 	"\borigin_y\x18\x02 \x01(\x02R\aoriginY\x12\x19\n" +
@@ -2534,7 +2560,7 @@ const file_packets_proto_rawDesc = "" +
 	"\x05value\x18\x02 \x01(\v2\x14.warbase.PlayerStateR\x05value:\x028\x01\x1aR\n" +
 	"\rVehiclesEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12+\n" +
-	"\x05value\x18\x02 \x01(\v2\x15.warbase.VehicleStateR\x05value:\x028\x01\"\xf2\x04\n" +
+	"\x05value\x18\x02 \x01(\v2\x15.warbase.VehicleStateR\x05value:\x028\x01\"\xbb\x05\n" +
 	"\vPlayerState\x12\f\n" +
 	"\x01x\x18\x01 \x01(\x02R\x01x\x12\f\n" +
 	"\x01y\x18\x02 \x01(\x02R\x01y\x12\f\n" +
@@ -2562,7 +2588,10 @@ const file_packets_proto_rawDesc = "" +
 	"\x12grenades_remaining\x18\x14 \x01(\x05R\x11grenadesRemaining\x12'\n" +
 	"\x0fspawn_protected\x18\x15 \x01(\bR\x0espawnProtected\x12,\n" +
 	"\x12driving_vehicle_id\x18\x16 \x01(\tR\x10drivingVehicleId\x12,\n" +
-	"\x12ack_input_sequence\x18\x17 \x01(\x04R\x10ackInputSequence\"\xea\x03\n" +
+	"\x12ack_input_sequence\x18\x17 \x01(\x04R\x10ackInputSequence\x12%\n" +
+	"\x0eanimation_time\x18\x18 \x01(\x02R\ranimationTime\x12 \n" +
+	"\fpose_time_ms\x18\x19 \x01(\x04R\n" +
+	"poseTimeMs\"\xea\x03\n" +
 	"\vServerEvent\x121\n" +
 	"\arespawn\x18\x01 \x01(\v2\x15.warbase.RespawnEventH\x00R\arespawn\x12.\n" +
 	"\x04fire\x18\x02 \x01(\v2\x18.warbase.ServerFireEventH\x00R\x04fire\x12A\n" +

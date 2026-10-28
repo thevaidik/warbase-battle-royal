@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"hash/fnv"
 	"sync"
+	"time"
 
 	"google.golang.org/protobuf/encoding/protowire"
 	"google.golang.org/protobuf/proto"
@@ -48,15 +49,17 @@ func (rm *ReplicationManager) BroadcastRoomState(room *Room) {
 
 	// Immutable wire entries are shared by every viewer for this update.
 	encodedPlayers := make(map[string][]byte, len(room.PlayerEntities))
+	poseTime := time.Now()
 	for i := range room.PlayerEntities {
 		p := &room.PlayerEntities[i]
+		p.recordHitPose(poseTime)
 		state, _ := proto.Marshal(p.State)
 		entry := protowire.AppendTag(nil, 1, protowire.BytesType)
 		entry = protowire.AppendString(entry, p.ID)
 		entry = protowire.AppendTag(entry, 2, protowire.BytesType)
 		encodedPlayers[p.ID] = protowire.AppendBytes(entry, state)
 	}
-	metadata, _ := proto.Marshal(&GameState{RoomMode: room.Mode, RoomState: room.State, ScoreTeamA: room.ScoreTeamA, ScoreTeamB: room.ScoreTeamB, WinnerId: room.WinnerID, MapName: room.MapName, ProtocolVersion: 4, TimeOfDay: room.TimeOfDay})
+	metadata, _ := proto.Marshal(&GameState{RoomMode: room.Mode, RoomState: room.State, ScoreTeamA: room.ScoreTeamA, ScoreTeamB: room.ScoreTeamB, WinnerId: room.WinnerID, MapName: room.MapName, ProtocolVersion: 5, TimeOfDay: room.TimeOfDay})
 
 	if rm.lastVehicles == nil {
 		rm.lastVehicles = make(map[string][]byte)
@@ -195,7 +198,7 @@ func (rm *ReplicationManager) BroadcastRoomState(room *Room) {
 					ScoreTeamA: room.ScoreTeamA,
 					ScoreTeamB: room.ScoreTeamB,
 					WinnerId:   room.WinnerID,
-					MapName:    room.MapName, ProtocolVersion: 4, TimeOfDay: room.TimeOfDay, Vehicles: room.CachedGameState.Vehicles,
+					MapName:    room.MapName, ProtocolVersion: 5, TimeOfDay: room.TimeOfDay, Vehicles: room.CachedGameState.Vehicles,
 				},
 			},
 		}
