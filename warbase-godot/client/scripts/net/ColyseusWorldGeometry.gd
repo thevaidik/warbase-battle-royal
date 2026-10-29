@@ -198,6 +198,11 @@ static func floor_height(x: float, z: float, from_y: float = 100.0) -> Variant:
 
 
 static func _capsule_blocked(from: Vector3, to: Vector3, radius: float, height: float, horizontal_only: bool = false) -> bool:
+	# A zero-length sweep cannot hit a triangle: the ray/triangle determinant is
+	# zero for every sample. Avoid constructing 7 x 13 degenerate rays on axes
+	# that did not move; this preserves the exact collision result.
+	if from == to:
+		return false
 	var delta_y := to.y - from.y
 	for y_offset in CAPSULE_LEVELS:
 		if y_offset > height:
