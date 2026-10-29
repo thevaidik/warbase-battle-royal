@@ -88,6 +88,7 @@ func _on_state(state: Dictionary) -> void:
 			GameState.local_deaths = int(me.get("deaths"))
 
 func _process(delta: float) -> void:
+	var sdk_remote_poses: Dictionary = net.get_sdk_remote_poses() if net.has_method("get_sdk_remote_poses") else {}
 	# Join bursts must not build dozens of skinned soldiers and guns in one frame.
 	var created := 0
 	for pid in _pending_remotes.keys():
@@ -97,13 +98,23 @@ func _process(delta: float) -> void:
 		if Time.get_ticks_msec() - int(pending.seen) > 3000: continue
 		var st: Dictionary = pending.state
 		var remote := WarRemote.create(pid,st)
+		if net.has_method("get_sdk_remote_poses"):
+			remote.use_server_authoritative_remote_pose()
 		remote.set_meta("last_seen",pending.seen)
 		remotes[pid] = remote
 		world.add_child(remote)
 		remote.global_position = Vector3(float(st.get("x",0)),float(st.get("y",0)),float(st.get("z",0)))
 		created += 1
 	for r in remotes.values():
-		(r as WarRemote).interpolate(delta)
+		var remote := r as WarRemote
+		if not sdk_remote_poses.is_empty():
+			var pose: Dictionary = sdk_remote_poses.get(remote.player_id, {})
+			if not pose.is_empty():
+				remote.apply_sdk_pose(pose, delta)
+			else:
+				remote.interpolate(delta)
+		else:
+			remote.interpolate(delta)
 
 func _on_fire(shooter: String, origin: Vector3, hit: Vector3, normal: Vector3, wall: bool) -> void:
 	if shooter == local_name:

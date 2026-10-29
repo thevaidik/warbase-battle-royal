@@ -1,13 +1,17 @@
 package main
 
 import (
+	"context"
 	"io"
+	"net/http"
 	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/gorilla/websocket"
 	"warbase-server/internal/engine"
 	"warbase-server/internal/jsonlog"
 )
@@ -104,5 +108,133 @@ func TestAssetTransferRefreshesDeadlineForEveryChunk(t *testing.T) {
 	writer.Write([]byte("two"))
 	if len(underlying.deadlines) != 2 || time.Until(underlying.deadlines[1]) < 29*time.Second || underlying.Body.String() != "onetwo" {
 		t.Fatal("large asset transfer retains the original whole-response deadline")
+	}
+}
+
+func TestColyseusCandidateURLValidation(t *testing.T) {
+	for _, valid := range []string{"http://127.0.0.1:8081", "https://colyseus.example:8443"} {
+		if _, err := parseColyseusCandidateURL(valid); err != nil {
+			t.Errorf("valid candidate URL %q rejected: %v", valid, err)
+		}
+	}
+	for _, invalid := range []string{"", "ws://colyseus.example", "https:///missing-host", "https://user:secret@colyseus.example", "https://colyseus.example?x=1", "https://colyseus.example#fragment"} {
+		if _, err := parseColyseusCandidateURL(invalid); err == nil {
+			t.Errorf("invalid candidate URL %q accepted", invalid)
+		}
+	}
+}
+
+func TestColyseusCandidateHTTPProxyStripsPrefix(t *testing.T) {
+	type observedRequest struct{ path, query, prefix string }
+	observed := make(chan observedRequest, 1)
+	upstream := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		observed <- observedRequest{r.URL.Path, r.URL.RawQuery, r.Header.Get("X-Forwarded-Prefix")}
+		w.WriteHeader(http.StatusOK)
+		_, _ = io.WriteString(w, "matchmaking")
+	}))
+	defer upstream.Close()
+
+	app := testApp(t)
+	app.config.colyseusURL = upstream.URL
+	response := httptest.NewRecorder()
+	app.routes().ServeHTTP(response, httptest.NewRequest(http.MethodPost, "/colyseus/matchmake/joinOrCreate/battle?room=industrial-public", strings.NewReader("{}")))
+	if response.Code != http.StatusOK || response.Body.String() != "matchmaking" {
+		t.Fatalf("unexpected proxy response: %d %q", response.Code, response.Body.String())
+	}
+	got := <-observed
+	if got.path != "/matchmake/joinOrCreate/battle" || got.query != "room=industrial-public" || got.prefix != "/colyseus" {
+		t.Fatalf("prefix was not stripped/preserved correctly: %+v", got)
+	}
+}
+
+func TestColyseusCandidateRootMatchmakeProxyPreservesPath(t *testing.T) {
+	type observedRequest struct{ path, query, prefix string }
+	observed := make(chan observedRequest, 1)
+	upstream := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		observed <- observedRequest{r.URL.Path, r.URL.RawQuery, r.Header.Get("X-Forwarded-Prefix")}
+		w.WriteHeader(http.StatusCreated)
+		_, _ = io.WriteString(w, `{"room":{"roomId":"candidate"}}`)
+	}))
+	defer upstream.Close()
+
+	app := testApp(t)
+	app.config.colyseusURL = upstream.URL
+	response := httptest.NewRecorder()
+	app.routes().ServeHTTP(response, httptest.NewRequest(http.MethodPost, "/matchmake/joinOrCreate/battle?room=industrial-public", strings.NewReader(`{"username":"qa"}`)))
+	if response.Code != http.StatusCreated || !strings.Contains(response.Body.String(), "candidate") {
+		t.Fatalf("unexpected root matchmaking proxy response: %d %q", response.Code, response.Body.String())
+	}
+	got := <-observed
+	if got.path != "/matchmake/joinOrCreate/battle" || got.query != "room=industrial-public" || got.prefix != "/colyseus" {
+		t.Fatalf("root matchmaking path was not preserved: %+v", got)
+	}
+}
+
+func TestColyseusCandidateWebSocketProxy(t *testing.T) {
+	upgrader := websocket.Upgrader{CheckOrigin: func(*http.Request) bool { return true }}
+	seenPath := make(chan string, 1)
+	upstream := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		seenPath <- r.URL.Path
+		conn, err := upgrader.Upgrade(w, r, nil)
+		if err != nil {
+			return
+		}
+		defer conn.Close()
+		_ = conn.SetReadDeadline(time.Now().Add(2 * time.Second))
+		kind, message, err := conn.ReadMessage()
+		if err == nil {
+			_ = conn.WriteMessage(kind, message)
+		}
+	}))
+	defer upstream.Close()
+
+	app := testApp(t)
+	app.config.colyseusURL = upstream.URL
+	proxyServer := httptest.NewServer(app.routes())
+	defer proxyServer.Close()
+	wsURL := "ws" + strings.TrimPrefix(proxyServer.URL, "http") + "/colyseus/matchmake/seat-reservation?token=abc"
+	conn, response, err := websocket.DefaultDialer.DialContext(context.Background(), wsURL, nil)
+	if err != nil {
+		if response != nil {
+			t.Fatalf("websocket proxy handshake failed: %v (HTTP %d)", err, response.StatusCode)
+		}
+		t.Fatal(err)
+	}
+	defer conn.Close()
+	if err := conn.SetReadDeadline(time.Now().Add(2 * time.Second)); err != nil {
+		t.Fatal(err)
+	}
+	if err := conn.WriteMessage(websocket.TextMessage, []byte("seat")); err != nil {
+		t.Fatal(err)
+	}
+	_, echoed, err := conn.ReadMessage()
+	if err != nil || string(echoed) != "seat" {
+		t.Fatalf("websocket echo failed: message=%q err=%v", echoed, err)
+	}
+	select {
+	case path := <-seenPath:
+		if path != "/matchmake/seat-reservation" {
+			t.Fatalf("upstream websocket path retained prefix: %q", path)
+		}
+	case <-time.After(2 * time.Second):
+		t.Fatal("upstream did not receive websocket request")
+	}
+}
+
+func TestColyseusCandidateBarePathRedirects(t *testing.T) {
+	app := testApp(t)
+	app.config.colyseusURL = "http://127.0.0.1:8081"
+	response := httptest.NewRecorder()
+	app.routes().ServeHTTP(response, httptest.NewRequest(http.MethodGet, "/colyseus", nil))
+	if response.Code != http.StatusPermanentRedirect || response.Header().Get("Location") != "/colyseus/" {
+		t.Fatalf("expected /colyseus redirect, got %d location=%q", response.Code, response.Header().Get("Location"))
+	}
+
+	app = testApp(t)
+	app.config.staticDir = t.TempDir()
+	response = httptest.NewRecorder()
+	app.routes().ServeHTTP(response, httptest.NewRequest(http.MethodGet, "/colyseus/", nil))
+	if response.Code != http.StatusNotFound || response.Header().Get("Location") != "" {
+		t.Fatalf("unset candidate URL unexpectedly mounted a proxy route: %d location=%q", response.Code, response.Header().Get("Location"))
 	}
 }

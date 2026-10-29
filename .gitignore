@@ -25,4 +25,9 @@ asset_backups/
 warbase-godot/server/server_bin*
 warbase-godot/server/warbase-server
 warbase-godot/server/game
+warbase-godot/client/addons/colyseus/bin/
+warbase-godot/client/candidate-dist/
+warbase-godot/client/candidate-web-dist/
+warbase-godot/client/candidate-static/
+scripts/__pycache__/
 

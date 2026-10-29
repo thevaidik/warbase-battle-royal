@@ -12,6 +12,7 @@ const NetScript := preload("res://scripts/net/NetworkManager.gd")
 const HudScript := preload("res://scripts/ui/HUD.gd")
 const MenuScript := preload("res://scripts/ui/MainMenu.gd")
 const CombatJeepScript := preload("res://scripts/vehicles/CombatJeep.gd")
+const ColyseusNetScript := preload("res://scripts/net/ColyseusNetwork.gd")
 
 enum Phase { MENU, PLAYING, PAUSED, DEAD }
 
@@ -46,6 +47,7 @@ var _last_damage_feedback_ms := -1000
 
 var _autotest := false
 var _qa_active := false
+var _use_colyseus := false
 var _test_t := 0.0
 var _test_stage := 0
 
@@ -79,6 +81,8 @@ func _ready() -> void:
 		ev_c.physical_keycode = KEY_C
 		InputMap.action_add_event("crouch", ev_c)
 	for a in OS.get_cmdline_user_args():
+		if a == "qa_colyseus" or a == "backend=colyseus":
+			_use_colyseus = true
 		if a == "autotest":
 			_autotest = true
 			GameState.practice_mode = true
@@ -89,13 +93,19 @@ func _ready() -> void:
 			GameState.room_id = GameState.selected_map + "-public"
 		if a.begins_with("host="):
 			GameState.server_host = a.trim_prefix("host=")
+	if OS.has_feature("web"):
+		var web_backend := String(JavaScriptBridge.eval("new URLSearchParams(window.location.search).get('backend') || ''"))
+		var web_qa_colyseus := String(JavaScriptBridge.eval("new URLSearchParams(window.location.search).get('qa_colyseus') || ''"))
+		var web_path := String(JavaScriptBridge.eval("window.location.pathname"))
+		if web_backend.to_lower() == "colyseus" or web_backend.to_lower() == "qa_colyseus" or web_qa_colyseus == "1" or web_path == "/colyseus" or web_path.begins_with("/colyseus/"):
+			_use_colyseus = true
 			
 	world = Node3D.new()
 	world.name = "World"
 	world.process_mode = Node.PROCESS_MODE_PAUSABLE
 	add_child(world)
 	
-	net = NetScript.new()
+	net = ColyseusNetScript.new() if _use_colyseus else NetScript.new()
 	net.name = "Net"
 	net.process_mode = Node.PROCESS_MODE_ALWAYS
 	add_child(net)
@@ -124,7 +134,10 @@ func _ready() -> void:
 		if phase != Phase.MENU: call_deferred("_return_after_connection_error", reason)
 	)
 
-	if "qa_official" in OS.get_cmdline_user_args():
+	var run_official_probe := "qa_official" in OS.get_cmdline_user_args()
+	if OS.has_feature("web"):
+		run_official_probe = run_official_probe or String(JavaScriptBridge.eval("new URLSearchParams(window.location.search).get('qa_official') || ''")) == "1"
+	if run_official_probe:
 		_qa_active = true
 		var probe = load("res://scripts/qa/OfficialProbe.gd").new()
 		add_child(probe)
@@ -198,6 +211,7 @@ func _start_match() -> void:
 	# Instantiate player from Player.tscn
 	const PlayerScene: PackedScene = preload("res://scenes/Player.tscn")
 	player = PlayerScene.instantiate() as WarPlayer
+	player.colyseus_authoritative_sim = _use_colyseus and not GameState.practice_mode
 	world.add_child(player)
 	sway_root = player.get_node("Head/Camera3D/SwayRoot") as Node3D
 	var cam := player.get_node("Head/Camera3D") as Camera3D
@@ -611,7 +625,7 @@ func _on_state(state: Dictionary) -> void:
 		# the client, rather than leaving the death screen latched indefinitely.
 		if is_instance_valid(player) and player.is_dead and player.get_meta("respawn_requested", false) and not bool(me.get("is_dead", false)) and remote_hp > 0:
 			_on_net_respawn(Vector3(float(me.get("x", 0)), float(me.get("y", 0)), float(me.get("z", 0))) + Vector3.UP * 0.2)
-		if not GameState.practice_mode and is_instance_valid(player) and not player.is_dead and not player.is_driving:
+		if not _use_colyseus and not GameState.practice_mode and is_instance_valid(player) and not player.is_dead and not player.is_driving:
 			var sequence := int(me.get("ack_input_sequence",0))
 			var acknowledged = net.take_acknowledged_position(sequence)
 			if acknowledged is Vector3 and sequence > _reconcile_after_sequence:
@@ -848,6 +862,8 @@ func _process(delta: float) -> void:
 			var basis := Basis(Quaternion(Vector3.UP, player.yaw))
 			var wep_id := GameState.weapon_id_for_index(weapons.active_index) if weapons else "ak47"
 			net.send_state(player.global_position, Quaternion(basis), anim, wep_id)
+			if net.has_method("send_aim_pitch"):
+				net.send_aim_pitch(player.pitch)
 		
 	if _autotest:
 		_autotest_tick(delta)

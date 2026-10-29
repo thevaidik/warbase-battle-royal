@@ -547,7 +547,12 @@ func try_fire() -> void:
 		player.head.rotation.x = player.pitch
 	
 	if net and net.connected:
-		net.send_fire(start, hit_pos, hit_norm, hit_wall, _shot_seq)
+		if net.has_method("send_aim_pitch"):
+			var fire_yaw := atan2(-cam_dir.x, -cam_dir.z)
+			var fire_pitch := -asin(clampf(cam_dir.y, -1.0, 1.0))
+			net.call("send_fire_with_aim", start, hit_pos, hit_norm, hit_wall, _shot_seq, fire_yaw, fire_pitch)
+		else:
+			net.send_fire(start, hit_pos, hit_norm, hit_wall, _shot_seq)
 		if has_hit_target and not hit_target.is_empty():
 			net.send_hit(hit_target, hit_dmg, _shot_seq, hit_view_time_ms)
 	fired.emit(active_index)
@@ -761,8 +766,8 @@ func _process(delta: float) -> void:
 		return
 	var cfg := current_config()
 	var active_scene := get_tree().current_scene
-	var qa_input := is_instance_valid(active_scene) and bool(active_scene.get("_qa_active"))
-	var input_enabled := GameState.online_ready and (Input.mouse_mode == Input.MOUSE_MODE_CAPTURED or qa_input) and not player.is_dead and not player.is_driving
+	var qa_input: bool = is_instance_valid(active_scene) and active_scene.get("_qa_active") == true
+	var input_enabled: bool = GameState.online_ready and (Input.mouse_mode == Input.MOUSE_MODE_CAPTURED or qa_input) and not player.is_dead and not player.is_driving
 	is_firing = input_enabled and Input.is_action_pressed("fire")
 	if not input_enabled:
 		player.aim_sway = Vector2.ZERO
@@ -908,7 +913,7 @@ func _process(delta: float) -> void:
 	_air_lag_rx = lerpf(_air_lag_rx, target_air_rx, clampf(12.0 * delta, 0.0, 1.0))
 		
 	# Breath exhaustion requires release and recovery, rather than toggling every frame.
-	var breath_pressed := input_enabled and Input.is_action_pressed("sprint")
+	var breath_pressed: bool = input_enabled and Input.is_action_pressed("sprint")
 	if not breath_pressed and breath_stamina >= 0.3:
 		_breath_exhausted = false
 	is_holding_breath = is_scoped() and ads_amount > 0.9 and breath_pressed and not _breath_exhausted and breath_stamina > 0.0 and Vector2(player.velocity.x, player.velocity.z).length() < 1.0

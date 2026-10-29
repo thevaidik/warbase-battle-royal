@@ -31,6 +31,7 @@ var health := 100.0
 var _since_damage := 0.0
 var _spawn_protection := 2.5
 var is_driving := false
+var colyseus_authoritative_sim := false
 
 func set_driving(driving: bool) -> void:
 	_step_active = false
@@ -193,6 +194,10 @@ func _process(delta: float) -> void:
 func _physics_process(delta: float) -> void:
 	if is_dead or is_driving or not GameState.online_ready:
 		velocity = Vector3.ZERO
+		return
+	if colyseus_authoritative_sim:
+		# ColyseusNetwork applies the SDK reconciler's predicted pose each frame.
+		# Keep Godot's parallel CharacterBody movement disabled for this backend.
 		return
 		
 	jump_cooldown = maxf(0.0, jump_cooldown - delta)

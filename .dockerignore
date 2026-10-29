@@ -7,3 +7,11 @@ audit
 **/server_bin*
 **/warbase-server
 **/game
+**/node_modules
+**/dist
+**/.godot
+audit
+warbase-godot/client/candidate-dist
+warbase-godot/client/*
+!warbase-godot/client/candidate-static
+!warbase-godot/client/candidate-static/**

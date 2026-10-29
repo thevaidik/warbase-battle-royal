@@ -19,6 +19,7 @@ type config struct {
 	diagnosticsPort int
 	staticDir       string
 	env             string
+	colyseusURL     string
 }
 
 type application struct {
@@ -39,8 +40,14 @@ func main() {
 	flag.StringVar(&cfg.staticDir, "static-dir", os.Getenv("DIST_DIR"), "Directory containing the Godot Web export")
 	flag.IntVar(&cfg.diagnosticsPort, "diagnostics-port", 0, "Optional container-loopback profiling port (0 disables)")
 	flag.Parse()
+	cfg.colyseusURL = os.Getenv("COLYSEUS_CANDIDATE_URL")
 
 	logger := jsonlog.New(os.Stdout, jsonlog.LevelInfo)
+	if cfg.colyseusURL != "" {
+		if _, err := parseColyseusCandidateURL(cfg.colyseusURL); err != nil {
+			logger.PrintFatal(err, map[string]string{"env": "COLYSEUS_CANDIDATE_URL"})
+		}
+	}
 
 	if cfg.diagnosticsPort > 0 {
 		listener, err := net.Listen("tcp", fmt.Sprintf("127.0.0.1:%d", cfg.diagnosticsPort))

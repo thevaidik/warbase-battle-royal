@@ -1,0 +1,6 @@
+Colyseus Godot SDK 0.18.7
+Source: https://github.com/colyseus/native-sdk/releases/tag/godot-v0.18.7
+Asset: https://github.com/colyseus/native-sdk/releases/download/godot-v0.18.7/colyseus-godot-0.18.7.zip
+SHA-256: e7a0ecab03084c98033de55dfd03abb8336e02d0284af32025e53e6946f9510d
+Extracted runtime targets: macOS arm64, Web wasm32
+License: MIT (LICENSE; upstream LICENSE at the tag above)

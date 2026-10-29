@@ -1,0 +1,816 @@
+{
+  "test": "official-colyseus-sdk-buffered-input-load",
+  "endpoint": "https://war.vaidik.blog/colyseus",
+  "roomId": "8becd331-0602-4b36-9c9c-6e187da606a4",
+  "map": "industrial",
+  "result": "duration_complete",
+  "runSeconds": 241.2,
+  "requested": {
+    "sdkPeers": 63,
+    "nativeObserverUsername": "QA_NATIVE",
+    "humansTotalTarget": 64,
+    "durationSeconds": 180,
+    "maxWallSeconds": 480,
+    "sdk": "0.18",
+    "roomCreationMs": 836,
+    "sdkJoinLatencyP95Ms": 4247
+  },
+  "observed": {
+    "sdkPeersJoined": 63,
+    "nativeObserverSeen": false,
+    "humanActorsAtPeak": 64,
+    "maxPlayersIncludingBots": 64,
+    "maxBotsObserved": 7,
+    "serverStatePatches": 825,
+    "statePlayersAtLastSample": 8,
+    "maxClients": 64
+  },
+  "input": {
+    "tickRateHz": 60,
+    "sent": 705263,
+    "ackAdvances": 694047,
+    "zeroSendResults": 148,
+    "maxPendingInputFrames": 356,
+    "peersWithAckStalls": 20442
+  },
+  "gameplay": {
+    "shotsAttempted": 63,
+    "fireEchoes": 63,
+    "confirmedHits": 38,
+    "grenadeAttempts": 8,
+    "grenadesAccepted": 8,
+    "uniqueExplosionsSeen": 8,
+    "seatAttempts": 24,
+    "vehicleApproachInputs": 73280,
+    "seatEntries": 15,
+    "vehicleInputs": 799,
+    "damageEvents": 92,
+    "killEvents": 0
+  },
+  "authoritativeMovement": {
+    "sampledSdkPlayers": 63,
+    "playersMovedOverHalfMeter": 63,
+    "totalPathMeters": 7172.87,
+    "playersWithPositionUpdates": 63
+  },
+  "vehicleMovement": {
+    "vehiclesSampled": 2,
+    "vehiclesMoved": 2,
+    "totalVehiclePathMeters": 14.63
+  },
+  "lifecycle": {
+    "controlledTransportDrops": 1,
+    "drops": 1,
+    "reconnects": 1,
+    "clientLeaves": 63,
+    "sdkCohortRemovalsExpected": 62,
+    "sdkCohortRemovalsObserved": 62,
+    "remainingHumanActorsAfterSdkLeaves": 1,
+    "serverClientsAfterSdkLeaves": 0,
+    "serverBotsAfterSdkLeaves": 0,
+    "cleanupRemovalTimedOut": false,
+    "errors": 0
+  },
+  "network": {
+    "sdkPingRttP50Ms": 764,
+    "sdkPingRttP95Ms": 1342,
+    "sdkClockRttP50Ms": 1470.93,
+    "sdkClockSmoothedRttP95Ms": 1503.14,
+    "inputAckTotalSamples": 36,
+    "ackPendingMeanP95": 195.68,
+    "ackPendingFrameMax": 219,
+    "roomStateGapP50Ms": 60,
+    "roomStateGapP95Ms": 1215,
+    "roomStateGapMaxMs": 2415
+  },
+  "helperResources": {
+    "rssP95Bytes": 134791168,
+    "heapP95Bytes": 43302744,
+    "processCpuUserMs": 36870.3,
+    "processCpuSystemMs": 16280.2,
+    "eventLoopP95MsMax": 24.543231,
+    "samples": [
+      {
+        "at": 1793240681119,
+        "rssBytes": 123027456,
+        "heapUsedBytes": 38429088,
+        "cpuUserMs": 3774.335,
+        "cpuSystemMs": 876.619,
+        "eventLoopP95Ms": 20.774911,
+        "eventLoopMaxMs": 102.957055,
+        "serverRoomClients": 0,
+        "serverRoomBots": 0
+      },
+      {
+        "at": 1793240686120,
+        "rssBytes": 127746048,
+        "heapUsedBytes": 43221232,
+        "cpuUserMs": 5218.811,
+        "cpuSystemMs": 1356.1,
+        "eventLoopP95Ms": 21.725183,
+        "eventLoopMaxMs": 24.133631,
+        "serverRoomClients": 0,
+        "serverRoomBots": 0
+      },
+      {
+        "at": 1793240691120,
+        "rssBytes": 132395008,
+        "heapUsedBytes": 38440136,
+        "cpuUserMs": 6216.219,
+        "cpuSystemMs": 1734.48,
+        "eventLoopP95Ms": 21.118975,
+        "eventLoopMaxMs": 23.281663,
+        "serverRoomClients": 0,
+        "serverRoomBots": 0
+      },
+      {
+        "at": 1793240696123,
+        "rssBytes": 129359872,
+        "heapUsedBytes": 39903464,
+        "cpuUserMs": 7421.791,
+        "cpuSystemMs": 2245.382,
+        "eventLoopP95Ms": 23.986175,
+        "eventLoopMaxMs": 34.766847,
+        "serverRoomClients": 0,
+        "serverRoomBots": 0
+      },
+      {
+        "at": 1793240701124,
+        "rssBytes": 129081344,
+        "heapUsedBytes": 39838392,
+        "cpuUserMs": 8343.538,
+        "cpuSystemMs": 2706.121,
+        "eventLoopP95Ms": 22.904831,
+        "eventLoopMaxMs": 26.820607,
+        "serverRoomClients": 0,
+        "serverRoomBots": 0
+      },
+      {
+        "at": 1793240706123,
+        "rssBytes": 135110656,
+        "heapUsedBytes": 42548712,
+        "cpuUserMs": 9328.5,
+        "cpuSystemMs": 3066.181,
+        "eventLoopP95Ms": 21.594111,
+        "eventLoopMaxMs": 23.724031,
+        "serverRoomClients": 0,
+        "serverRoomBots": 0
+      },
+      {
+        "at": 1793240711123,
+        "rssBytes": 132161536,
+        "heapUsedBytes": 37449448,
+        "cpuUserMs": 10680.671,
+        "cpuSystemMs": 3560.223,
+        "eventLoopP95Ms": 21.741567,
+        "eventLoopMaxMs": 24.526847,
+        "serverRoomClients": 0,
+        "serverRoomBots": 0
+      },
+      {
+        "at": 1793240716123,
+        "rssBytes": 131837952,
+        "heapUsedBytes": 38984384,
+        "cpuUserMs": 11614.236,
+        "cpuSystemMs": 3972.643,
+        "eventLoopP95Ms": 21.741567,
+        "eventLoopMaxMs": 23.625727,
+        "serverRoomClients": 0,
+        "serverRoomBots": 0
+      },
+      {
+        "at": 1793240721124,
+        "rssBytes": 131715072,
+        "heapUsedBytes": 38236280,
+        "cpuUserMs": 12566.046,
+        "cpuSystemMs": 4412.006,
+        "eventLoopP95Ms": 21.250047,
+        "eventLoopMaxMs": 25.231359,
+        "serverRoomClients": 0,
+        "serverRoomBots": 0
+      },
+      {
+        "at": 1793240726123,
+        "rssBytes": 131563520,
+        "heapUsedBytes": 40892160,
+        "cpuUserMs": 13443.848,
+        "cpuSystemMs": 4812.216,
+        "eventLoopP95Ms": 21.282815,
+        "eventLoopMaxMs": 23.543807,
+        "serverRoomClients": 0,
+        "serverRoomBots": 0
+      },
+      {
+        "at": 1793240731124,
+        "rssBytes": 131710976,
+        "heapUsedBytes": 45037880,
+        "cpuUserMs": 14336.918,
+        "cpuSystemMs": 5207.083,
+        "eventLoopP95Ms": 21.282815,
+        "eventLoopMaxMs": 22.855679,
+        "serverRoomClients": 0,
+        "serverRoomBots": 0
+      },
+      {
+        "at": 1793240736123,
+        "rssBytes": 131928064,
+        "heapUsedBytes": 35158000,
+        "cpuUserMs": 15241.325,
+        "cpuSystemMs": 5588.76,
+        "eventLoopP95Ms": 21.020671,
+        "eventLoopMaxMs": 23.232511,
+        "serverRoomClients": 0,
+        "serverRoomBots": 0
+      },
+      {
+        "at": 1793240741123,
+        "rssBytes": 131842048,
+        "heapUsedBytes": 38453368,
+        "cpuUserMs": 16088.214,
+        "cpuSystemMs": 5963.136,
+        "eventLoopP95Ms": 21.954559,
+        "eventLoopMaxMs": 23.281663,
+        "serverRoomClients": 0,
+        "serverRoomBots": 0
+      },
+      {
+        "at": 1793240746124,
+        "rssBytes": 132259840,
+        "heapUsedBytes": 40185104,
+        "cpuUserMs": 16940.833,
+        "cpuSystemMs": 6342.181,
+        "eventLoopP95Ms": 21.037055,
+        "eventLoopMaxMs": 23.248895,
+        "serverRoomClients": 0,
+        "serverRoomBots": 0
+      },
+      {
+        "at": 1793240751123,
+        "rssBytes": 132640768,
+        "heapUsedBytes": 43730000,
+        "cpuUserMs": 17714.056,
+        "cpuSystemMs": 6798.761,
+        "eventLoopP95Ms": 21.020671,
+        "eventLoopMaxMs": 22.511615,
+        "serverRoomClients": 0,
+        "serverRoomBots": 0
+      },
+      {
+        "at": 1793240756124,
+        "rssBytes": 132456448,
+        "heapUsedBytes": 40799568,
+        "cpuUserMs": 18518.937,
+        "cpuSystemMs": 7090.2,
+        "eventLoopP95Ms": 21.004287,
+        "eventLoopMaxMs": 23.035903,
+        "serverRoomClients": 0,
+        "serverRoomBots": 0
+      },
+      {
+        "at": 1793240761123,
+        "rssBytes": 133177344,
+        "heapUsedBytes": 34537704,
+        "cpuUserMs": 19502.465,
+        "cpuSystemMs": 7439.544,
+        "eventLoopP95Ms": 21.184511,
+        "eventLoopMaxMs": 23.707647,
+        "serverRoomClients": 0,
+        "serverRoomBots": 0
+      },
+      {
+        "at": 1793240766123,
+        "rssBytes": 133156864,
+        "heapUsedBytes": 35646152,
+        "cpuUserMs": 20226.335,
+        "cpuSystemMs": 7826.677,
+        "eventLoopP95Ms": 20.905983,
+        "eventLoopMaxMs": 22.593535,
+        "serverRoomClients": 0,
+        "serverRoomBots": 0
+      },
+      {
+        "at": 1793240771123,
+        "rssBytes": 133554176,
+        "heapUsedBytes": 38933376,
+        "cpuUserMs": 20985.132,
+        "cpuSystemMs": 8259.631,
+        "eventLoopP95Ms": 21.020671,
+        "eventLoopMaxMs": 23.658495,
+        "serverRoomClients": 0,
+        "serverRoomBots": 0
+      },
+      {
+        "at": 1793240776123,
+        "rssBytes": 133115904,
+        "heapUsedBytes": 41469048,
+        "cpuUserMs": 21848.816,
+        "cpuSystemMs": 8595.789,
+        "eventLoopP95Ms": 21.037055,
+        "eventLoopMaxMs": 23.756799,
+        "serverRoomClients": 0,
+        "serverRoomBots": 0
+      },
+      {
+        "at": 1793240781124,
+        "rssBytes": 133472256,
+        "heapUsedBytes": 41160560,
+        "cpuUserMs": 22652.434,
+        "cpuSystemMs": 8959.879,
+        "eventLoopP95Ms": 20.987903,
+        "eventLoopMaxMs": 23.199743,
+        "serverRoomClients": 0,
+        "serverRoomBots": 0
+      },
+      {
+        "at": 1793240786123,
+        "rssBytes": 133246976,
+        "heapUsedBytes": 42349080,
+        "cpuUserMs": 23483.864,
+        "cpuSystemMs": 9261.242,
+        "eventLoopP95Ms": 20.955135,
+        "eventLoopMaxMs": 23.396351,
+        "serverRoomClients": 0,
+        "serverRoomBots": 0
+      },
+      {
+        "at": 1793240791124,
+        "rssBytes": 133902336,
+        "heapUsedBytes": 38466640,
+        "cpuUserMs": 24335.175,
+        "cpuSystemMs": 9654.429,
+        "eventLoopP95Ms": 20.955135,
+        "eventLoopMaxMs": 25.706495,
+        "serverRoomClients": 0,
+        "serverRoomBots": 0
+      },
+      {
+        "at": 1793240796124,
+        "rssBytes": 133734400,
+        "heapUsedBytes": 36086280,
+        "cpuUserMs": 25328.1,
+        "cpuSystemMs": 10078.388,
+        "eventLoopP95Ms": 23.216127,
+        "eventLoopMaxMs": 27.049983,
+        "serverRoomClients": 0,
+        "serverRoomBots": 0
+      },
+      {
+        "at": 1793240801124,
+        "rssBytes": 133742592,
+        "heapUsedBytes": 39311016,
+        "cpuUserMs": 26292.334,
+        "cpuSystemMs": 10470.792,
+        "eventLoopP95Ms": 23.396351,
+        "eventLoopMaxMs": 28.213247,
+        "serverRoomClients": 0,
+        "serverRoomBots": 0
+      },
+      {
+        "at": 1793240806125,
+        "rssBytes": 133971968,
+        "heapUsedBytes": 42484336,
+        "cpuUserMs": 27150.973,
+        "cpuSystemMs": 10962.175,
+        "eventLoopP95Ms": 23.281663,
+        "eventLoopMaxMs": 29.900799,
+        "serverRoomClients": 0,
+        "serverRoomBots": 0
+      },
+      {
+        "at": 1793240811125,
+        "rssBytes": 133427200,
+        "heapUsedBytes": 41434592,
+        "cpuUserMs": 28076.209,
+        "cpuSystemMs": 11387.581,
+        "eventLoopP95Ms": 23.314431,
+        "eventLoopMaxMs": 25.231359,
+        "serverRoomClients": 0,
+        "serverRoomBots": 0
+      },
+      {
+        "at": 1793240816125,
+        "rssBytes": 133668864,
+        "heapUsedBytes": 36318800,
+        "cpuUserMs": 29151.941,
+        "cpuSystemMs": 11888.331,
+        "eventLoopP95Ms": 23.740415,
+        "eventLoopMaxMs": 27.049983,
+        "serverRoomClients": 0,
+        "serverRoomBots": 0
+      },
+      {
+        "at": 1793240821125,
+        "rssBytes": 134434816,
+        "heapUsedBytes": 39357472,
+        "cpuUserMs": 30098.592,
+        "cpuSystemMs": 12483.64,
+        "eventLoopP95Ms": 24.363007,
+        "eventLoopMaxMs": 28.524543,
+        "serverRoomClients": 0,
+        "serverRoomBots": 0
+      },
+      {
+        "at": 1793240826125,
+        "rssBytes": 134262784,
+        "heapUsedBytes": 42031552,
+        "cpuUserMs": 31100.382,
+        "cpuSystemMs": 13057.166,
+        "eventLoopP95Ms": 24.133631,
+        "eventLoopMaxMs": 28.704767,
+        "serverRoomClients": 0,
+        "serverRoomBots": 0
+      },
+      {
+        "at": 1793240831125,
+        "rssBytes": 134012928,
+        "heapUsedBytes": 39641728,
+        "cpuUserMs": 32106.793,
+        "cpuSystemMs": 13637.36,
+        "eventLoopP95Ms": 24.395775,
+        "eventLoopMaxMs": 29.753343,
+        "serverRoomClients": 0,
+        "serverRoomBots": 0
+      },
+      {
+        "at": 1793240836128,
+        "rssBytes": 133931008,
+        "heapUsedBytes": 43302744,
+        "cpuUserMs": 33046.562,
+        "cpuSystemMs": 14098.417,
+        "eventLoopP95Ms": 23.691263,
+        "eventLoopMaxMs": 25.427967,
+        "serverRoomClients": 0,
+        "serverRoomBots": 0
+      },
+      {
+        "at": 1793240841129,
+        "rssBytes": 134152192,
+        "heapUsedBytes": 41602800,
+        "cpuUserMs": 34000.365,
+        "cpuSystemMs": 14591.135,
+        "eventLoopP95Ms": 23.281663,
+        "eventLoopMaxMs": 27.230207,
+        "serverRoomClients": 0,
+        "serverRoomBots": 0
+      },
+      {
+        "at": 1793240846131,
+        "rssBytes": 134791168,
+        "heapUsedBytes": 36827400,
+        "cpuUserMs": 35042.374,
+        "cpuSystemMs": 15112.451,
+        "eventLoopP95Ms": 24.100863,
+        "eventLoopMaxMs": 27.541503,
+        "serverRoomClients": 0,
+        "serverRoomBots": 0
+      },
+      {
+        "at": 1793240851131,
+        "rssBytes": 134791168,
+        "heapUsedBytes": 39768920,
+        "cpuUserMs": 36051.578,
+        "cpuSystemMs": 15708.503,
+        "eventLoopP95Ms": 24.543231,
+        "eventLoopMaxMs": 27.557887,
+        "serverRoomClients": 0,
+        "serverRoomBots": 0
+      },
+      {
+        "at": 1793240856132,
+        "rssBytes": 134807552,
+        "heapUsedBytes": 37222136,
+        "cpuUserMs": 37049.973,
+        "cpuSystemMs": 16297.006,
+        "eventLoopP95Ms": 24.313855,
+        "eventLoopMaxMs": 26.607615,
+        "serverRoomClients": 0,
+        "serverRoomBots": 0
+      }
+    ]
+  },
+  "serverContainerResources": "Collected separately by scripts/run_colyseus_official_load.sh via docker stats; cohort executes on the server network/host, so its route and RTT differ from the Mac observer.",
+  "errorSamples": [
+    {
+      "username": "SDKmvsx5vdzGate",
+      "type": "leave",
+      "code": 4000,
+      "reason": ""
+    },
+    {
+      "username": "SDKmvsx5vdz01",
+      "type": "drop",
+      "code": 1005,
+      "reason": ""
+    },
+    {
+      "username": "SDKmvsx5vdz01",
+      "type": "leave",
+      "code": 4000,
+      "reason": ""
+    },
+    {
+      "username": "SDKmvsx5vdz02",
+      "type": "leave",
+      "code": 4000,
+      "reason": ""
+    },
+    {
+      "username": "SDKmvsx5vdz03",
+      "type": "leave",
+      "code": 4000,
+      "reason": ""
+    },
+    {
+      "username": "SDKmvsx5vdz04",
+      "type": "leave",
+      "code": 4000,
+      "reason": ""
+    },
+    {
+      "username": "SDKmvsx5vdz05",
+      "type": "leave",
+      "code": 4000,
+      "reason": ""
+    },
+    {
+      "username": "SDKmvsx5vdz06",
+      "type": "leave",
+      "code": 4000,
+      "reason": ""
+    },
+    {
+      "username": "SDKmvsx5vdz07",
+      "type": "leave",
+      "code": 4000,
+      "reason": ""
+    },
+    {
+      "username": "SDKmvsx5vdz08",
+      "type": "leave",
+      "code": 4000,
+      "reason": ""
+    },
+    {
+      "username": "SDKmvsx5vdz09",
+      "type": "leave",
+      "code": 4000,
+      "reason": ""
+    },
+    {
+      "username": "SDKmvsx5vdz10",
+      "type": "leave",
+      "code": 4000,
+      "reason": ""
+    },
+    {
+      "username": "SDKmvsx5vdz11",
+      "type": "leave",
+      "code": 4000,
+      "reason": ""
+    },
+    {
+      "username": "SDKmvsx5vdz12",
+      "type": "leave",
+      "code": 4000,
+      "reason": ""
+    },
+    {
+      "username": "SDKmvsx5vdz13",
+      "type": "leave",
+      "code": 4000,
+      "reason": ""
+    },
+    {
+      "username": "SDKmvsx5vdz14",
+      "type": "leave",
+      "code": 4000,
+      "reason": ""
+    },
+    {
+      "username": "SDKmvsx5vdz15",
+      "type": "leave",
+      "code": 4000,
+      "reason": ""
+    },
+    {
+      "username": "SDKmvsx5vdz16",
+      "type": "leave",
+      "code": 4000,
+      "reason": ""
+    },
+    {
+      "username": "SDKmvsx5vdz17",
+      "type": "leave",
+      "code": 4000,
+      "reason": ""
+    },
+    {
+      "username": "SDKmvsx5vdz18",
+      "type": "leave",
+      "code": 4000,
+      "reason": ""
+    },
+    {
+      "username": "SDKmvsx5vdz19",
+      "type": "leave",
+      "code": 4000,
+      "reason": ""
+    },
+    {
+      "username": "SDKmvsx5vdz20",
+      "type": "leave",
+      "code": 4000,
+      "reason": ""
+    },
+    {
+      "username": "SDKmvsx5vdz21",
+      "type": "leave",
+      "code": 4000,
+      "reason": ""
+    },
+    {
+      "username": "SDKmvsx5vdz22",
+      "type": "leave",
+      "code": 4000,
+      "reason": ""
+    },
+    {
+      "username": "SDKmvsx5vdz23",
+      "type": "leave",
+      "code": 4000,
+      "reason": ""
+    },
+    {
+      "username": "SDKmvsx5vdz24",
+      "type": "leave",
+      "code": 4000,
+      "reason": ""
+    },
+    {
+      "username": "SDKmvsx5vdz25",
+      "type": "leave",
+      "code": 4000,
+      "reason": ""
+    },
+    {
+      "username": "SDKmvsx5vdz26",
+      "type": "leave",
+      "code": 4000,
+      "reason": ""
+    },
+    {
+      "username": "SDKmvsx5vdz27",
+      "type": "leave",
+      "code": 4000,
+      "reason": ""
+    },
+    {
+      "username": "SDKmvsx5vdz28",
+      "type": "leave",
+      "code": 4000,
+      "reason": ""
+    },
+    {
+      "username": "SDKmvsx5vdz29",
+      "type": "leave",
+      "code": 4000,
+      "reason": ""
+    },
+    {
+      "username": "SDKmvsx5vdz30",
+      "type": "leave",
+      "code": 4000,
+      "reason": ""
+    },
+    {
+      "username": "SDKmvsx5vdz31",
+      "type": "leave",
+      "code": 4000,
+      "reason": ""
+    },
+    {
+      "username": "SDKmvsx5vdz32",
+      "type": "leave",
+      "code": 4000,
+      "reason": ""
+    },
+    {
+      "username": "SDKmvsx5vdz33",
+      "type": "leave",
+      "code": 4000,
+      "reason": ""
+    },
+    {
+      "username": "SDKmvsx5vdz34",
+      "type": "leave",
+      "code": 4000,
+      "reason": ""
+    },
+    {
+      "username": "SDKmvsx5vdz35",
+      "type": "leave",
+      "code": 4000,
+      "reason": ""
+    },
+    {
+      "username": "SDKmvsx5vdz36",
+      "type": "leave",
+      "code": 4000,
+      "reason": ""
+    },
+    {
+      "username": "SDKmvsx5vdz37",
+      "type": "leave",
+      "code": 4000,
+      "reason": ""
+    },
+    {
+      "username": "SDKmvsx5vdz38",
+      "type": "leave",
+      "code": 4000,
+      "reason": ""
+    },
+    {
+      "username": "SDKmvsx5vdz39",
+      "type": "leave",
+      "code": 4000,
+      "reason": ""
+    },
+    {
+      "username": "SDKmvsx5vdz40",
+      "type": "leave",
+      "code": 4000,
+      "reason": ""
+    },
+    {
+      "username": "SDKmvsx5vdz41",
+      "type": "leave",
+      "code": 4000,
+      "reason": ""
+    },
+    {
+      "username": "SDKmvsx5vdz42",
+      "type": "leave",
+      "code": 4000,
+      "reason": ""
+    },
+    {
+      "username": "SDKmvsx5vdz43",
+      "type": "leave",
+      "code": 4000,
+      "reason": ""
+    },
+    {
+      "username": "SDKmvsx5vdz44",
+      "type": "leave",
+      "code": 4000,
+      "reason": ""
+    },
+    {
+      "username": "SDKmvsx5vdz45",
+      "type": "leave",
+      "code": 4000,
+      "reason": ""
+    },
+    {
+      "username": "SDKmvsx5vdz46",
+      "type": "leave",
+      "code": 4000,
+      "reason": ""
+    },
+    {
+      "username": "SDKmvsx5vdz47",
+      "type": "leave",
+      "code": 4000,
+      "reason": ""
+    },
+    {
+      "username": "SDKmvsx5vdz48",
+      "type": "leave",
+      "code": 4000,
+      "reason": ""
+    }
+  ],
+  "limits": {
+    "officialUrlGuard": true,
+    "directTransformMutation": false,
+    "localCapacityRun": false,
+    "loadPeersIncludeBots": false,
+    "nodeContainerCpu": "2.0 cores",
+    "nodeContainerMemory": "1536 MiB",
+    "nodeContainerPids": 128
+  },
+  "evidenceCoverage": {
+    "authoritativeMovement": true,
+    "fireEcho": true,
+    "confirmedHit": true,
+    "acceptedGrenade": true,
+    "explosion": true,
+    "vehicleSeatEntry": true,
+    "vehicleInputsSent": true,
+    "vehicleMotion": true,
+    "sdkCleanupObserved": true
+  },
+  "missingEvidence": [],
+  "coverageStatus": "complete"
+}

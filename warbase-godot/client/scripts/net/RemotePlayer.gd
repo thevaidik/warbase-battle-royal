@@ -29,6 +29,8 @@ var hit_view_time_ms := 0
 var _hit_react := 0.0
 var dead := false
 var is_driving := false
+var sdk_pose_driven := false
+var server_authoritative_remote_pose := false
 
 var _buf: Array = []
 var _render_delay := 0.065
@@ -82,10 +84,15 @@ func _ready() -> void:
 		old_gun.queue_free()
 	_update_equipped_weapon(weapon_id)
 	
-	# Anatomical hitboxes
-	var hit_skeleton := soldier.get_node_or_null("Armature/Skeleton3D") as Skeleton3D
-	_hitbox_helper = SkeletalHitboxesScript.new()
-	_hitbox_areas = _hitbox_helper.setup(self, hit_skeleton, player_id)
+	# Colyseus resolves animated hitboxes on the server from rewound poses. Keep
+	# one coarse torso capsule for client tracers/aim feedback, and avoid building
+	# or updating 14 local bone capsules for every remote actor.
+	if server_authoritative_remote_pose:
+		_setup_server_authoritative_hitbox()
+	else:
+		var hit_skeleton := soldier.get_node_or_null("Armature/Skeleton3D") as Skeleton3D
+		_hitbox_helper = SkeletalHitboxesScript.new()
+		_hitbox_areas = _hitbox_helper.setup(self, hit_skeleton, player_id)
 	for area in _hitbox_areas:
 		match String(area.get_meta("zone", "")):
 			"head":
@@ -109,6 +116,34 @@ func _ready() -> void:
 		name_label.text = " %s  [%d HP]" % [player_id, int(health)]
 		
 	push_state(st)
+
+func use_server_authoritative_remote_pose() -> void:
+	server_authoritative_remote_pose = true
+
+func _setup_server_authoritative_hitbox() -> void:
+	var area := Area3D.new()
+	area.name = "server_authoritative_torso_hint"
+	area.set_meta("hitbox", true)
+	area.set_meta("player_id", player_id)
+	area.set_meta("zone", "torso")
+	area.set_meta("mult", 1.0)
+	area.set_meta("from_bone", "coarse_body")
+	area.set_meta("to_bone", "coarse_body")
+	area.set_meta("radius", 0.4)
+	area.collision_layer = 4
+	area.collision_mask = 0
+	area.monitoring = false
+	area.monitorable = true
+	var collision := CollisionShape3D.new()
+	var capsule := CapsuleShape3D.new()
+	capsule.radius = 0.4
+	capsule.height = 1.8
+	collision.shape = capsule
+	collision.position.y = 0.9
+	area.add_child(collision)
+	add_child(area)
+	_hitbox_areas = [area]
+	_torso_area = area
 
 func _exit_tree() -> void:
 	_release_claimed_map_jeep()
@@ -298,6 +333,17 @@ func _anim_for(server_anim: String, is_dead: bool) -> String:
 
 func _sync_anim(server_anim: String, is_dead: bool, phase: float = 0.0) -> void:
 	var target := _anim_for(server_anim, is_dead)
+	if server_authoritative_remote_pose:
+		if target == current_anim:
+			return
+		current_anim = target
+		if anim and anim.has_animation(target):
+			anim.speed_scale = 1.0
+			anim.play(target, 0.0)
+			anim.seek(phase, true)
+			var hit_skeleton := soldier.get_node_or_null("Armature/Skeleton3D") as Skeleton3D
+			if is_instance_valid(hit_skeleton): hit_skeleton.force_update_all_bone_transforms()
+		return
 	if is_dead:
 		if target != current_anim:
 			current_anim = target
@@ -428,6 +474,8 @@ func push_state(st: Dictionary) -> void:
 		_sync_anim(anim_str, false, float(st.get("animation_time", 0.0)))
 				
 	if is_node_ready() and not dead:
+		if server_authoritative_remote_pose:
+			_sync_anim(anim_str, false, float(st.get("animation_time", 0.0)))
 		if _buf.size() == 1:
 			_sync_anim(anim_str, false, float(st.get("animation_time", 0.0)))
 		if is_instance_valid(name_label):
@@ -439,6 +487,7 @@ func react_to_hit() -> void:
 	if not dead: _hit_react = 0.18
 
 func interpolate(delta: float = 0.016) -> void:
+	if sdk_pose_driven: return
 	_hit_react = maxf(0, _hit_react - delta)
 	if is_instance_valid(soldier): soldier.rotation.z = sin((1.0 - _hit_react/0.18) * PI) * 0.035 if _hit_react > 0 else 0.0
 	_lod_timer += delta
@@ -502,6 +551,24 @@ func interpolate(delta: float = 0.016) -> void:
 		quaternion = interp_q.normalized()
 	_sync_claimed_jeep_transform()
 	_render_animation(s0, s1, k)
+
+func apply_sdk_pose(st: Dictionary, delta: float = 0.016) -> void:
+	sdk_pose_driven = true
+	_hit_react = maxf(0.0, _hit_react - delta)
+	_lod_timer += delta
+	if _lod_timer >= 0.2:
+		_lod_timer = 0.0
+		_update_distance_lod()
+	global_position = _safe_pos(st)
+	quaternion = _safe_quat(st)
+	hit_view_time_ms = int(st.get("pose_time_ms", Time.get_ticks_msec()))
+	if bool(st.get("is_dead", false)):
+		dead = true
+		_sync_anim("death", true)
+	else:
+		dead = false
+		_render_animation(st, st, 0.0)
+	_sync_claimed_jeep_transform()
 
 func _render_animation(a: Dictionary, b: Dictionary, weight: float) -> void:
 	hit_view_time_ms = _lerp_pose_time_ms(a, b, weight)

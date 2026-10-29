@@ -67,7 +67,7 @@ Native macOS export: `make export-godot-mac`. Distribution signing/notarization 
 
 Rooms use Dawn (06:00), Noon (12:00), Dusk (18:00), or Night (00:00). Public servers choose randomly and may change on a new round; custom servers retain the time selected at creation. The server list and HUD show the preset. Loft 17 is no longer playable or advertised.
 
-The service simulates at 60 Hz and sends interpolated world snapshots at 30 Hz, with distance tiers for remote entities. Incoming transforms are coalesced, and unsent partial snapshots preserve rare AOI entities when replaced.
+The service simulates at 60 Hz and sends world snapshots at up to 20 Hz, with distance tiers for remote entities. Clients interpolate those updates. Incoming transforms are coalesced, and unsent partial snapshots preserve rare AOI entities when replaced. See [performance and improvements](GAME_PERFORMANCE_AND_IMPROVEMENTS.md) for measurements and limitations.
 
 ## Release status
 

@@ -1,6 +1,8 @@
 ## Explicit CLI QA mode for the official server; inactive in ordinary play.
 extends Node
 ## Real rendered observer. Explicit official room only; never creates a local server.
+const OFFICIAL_HOST := "war.vaidik.blog"
+const COLYSEUS_CANDIDATE_HOST := "war.vaidik.blog/colyseus"
 var main
 var elapsed := 0.0
 var frames: Array[float] = []
@@ -30,6 +32,9 @@ var local_respawns := 0
 var next_grenade := 75.0
 var applied_corrections := 0
 var previous_watermark := 0
+var sdk_reconcile_seq_max := 0
+var sdk_ack_sequence_max := 0
+var sdk_inputs_sent_max := 0
 var respawn_at_ms := 0
 var last_pos := Vector3.ZERO
 var walking_distance := 0.0
@@ -43,7 +48,19 @@ func begin(game: Node) -> void:
 	call_deferred("run")
 func run() -> void:
 	var state = get_tree().root.get_node("GameState")
-	state.server_host = "war.vaidik.blog"
+	var candidate_backend := OS.get_cmdline_user_args().has("qa_colyseus")
+	if OS.has_feature("web"):
+		candidate_backend = candidate_backend or String(JavaScriptBridge.eval("new URLSearchParams(window.location.search).get('qa_colyseus') || ''")) == "1"
+	if main.get("_use_colyseus") != candidate_backend:
+		push_error("Official observer backend selection must match explicit qa_colyseus flag")
+		get_tree().quit(1)
+		return
+	state.server_host = COLYSEUS_CANDIDATE_HOST if candidate_backend else OFFICIAL_HOST
+	var allowed_host := COLYSEUS_CANDIDATE_HOST if candidate_backend else OFFICIAL_HOST
+	if state.server_host != allowed_host:
+		push_error("Official observer host rejected: " + state.server_host)
+		get_tree().quit(1)
+		return
 	state.username = "QA_WEB_APP" if OS.has_feature("web") else "QA_NATIVE_APP"
 	state.practice_mode = false
 	state.selected_map = "industrial"
@@ -53,6 +70,21 @@ func run() -> void:
 		if arg.begins_with("qa_map="): state.selected_map = arg.trim_prefix("qa_map=")
 		if arg.begins_with("qa_seconds="): seconds = float(arg.trim_prefix("qa_seconds="))
 		if arg.begins_with("qa_output="): output_path = arg.trim_prefix("qa_output=")
+	if OS.has_feature("web"):
+		var room_query := String(JavaScriptBridge.eval("new URLSearchParams(window.location.search).get('qa_room') || ''"))
+		var map_query := String(JavaScriptBridge.eval("new URLSearchParams(window.location.search).get('qa_map') || ''"))
+		var seconds_query := String(JavaScriptBridge.eval("new URLSearchParams(window.location.search).get('qa_seconds') || ''"))
+		var valid_room_query := RegEx.new()
+		valid_room_query.compile("^[A-Za-z0-9_-]{1,64}$")
+		if valid_room_query.search(room_query) != null: state.room_id = room_query
+		if ["industrial", "resoforge", "football", "village", "arena", "shipment", "dust2", "nuketown", "canyon", "desert_oasis"].has(map_query): state.selected_map = map_query
+		if seconds_query.is_valid_float(): seconds = float(seconds_query)
+	var allowed_room := RegEx.new()
+	allowed_room.compile("^[A-Za-z0-9_-]{1,64}$")
+	if allowed_room.search(state.room_id) == null:
+		push_error("Explicit official test room must be a simple room identifier")
+		get_tree().quit(1)
+		return
 	if state.room_id.is_empty(): push_error("Explicit official test room required"); get_tree().quit(1); return
 	seconds = clampf(seconds,1.0,1800.0)
 	await main._on_deploy()
@@ -86,6 +118,13 @@ func run() -> void:
 		if not is_instance_valid(player):
 			print("OBSERVER: returned to lobby after a terminal connection error")
 			break
+		if candidate_backend:
+			var reconciler = main.net.get("local_reconciler")
+			var input_handle = main.net.get("input_handle")
+			if reconciler != null: sdk_reconcile_seq_max = maxi(sdk_reconcile_seq_max, int(reconciler.reconcile_seq))
+			if input_handle != null:
+				sdk_ack_sequence_max = maxi(sdk_ack_sequence_max, int(input_handle.last_processed))
+				sdk_inputs_sent_max = maxi(sdk_inputs_sent_max, int(input_handle.sent_count))
 		if main._reconcile_after_sequence != previous_watermark:
 			if Time.get_ticks_msec()-respawn_at_ms>1000 and not player.is_driving: applied_corrections += 1
 			previous_watermark = main._reconcile_after_sequence
@@ -150,7 +189,7 @@ func run() -> void:
 			pings.append(main.net.current_ping)
 			print("OBS t=",last_sample," fps=",Engine.get_frames_per_second()," ping=",main.net.current_ping," remotes=",main.mp.remotes.size()," seats=",seat_entries," drive_m=",snappedf(drive_distance,.1)," pos=",player.global_position)
 	for action in ["move_forward","move_back","move_right","jump","fire","ads"]: Input.action_release(action)
-	var report := {"host":"war.vaidik.blog","platform":"web" if OS.has_feature("web") else "native-release","audio_disabled":AudioServer.is_bus_mute(AudioServer.get_bus_index("Master")),"release_export":OS.has_feature("release") and not OS.has_feature("editor"),"local_respawns":local_respawns,"local_shots":main.weapons._shot_seq if is_instance_valid(main.weapons) else 0,"confirmed_hits":confirmed_hits,"confirmed_kills":confirmed_kills,"ads_frames":ads_frames,"local_grenades":local_grenades,"seconds":elapsed,"peak_remotes":peak_remotes,"frame_ms_p50":percentile(frames,.5),"frame_ms_p95":percentile(frames,.95),"frame_ms_p99":percentile(frames,.99),"frame_ms_max":percentile(frames,1),"cpu_process_ms_p95":percentile(cpu,.95),"draw_calls_p95":percentile(draws,.95),"snapshot_gap_ms_p95":percentile(gaps,.95),"snapshot_gap_ms_max":percentile(gaps,1),"ping_ms_p50":percentile(pings,.5),"ping_ms_p95":percentile(pings,.95),"max_position_error_m":max_position_error,"snapshots_with_error_over_2_5m":errors_over_2_5,"applied_corrections":applied_corrections,"disconnects":disconnects,"seat_entries":seat_entries,"seat_exits":seat_exits,"driving_seconds":driving_seconds,"drive_distance_m":drive_distance,"walking_distance_m":walking_distance,"fire_events":fire_events,"damage_events":damage_events,"explosion_events":explosion_events,"local_bots":main.bots.bots.size() if is_instance_valid(main.bots) else -1}
+	var report := {"host":state.server_host,"backend":"colyseus" if candidate_backend else "legacy","platform":"web" if OS.has_feature("web") else "native-release","audio_disabled":AudioServer.is_bus_mute(AudioServer.get_bus_index("Master")),"release_export":OS.has_feature("release") and not OS.has_feature("editor"),"local_respawns":local_respawns,"local_shots":main.weapons._shot_seq if is_instance_valid(main.weapons) else 0,"confirmed_hits":confirmed_hits,"confirmed_kills":confirmed_kills,"ads_frames":ads_frames,"local_grenades":local_grenades,"sdk_reconcile_seq_max":sdk_reconcile_seq_max,"sdk_ack_sequence_max":sdk_ack_sequence_max,"sdk_inputs_sent_max":sdk_inputs_sent_max,"seconds":elapsed,"peak_remotes":peak_remotes,"frame_ms_p50":percentile(frames,.5),"frame_ms_p95":percentile(frames,.95),"frame_ms_p99":percentile(frames,.99),"frame_ms_max":percentile(frames,1),"cpu_process_ms_p95":percentile(cpu,.95),"draw_calls_p95":percentile(draws,.95),"snapshot_gap_ms_p95":percentile(gaps,.95),"snapshot_gap_ms_max":percentile(gaps,1),"ping_ms_p50":percentile(pings,.5),"ping_ms_p95":percentile(pings,.95),"max_position_error_m":max_position_error,"snapshots_with_error_over_2_5m":errors_over_2_5,"applied_corrections":applied_corrections,"disconnects":disconnects,"seat_entries":seat_entries,"seat_exits":seat_exits,"driving_seconds":driving_seconds,"drive_distance_m":drive_distance,"walking_distance_m":walking_distance,"fire_events":fire_events,"damage_events":damage_events,"explosion_events":explosion_events,"local_bots":main.bots.bots.size() if is_instance_valid(main.bots) else -1}
 	if output_path.is_empty(): output_path = "user://qa-latest.json"
 	var file := FileAccess.open(output_path,FileAccess.WRITE)
 	if file: file.store_string(JSON.stringify(report,"  "))

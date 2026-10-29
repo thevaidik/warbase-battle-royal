@@ -480,13 +480,28 @@ func _api_request(path: String, callback: Callable, method: int = HTTPClient.MET
 			if json.parse(body.get_string_from_utf8()) == OK: data = json.data
 		callback.call(code if result == HTTPRequest.RESULT_SUCCESS else 0, data)
 	)
+	var candidate_backend := _uses_colyseus_candidate()
 	var host := GameState.server_host.trim_prefix("https://").trim_prefix("http://").trim_prefix("wss://").trim_prefix("ws://").trim_suffix("/")
+	if candidate_backend and host.ends_with("/colyseus"):
+		host = host.trim_suffix("/colyseus")
 	var scheme := "http" if host.begins_with("localhost") or host.begins_with("127.") else "https"
 	if OS.has_feature("web"): scheme = String(JavaScriptBridge.eval("window.location.protocol")).trim_suffix(":")
-	var error := request.request(scheme + "://" + host + path, PackedStringArray(["Content-Type: application/json"]), method, payload)
+	var api_path := ("/colyseus" if candidate_backend else "") + path
+	var error := request.request(scheme + "://" + host + api_path, PackedStringArray(["Content-Type: application/json"]), method, payload)
 	if error != OK:
 		request.queue_free()
 		callback.call(0, null)
+
+func _uses_colyseus_candidate() -> bool:
+	var app := get_parent()
+	if app != null and "_use_colyseus" in app and app.get("_use_colyseus") == true:
+		return true
+	if OS.has_feature("web"):
+		var web_backend := String(JavaScriptBridge.eval("new URLSearchParams(window.location.search).get('backend') || ''")).to_lower()
+		var web_qa_colyseus := String(JavaScriptBridge.eval("new URLSearchParams(window.location.search).get('qa_colyseus') || ''"))
+		var web_path := String(JavaScriptBridge.eval("window.location.pathname"))
+		return web_backend == "colyseus" or web_backend == "qa_colyseus" or web_qa_colyseus == "1" or web_path == "/colyseus" or web_path.begins_with("/colyseus/")
+	return false
 
 func _probe_server() -> void:
 	_api_request("/healthcheck", func(code: int, _data: Variant) -> void:

@@ -1,9 +1,12 @@
 package main
 
 import (
+	"fmt"
 	"mime"
 	"net/http"
+	"net/http/httputil"
 	"net/http/pprof"
+	"net/url"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -46,6 +49,53 @@ func enableCORS(next http.Handler) http.Handler {
 
 func (app *application) routes() http.Handler {
 	mux := http.NewServeMux()
+	if app.config.colyseusURL != "" {
+		if target, err := parseColyseusCandidateURL(app.config.colyseusURL); err == nil {
+			proxy := httputil.NewSingleHostReverseProxy(target)
+			proxy.ErrorHandler = func(w http.ResponseWriter, r *http.Request, err error) {
+				if app.logger != nil {
+					app.logger.PrintError(err, map[string]string{"path": r.URL.Path, "upstream": target.Host})
+				}
+				http.Error(w, "Colyseus candidate unavailable", http.StatusBadGateway)
+			}
+			mux.HandleFunc("/colyseus", func(w http.ResponseWriter, r *http.Request) {
+				http.Redirect(w, r, "/colyseus/", http.StatusPermanentRedirect)
+			})
+			mux.Handle("/colyseus/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				r.URL.Path = strings.TrimPrefix(r.URL.Path, "/colyseus")
+				if r.URL.Path == "" {
+					r.URL.Path = "/"
+				}
+				r.URL.RawPath = ""
+				r.Header.Set("X-Forwarded-Prefix", "/colyseus")
+				r.Header.Set("X-Forwarded-Host", r.Host)
+				if r.Header.Get("X-Forwarded-Proto") == "" {
+					if r.TLS != nil {
+						r.Header.Set("X-Forwarded-Proto", "https")
+					} else {
+						r.Header.Set("X-Forwarded-Proto", "http")
+					}
+				}
+				proxy.ServeHTTP(w, r)
+			}))
+			// The pinned Godot SDK always sends HTTP matchmaking requests to
+			// /matchmake/... at the origin, even when its WebSocket endpoint has
+			// a /colyseus base path. Forward only that otherwise-unused root path
+			// while the candidate proxy is enabled; preserve it upstream.
+			mux.Handle("/matchmake/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				r.Header.Set("X-Forwarded-Prefix", "/colyseus")
+				r.Header.Set("X-Forwarded-Host", r.Host)
+				if r.Header.Get("X-Forwarded-Proto") == "" {
+					if r.TLS != nil {
+						r.Header.Set("X-Forwarded-Proto", "https")
+					} else {
+						r.Header.Set("X-Forwarded-Proto", "http")
+					}
+				}
+				proxy.ServeHTTP(w, r)
+			}))
+		}
+	}
 
 	mux.HandleFunc("/healthcheck", app.healthcheckHandler)
 	mux.HandleFunc("/connect", app.connectToServerHandler)
@@ -155,4 +205,15 @@ func (app *application) routes() http.Handler {
 	}
 
 	return enableCORS(mux)
+}
+
+func parseColyseusCandidateURL(raw string) (*url.URL, error) {
+	target, err := url.Parse(strings.TrimSpace(raw))
+	if err != nil {
+		return nil, fmt.Errorf("invalid COLYSEUS_CANDIDATE_URL: %w", err)
+	}
+	if (target.Scheme != "http" && target.Scheme != "https") || target.Host == "" || target.Hostname() == "" || target.User != nil || target.RawQuery != "" || target.Fragment != "" || target.Opaque != "" {
+		return nil, fmt.Errorf("COLYSEUS_CANDIDATE_URL must be an http(s) URL with a host and no credentials, query, or fragment")
+	}
+	return target, nil
 }
