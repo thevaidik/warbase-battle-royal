@@ -29,6 +29,12 @@ Aim for prediction comfortably below the 16.67 ms simulation budget, including r
 
 The main Go release remains available until graphical/native and browser gameplay, realistic load, and recovery checks pass. Candidate deployment is not completion of the migration.
 
+## Candidate deployment and short official-server check
+
+The matching server and Web package were deployed to the isolated official candidate on October 29 as `warbase-colyseus:collision-optimized-20261029` (image SHA-256 `0249c19ddf618d662ae0925a49f9ed3993e742fbc015b7be0fe15a30d3202d90`). Public manifest SHA-256 `e3a00acb86f9bc1f3a26b4c5eca7d20e6942148b2e1302723f75b81f9d1e399e` was verified; main-game health remained available.
+
+A bounded 30-second graphical native observer connected to the official candidate, saw seven remotes, sent 1,823 inputs and acknowledged 1,731, with zero disconnects. At a 30 FPS cap, frame p50/p95/p99 were 33.34/54.54/57.13 ms and maximum 138.94 ms. This short check does not cover the earlier ~45-second slowdown or sustained 64-player performance. It reported aggregate position error up to 45.23 m in a run including a respawn and vehicle entry; the report does not attribute maxima to a specific transition, so this requires phase-specific investigation before declaring prediction correct. Snapshot gaps were 101 ms p95 / 1,200 ms maximum. Raw report is `colyseus-migration-2026-10-28/official-single-observer.json`. The observer exited; the updated interactive Mac build was then opened for the user.
+
 ## Godot client implementation and results
 
 The existing exact-ground idle fixed-point shortcut remains in place. It only skips the collision step when the player has no horizontal input or jump, has zero vertical velocity, and is within 1 micrometer of the sampled floor. Fractional heights and nonzero vertical velocities still take the full server-matched path. The capsule solver also skips an exactly zero-length sweep; the ray/triangle determinant makes that sweep an exact no-hit.
