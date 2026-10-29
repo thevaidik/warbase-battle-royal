@@ -13,6 +13,8 @@ const PLAYABLE_MAPS: Array[String] = ["football", "resoforge", "industrial", "vi
 const NODE_STRIDE := 10
 const SPOKES := 12
 const CAPSULE_LEVELS: Array[float] = [0.08, 0.24, 0.4, 0.9, 1.4, 1.56, 1.72]
+const MOVE_CANDIDATE_LIMIT := 12
+const SWEEP_EPSILON := 0.0001
 
 static var _loaded := false
 static var _loaded_map := ""
@@ -21,6 +23,9 @@ static var _vertices := PackedFloat32Array()
 static var _nodes := PackedFloat32Array()
 static var _order := PackedInt32Array()
 static var _spawns: Array[Vector3] = []
+static var _ray_stack: Array[int] = []
+static var _move_candidate_stack: Array[int] = []
+static var _move_candidate_triangles: Array[int] = []
 
 
 static func _ensure_data() -> void:
@@ -150,9 +155,13 @@ static func _raycast(from: Vector3, to: Vector3) -> Dictionary:
 	var delta := to - from
 	var nearest := 2.0
 	var best := {}
-	var stack: Array[int] = [0]
-	while not stack.is_empty():
-		var node_index: int = stack.pop_back()
+	# Collision/prediction calls run synchronously on the main thread. Keep the
+	# traversal scratch capacity between rays instead of allocating 91 stacks
+	# for every capsule sweep.
+	_ray_stack.clear()
+	_ray_stack.append(0)
+	while not _ray_stack.is_empty():
+		var node_index: int = _ray_stack.pop_back()
 		var offset := node_index * NODE_STRIDE
 		if not _box_intersects(node_index, from, delta, nearest):
 			continue
@@ -168,9 +177,79 @@ static func _raycast(from: Vector3, to: Vector3) -> Dictionary:
 					best = candidate
 		else:
 			if left >= 0:
-				stack.append(left)
+				_ray_stack.append(left)
 			if right >= 0:
-				stack.append(right)
+				_ray_stack.append(right)
+	return best
+
+
+static func _triangle_bounds_overlap(triangle_index: int, minimum: Vector3, maximum: Vector3) -> bool:
+	var offset := triangle_index * 9
+	for axis in range(3):
+		var a: float = _vertices[offset + axis]
+		var b: float = _vertices[offset + 3 + axis]
+		var c: float = _vertices[offset + 6 + axis]
+		if minf(a, minf(b, c)) > maximum[axis] or maxf(a, maxf(b, c)) < minimum[axis]:
+			return false
+	return true
+
+
+## Gather exact vertex-AABB candidates once for the full movement envelope.
+## Returning false means the set exceeded the small-cache limit and callers
+## should use the original per-ray BVH traversal instead.
+static func _prepare_move_candidates(from: Vector3, to: Vector3, radius: float, height: float) -> bool:
+	_move_candidate_triangles.clear()
+	_move_candidate_stack.clear()
+	if _nodes.is_empty():
+		return false
+	var bounds_min := Vector3(minf(from.x, to.x) - radius - SWEEP_EPSILON, minf(from.y, to.y) + 0.08 - SWEEP_EPSILON, minf(from.z, to.z) - radius - SWEEP_EPSILON)
+	var bounds_max := Vector3(maxf(from.x, to.x) + radius + SWEEP_EPSILON, maxf(from.y, to.y) + 0.45 + minf(height, 1.72) + SWEEP_EPSILON, maxf(from.z, to.z) + radius + SWEEP_EPSILON)
+	_move_candidate_stack.append(0)
+	while not _move_candidate_stack.is_empty():
+		var node_index: int = _move_candidate_stack.pop_back()
+		var offset := node_index * NODE_STRIDE
+		var overlaps := true
+		for axis in range(3):
+			if _nodes[offset + axis] > bounds_max[axis] or _nodes[offset + 3 + axis] < bounds_min[axis]:
+				overlaps = false
+				break
+		if not overlaps:
+			continue
+		var left := int(_nodes[offset + 6])
+		var right := int(_nodes[offset + 7])
+		var start := int(_nodes[offset + 8])
+		var count := int(_nodes[offset + 9])
+		if count > 0:
+			for index in range(start, start + count):
+				var triangle_index := _order[index]
+				if not _triangle_bounds_overlap(triangle_index, bounds_min, bounds_max):
+					continue
+				_move_candidate_triangles.append(triangle_index)
+				if _move_candidate_triangles.size() > MOVE_CANDIDATE_LIMIT:
+					_move_candidate_triangles.clear()
+					_move_candidate_stack.clear()
+					return false
+		else:
+			# Same traversal order as _raycast: right child is popped first.
+			if left >= 0:
+				_move_candidate_stack.append(left)
+			if right >= 0:
+				_move_candidate_stack.append(right)
+	_move_candidate_stack.clear()
+	return true
+
+
+static func _raycast_move_candidates(from: Vector3, to: Vector3) -> Dictionary:
+	if not _finite_vector(from) or not _finite_vector(to):
+		return {}
+	var delta := to - from
+	var nearest := 2.0
+	var best := {}
+	for triangle_index in _move_candidate_triangles:
+		var candidate := _triangle_hit(triangle_index, from, delta)
+		if not candidate.is_empty() and float(candidate["fraction"]) < nearest:
+			nearest = float(candidate["fraction"])
+			best = candidate
 	return best
 
 
@@ -197,7 +276,7 @@ static func floor_height(x: float, z: float, from_y: float = 100.0) -> Variant:
 	return from_y + (-100.0 - from_y) * float(hit["fraction"])
 
 
-static func _capsule_blocked(from: Vector3, to: Vector3, radius: float, height: float, horizontal_only: bool = false) -> bool:
+static func _capsule_blocked(from: Vector3, to: Vector3, radius: float, height: float, horizontal_only: bool = false, use_move_candidates: bool = false) -> bool:
 	# A zero-length sweep cannot hit a triangle: the ray/triangle determinant is
 	# zero for every sample. Avoid constructing 7 x 13 degenerate rays on axes
 	# that did not move; this preserves the exact collision result.
@@ -217,7 +296,9 @@ static func _capsule_blocked(from: Vector3, to: Vector3, radius: float, height: 
 			var offset_x := 0.0 if spoke == SPOKES else cos(angle) * ring_radius
 			var offset_z := 0.0 if spoke == SPOKES else sin(angle) * ring_radius
 			var offset := Vector3(offset_x, y_offset, offset_z)
-			var hit := _raycast(from + offset, to + offset)
+			var sample_from := from + offset
+			var sample_to := to + offset
+			var hit := _raycast_move_candidates(sample_from, sample_to) if use_move_candidates else _raycast(sample_from, sample_to)
 			if hit.is_empty() or float(hit["fraction"]) <= 0.0001:
 				continue
 			if horizontal_only and absf(delta_y) < 0.000001 and absf(hit["normal"].y) >= 0.5:
@@ -227,7 +308,7 @@ static func _capsule_blocked(from: Vector3, to: Vector3, radius: float, height: 
 
 
 ## Feet-origin capsule motion with axis sliding and a 0.45 m grounded step.
-static func resolve_move(from: Vector3, to: Vector3, radius: float = 0.4, height: float = 1.8) -> Vector3:
+static func resolve_move(from: Vector3, to: Vector3, radius: float = 0.4, height: float = 1.8, use_candidate_cache: bool = true) -> Vector3:
 	_ensure_data()
 	if not _finite_vector(from):
 		return _spawns[0] if not _spawns.is_empty() else Vector3.ZERO
@@ -235,19 +316,20 @@ static func resolve_move(from: Vector3, to: Vector3, radius: float = 0.4, height
 		return from
 	radius = minf(radius, 1.5)
 	height = minf(height, 4.0)
+	var use_move_candidates := use_candidate_cache and _prepare_move_candidates(from, to, radius, height)
 	var position := from
 	var step_height := 0.45
 	var target_floor: Variant = floor_height(to.x, to.z, position.y + step_height)
 	if target_floor != null and float(target_floor) > position.y + 0.03 and float(target_floor) <= position.y + step_height:
 		var stepped_from := Vector3(position.x, float(target_floor), position.z)
 		var stepped_target := Vector3(to.x, float(target_floor), to.z)
-		if not _capsule_blocked(position, stepped_from, radius, height) and not _capsule_blocked(stepped_from, stepped_target, radius, height, true):
+		if not _capsule_blocked(position, stepped_from, radius, height, false, use_move_candidates) and not _capsule_blocked(stepped_from, stepped_target, radius, height, true, use_move_candidates):
 			position = stepped_target
 
 	for axis in [0, 2]:
 		var current := position
 		var destination := Vector3(to.x, position.y, position.z) if axis == 0 else Vector3(position.x, position.y, to.z)
-		if not _capsule_blocked(current, destination, radius, height, true):
+		if not _capsule_blocked(current, destination, radius, height, true, use_move_candidates):
 			position = destination
 			continue
 		var safe := 0.0
@@ -255,7 +337,7 @@ static func resolve_move(from: Vector3, to: Vector3, radius: float = 0.4, height
 		for _iteration in range(10):
 			var middle := (safe + blocked) * 0.5
 			var candidate := Vector3(position.x + (destination.x - position.x) * middle, position.y, position.z) if axis == 0 else Vector3(position.x, position.y, position.z + (destination.z - position.z) * middle)
-			if _capsule_blocked(current, candidate, radius, height, true):
+			if _capsule_blocked(current, candidate, radius, height, true, use_move_candidates):
 				blocked = middle
 			else:
 				safe = middle
@@ -269,7 +351,7 @@ static func resolve_move(from: Vector3, to: Vector3, radius: float = 0.4, height
 	if floor != null and target_y <= float(floor) and position.y >= float(floor) - step_height:
 		target_y = float(floor)
 	var vertical_target := Vector3(position.x, target_y, position.z)
-	if not _capsule_blocked(position, vertical_target, radius, height):
+	if not _capsule_blocked(position, vertical_target, radius, height, false, use_move_candidates):
 		position = vertical_target
 	else:
 		var safe := 0.0
@@ -277,7 +359,7 @@ static func resolve_move(from: Vector3, to: Vector3, radius: float = 0.4, height
 		for _iteration in range(10):
 			var middle := (safe + blocked) * 0.5
 			var candidate := Vector3(position.x, position.y + (target_y - position.y) * middle, position.z)
-			if _capsule_blocked(position, candidate, radius, height):
+			if _capsule_blocked(position, candidate, radius, height, false, use_move_candidates):
 				blocked = middle
 			else:
 				safe = middle

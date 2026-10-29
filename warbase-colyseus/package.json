@@ -10,7 +10,8 @@
     "build": "tsc -p tsconfig.json && node scripts/copy-assets.mjs",
     "start": "node dist/index.js",
     "dev": "tsx watch src/index.ts",
-    "test": "node --import tsx --test src/*.test.ts"
+    "test": "node --import tsx --test src/*.test.ts",
+    "benchmark:geometry": "GEOMETRY_BENCHMARK=1 node --import tsx --test src/world-geometry.test.ts"
   },
   "dependencies": {
     "@colyseus/core": "0.18.10",

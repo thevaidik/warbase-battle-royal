@@ -16,7 +16,8 @@ type BvhNode = {
 };
 type RayHit = { fraction: number; normal: Vec3 };
 type GeometryBuffers = { vertices: Float32Array; nodes: BvhNode[]; order: Uint32Array };
-type CollisionScratch = { stack: number[]; fraction: number; normalY: number };
+type CollisionScratch = { stack: number[]; candidateTriangles: number[]; fraction: number; normalY: number };
+type CollisionCandidates = readonly number[] | null;
 
 const geometryCache = new Map<PlayableMap, WorldGeometry>();
 const CAPSULE_LEVELS = [0.08, 0.24, 0.4, 0.9, 1.4, 1.56, 1.72] as const;
@@ -95,6 +96,29 @@ function raycast(data: GeometryBuffers, from: Vec3, to: Vec3): RayHit | null {
   return hit;
 }
 
+function testCollisionTriangle(data: GeometryBuffers, triangle: number, ox: number, oy: number, oz: number, dx: number, dy: number, dz: number, scratch: CollisionScratch): void {
+  const offset = triangle * 9, vertices = data.vertices;
+  const ax = vertices[offset], ay = vertices[offset + 1], az = vertices[offset + 2];
+  const e1x = vertices[offset + 3] - ax, e1y = vertices[offset + 4] - ay, e1z = vertices[offset + 5] - az;
+  const e2x = vertices[offset + 6] - ax, e2y = vertices[offset + 7] - ay, e2z = vertices[offset + 8] - az;
+  const hx = dy * e2z - dz * e2y, hy = dz * e2x - dx * e2z, hz = dx * e2y - dy * e2x;
+  const determinant = e1x * hx + e1y * hy + e1z * hz;
+  if (Math.abs(determinant) < 1e-9) return;
+  const inverse = 1 / determinant, sx = ox - ax, sy = oy - ay, sz = oz - az;
+  const u = inverse * (sx * hx + sy * hy + sz * hz);
+  if (u < 0 || u > 1) return;
+  const qx = sy * e1z - sz * e1y, qy = sz * e1x - sx * e1z, qz = sx * e1y - sy * e1x;
+  const v = inverse * (dx * qx + dy * qy + dz * qz);
+  if (v < 0 || u + v > 1) return;
+  const fraction = inverse * (e2x * qx + e2y * qy + e2z * qz);
+  if (fraction < 0 || fraction >= scratch.fraction || fraction > 1) return;
+  const nx = e1y * e2z - e1z * e2y, ny = e1z * e2x - e1x * e2z, nz = e1x * e2y - e1y * e2x;
+  const length = Math.hypot(nx, ny, nz);
+  if (length === 0) return;
+  scratch.fraction = fraction;
+  scratch.normalY = ny / length;
+}
+
 function validateMap(name: PlayableMap, encoded: EncodedMap): GeometryBuffers {
   if (encoded.name !== undefined && encoded.name !== name) throw new Error(`Map dataset name mismatch: expected ${name}, got ${encoded.name}`);
   if (!Array.isArray(encoded.triangles) || encoded.triangles.length === 0 || encoded.triangles.length % 9 !== 0) throw new Error(`Invalid ${name} triangle data`);
@@ -121,7 +145,7 @@ export class WorldGeometry {
   private readonly buffers: GeometryBuffers;
   // World queries are synchronous in the room loop. Reusing this traversal
   // storage avoids allocating a stack and hit objects for every capsule spoke.
-  private readonly collisionScratch: CollisionScratch = { stack: [], fraction: 2, normalY: 0 };
+  private readonly collisionScratch: CollisionScratch = { stack: [], candidateTriangles: [], fraction: 2, normalY: 0 };
 
   constructor(name: PlayableMap, encoded: EncodedMap) {
     this.name = name;
@@ -144,16 +168,20 @@ export class WorldGeometry {
     return { ...hit, point: [from[0] + (to[0] - from[0]) * hit.fraction, from[1] + (to[1] - from[1]) * hit.fraction, from[2] + (to[2] - from[2]) * hit.fraction] };
   }
 
-  private collisionRaycast(ox: number, oy: number, oz: number, tx: number, ty: number, tz: number): CollisionScratch {
+  private collisionRaycast(ox: number, oy: number, oz: number, tx: number, ty: number, tz: number, candidates?: CollisionCandidates): CollisionScratch {
     const data = this.buffers, scratch = this.collisionScratch;
     const dx = tx - ox, dy = ty - oy, dz = tz - oz;
-    let nearest = 2, normalY = 0;
+    scratch.fraction = 2; scratch.normalY = 0;
+    if (candidates !== undefined && candidates !== null) {
+      for (let index = 0; index < candidates.length; index++) testCollisionTriangle(data, candidates[index], ox, oy, oz, dx, dy, dz, scratch);
+      return scratch;
+    }
     const stack = scratch.stack;
     stack.length = 0; stack.push(0);
     while (stack.length) {
       const node = data.nodes[stack.pop()!];
       if (!node) continue;
-      let low = 0, high = Math.min(1, nearest), intersects = true;
+      let low = 0, high = Math.min(1, scratch.fraction), intersects = true;
       for (let axis = 0; axis < 3; axis++) {
         const min = axis === 0 ? node.minX : axis === 1 ? node.minY : node.minZ;
         const max = axis === 0 ? node.maxX : axis === 1 ? node.maxY : node.maxZ;
@@ -175,29 +203,41 @@ export class WorldGeometry {
         continue;
       }
       for (let index = node.start; index < node.start + node.count; index++) {
-        const offset = data.order[index] * 9, v = data.vertices;
-        const ax = v[offset], ay = v[offset + 1], az = v[offset + 2];
-        const e1x = v[offset + 3] - ax, e1y = v[offset + 4] - ay, e1z = v[offset + 5] - az;
-        const e2x = v[offset + 6] - ax, e2y = v[offset + 7] - ay, e2z = v[offset + 8] - az;
-        const hx = dy * e2z - dz * e2y, hy = dz * e2x - dx * e2z, hz = dx * e2y - dy * e2x;
-        const determinant = e1x * hx + e1y * hy + e1z * hz;
-        if (Math.abs(determinant) < 1e-9) continue;
-        const inverse = 1 / determinant, sx = ox - ax, sy = oy - ay, sz = oz - az;
-        const u = inverse * (sx * hx + sy * hy + sz * hz);
-        if (u < 0 || u > 1) continue;
-        const qx = sy * e1z - sz * e1y, qy = sz * e1x - sx * e1z, qz = sx * e1y - sy * e1x;
-        const baryV = inverse * (dx * qx + dy * qy + dz * qz);
-        if (baryV < 0 || u + baryV > 1) continue;
-        const fraction = inverse * (e2x * qx + e2y * qy + e2z * qz);
-        if (fraction < 0 || fraction >= nearest || fraction > 1) continue;
-        const nx = e1y * e2z - e1z * e2y, ny = e1z * e2x - e1x * e2z, nz = e1x * e2y - e1y * e2x;
-        const length = Math.hypot(nx, ny, nz);
-        if (length === 0) continue;
-        nearest = fraction; normalY = ny / length;
+        testCollisionTriangle(data, data.order[index], ox, oy, oz, dx, dy, dz, scratch);
       }
     }
-    scratch.fraction = nearest; scratch.normalY = normalY;
     return scratch;
+  }
+
+  private capsuleCandidates(from: Vec3, to: Vec3, radius: number, height: number, stepHeight: number): CollisionCandidates {
+    const { stack, candidateTriangles } = this.collisionScratch;
+    candidateTriangles.length = 0; stack.length = 0; stack.push(0);
+    const pad = 1e-4;
+    const minX = Math.min(from[0], to[0]) - radius - pad, maxX = Math.max(from[0], to[0]) + radius + pad;
+    const minY = Math.min(from[1], to[1]) + CAPSULE_LEVELS[0] - pad;
+    const maxY = Math.max(from[1], to[1]) + Math.min(stepHeight, 0.45) + Math.min(height, CAPSULE_LEVELS[CAPSULE_LEVELS.length - 1]) + pad;
+    const minZ = Math.min(from[2], to[2]) - radius - pad, maxZ = Math.max(from[2], to[2]) + radius + pad;
+    const { nodes, order, vertices } = this.buffers;
+    const maximumReusableTriangles = 12;
+    while (stack.length) {
+      const node = nodes[stack.pop()!];
+      if (!node || node.maxX < minX || node.minX > maxX || node.maxY < minY || node.minY > maxY || node.maxZ < minZ || node.minZ > maxZ) continue;
+      if (!node.count) {
+        if (node.left >= 0) stack.push(node.left);
+        if (node.right >= 0) stack.push(node.right);
+        continue;
+      }
+      for (let index = node.start; index < node.start + node.count; index++) {
+        const offset = order[index] * 9;
+        const ax = vertices[offset], ay = vertices[offset + 1], az = vertices[offset + 2];
+        const bx = vertices[offset + 3], by = vertices[offset + 4], bz = vertices[offset + 5];
+        const cx = vertices[offset + 6], cy = vertices[offset + 7], cz = vertices[offset + 8];
+        if (Math.max(ax, bx, cx) < minX || Math.min(ax, bx, cx) > maxX || Math.max(ay, by, cy) < minY || Math.min(ay, by, cy) > maxY || Math.max(az, bz, cz) < minZ || Math.min(az, bz, cz) > maxZ) continue;
+        candidateTriangles.push(order[index]);
+        if (candidateTriangles.length > maximumReusableTriangles) { candidateTriangles.length = 0; return null; }
+      }
+    }
+    return candidateTriangles;
   }
 
   rayBlocked(from: Vec3, to: Vec3): boolean {
@@ -216,7 +256,9 @@ export class WorldGeometry {
     return fromY + (-100 - fromY) * hit.fraction;
   }
 
-  private capsuleBlocked(from: Vec3, to: Vec3, radius: number, height: number, horizontalOnly = false): boolean {
+  private capsuleBlocked(from: Vec3, to: Vec3, radius: number, height: number, horizontalOnly = false, candidates?: CollisionCandidates): boolean {
+    // A zero-length query cannot intersect a triangle in the existing ray model.
+    if (from[0] === to[0] && from[1] === to[1] && from[2] === to[2]) return false;
     const deltaY = to[1] - from[1];
     for (const yOffset of CAPSULE_LEVELS) {
       if (yOffset > height) continue;
@@ -225,7 +267,7 @@ export class WorldGeometry {
       else if (yOffset > height - radius) ringRadius = Math.sqrt(Math.max(0, radius * radius - (yOffset - (height - radius)) ** 2));
       for (let spoke = 0; spoke < CAPSULE_SPOKES.length; spoke++) {
         const ox = CAPSULE_SPOKES[spoke][0] * ringRadius, oz = CAPSULE_SPOKES[spoke][1] * ringRadius;
-        const hit = this.collisionRaycast(from[0] + ox, from[1] + yOffset, from[2] + oz, to[0] + ox, to[1] + yOffset, to[2] + oz);
+        const hit = this.collisionRaycast(from[0] + ox, from[1] + yOffset, from[2] + oz, to[0] + ox, to[1] + yOffset, to[2] + oz, candidates);
         if (hit.fraction > 1 || hit.fraction <= 1e-4) continue;
         if (horizontalOnly && Math.abs(deltaY) < 1e-6 && Math.abs(hit.normalY) >= 0.5) continue;
         return true;
@@ -242,19 +284,20 @@ export class WorldGeometry {
     radius = Math.min(radius, 1.5); height = Math.min(height, 4);
     let x = from[0], y = from[1], z = from[2];
     const stepHeight = 0.45;
+    const candidates = this.capsuleCandidates(from, to, radius, height, stepHeight);
     const targetFloor = this.floorHeight(to[0], to[2], y + stepHeight);
     if (targetFloor !== undefined && targetFloor > y + 0.03 && targetFloor <= y + stepHeight) {
       const steppedFrom: Vec3 = [x, targetFloor, z], steppedTarget: Vec3 = [to[0], targetFloor, to[2]];
-      if (!this.capsuleBlocked(from, steppedFrom, radius, height) && !this.capsuleBlocked(steppedFrom, steppedTarget, radius, height, true)) { x = to[0]; y = targetFloor; z = to[2]; }
+      if (!this.capsuleBlocked(from, steppedFrom, radius, height, false, candidates) && !this.capsuleBlocked(steppedFrom, steppedTarget, radius, height, true, candidates)) { x = to[0]; y = targetFloor; z = to[2]; }
     }
     const moveAxis = (axis: 0 | 2, target: number): number => {
       const current: Vec3 = [x, y, z], destination: Vec3 = axis === 0 ? [target, y, z] : [x, y, target];
-      if (!this.capsuleBlocked(current, destination, radius, height, true)) return target;
+      if (!this.capsuleBlocked(current, destination, radius, height, true, candidates)) return target;
       let safe = 0, blocked = 1;
       for (let iteration = 0; iteration < 10; iteration++) {
         const middle = (safe + blocked) * 0.5;
         const candidate: Vec3 = axis === 0 ? [x + (target - x) * middle, y, z] : [x, y, z + (target - z) * middle];
-        if (this.capsuleBlocked(current, candidate, radius, height, true)) blocked = middle; else safe = middle;
+        if (this.capsuleBlocked(current, candidate, radius, height, true, candidates)) blocked = middle; else safe = middle;
       }
       return axis === 0 ? x + (target - x) * safe : z + (target - z) * safe;
     };
@@ -263,12 +306,12 @@ export class WorldGeometry {
     let targetY = to[1];
     if (floor !== undefined && targetY <= floor && y >= floor - stepHeight) targetY = floor;
     const verticalFrom: Vec3 = [x, y, z], verticalTo: Vec3 = [x, targetY, z];
-    if (!this.capsuleBlocked(verticalFrom, verticalTo, radius, height)) y = targetY;
+    if (!this.capsuleBlocked(verticalFrom, verticalTo, radius, height, false, candidates)) y = targetY;
     else {
       let safe = 0, blocked = 1;
       for (let iteration = 0; iteration < 10; iteration++) {
         const middle = (safe + blocked) * 0.5, candidate: Vec3 = [x, y + (targetY - y) * middle, z];
-        if (this.capsuleBlocked(verticalFrom, candidate, radius, height)) blocked = middle; else safe = middle;
+        if (this.capsuleBlocked(verticalFrom, candidate, radius, height, false, candidates)) blocked = middle; else safe = middle;
       }
       y += (targetY - y) * safe;
     }

@@ -217,19 +217,21 @@ func _predict_server_step(ctx: Variant, state: Variant, command: Variant) -> voi
 	var from := Vector3(state.x, state.y, state.z)
 	state.vx = (move_x * cos(yaw) - move_z * sin(yaw)) / magnitude * speed
 	state.vz = (-move_x * sin(yaw) - move_z * cos(yaw)) / magnitude * speed
-	var current_floor: Variant = WorldGeometry.floor_height(state.x, state.z, state.y + 0.1)
+	var jump_requested := float(command.jump) > 0.5
+	var idle_candidate := move_x == 0.0 and move_z == 0.0 and not jump_requested and absf(state.vy) <= 0.000001
+	var current_floor: Variant = WorldGeometry.floor_height(state.x, state.z, state.y + 0.1) if jump_requested or idle_candidate else null
 	var has_floor := current_floor != null
 	var grounded_height: float = state.y if current_floor == null else float(current_floor)
 	# The server's fixed step resolves the stationary capsule and clears velocity
 	# when it starts exactly on the walkable floor with zero vertical speed. Only
 	# that exact fixed point may skip the sweep: small height/velocity differences
 	# still produce a distinct authoritative vertical result and use full physics.
-	if move_x == 0.0 and move_z == 0.0 and float(command.jump) <= 0.5 and has_floor and absf(state.vy) <= 0.000001 and absf(state.y - grounded_height) <= 0.000001:
+	if idle_candidate and has_floor and absf(state.y - grounded_height) <= 0.000001:
 		state.vx = 0.0
 		state.vy = 0.0
 		state.vz = 0.0
 		return
-	if float(command.jump) > 0.5 and absf(state.vy) < 0.001 and state.y <= grounded_height + 0.03:
+	if jump_requested and absf(state.vy) < 0.001 and state.y <= grounded_height + 0.03:
 		state.vy = 6.2
 	state.vy -= 18.0 * ctx.dt
 	var requested: Vector3 = from + Vector3(state.vx, state.vy, state.vz) * ctx.dt
