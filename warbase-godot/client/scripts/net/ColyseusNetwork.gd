@@ -5,6 +5,8 @@ extends WarNetwork
 
 const SchemaTypes := preload("res://scripts/net/ColyseusSchema.gd")
 const WorldGeometry := preload("res://scripts/net/ColyseusWorldGeometry.gd")
+# Leave one second of margin before the server's 15-second seat-reconnection expiry.
+const CLIENT_RECONNECT_GRACE_MS := 14000
 
 var client
 var room
@@ -28,6 +30,12 @@ var _desired_quat := Quaternion.IDENTITY
 var _desired_pitch := 0.0
 var _drop_started_ms := 0
 var _jump_pending := false
+var _drop_count := 0
+var _reconnect_count := 0
+var _last_reconnect_gap_ms := -1
+var _last_lifecycle_event := ""
+var _last_steps_due := 0
+var _max_steps_due := 0
 
 func connect_to(username: String, room_name: String, host: String) -> void:
 	disconnect_from()
@@ -36,6 +44,12 @@ func connect_to(username: String, room_name: String, host: String) -> void:
 	_host = host
 	_want_connection = true
 	_has_initial_state = false
+	_drop_count = 0
+	_reconnect_count = 0
+	_last_reconnect_gap_ms = -1
+	_last_lifecycle_event = "connecting"
+	_last_steps_due = 0
+	_max_steps_due = 0
 	var scheme := "wss"
 	if host.begins_with("localhost") or host.begins_with("127."):
 		scheme = "ws"
@@ -70,10 +84,12 @@ func connect_to(username: String, room_name: String, host: String) -> void:
 	room.state_changed.connect(_on_state_changed)
 	room.message_received.connect(_on_message)
 	room.error.connect(func(code: int, message: String) -> void:
+		_last_lifecycle_event = "error"
 		_want_connection = false
 		connection_error.emit(message if not message.is_empty() else "Colyseus room error %d" % code)
 	)
 	room.left.connect(func(_code: int, reason: String) -> void:
+		_last_lifecycle_event = "left"
 		_set_connected(false)
 		if _want_connection:
 			_want_connection = false
@@ -81,11 +97,19 @@ func connect_to(username: String, room_name: String, host: String) -> void:
 	)
 	room.dropped.connect(func(_code: int, _reason: String) -> void:
 		_drop_started_ms = Time.get_ticks_msec()
+		_drop_count += 1
+		_last_lifecycle_event = "dropped"
 		_set_connected(false)
 	)
 	room.reconnected.connect(_on_joined)
 
 func _on_joined() -> void:
+	if _drop_started_ms > 0:
+		_reconnect_count += 1
+		_last_reconnect_gap_ms = Time.get_ticks_msec() - _drop_started_ms
+		_last_lifecycle_event = "reconnected"
+	else:
+		_last_lifecycle_event = "joined"
 	_want_connection = true
 	_drop_started_ms = 0
 	# The SDK's default min-uptime rejects reconnects for rooms dropped soon
@@ -207,6 +231,54 @@ func get_sdk_remote_pose(username: String) -> Dictionary:
 func get_pose_clock_diagnostics() -> Dictionary:
 	return {"raw_delta_ms": _pose_clock_raw_delta_ms, "server_offset_ms": _pose_clock_server_offset_ms, "render_delta_ms": _pose_clock_render_delta_ms, "samples": _pose_clock_samples, "coherent": _pose_clock_coherent}
 
+## Snapshot for explicit QA observers. Read only; ordinary gameplay doesn't
+## allocate or emit these diagnostics.
+func get_prediction_diagnostics() -> Dictionary:
+	var me: Dictionary = _last_normalized_state.get("players", {}).get(_username, {})
+	var server_pos := Vector3(float(me.get("x", 0.0)), float(me.get("y", 0.0)), float(me.get("z", 0.0)))
+	var predicted_pos := Vector3.ZERO
+	var correction_mag := 0.0
+	var reconcile_seq := 0
+	var reconciler_pending := 0
+	var drift_ema := 0.0
+	if local_reconciler != null:
+		predicted_pos = Vector3(local_reconciler.value("x"), local_reconciler.value("y"), local_reconciler.value("z"))
+		reconcile_seq = int(local_reconciler.reconcile_seq)
+		reconciler_pending = int(local_reconciler.pending_count)
+		correction_mag = float(local_reconciler.last_correction_mag)
+		drift_ema = float(local_reconciler.drift_ema)
+	var input_sent := 0
+	var input_ack := 0
+	var input_pending := 0
+	var input_epoch := 0
+	if input_handle != null:
+		input_sent = int(input_handle.sent_count)
+		input_ack = int(input_handle.last_processed)
+		input_pending = int(input_handle.pending_count)
+		input_epoch = int(input_handle.epoch)
+	return {
+		"connected": connected,
+		"initial_state": _has_initial_state,
+		"lifecycle": _last_lifecycle_event,
+		"drop_count": _drop_count,
+		"reconnect_count": _reconnect_count,
+		"reconnect_gap_ms": _last_reconnect_gap_ms,
+		"sdk_reconnecting": room != null and room.reconnecting,
+		"steps_due": _last_steps_due,
+		"steps_due_max": _max_steps_due,
+		"input_sent": input_sent,
+		"input_ack": input_ack,
+		"input_pending": input_pending,
+		"input_epoch": input_epoch,
+		"reconcile_seq": reconcile_seq,
+		"reconciler_pending": reconciler_pending,
+		"last_correction_m": correction_mag,
+		"drift_ema_m": drift_ema,
+		"local_driving": _local_driving_vehicle,
+		"server_position": [server_pos.x, server_pos.y, server_pos.z],
+		"predicted_position": [predicted_pos.x, predicted_pos.y, predicted_pos.z],
+	}
+
 func _predict_server_step(ctx: Variant, state: Variant, command: Variant) -> void:
 	if state.health <= 0.0 or _local_driving_vehicle: return
 	var move_x := float(command.move_x)
@@ -290,7 +362,7 @@ func disconnect_from() -> void:
 func _process(delta: float) -> void:
 	if room == null: return
 	if not connected:
-		if _want_connection and _drop_started_ms > 0 and Time.get_ticks_msec() - _drop_started_ms > 10000:
+		if _want_connection and _drop_started_ms > 0 and Time.get_ticks_msec() - _drop_started_ms > CLIENT_RECONNECT_GRACE_MS:
 			_drop_started_ms = 0
 			_want_connection = false
 			connection_error.emit("Colyseus reconnection timed out")
@@ -299,7 +371,9 @@ func _process(delta: float) -> void:
 	if Input.is_action_just_pressed("jump"):
 		_jump_pending = true
 	var steps_due: int = predictor.tick() if predictor != null else 1
-	for _step in range(maxi(steps_due, 0)):
+	_last_steps_due = maxi(steps_due, 0)
+	_max_steps_due = maxi(_max_steps_due, _last_steps_due)
+	for _step in range(_last_steps_due):
 		_send_input_step()
 	_apply_local_reconciler()
 

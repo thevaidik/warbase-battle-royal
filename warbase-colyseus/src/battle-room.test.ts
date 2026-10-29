@@ -7,6 +7,7 @@ import { ColyseusTestServer } from '@colyseus/testing';
 import type { Client } from 'colyseus';
 import { RewindView } from '@colyseus/core/Rewind';
 import { aimDirection, BattleRoom, damageForZone, movementVelocity } from './battle-room.js';
+import { roomOperationsMetrics } from './operations-metrics.js';
 import { readFileSync } from 'node:fs';
 import { INDUSTRIAL_SPAWNS, rayBlocked, type Vec3 } from './world-geometry.js';
 
@@ -67,9 +68,18 @@ test('BattleRoom admission, combat authority, ammo and lifecycle', async (t) => 
   await t.test('admits a player, times the real Industrial bot join, and cleans up leaving clients', async (t) => {
     await assert.rejects(() => testing.createRoom('battle', { username: 'bad-map', room: 'loft-public' }));
     const room = await testing.createRoom<BattleRoom>('battle', { room: 'industrial-public' });
+    assert.equal(room.onAuth({ sessionId: 'invalid-name' } as any, { username: '<script>' }), false, 'unsafe anonymous display names are denied before joining');
     const joinStarted = performance.now();
     const alice = await testing.connectTo(room, { username: 'alice', room: 'industrial-public' });
     await waitFor(() => room.state.players.has('alice'));
+    (room as any).selectWeapon(alice.sessionId, 'constructor');
+    (room as any).selectWeapon(alice.sessionId, '__proto__');
+    assert.equal(room.state.players.get('alice')?.weapon_id, 'ak47', 'prototype property names are not accepted as weapons');
+    assert.equal(roomOperationsMetrics.get(room.roomId)?.joined, 1);
+    const metrics = roomOperationsMetrics.get(room.roomId)!;
+    assert.equal((room as any).allowMessage(alice, 'audit-limit', 1), true);
+    assert.equal((room as any).allowMessage(alice, 'audit-limit', 1), false);
+    assert.equal(metrics.rateLimitedMessages, 1);
     assert.equal((room as any).sessionByUsername.get('alice'), alice.sessionId);
     await waitFor(() => [...room.state.players.values()].filter((player) => player.is_bot).length === 7);
     t.diagnostic(`first Industrial player+bot admission: ${(performance.now() - joinStarted).toFixed(1)} ms`);

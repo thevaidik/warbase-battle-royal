@@ -1,4 +1,4 @@
-import { randomUUID } from 'node:crypto';
+import { randomUUID, timingSafeEqual } from 'node:crypto';
 import { existsSync, readFileSync } from 'node:fs';
 import { extname, resolve } from 'node:path';
 import { performance } from 'node:perf_hooks';
@@ -9,11 +9,13 @@ import { WebSocketTransport } from '@colyseus/ws-transport';
 import { BattleRoom, activeRooms } from './battle-room.js';
 import { prewarmBotNavigation } from './bot-simulation.js';
 import { loadWorldGeometry, PLAYABLE_MAPS, releaseWorldGeometry } from './world-geometry.js';
+import { roomOperationsMetrics, serviceOperationsMetrics } from './operations-metrics.js';
 
 const port = Number(process.env.PORT ?? 8081);
 const host = process.env.HOST ?? '0.0.0.0';
 const staticDirectory = String(process.env.STATIC_DIR ?? '').trim() ? resolve(String(process.env.STATIC_DIR).trim()) : '';
 const publicAddress = String(process.env.PUBLIC_ADDRESS ?? '').trim() || undefined;
+const operationsToken = String(process.env.OPS_METRICS_TOKEN ?? '');
 const defaultMode = (map: string): string => ['industrial', 'resoforge', 'football'].includes(map) ? 'TDM' : 'FFA';
 const gameServer = new Server({
   transport: new WebSocketTransport(),
@@ -25,6 +27,29 @@ const gameServer = new Server({
     const health = (_req: any, res: any) => res.json({ status: 'ok', server: 'warbase-colyseus', protocol: 'colyseus', version: '0.18.10' });
     app.get('/health', health);
     app.get('/healthcheck', health);
+    app.get('/internal/metrics', (req, res) => {
+      if (!operationsToken) return res.sendStatus(404);
+      res.setHeader('Cache-Control', 'no-store');
+      const authorization = req.get('authorization') ?? '';
+      const suppliedToken = authorization.startsWith('Bearer ') ? authorization.slice(7) : '';
+      const supplied = Buffer.from(suppliedToken), expected = Buffer.from(operationsToken);
+      if (supplied.length !== expected.length || !timingSafeEqual(supplied, expected)) return res.sendStatus(401);
+      const roomMetrics = [...roomOperationsMetrics.values()];
+      const sum = (field: keyof (typeof roomMetrics)[number]) => roomMetrics.reduce((total, value) => total + value[field], 0);
+      const tickCount = sum('tickCount'), tickDuration = sum('totalTickDurationMs');
+      const maxTickMs = roomMetrics.reduce((max, room) => Math.max(max, room.maxTickDurationMs), 0);
+      return res.json({
+        service: 'warbase-colyseus',
+        uptime_seconds: Math.floor(process.uptime()),
+        rooms: { active: activeRooms.size, clients: [...activeRooms.values()].reduce((n, room) => n + room.clients, 0), bots: [...activeRooms.values()].reduce((n, room) => n + room.bots, 0) },
+        simulation: { ticks: tickCount, over_budget_ticks: sum('tickOverruns'), late_ticks: sum('lateTicks'), average_tick_ms: tickCount ? tickDuration / tickCount : 0, max_tick_ms: maxTickMs },
+        inputs: { consumed: sum('consumedInputs'), empty_steps: sum('emptyInputSteps') },
+        validation: { joins: sum('joined'), leaves: sum('left'), rejected_admissions: sum('rejectedAdmissions'), rejected_messages: sum('rejectedMessages'),
+          rejected_payloads: sum('rejectedPayloads'), rate_limited_messages: sum('rateLimitedMessages'),
+          rejected_room_creates: serviceOperationsMetrics.roomCreateRejected, rate_limited_room_creates: serviceOperationsMetrics.roomCreateRateLimited },
+        process: { rss_bytes: process.memoryUsage().rss, heap_used_bytes: process.memoryUsage().heapUsed },
+      });
+    });
     app.get('/api/maps', (_req, res) => res.json({ maps: PLAYABLE_MAPS.map((map) => ({ id: map, mode: defaultMode(map) })) }));
     app.get('/api/rooms', (_req, res) => {
       const live = [...activeRooms.values()];
@@ -51,19 +76,24 @@ const gameServer = new Server({
       return res.json(room);
     });
     app.post('/api/rooms', async (req, res) => {
+      if (activeRooms.size >= 128) {
+        serviceOperationsMetrics.roomCreateRejected++;
+        return res.status(503).json({ error: 'room_capacity_reached' });
+      }
       const map = String(req.body?.map ?? '').trim().toLowerCase();
-      if (!loadWorldGeometry(map)) return res.status(400).json({ error: 'unsupported_map' });
+      if (!loadWorldGeometry(map)) { serviceOperationsMetrics.roomCreateRejected++; return res.status(400).json({ error: 'unsupported_map' }); }
       const mode = String(req.body?.mode ?? defaultMode(map)).trim().toUpperCase();
-      if (mode !== 'TDM' && mode !== 'FFA') return res.status(400).json({ error: 'unsupported_mode' });
+      if (mode !== 'TDM' && mode !== 'FFA') { serviceOperationsMetrics.roomCreateRejected++; return res.status(400).json({ error: 'unsupported_mode' }); }
       const rawTime = String(req.body?.timeOfDay ?? req.body?.time_of_day ?? 'noon').trim().toLowerCase();
       const timeOfDay = rawTime === 'night' ? 'overcast' : rawTime;
-      if (!['dawn', 'noon', 'dusk', 'overcast'].includes(timeOfDay)) return res.status(400).json({ error: 'unsupported_time_of_day' });
+      if (!['dawn', 'noon', 'dusk', 'overcast'].includes(timeOfDay)) { serviceOperationsMetrics.roomCreateRejected++; return res.status(400).json({ error: 'unsupported_time_of_day' }); }
       const roomId = randomUUID();
       const name = String(req.body?.name ?? '').trim().slice(0, 48) || `${map} ${mode}`;
       try {
         await createRoom('battle', { room: roomId, name, map, mode, time_of_day: timeOfDay });
         return res.status(201).json({ room_id: roomId });
       } catch (error) {
+        if (!(error instanceof Error) || !['Room creation capacity reached', 'Room creation rate limited'].includes(error.message)) serviceOperationsMetrics.roomCreateRejected++;
         console.error('Failed to create Colyseus room', error);
         return res.status(400).json({ error: 'room_creation_failed' });
       }

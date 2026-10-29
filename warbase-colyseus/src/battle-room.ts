@@ -7,6 +7,9 @@ import { BotSimulation, type BotPlayer, type BotShot } from './bot-simulation.js
 import { grenadeDamageAt, grenadeVehicleDamageAt, GrenadeSimulation, validateGrenadeLaunch, type ThrowableKind } from './grenade-simulation.js';
 import { VehicleSimulation, type VehiclePlayer, type VehicleInput } from './vehicle-simulation.js';
 import { RewindView } from '@colyseus/core/Rewind';
+import { performance } from 'node:perf_hooks';
+import { anonymousJoinLimiter, canonicalizeUsername, gameMessageLimiter, roomCreationLimiter } from './abuse-protection.js';
+import { newRoomOperationsMetrics, roomOperationsMetrics, serviceOperationsMetrics, type RoomOperationsMetrics } from './operations-metrics.js';
 
 class MoveInput extends Schema {
   move_x = 0; move_z = 0; yaw = 0; pitch = 0; jump = 0; sprint = 0; crouch = 0;
@@ -29,10 +32,11 @@ const WEAPONS: Record<string, Weapon> = {
   m2010: { damage: 100, rpm: 45, magazine: 5, reloadMs: 3200, range: 150, headshot: 1.8, falloffStart: 0, falloffEnd: 150, minFraction: 1, bodyFraction: 1 },
   hmg: { damage: 34, rpm: 520, magazine: 60, reloadMs: 3400, range: 90, headshot: 1.8, falloffStart: 20, falloffEnd: 90, minFraction: 0.6, bodyFraction: 0.84 },
 };
+const getWeapon = (weaponId: string): Weapon | undefined => Object.hasOwn(WEAPONS, weaponId) ? WEAPONS[weaponId] : undefined;
 const clamp = (n: unknown, lo: number, hi: number): number => Number.isFinite(Number(n)) ? Math.max(lo, Math.min(hi, Number(n))) : 0;
 
 export function damageForZone(weaponId: string, metres: number, zone: string): number {
-  const weapon = WEAPONS[weaponId] ?? WEAPONS.ak47;
+  const weapon = getWeapon(weaponId) ?? WEAPONS.ak47;
   const fraction = Math.max(0, Math.min(1, (metres - weapon.falloffStart) / Math.max(1, weapon.falloffEnd - weapon.falloffStart)));
   const rangedDamage = Math.round(weapon.damage * (1 - fraction * (1 - weapon.minFraction)));
   let damage = rangedDamage;
@@ -69,8 +73,17 @@ export class BattleRoom extends Room<{ state: BattleState; input: MoveInput }> {
   private botProtectedUntil = new Map<string, number>();
   private botAnimationStartedAt = new Map<string, number>();
   private vehicleWeaponBeforeDrive = new Map<string, string>();
+  private operations!: RoomOperationsMetrics;
 
   onCreate(options: JoinOptions) {
+    if (activeRooms.size >= 128) {
+      serviceOperationsMetrics.roomCreateRejected++;
+      throw new Error('Room creation capacity reached');
+    }
+    if (!roomCreationLimiter.allow('process', 60, 60_000)) {
+      serviceOperationsMetrics.roomCreateRateLimited++;
+      throw new Error('Room creation rate limited');
+    }
     const requested = String(options.room ?? 'industrial-public').trim();
     const explicitMap = String(options.map_name ?? options.map ?? '').trim().toLowerCase();
     const map = explicitMap || this.mapFromRoomId(requested);
@@ -83,6 +96,8 @@ export class BattleRoom extends Room<{ state: BattleState; input: MoveInput }> {
     const timeOfDay = requestedTime === 'night' ? 'overcast' : requestedTime;
     if (!['dawn', 'noon', 'dusk', 'overcast'].includes(timeOfDay)) throw new Error(`Unsupported time of day: ${requestedTime}`);
     this.geometry = geometry;
+    this.operations = newRoomOperationsMetrics();
+    roomOperationsMetrics.set(this.roomId, this.operations);
     this.grenadeSimulation = new GrenadeSimulation(geometry);
     this.vehicleSimulation = new VehicleSimulation(geometry);
     this.botSimulation = new BotSimulation(geometry);
@@ -97,7 +112,12 @@ export class BattleRoom extends Room<{ state: BattleState; input: MoveInput }> {
     this.rewind.attachAll(this.state.players, { fields: ['x', 'y', 'z', 'qx', 'qy', 'qz', 'qw'], mode: 'snapshot', interpolate: 'linear' });
     this.rewind.attachAll(this.state.players, { fields: ['animation_code', 'animation_time', 'health'], mode: 'snapshot', interpolate: 'step' });
     let fixedTick = 0;
+    let lastTickStartedAt = 0;
     this.setFixedTimestep((ctx) => {
+      const tickStartedAt = performance.now();
+      this.operations.tickCount++;
+      if (lastTickStartedAt > 0 && tickStartedAt - lastTickStartedAt > ctx.dt * 1500) this.operations.lateTicks++;
+      lastTickStartedAt = tickStartedAt;
       const now = Date.now();
       for (const [username, player] of this.state.players) {
         const sessionId = this.sessionByUsername.get(username);
@@ -112,6 +132,8 @@ export class BattleRoom extends Room<{ state: BattleState; input: MoveInput }> {
         }
         const inputChannel = this.inputs.get(sessionId);
         const input = inputChannel.next();
+        if (input) this.operations.consumedInputs++;
+        else this.operations.emptyInputSteps++;
         const mx = clamp(input?.move_x ?? 0, -1, 1), mz = clamp(input?.move_z ?? 0, -1, 1);
         const speed = (input?.sprint ?? 0) > 0.5 ? 8.8 : (input?.crouch ?? 0) > 0.5 ? 2.5 : 6.2;
         const yaw = input?.yaw ?? p.yaw;
@@ -136,37 +158,52 @@ export class BattleRoom extends Room<{ state: BattleState; input: MoveInput }> {
       if (this.grenadeSimulation.hasGrenades) this.stepGrenades(ctx.dt);
       // Simulation remains 60 Hz; replicated schema patches are capped at 20 Hz.
       if (++fixedTick % 3 === 0) this.syncVehiclesToSchema();
+      const durationMs = performance.now() - tickStartedAt;
+      this.operations.lastTickDurationMs = durationMs;
+      this.operations.maxTickDurationMs = Math.max(this.operations.maxTickDurationMs, durationMs);
+      this.operations.totalTickDurationMs += durationMs;
+      if (durationMs > ctx.dt * 1000) this.operations.tickOverruns++;
     }, 60);
 
     this.onMessage('state_meta', (client, raw: any) => {
+      if (!this.allowMessage(client, 'state_meta', 20)) return;
       const p = this.state.players.get(this.internal.get(client.sessionId)?.username ?? ''); if (!p || p.is_dead) return;
       const requested = String(raw?.animation ?? 'idle');
       const animation = REWIND_ANIMATION_CLIPS.includes(requested as (typeof REWIND_ANIMATION_CLIPS)[number]) || requested === 'death' ? requested : 'idle';
       if (p.animation !== animation) { p.animation = animation; p.animation_code = animationCodeForClip(animation); const meta = this.internal.get(client.sessionId); if (meta) meta.animationStartedAt = Date.now(); p.animation_time = 0; }
       const weapon = String(raw?.weapon ?? p.weapon_id);
-      if (WEAPONS[weapon]) this.selectWeapon(client.sessionId, weapon);
+      if (getWeapon(weapon)) this.selectWeapon(client.sessionId, weapon);
     });
-    this.onMessage('fire', (client, raw: any) => this.fire(client, raw));
-    this.onMessage('hit', (client, raw: any) => this.hit(client, raw));
-    this.onMessage('reload', (client) => this.reload(client));
-    this.onMessage('switch', (client, raw: any) => this.selectWeapon(client.sessionId, String(raw?.weapon ?? '')));
+    this.onMessage('fire', (client, raw: any) => { if (this.allowMessage(client, 'fire', 20)) this.fire(client, raw); });
+    this.onMessage('hit', (client, raw: any) => { if (this.allowMessage(client, 'hit', 20)) this.hit(client, raw); });
+    this.onMessage('reload', (client) => { if (this.allowMessage(client, 'reload', 4)) this.reload(client); });
+    this.onMessage('switch', (client, raw: any) => { if (this.allowMessage(client, 'switch', 8)) this.selectWeapon(client.sessionId, String(raw?.weapon ?? '')); });
     this.onMessage('loadout', (client, raw: any) => {
+      if (!this.allowMessage(client, 'loadout', 4)) return;
       this.selectWeapon(client.sessionId, String(raw?.primary ?? 'ak47'));
       const p = this.state.players.get(this.internal.get(client.sessionId)?.username ?? '');
       const throwable = String(raw?.throwable ?? p?.throwable ?? 'frag');
       if (p && (throwable === 'frag' || throwable === 'impact')) p.throwable = throwable;
     });
-    this.onMessage('respawn', (client) => this.requestRespawn(client));
-    this.onMessage('grenade', (client, raw: any) => this.throwGrenade(client, raw));
-    this.onMessage('vehicle_seat', (client, raw: any) => this.vehicleSeat(client, raw));
-    this.onMessage('vehicle_input', (client, raw: any) => this.vehicleInput(client, raw));
+    this.onMessage('respawn', (client) => { if (this.allowMessage(client, 'respawn', 3)) this.requestRespawn(client); });
+    this.onMessage('grenade', (client, raw: any) => { if (this.allowMessage(client, 'grenade', 4)) this.throwGrenade(client, raw); });
+    this.onMessage('vehicle_seat', (client, raw: any) => { if (this.allowMessage(client, 'vehicle_seat', 8)) this.vehicleSeat(client, raw); });
+    this.onMessage('vehicle_input', (client, raw: any) => { if (this.allowMessage(client, 'vehicle_input', 75)) this.vehicleInput(client, raw); });
   }
 
-  onJoin(client: Client, options: JoinOptions) {
-    const username = String(options.username ?? '').trim().slice(0, 24);
-    if (!username) throw new Error('username required');
-    if (username.toLowerCase().startsWith('[bot]')) throw new Error('reserved bot username');
-    if ([...this.internal.values()].some((x) => x.username.toLowerCase() === username.toLowerCase())) throw new Error('username already in room');
+  onAuth(_client: Client, options: JoinOptions): { username: string } | false {
+    const username = canonicalizeUsername(options?.username);
+    if (!username) { this.operations.rejectedAdmissions++; return false; }
+    // Use room ID, not IP: reverse proxies can make unrelated users share one address.
+    if (!anonymousJoinLimiter.allow(this.roomId, 256, 60_000)) { this.operations.rejectedAdmissions++; return false; }
+    return { username };
+  }
+
+  onJoin(client: Client, options: JoinOptions, auth?: { username: string }) {
+    const username = canonicalizeUsername(auth?.username ?? options.username);
+    if (!username) { this.operations.rejectedAdmissions++; throw new Error('valid username required'); }
+    if ([...this.internal.values()].some((x) => x.username.normalize('NFKC').toLowerCase() === username.normalize('NFKC').toLowerCase())) { this.operations.rejectedAdmissions++; throw new Error('username already in room'); }
+    this.operations.joined++;
     const p = new PlayerState();
     const spawn = this.geometry.spawns[(this.clients.length - 1) % this.geometry.spawns.length];
     p.x = spawn[0]; p.y = spawn[1]; p.z = spawn[2];
@@ -185,9 +222,18 @@ export class BattleRoom extends Room<{ state: BattleState; input: MoveInput }> {
 
   async onDrop(client: Client) { try { await this.allowReconnection(client, 15); } catch { /* Colyseus invokes onLeave after the reconnect window expires. */ } }
   onReconnect(client: Client) { const meta = this.internal.get(client.sessionId); if (meta) client.send('identity', { username: meta.username, map: this.metadata?.map, session_id: client.sessionId }); }
-  onLeave(client: Client) { const meta = this.internal.get(client.sessionId); if (meta) { this.cancelReload(meta); this.sessionByUsername.delete(meta.username); const player = this.state.players.get(meta.username); if (player?.driving_vehicle) this.exitVehicle(player); this.state.players.delete(meta.username); } this.internal.delete(client.sessionId); const listing = activeRooms.get(this.roomId); if (listing) listing.clients = this.clients.length; this.syncBots(); if (this.clients.length === 0) activeRooms.delete(this.roomId); }
+  onLeave(client: Client) { const meta = this.internal.get(client.sessionId); if (meta) { this.operations.left++; this.cancelReload(meta); this.sessionByUsername.delete(meta.username); const player = this.state.players.get(meta.username); if (player?.driving_vehicle) this.exitVehicle(player); this.state.players.delete(meta.username); } this.internal.delete(client.sessionId); const listing = activeRooms.get(this.roomId); if (listing) listing.clients = this.clients.length; this.syncBots(); if (this.clients.length === 0) activeRooms.delete(this.roomId); }
 
-  onDispose() { for (const internal of this.internal.values()) this.cancelReload(internal); activeRooms.delete(this.roomId); }
+  onDispose() { for (const internal of this.internal.values()) this.cancelReload(internal); activeRooms.delete(this.roomId); roomOperationsMetrics.delete(this.roomId); }
+
+  private allowMessage(client: Client, message: string, limitPerSecond: number): boolean {
+    if (gameMessageLimiter.allow(`${this.roomId}:${client.sessionId}:${message}`, limitPerSecond, 1000)) return true;
+    this.operations.rateLimitedMessages++;
+    this.operations.rejectedMessages++;
+    return false;
+  }
+
+  private rejectMessage(): void { this.operations.rejectedPayloads++; this.operations.rejectedMessages++; }
 
   private mapFromRoomId(roomId: string): string {
     const normalized = roomId.trim().toLowerCase();
@@ -276,10 +322,10 @@ export class BattleRoom extends Room<{ state: BattleState; input: MoveInput }> {
     if (!runtime || !player || player.is_dead || player.driving_vehicle || player.grenades <= 0) return;
     const kind = player.throwable === 'impact' ? 'impact' : 'frag';
     const position = this.vec(raw?.pos), velocity = this.vec(raw?.vel);
-    if (!position || !velocity) return;
+    if (!position || !velocity) { this.rejectMessage(); return; }
     const now = Date.now(), eye: Vec3 = [player.x, player.y + 1.35, player.z], feet: Vec3 = [player.x, player.y, player.z];
     const launch = { owner: player.username, kind, position, velocity };
-    if (!validateGrenadeLaunch(launch, feet, eye, kind, runtime.grenadeLastThrow, now, player.grenades, this.geometry)) return;
+    if (!validateGrenadeLaunch(launch, feet, eye, kind, runtime.grenadeLastThrow, now, player.grenades, this.geometry)) { this.rejectMessage(); return; }
     const grenade = this.grenadeSimulation.launch(launch);
     if (!grenade) return;
     runtime.grenadeLastThrow = now; player.grenades--;
@@ -325,6 +371,7 @@ export class BattleRoom extends Room<{ state: BattleState; input: MoveInput }> {
     const player = this.state.players.get(this.internal.get(client.sessionId)?.username ?? '');
     if (!player || player.is_dead || !player.driving_vehicle) return;
     const input: VehicleInput = { throttle: Number(raw?.throttle), steer: Number(raw?.steer), brake: raw?.brake === true, gear: Number(raw?.gear) };
+    if (![input.throttle, input.steer, input.gear].every(Number.isFinite) || typeof raw?.brake !== 'boolean') { this.rejectMessage(); return; }
     this.vehicleSimulation.input(this.vehiclePlayer(player), input, Date.now());
   }
 
@@ -412,23 +459,24 @@ export class BattleRoom extends Room<{ state: BattleState; input: MoveInput }> {
   private exitVehicle(player: PlayerState): void {
     if (!this.vehicleSimulation.exit(this.vehiclePlayer(player))) return;
     const previousWeapon = this.vehicleWeaponBeforeDrive.get(player.username);
-    if (previousWeapon && WEAPONS[previousWeapon]) player.weapon_id = previousWeapon;
+    if (previousWeapon && getWeapon(previousWeapon)) player.weapon_id = previousWeapon;
     this.vehicleWeaponBeforeDrive.delete(player.username);
     if (!player.is_dead) { player.animation = 'idle'; player.animation_code = 0; player.animation_time = 0; }
   }
 
   private selectWeapon(sessionId: string, weapon: string) {
     const meta = this.internal.get(sessionId), p = this.state.players.get(meta?.username ?? '');
-    if (!p || !meta || !WEAPONS[weapon] || p.is_dead || Date.now() < meta.reloadUntil || p.weapon_id === weapon) return;
+    const selectedWeapon = getWeapon(weapon);
+    if (!p || !meta || !selectedWeapon || p.is_dead || Date.now() < meta.reloadUntil || p.weapon_id === weapon) return;
     if (meta.reloadTimer) this.cancelReload(meta);
     meta.ammoByWeapon[p.weapon_id] = p.ammo;
-    p.weapon_id = weapon; p.ammo = meta.ammoByWeapon[weapon] ?? WEAPONS[weapon].magazine;
+    p.weapon_id = weapon; p.ammo = meta.ammoByWeapon[weapon] ?? selectedWeapon.magazine;
   }
 
   private fire(client: Client, raw: any) {
     const state = this.internal.get(client.sessionId), p = this.state.players.get(state?.username ?? '');
     if (!p || !state || p.is_dead) return;
-    const now = Date.now(), weapon = WEAPONS[p.weapon_id] ?? WEAPONS.ak47;
+    const now = Date.now(), weapon = getWeapon(p.weapon_id) ?? WEAPONS.ak47;
     if (now < state.reloadUntil || now - state.lastShot < 60000 / weapon.rpm || p.ammo <= 0) return;
     const requestedShotId = Math.trunc(Number(raw?.shot_id) || 0);
     if (requestedShotId > 0 && requestedShotId <= state.lastShotId) return;
@@ -438,7 +486,7 @@ export class BattleRoom extends Room<{ state: BattleState; input: MoveInput }> {
       ? requestedOrigin : [p.x, p.y + 1.2, p.z];
     const buffered = this.inputs.get(client.sessionId).latest;
     const hasYaw = raw?.yaw !== undefined, hasPitch = raw?.pitch !== undefined;
-    if ((hasYaw && !Number.isFinite(Number(raw.yaw))) || (hasPitch && !Number.isFinite(Number(raw.pitch)))) return;
+    if ((hasYaw && !Number.isFinite(Number(raw.yaw))) || (hasPitch && !Number.isFinite(Number(raw.pitch)))) { this.rejectMessage(); return; }
     const aimYaw = clamp(hasYaw ? raw.yaw : buffered?.yaw ?? p.yaw, -Math.PI * 16, Math.PI * 16);
     const aimPitch = clamp(hasPitch ? raw.pitch : buffered?.pitch ?? p.pitch, -1.55, 1.55);
     p.yaw = aimYaw; p.pitch = aimPitch;
@@ -499,7 +547,7 @@ export class BattleRoom extends Room<{ state: BattleState; input: MoveInput }> {
   private reload(client: Client) {
     const internal = this.internal.get(client.sessionId), p = this.state.players.get(internal?.username ?? '');
     if (!p || !internal || p.is_dead) return;
-    const w = WEAPONS[p.weapon_id] ?? WEAPONS.ak47;
+    const w = getWeapon(p.weapon_id) ?? WEAPONS.ak47;
     if (p.ammo < w.magazine && Date.now() >= internal.reloadUntil) {
       internal.reloadUntil = Date.now() + w.reloadMs;
       const reloadingWeapon = p.weapon_id;
@@ -526,7 +574,7 @@ export class BattleRoom extends Room<{ state: BattleState; input: MoveInput }> {
     const spawn = this.geometry.spawns[spawnIndex];
     p.x = spawn[0]; p.y = spawn[1]; p.z = spawn[2];
     this.cancelReload(internal);
-    p.health = 100; p.is_dead = false; p.vx = 0; p.vy = 0; p.vz = 0; p.animation_time = 0; p.pose_time_ms = Date.now(); p.animation = 'idle'; p.animation_code = 0; p.grenades = 2; internal.grenadeLastThrow = 0; internal.animationStartedAt = Date.now(); internal.protectedUntil = Date.now() + 2500; p.ammo = (WEAPONS[p.weapon_id] ?? WEAPONS.ak47).magazine; internal.ammoByWeapon[p.weapon_id] = p.ammo;
+    p.health = 100; p.is_dead = false; p.vx = 0; p.vy = 0; p.vz = 0; p.animation_time = 0; p.pose_time_ms = Date.now(); p.animation = 'idle'; p.animation_code = 0; p.grenades = 2; internal.grenadeLastThrow = 0; internal.animationStartedAt = Date.now(); internal.protectedUntil = Date.now() + 2500; p.ammo = (getWeapon(p.weapon_id) ?? WEAPONS.ak47).magazine; internal.ammoByWeapon[p.weapon_id] = p.ammo;
     internal.spawnAt = 0; internal.vy = 0;
     this.clients.find((client) => client.sessionId === sessionId)?.send('respawn', { x: p.x, y: p.y, z: p.z });
   }

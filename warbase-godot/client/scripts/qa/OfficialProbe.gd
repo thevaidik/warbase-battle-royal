@@ -41,6 +41,13 @@ var walking_distance := 0.0
 var previous_walk := Vector3.ZERO
 var cpu: Array[float] = []
 var draws: Array[float] = []
+var phase_position_errors: Dictionary = {}
+var prediction_samples: Array[Dictionary] = []
+var event_markers: Array[Dictionary] = []
+var _last_prediction_sample_ms := 0
+var _last_phase := ""
+var _last_server_seat := ""
+var _stall_active := false
 var seconds := 180.0
 var output_path := ""
 func begin(game: Node) -> void:
@@ -92,15 +99,22 @@ func run() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	main.net.state_received.connect(on_state)
 	main.net.connection_changed.connect(func(connected: bool):
-		if not connected: disconnects += 1)
+		if not connected:
+			disconnects += 1
+			_mark_event("connection_lost", _prediction_diagnostics())
+		else:
+			_mark_event("connection_restored", _prediction_diagnostics()))
 	main.net.fire_received.connect(func(_a,_b,_c,_d,_e): fire_events += 1)
 	main.net.hit_confirmed.connect(func(): confirmed_hits += 1)
 	main.net.kill_confirmed.connect(func(): confirmed_kills += 1)
 	main.net.respawn_received.connect(func(_pos):
 		respawn_at_ms = Time.get_ticks_msec()
-		local_respawns += 1)
+		local_respawns += 1
+		_mark_event("respawn_received", _prediction_diagnostics()))
 	main.net.damage_received.connect(func(_a,_b,_c,_d): damage_events += 1)
-	main.net.explosion_received.connect(func(_a,_b,_c): explosion_events += 1)
+	main.net.explosion_received.connect(func(_id,_pos,_kind):
+		explosion_events += 1
+		_mark_event("explosion_received", {"id": _id, "pos": _vec_array(_pos), "kind": _kind}))
 	var timeout := Time.get_ticks_msec() + 20000
 	while not state.online_ready and Time.get_ticks_msec() < timeout: await get_tree().process_frame
 	if not state.online_ready: push_error("Official server connection failed");get_tree().quit(1);return
@@ -111,6 +125,12 @@ func run() -> void:
 		var dt := get_tree().root.get_process_delta_time()
 		elapsed += dt
 		frames.append(dt*1000)
+		if dt >= 0.1 and not _stall_active:
+			_stall_active = true
+			_mark_event("frame_stall_started", {"frame_ms": dt * 1000.0, "fps": Engine.get_frames_per_second(), "remotes": main.mp.remotes.size(), "driving": main.current_driven_jeep != null, "prediction": _prediction_diagnostics()})
+		elif _stall_active and dt < 0.05:
+			_stall_active = false
+			_mark_event("frame_stall_ended", {"fps": Engine.get_frames_per_second(), "remotes": main.mp.remotes.size(), "driving": main.current_driven_jeep != null})
 		cpu.append(Performance.get_monitor(Performance.TIME_PROCESS)*1000)
 		draws.append(Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME))
 		peak_remotes = maxi(peak_remotes, main.mp.remotes.size())
@@ -136,7 +156,10 @@ func run() -> void:
 			continue
 		if main.current_driven_jeep != null:
 			var car = main.current_driven_jeep
-			if not was_driving: seat_entries += 1; previous_car = car.global_position
+			if not was_driving:
+				seat_entries += 1
+				previous_car = car.global_position
+				_mark_event("vehicle_entered", {"pos": _vec_array(car.global_position), "vehicle_id": String(car.get_meta("server_vehicle_id", "")), "prediction": _prediction_diagnostics()})
 			was_driving = true
 			driving_seconds += dt
 			drive_distance += car.global_position.distance_to(previous_car)
@@ -151,7 +174,9 @@ func run() -> void:
 			else: Input.action_release("move_right")
 			if driving_seconds > 35 and int(elapsed) != last_sample: main.net.send_vehicle_seat("",false)
 		else:
-			if was_driving: seat_exits += 1
+			if was_driving:
+				seat_exits += 1
+				_mark_event("vehicle_exited", {"pos": _vec_array(player.global_position), "prediction": _prediction_diagnostics()})
 			was_driving = false
 			walking_distance += minf(player.global_position.distance_to(previous_walk),1.0)
 			previous_walk = player.global_position
@@ -188,8 +213,11 @@ func run() -> void:
 			last_sample = int(elapsed)
 			pings.append(main.net.current_ping)
 			print("OBS t=",last_sample," fps=",Engine.get_frames_per_second()," ping=",main.net.current_ping," remotes=",main.mp.remotes.size()," seats=",seat_entries," drive_m=",snappedf(drive_distance,.1)," pos=",player.global_position)
+		if candidate_backend and Time.get_ticks_msec() - _last_prediction_sample_ms >= 1000:
+			_last_prediction_sample_ms = Time.get_ticks_msec()
+			_record_prediction_sample(player)
 	for action in ["move_forward","move_back","move_right","jump","fire","ads"]: Input.action_release(action)
-	var report := {"host":state.server_host,"backend":"colyseus" if candidate_backend else "legacy","platform":"web" if OS.has_feature("web") else "native-release","audio_disabled":AudioServer.is_bus_mute(AudioServer.get_bus_index("Master")),"release_export":OS.has_feature("release") and not OS.has_feature("editor"),"local_respawns":local_respawns,"local_shots":main.weapons._shot_seq if is_instance_valid(main.weapons) else 0,"confirmed_hits":confirmed_hits,"confirmed_kills":confirmed_kills,"ads_frames":ads_frames,"local_grenades":local_grenades,"sdk_reconcile_seq_max":sdk_reconcile_seq_max,"sdk_ack_sequence_max":sdk_ack_sequence_max,"sdk_inputs_sent_max":sdk_inputs_sent_max,"seconds":elapsed,"peak_remotes":peak_remotes,"frame_ms_p50":percentile(frames,.5),"frame_ms_p95":percentile(frames,.95),"frame_ms_p99":percentile(frames,.99),"frame_ms_max":percentile(frames,1),"cpu_process_ms_p95":percentile(cpu,.95),"draw_calls_p95":percentile(draws,.95),"snapshot_gap_ms_p95":percentile(gaps,.95),"snapshot_gap_ms_max":percentile(gaps,1),"ping_ms_p50":percentile(pings,.5),"ping_ms_p95":percentile(pings,.95),"max_position_error_m":max_position_error,"snapshots_with_error_over_2_5m":errors_over_2_5,"applied_corrections":applied_corrections,"disconnects":disconnects,"seat_entries":seat_entries,"seat_exits":seat_exits,"driving_seconds":driving_seconds,"drive_distance_m":drive_distance,"walking_distance_m":walking_distance,"fire_events":fire_events,"damage_events":damage_events,"explosion_events":explosion_events,"local_bots":main.bots.bots.size() if is_instance_valid(main.bots) else -1}
+	var report := {"host":state.server_host,"backend":"colyseus" if candidate_backend else "legacy","platform":"web" if OS.has_feature("web") else "native-release","audio_disabled":AudioServer.is_bus_mute(AudioServer.get_bus_index("Master")),"release_export":OS.has_feature("release") and not OS.has_feature("editor"),"local_respawns":local_respawns,"local_shots":main.weapons._shot_seq if is_instance_valid(main.weapons) else 0,"confirmed_hits":confirmed_hits,"confirmed_kills":confirmed_kills,"ads_frames":ads_frames,"local_grenades":local_grenades,"sdk_reconcile_seq_max":sdk_reconcile_seq_max,"sdk_ack_sequence_max":sdk_ack_sequence_max,"sdk_inputs_sent_max":sdk_inputs_sent_max,"seconds":elapsed,"peak_remotes":peak_remotes,"frame_ms_p50":percentile(frames,.5),"frame_ms_p95":percentile(frames,.95),"frame_ms_p99":percentile(frames,.99),"frame_ms_max":percentile(frames,1),"cpu_process_ms_p95":percentile(cpu,.95),"draw_calls_p95":percentile(draws,.95),"snapshot_gap_ms_p95":percentile(gaps,.95),"snapshot_gap_ms_max":percentile(gaps,1),"ping_ms_p50":percentile(pings,.5),"ping_ms_p95":percentile(pings,.95),"max_position_error_m":max_position_error,"snapshots_with_error_over_2_5m":errors_over_2_5,"phase_position_errors":phase_position_errors,"prediction_samples":prediction_samples,"prediction_final":_prediction_diagnostics(),"event_markers":event_markers,"applied_corrections":applied_corrections,"disconnects":disconnects,"seat_entries":seat_entries,"seat_exits":seat_exits,"driving_seconds":driving_seconds,"drive_distance_m":drive_distance,"walking_distance_m":walking_distance,"fire_events":fire_events,"damage_events":damage_events,"explosion_events":explosion_events,"local_bots":main.bots.bots.size() if is_instance_valid(main.bots) else -1}
 	if output_path.is_empty(): output_path = "user://qa-latest.json"
 	var file := FileAccess.open(output_path,FileAccess.WRITE)
 	if file: file.store_string(JSON.stringify(report,"  "))
@@ -212,11 +240,64 @@ func on_state(snapshot: Dictionary) -> void:
 	last_state_ms = now
 	var state = get_tree().root.get_node("GameState")
 	var me: Dictionary = snapshot.get("players",{}).get(state.username,{})
-	if not me.is_empty() and is_instance_valid(main.player) and not main.player.is_dead and not main.player.is_driving:
-		var position := Vector3(me.get("x",0),me.get("y",0),me.get("z",0))
-		var error: float = main.player.global_position.distance_to(position)
-		max_position_error = maxf(max_position_error,error)
+	if me.is_empty() or not is_instance_valid(main.player): return
+	var player = main.player
+	var server_seat := String(me.get("driving_vehicle", ""))
+	if server_seat != _last_server_seat:
+		_mark_event("vehicle_seat_enter_authoritative" if not server_seat.is_empty() else "vehicle_seat_exit_authoritative", {"previous_seat": _last_server_seat, "server_seat": server_seat, "server_player_pos": [float(me.get("x", 0)), float(me.get("y", 0)), float(me.get("z", 0))], "prediction": _prediction_diagnostics()})
+		_last_server_seat = server_seat
+	var phase := "dead" if player.is_dead else ("driving" if player.is_driving else ("respawn_grace" if respawn_at_ms > 0 and now - respawn_at_ms < 2000 else "walking"))
+	if phase != _last_phase:
+		_mark_event("phase_changed", {"from": _last_phase, "to": phase, "player_pos": _vec_array(player.global_position), "server_player_pos": [float(me.get("x", 0)), float(me.get("y", 0)), float(me.get("z", 0))], "prediction": _prediction_diagnostics()})
+		_last_phase = phase
+	if phase == "driving":
+		var seat := String(me.get("driving_vehicle", ""))
+		var vehicles: Dictionary = snapshot.get("vehicles", {})
+		var server_vehicle: Dictionary = vehicles.get(seat, {})
+		var local_vehicle = main.current_driven_jeep
+		if not is_instance_valid(local_vehicle) and main._online_vehicles.has(seat):
+			local_vehicle = main._online_vehicles[seat]
+		if not server_vehicle.is_empty() and is_instance_valid(local_vehicle):
+			var server_vehicle_pos: Vector3 = server_vehicle.get("pos", Vector3.ZERO)
+			_record_phase_error("driving_vehicle_render", local_vehicle.global_position.distance_to(server_vehicle_pos), local_vehicle.global_position, server_vehicle_pos)
+		return
+	if phase == "dead": return
+	var server_pos := Vector3(float(me.get("x", 0)), float(me.get("y", 0)), float(me.get("z", 0)))
+	var error: float = player.global_position.distance_to(server_pos)
+	_record_phase_error(phase, error, player.global_position, server_pos)
+	if phase == "walking" or phase == "respawn_grace":
+		max_position_error = maxf(max_position_error, error)
 		if error > 2.5: errors_over_2_5 += 1
+
+func _record_phase_error(phase: String, error: float, local_pos: Vector3, server_pos: Vector3) -> void:
+	var stats: Dictionary = phase_position_errors.get(phase, {"count": 0, "max_m": 0.0, "over_2_5m": 0, "last_error_m": 0.0, "last_local": [], "last_server": []})
+	stats["count"] = int(stats.get("count", 0)) + 1
+	stats["max_m"] = maxf(float(stats.get("max_m", 0.0)), error)
+	stats["last_error_m"] = error
+	stats["last_local"] = _vec_array(local_pos)
+	stats["last_server"] = _vec_array(server_pos)
+	if error > 2.5: stats["over_2_5m"] = int(stats.get("over_2_5m", 0)) + 1
+	phase_position_errors[phase] = stats
+
+func _record_prediction_sample(player: Node) -> void:
+	if prediction_samples.size() >= 1800: return
+	var diagnostics := _prediction_diagnostics()
+	var phase := "dead" if player.is_dead else ("driving" if player.is_driving else ("respawn_grace" if respawn_at_ms > 0 and Time.get_ticks_msec() - respawn_at_ms < 2000 else "walking"))
+	var sample := {"t_s": elapsed, "phase": phase, "player_pos": _vec_array(player.global_position), "velocity": _vec_array(player.velocity), "diagnostics": diagnostics}
+	if phase == "driving" and is_instance_valid(main.current_driven_jeep): sample["vehicle_pos"] = _vec_array(main.current_driven_jeep.global_position)
+	prediction_samples.append(sample)
+
+func _prediction_diagnostics() -> Dictionary:
+	return main.net.get_prediction_diagnostics() if main.net.has_method("get_prediction_diagnostics") else {}
+
+func _mark_event(name: String, data: Dictionary = {}) -> void:
+	if event_markers.size() >= 512: return
+	var item := {"event": name, "t_s": elapsed, "monotonic_ms": Time.get_ticks_msec(), "phase": _last_phase}
+	for key in data: item[key] = data[key]
+	event_markers.append(item)
+
+func _vec_array(value: Vector3) -> Array:
+	return [value.x, value.y, value.z]
 
 func _aim_at_visible_hostile() -> bool:
 	if not is_instance_valid(main.player) or main.player.is_dead or main.player.is_driving:
