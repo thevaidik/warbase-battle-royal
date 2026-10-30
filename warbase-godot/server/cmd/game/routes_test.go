@@ -147,6 +147,44 @@ func TestColyseusCandidateHTTPProxyStripsPrefix(t *testing.T) {
 	}
 }
 
+func TestColyseusImmutableAssetProxyRefreshesWriteDeadlinePerChunk(t *testing.T) {
+	upstream := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/octet-stream")
+		w.WriteHeader(http.StatusOK)
+		_, _ = io.WriteString(w, "first-chunk")
+		w.(http.Flusher).Flush()
+		time.Sleep(40 * time.Millisecond)
+		_, _ = io.WriteString(w, "second-chunk")
+	}))
+	defer upstream.Close()
+
+	app := testApp(t)
+	app.config.colyseusURL = upstream.URL
+	response := &deadlineResponse{ResponseRecorder: httptest.NewRecorder()}
+	app.routes().ServeHTTP(response, httptest.NewRequest(http.MethodGet, "/colyseus/game-0123456789abcdef.pck", nil))
+	if response.Code != http.StatusOK || response.Body.String() != "first-chunksecond-chunk" {
+		t.Fatalf("proxy did not complete the streamed asset: status=%d body=%q", response.Code, response.Body.String())
+	}
+	if len(response.deadlines) < 2 {
+		t.Fatalf("candidate asset proxy refreshed write deadline %d times; want once per streamed chunk", len(response.deadlines))
+	}
+	if time.Until(response.deadlines[len(response.deadlines)-1]) < 29*time.Second {
+		t.Fatal("last asset chunk did not extend the write deadline")
+	}
+}
+
+func TestColyseusNonAssetProxyDoesNotUseProgressWriter(t *testing.T) {
+	upstream := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) { _, _ = io.WriteString(w, `{"ok":true}`) }))
+	defer upstream.Close()
+	app := testApp(t)
+	app.config.colyseusURL = upstream.URL
+	response := &deadlineResponse{ResponseRecorder: httptest.NewRecorder()}
+	app.routes().ServeHTTP(response, httptest.NewRequest(http.MethodGet, "/colyseus/api/maps", nil))
+	if response.Code != http.StatusOK || len(response.deadlines) != 0 {
+		t.Fatalf("ordinary candidate API response unexpectedly used asset writer: status=%d deadline_refreshes=%d", response.Code, len(response.deadlines))
+	}
+}
+
 func TestColyseusCandidateRootMatchmakeProxyPreservesPath(t *testing.T) {
 	type observedRequest struct{ path, query, prefix string }
 	observed := make(chan observedRequest, 1)

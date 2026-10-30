@@ -9,7 +9,7 @@ import { VehicleSimulation, type VehiclePlayer, type VehicleInput } from './vehi
 import { RewindView } from '@colyseus/core/Rewind';
 import { performance } from 'node:perf_hooks';
 import { anonymousJoinLimiter, canonicalizeUsername, gameMessageLimiter, roomCreationLimiter } from './abuse-protection.js';
-import { newRoomOperationsMetrics, roomOperationsMetrics, serviceOperationsMetrics, type RoomOperationsMetrics } from './operations-metrics.js';
+import { incrementProcessOperation, newRoomOperationsMetrics, recordProcessTick, roomOperationsMetrics, serviceOperationsMetrics, type RoomOperationsMetrics } from './operations-metrics.js';
 
 class MoveInput extends Schema {
   move_x = 0; move_z = 0; yaw = 0; pitch = 0; jump = 0; sprint = 0; crouch = 0;
@@ -18,6 +18,8 @@ defineTypes(MoveInput, { move_x: 'number', move_z: 'number', yaw: 'number', pitc
 
 export const activeRooms = new Map<string, { id: string; room: string; name: string; map: string; mode: string; timeOfDay: string; clients: number; bots: number; maxClients: number }>();
 type JoinOptions = { username?: string; room?: string; cid?: string; map?: string; map_name?: string; mode?: string; time_of_day?: string; timeOfDay?: string; name?: string };
+type RoomCreationAllowance = { allow(key: string, limit: number, windowMs: number, now?: number): boolean };
+type ValidRoomSettings = { requested: string; map: string; requestedMode: string; timeOfDay: string };
 type PlayerRuntime = { username: string; map: string; lastShot: number; pendingHit: boolean; reloadUntil: number; spawnAt: number; vy: number;
   ammoByWeapon: Record<string, number>; animationStartedAt: number; pendingWeaponId: string; lastShotId: number; pendingShotId: number; protectedUntil: number;
   grenadeLastThrow: number; reloadToken: number; reloadTimer?: { clear(): void };
@@ -34,6 +36,26 @@ const WEAPONS: Record<string, Weapon> = {
 };
 const getWeapon = (weaponId: string): Weapon | undefined => Object.hasOwn(WEAPONS, weaponId) ? WEAPONS[weaponId] : undefined;
 const clamp = (n: unknown, lo: number, hi: number): number => Number.isFinite(Number(n)) ? Math.max(lo, Math.min(hi, Number(n))) : 0;
+
+/** Validate client fields before charging the shared process create allowance. */
+export function consumeRoomCreationAllowance(options: JoinOptions, activeRoomCount: number, limiter: RoomCreationAllowance, now?: number): ValidRoomSettings {
+  const requested = String(options.room ?? 'industrial-public').trim();
+  const explicitMap = String(options.map_name ?? options.map ?? '').trim().toLowerCase();
+  const map = explicitMap || [...PLAYABLE_MAPS].sort((a, b) => b.length - a.length).find((candidate) => {
+    const normalized = requested.toLowerCase();
+    return normalized === candidate || normalized.startsWith(`${candidate}-`);
+  }) || '';
+  if (!PLAYABLE_MAPS.includes(map as (typeof PLAYABLE_MAPS)[number])) throw new Error(`Unsupported map: ${map || requested}`);
+  const defaultMode = map === 'industrial' || map === 'resoforge' || map === 'football' ? 'TDM' : 'FFA';
+  const requestedMode = String(options.mode ?? defaultMode).trim().toUpperCase();
+  if (requestedMode !== 'TDM' && requestedMode !== 'FFA') throw new Error(`Unsupported room mode: ${requestedMode}`);
+  const requestedTime = String(options.time_of_day ?? options.timeOfDay ?? 'noon').trim().toLowerCase();
+  const timeOfDay = requestedTime === 'night' ? 'overcast' : requestedTime;
+  if (!['dawn', 'noon', 'dusk', 'overcast'].includes(timeOfDay)) throw new Error(`Unsupported time of day: ${requestedTime}`);
+  if (activeRoomCount >= 128) throw new Error('Room creation capacity reached');
+  if (!limiter.allow('process', 60, 60_000, now)) throw new Error('Room creation rate limited');
+  return { requested, map, requestedMode, timeOfDay };
+}
 
 export function damageForZone(weaponId: string, metres: number, zone: string): number {
   const weapon = getWeapon(weaponId) ?? WEAPONS.ak47;
@@ -76,25 +98,17 @@ export class BattleRoom extends Room<{ state: BattleState; input: MoveInput }> {
   private operations!: RoomOperationsMetrics;
 
   onCreate(options: JoinOptions) {
-    if (activeRooms.size >= 128) {
-      serviceOperationsMetrics.roomCreateRejected++;
-      throw new Error('Room creation capacity reached');
+    let settings: ValidRoomSettings;
+    try {
+      settings = consumeRoomCreationAllowance(options, activeRooms.size, roomCreationLimiter);
+    } catch (error) {
+      if (error instanceof Error && error.message === 'Room creation capacity reached') serviceOperationsMetrics.roomCreateRejected++;
+      if (error instanceof Error && error.message === 'Room creation rate limited') serviceOperationsMetrics.roomCreateRateLimited++;
+      throw error;
     }
-    if (!roomCreationLimiter.allow('process', 60, 60_000)) {
-      serviceOperationsMetrics.roomCreateRateLimited++;
-      throw new Error('Room creation rate limited');
-    }
-    const requested = String(options.room ?? 'industrial-public').trim();
-    const explicitMap = String(options.map_name ?? options.map ?? '').trim().toLowerCase();
-    const map = explicitMap || this.mapFromRoomId(requested);
+    const { requested, map, requestedMode, timeOfDay } = settings;
     const geometry = loadWorldGeometry(map);
     if (!geometry) throw new Error(`Unsupported map: ${map || requested}`);
-    const defaultMode = map === 'industrial' || map === 'resoforge' || map === 'football' ? 'TDM' : 'FFA';
-    const requestedMode = String(options.mode ?? defaultMode).trim().toUpperCase();
-    if (requestedMode !== 'TDM' && requestedMode !== 'FFA') throw new Error(`Unsupported room mode: ${requestedMode}`);
-    const requestedTime = String(options.time_of_day ?? options.timeOfDay ?? 'noon').trim().toLowerCase();
-    const timeOfDay = requestedTime === 'night' ? 'overcast' : requestedTime;
-    if (!['dawn', 'noon', 'dusk', 'overcast'].includes(timeOfDay)) throw new Error(`Unsupported time of day: ${requestedTime}`);
     this.geometry = geometry;
     this.operations = newRoomOperationsMetrics();
     roomOperationsMetrics.set(this.roomId, this.operations);
@@ -115,6 +129,7 @@ export class BattleRoom extends Room<{ state: BattleState; input: MoveInput }> {
     let lastTickStartedAt = 0;
     this.setFixedTimestep((ctx) => {
       const tickStartedAt = performance.now();
+      const previousTickStartedAt = lastTickStartedAt;
       this.operations.tickCount++;
       if (lastTickStartedAt > 0 && tickStartedAt - lastTickStartedAt > ctx.dt * 1500) this.operations.lateTicks++;
       lastTickStartedAt = tickStartedAt;
@@ -126,14 +141,18 @@ export class BattleRoom extends Room<{ state: BattleState; input: MoveInput }> {
         if (!internal) continue;
         const p = player as PlayerState;
         p.pose_time_ms = now; p.animation_time = Math.max(0, (now - internal.animationStartedAt) / 1000);
-        if (p.is_dead) {
-          if (now >= internal.spawnAt) this.respawn(sessionId, p, internal);
-          continue;
-        }
+        // Keep the buffered input timeline advancing while dead. Otherwise
+        // inputs sent during the respawn delay become stale movement and force
+        // the client to replay a growing backlog after respawn.
         const inputChannel = this.inputs.get(sessionId);
         const input = inputChannel.next();
         if (input) this.operations.consumedInputs++;
         else this.operations.emptyInputSteps++;
+        if (p.is_dead) {
+          p.ack_input_sequence = inputChannel.consumedCount;
+          if (now >= internal.spawnAt) this.respawn(sessionId, p, internal);
+          continue;
+        }
         const mx = clamp(input?.move_x ?? 0, -1, 1), mz = clamp(input?.move_z ?? 0, -1, 1);
         const speed = (input?.sprint ?? 0) > 0.5 ? 8.8 : (input?.crouch ?? 0) > 0.5 ? 2.5 : 6.2;
         const yaw = input?.yaw ?? p.yaw;
@@ -163,6 +182,7 @@ export class BattleRoom extends Room<{ state: BattleState; input: MoveInput }> {
       this.operations.maxTickDurationMs = Math.max(this.operations.maxTickDurationMs, durationMs);
       this.operations.totalTickDurationMs += durationMs;
       if (durationMs > ctx.dt * 1000) this.operations.tickOverruns++;
+      recordProcessTick(durationMs, previousTickStartedAt > 0 ? Math.max(0, tickStartedAt - previousTickStartedAt - ctx.dt * 1000) : 0);
     }, 60);
 
     this.onMessage('state_meta', (client, raw: any) => {
@@ -193,17 +213,18 @@ export class BattleRoom extends Room<{ state: BattleState; input: MoveInput }> {
 
   onAuth(_client: Client, options: JoinOptions): { username: string } | false {
     const username = canonicalizeUsername(options?.username);
-    if (!username) { this.operations.rejectedAdmissions++; return false; }
+    if (!username) { this.operations.rejectedAdmissions++; incrementProcessOperation('rejectedAdmissions'); return false; }
     // Use room ID, not IP: reverse proxies can make unrelated users share one address.
-    if (!anonymousJoinLimiter.allow(this.roomId, 256, 60_000)) { this.operations.rejectedAdmissions++; return false; }
+    if (!anonymousJoinLimiter.allow(this.roomId, 256, 60_000)) { this.operations.rejectedAdmissions++; incrementProcessOperation('rejectedAdmissions'); return false; }
     return { username };
   }
 
   onJoin(client: Client, options: JoinOptions, auth?: { username: string }) {
     const username = canonicalizeUsername(auth?.username ?? options.username);
-    if (!username) { this.operations.rejectedAdmissions++; throw new Error('valid username required'); }
-    if ([...this.internal.values()].some((x) => x.username.normalize('NFKC').toLowerCase() === username.normalize('NFKC').toLowerCase())) { this.operations.rejectedAdmissions++; throw new Error('username already in room'); }
+    if (!username) { this.operations.rejectedAdmissions++; incrementProcessOperation('rejectedAdmissions'); throw new Error('valid username required'); }
+    if ([...this.internal.values()].some((x) => x.username.normalize('NFKC').toLowerCase() === username.normalize('NFKC').toLowerCase())) { this.operations.rejectedAdmissions++; incrementProcessOperation('rejectedAdmissions'); throw new Error('username already in room'); }
     this.operations.joined++;
+    incrementProcessOperation('joined');
     const p = new PlayerState();
     const spawn = this.geometry.spawns[(this.clients.length - 1) % this.geometry.spawns.length];
     p.x = spawn[0]; p.y = spawn[1]; p.z = spawn[2];
@@ -222,7 +243,7 @@ export class BattleRoom extends Room<{ state: BattleState; input: MoveInput }> {
 
   async onDrop(client: Client) { try { await this.allowReconnection(client, 15); } catch { /* Colyseus invokes onLeave after the reconnect window expires. */ } }
   onReconnect(client: Client) { const meta = this.internal.get(client.sessionId); if (meta) client.send('identity', { username: meta.username, map: this.metadata?.map, session_id: client.sessionId }); }
-  onLeave(client: Client) { const meta = this.internal.get(client.sessionId); if (meta) { this.operations.left++; this.cancelReload(meta); this.sessionByUsername.delete(meta.username); const player = this.state.players.get(meta.username); if (player?.driving_vehicle) this.exitVehicle(player); this.state.players.delete(meta.username); } this.internal.delete(client.sessionId); const listing = activeRooms.get(this.roomId); if (listing) listing.clients = this.clients.length; this.syncBots(); if (this.clients.length === 0) activeRooms.delete(this.roomId); }
+  onLeave(client: Client) { const meta = this.internal.get(client.sessionId); if (meta) { this.operations.left++; incrementProcessOperation('left'); this.cancelReload(meta); this.sessionByUsername.delete(meta.username); const player = this.state.players.get(meta.username); if (player?.driving_vehicle) this.exitVehicle(player); this.state.players.delete(meta.username); } this.internal.delete(client.sessionId); const listing = activeRooms.get(this.roomId); if (listing) listing.clients = this.clients.length; this.syncBots(); if (this.clients.length === 0) activeRooms.delete(this.roomId); }
 
   onDispose() { for (const internal of this.internal.values()) this.cancelReload(internal); activeRooms.delete(this.roomId); roomOperationsMetrics.delete(this.roomId); }
 
@@ -230,10 +251,11 @@ export class BattleRoom extends Room<{ state: BattleState; input: MoveInput }> {
     if (gameMessageLimiter.allow(`${this.roomId}:${client.sessionId}:${message}`, limitPerSecond, 1000)) return true;
     this.operations.rateLimitedMessages++;
     this.operations.rejectedMessages++;
+    incrementProcessOperation('rateLimitedMessages'); incrementProcessOperation('rejectedMessages');
     return false;
   }
 
-  private rejectMessage(): void { this.operations.rejectedPayloads++; this.operations.rejectedMessages++; }
+  private rejectMessage(): void { this.operations.rejectedPayloads++; this.operations.rejectedMessages++; incrementProcessOperation('rejectedPayloads'); incrementProcessOperation('rejectedMessages'); }
 
   private mapFromRoomId(roomId: string): string {
     const normalized = roomId.trim().toLowerCase();

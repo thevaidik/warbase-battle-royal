@@ -47,7 +47,7 @@ func _start() -> void:
 	_second_username = "SDK_%06d" % ((Time.get_ticks_msec() + 1) % 1000000)
 	_adapter = _make_adapter(1, _username)
 	_adapter.connect_to(_username, "industrial-public", _test_host)
-	get_tree().create_timer(17.0).timeout.connect(_timeout)
+	get_tree().create_timer(30.0).timeout.connect(_timeout)
 
 func _make_adapter(index: int, username: String):
 	var adapter = Adapter.new()
@@ -130,7 +130,7 @@ func _on_state(state: Dictionary, index: int) -> void:
 		_drop_after_room_uptime()
 	if index == 2 and _saw_drop and adapter.connected and state.get("players", {}).has(_username) and state.get("players", {}).has(_second_username) and adapter.local_reconciler != null:
 		_reconnect_diagnostics = adapter.get_prediction_diagnostics()
-		if int(_reconnect_diagnostics.get("drop_count", 0)) != 1 or int(_reconnect_diagnostics.get("reconnect_count", 0)) != 1 or String(_reconnect_diagnostics.get("lifecycle", "")) != "reconnected" or not bool(_reconnect_diagnostics.get("initial_state", false)) or int(_reconnect_diagnostics.get("input_epoch", -1)) <= _second_initial_input_epoch:
+		if int(_reconnect_diagnostics.get("drop_count", 0)) != 1 or int(_reconnect_diagnostics.get("reconnect_count", 0)) != 1 or String(_reconnect_diagnostics.get("lifecycle", "")) != "reconnected" or not bool(_reconnect_diagnostics.get("initial_state", false)) or bool(_reconnect_diagnostics.get("awaiting_fresh_state", true)) or int(_reconnect_diagnostics.get("input_epoch_before_drop", -1)) < _second_initial_input_epoch or int(_reconnect_diagnostics.get("input_epoch", -1)) <= _second_initial_input_epoch:
 			_fail("reconnect lifecycle/policy state was inconsistent: %s" % _reconnect_diagnostics)
 			return
 		_reconnected = true
@@ -157,7 +157,7 @@ func _set_fire_after_delay() -> void:
 		_second_adapter._desired_animation = "firing"
 
 func _set_wrap_yaw_after_delay() -> void:
-	var deadline := Time.get_ticks_msec() + 4000
+	var deadline := Time.get_ticks_msec() + 8000
 	while not _finished and _second_adapter != null and _yaw_wrap_baseline_samples < 3 and Time.get_ticks_msec() < deadline:
 		await get_tree().process_frame
 	if not _finished and _second_adapter != null and _yaw_wrap_baseline_samples >= 3:

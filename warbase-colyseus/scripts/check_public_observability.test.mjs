@@ -1,6 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { createServer } from 'node:http';
+import { mkdtempSync, writeFileSync, chmodSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import express from 'express';
 import { checkPublicApi, parseOptions } from './check_public_observability.mjs';
+import { createOperationsMetricsHandler } from '../src/metrics-handler.ts';
 
 const maps = ['football', 'resoforge', 'industrial', 'village', 'arena', 'shipment', 'dust2', 'nuketown', 'canyon', 'desert_oasis'];
 
@@ -41,4 +47,31 @@ test('public API check rejects unsupported maps and unsafe room lists', async (t
 test('base URL parser rejects embedded credentials and invalid timeouts', () => {
   assert.throws(() => parseOptions(['--base-url', 'https://user:pass@example.test/colyseus'], {}), /without credentials/);
   assert.throws(() => parseOptions(['--base-url', 'https://example.test', '--timeout-ms', '30100'], {}), /250 through 30000/);
+});
+
+test('checker accepts a plaintext denial and reads its bearer token from a file against the real HTTP handler', async (t) => {
+  const directory = mkdtempSync(join(tmpdir(), 'warbase-ops-metrics-'));
+  const tokenFile = join(directory, 'metrics-token');
+  writeFileSync(tokenFile, 'integration-secret\n', { mode: 0o600 });
+  chmodSync(tokenFile, 0o400);
+  t.after(() => rmSync(directory, { recursive: true, force: true }));
+
+  const options = parseOptions(['--base-url', 'http://127.0.0.1:8082/'], { OPS_METRICS_TOKEN_FILE: tokenFile });
+  const app = express();
+  app.get('/health', (_req, res) => res.json({ status: 'ok', protocol: 'colyseus' }));
+  app.get('/api/maps', (_req, res) => res.json({ maps: maps.map((id) => ({ id })) }));
+  app.get('/api/rooms', (_req, res) => res.json({ online_players: 0, rooms: [] }));
+  app.get('/internal/metrics', createOperationsMetricsHandler(options.metricsToken, () => ({ uptime_seconds: 1 })));
+  const server = createServer(app);
+  await new Promise((resolve, reject) => {
+    server.once('error', reject);
+    server.listen(0, '127.0.0.1', resolve);
+  });
+  t.after(() => new Promise((resolve, reject) => server.close((error) => error ? reject(error) : resolve())));
+  const address = server.address();
+  assert.ok(address && typeof address !== 'string');
+  options.baseUrl = `http://127.0.0.1:${address.port}/`;
+  const report = await checkPublicApi(options);
+  assert.equal(report.checks.metrics.unauthenticatedStatus, 401);
+  assert.equal(report.checks.metrics.authorizedStatus, 200);
 });

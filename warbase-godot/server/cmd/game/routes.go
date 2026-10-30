@@ -8,6 +8,7 @@ import (
 	"net/http/pprof"
 	"net/url"
 	"os"
+	"path"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -67,6 +68,10 @@ func (app *application) routes() http.Handler {
 					r.URL.Path = "/"
 				}
 				r.URL.RawPath = ""
+				proxyWriter := http.ResponseWriter(w)
+				if r.Method == http.MethodGet && immutableAsset.MatchString(path.Base(r.URL.Path)) {
+					proxyWriter = progressAssetWriter{w}
+				}
 				r.Header.Set("X-Forwarded-Prefix", "/colyseus")
 				r.Header.Set("X-Forwarded-Host", r.Host)
 				if r.Header.Get("X-Forwarded-Proto") == "" {
@@ -76,7 +81,7 @@ func (app *application) routes() http.Handler {
 						r.Header.Set("X-Forwarded-Proto", "http")
 					}
 				}
-				proxy.ServeHTTP(w, r)
+				proxy.ServeHTTP(proxyWriter, r)
 			}))
 			// The pinned Godot SDK always sends HTTP matchmaking requests to
 			// /matchmake/... at the origin, even when its WebSocket endpoint has

@@ -7,7 +7,7 @@ import { ColyseusTestServer } from '@colyseus/testing';
 import type { Client } from 'colyseus';
 import { RewindView } from '@colyseus/core/Rewind';
 import { aimDirection, BattleRoom, damageForZone, movementVelocity } from './battle-room.js';
-import { roomOperationsMetrics } from './operations-metrics.js';
+import { processOperationsMetrics, processTimingSnapshot, roomOperationsMetrics } from './operations-metrics.js';
 import { readFileSync } from 'node:fs';
 import { INDUSTRIAL_SPAWNS, rayBlocked, type Vec3 } from './world-geometry.js';
 
@@ -66,6 +66,9 @@ test('BattleRoom admission, combat authority, ammo and lifecycle', async (t) => 
   });
 
   await t.test('admits a player, times the real Industrial bot join, and cleans up leaving clients', async (t) => {
+    const processJoinsBefore = processOperationsMetrics.joined;
+    const processLeavesBefore = processOperationsMetrics.left;
+    const processTicksBefore = processTimingSnapshot().ticks_total;
     await assert.rejects(() => testing.createRoom('battle', { username: 'bad-map', room: 'loft-public' }));
     const room = await testing.createRoom<BattleRoom>('battle', { room: 'industrial-public' });
     assert.equal(room.onAuth({ sessionId: 'invalid-name' } as any, { username: '<script>' }), false, 'unsafe anonymous display names are denied before joining');
@@ -82,6 +85,7 @@ test('BattleRoom admission, combat authority, ammo and lifecycle', async (t) => 
     assert.equal(metrics.rateLimitedMessages, 1);
     assert.equal((room as any).sessionByUsername.get('alice'), alice.sessionId);
     await waitFor(() => [...room.state.players.values()].filter((player) => player.is_bot).length === 7);
+    assert.ok(processTimingSnapshot().ticks_total > processTicksBefore, 'active match ticks reach process metrics');
     t.diagnostic(`first Industrial player+bot admission: ${(performance.now() - joinStarted).toFixed(1)} ms`);
     assert.equal(room.state.map_name, 'industrial');
     await assert.rejects(() => testing.connectTo(room, { username: 'alice', room: 'industrial-public' }));
@@ -93,6 +97,11 @@ test('BattleRoom admission, combat authority, ammo and lifecycle', async (t) => 
     await alice.leave();
     await waitFor(() => room.state.players.size === 0);
     assert.equal((room as any).sessionByUsername.has('alice'), false);
+    assert.equal(processOperationsMetrics.joined, processJoinsBefore + 1);
+    assert.equal(processOperationsMetrics.left, processLeavesBefore + 1);
+    room.onDispose();
+    assert.equal(roomOperationsMetrics.has(room.roomId), false, 'room-local metrics are removed on disposal');
+    assert.equal(processOperationsMetrics.joined, processJoinsBefore + 1, 'process totals survive room disposal');
   });
 
   await t.test('times actual Football geometry and bot admission', async (t) => {
@@ -298,6 +307,26 @@ test('BattleRoom admission, combat authority, ammo and lifecycle', async (t) => 
     (room as any).requestRespawn({ sessionId: client.sessionId });
     assert.equal(player.is_dead, false);
     assert.ok(internal.protectedUntil > Date.now());
+    await client.leave();
+  });
+
+  await t.test('consumes and acknowledges movement inputs while dead without moving the player', async () => {
+    const room = await testing.createRoom<BattleRoom>('battle', { room: 'industrial-public' });
+    const client = await testing.connectTo(room, { username: 'dead-input', room: 'industrial-public' });
+    const player = room.state.players.get('dead-input')!;
+    const input = client.input<any>();
+    (room as any).killPlayer(undefined, player);
+    const position = [player.x, player.y, player.z];
+    input.data.move_z = 1;
+    let lastSequence = 0;
+    for (let i = 0; i < 12; i++) {
+      lastSequence = input.send();
+      await new Promise((resolve) => setTimeout(resolve, 20));
+    }
+    await waitFor(() => player.ack_input_sequence >= lastSequence);
+    assert.equal(player.is_dead, true);
+    assert.deepEqual([player.x, player.y, player.z], position);
+    assert.equal(player.ack_input_sequence, lastSequence);
     await client.leave();
   });
 

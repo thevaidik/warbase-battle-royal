@@ -5,14 +5,19 @@ extends Node3D
 
 var remotes: Dictionary = {}
 var _pending_remotes: Dictionary = {}
+const RemotePoseTiming := preload("res://scripts/qa/RemotePoseTiming.gd")
+var _qa_pose_application_timing
 var net: WarNetwork
 var world: Node3D
 var local_name := ""
 
-func setup(net_ref: WarNetwork, world_ref: Node3D, lname: String) -> void:
+func setup(net_ref: WarNetwork, world_ref: Node3D, lname: String, qa_timing: bool = false) -> void:
 	net = net_ref
 	world = world_ref
 	local_name = lname
+	_qa_pose_application_timing = RemotePoseTiming.new() if qa_timing else null
+	if net.has_method("set_qa_timing"):
+		net.set_qa_timing(qa_timing)
 	net.state_received.connect(_on_state)
 	net.fire_received.connect(_on_fire)
 	net.grenade_received.connect(_on_grenade)
@@ -105,6 +110,7 @@ func _process(delta: float) -> void:
 		world.add_child(remote)
 		remote.global_position = Vector3(float(st.get("x",0)),float(st.get("y",0)),float(st.get("z",0)))
 		created += 1
+	var apply_started := Time.get_ticks_usec() if _qa_pose_application_timing != null else 0
 	for r in remotes.values():
 		var remote := r as WarRemote
 		if not sdk_remote_poses.is_empty():
@@ -115,6 +121,11 @@ func _process(delta: float) -> void:
 				remote.interpolate(delta)
 		else:
 			remote.interpolate(delta)
+	if _qa_pose_application_timing != null:
+		_qa_pose_application_timing.record(Time.get_ticks_usec() - apply_started, remotes.size())
+
+func get_remote_pose_application_diagnostics() -> Dictionary:
+	return _qa_pose_application_timing.summary() if _qa_pose_application_timing != null else {"enabled": false}
 
 func _on_fire(shooter: String, origin: Vector3, hit: Vector3, normal: Vector3, wall: bool) -> void:
 	if shooter == local_name:

@@ -12,6 +12,9 @@ services:
       PORT: "8081"
       STATIC_DIR: /app/static
       PUBLIC_ADDRESS: ${COLYSEUS_PUBLIC_ADDRESS:-war.vaidik.blog/colyseus}
+      OPS_METRICS_TOKEN_FILE: /run/secrets/ops_metrics_token
+    volumes:
+      - ${OPS_METRICS_TOKEN_HOST_FILE:-/dev/null}:/run/secrets/ops_metrics_token:ro
     ports:
       - "8082:8081"
     networks:

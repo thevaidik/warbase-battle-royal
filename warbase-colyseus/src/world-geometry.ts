@@ -218,7 +218,10 @@ export class WorldGeometry {
     const maxY = Math.max(from[1], to[1]) + Math.min(stepHeight, 0.45) + Math.min(height, CAPSULE_LEVELS[CAPSULE_LEVELS.length - 1]) + pad;
     const minZ = Math.min(from[2], to[2]) - radius - pad, maxZ = Math.max(from[2], to[2]) + radius + pad;
     const { nodes, order, vertices } = this.buffers;
-    const maximumReusableTriangles = 12;
+    // Reuse moderately dense local triangle sets instead of falling back to a
+    // full BVH traversal for every capsule spoke. A 32-triangle cap preserves
+    // the exact collision result while avoiding that fallback on busy maps.
+    const maximumReusableTriangles = 32;
     while (stack.length) {
       const node = nodes[stack.pop()!];
       if (!node || node.maxX < minX || node.minX > maxX || node.maxY < minY || node.minY > maxY || node.maxZ < minZ || node.minZ > maxZ) continue;

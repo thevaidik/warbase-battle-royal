@@ -90,7 +90,7 @@ async function withTimeout(promise, timeoutMs, onLate = () => {}) {
   } finally { clearTimeout(timer); }
 }
 
-function makePeer(room, username, index, counters) {
+function makePeer(room, username, index, counters, currentPhase) {
   const input = room.input({ mode: 'reliable' });
   if (input.tickRate !== 60) throw new Error(`Server input rate was ${input.tickRate ?? 'unadvertised'} Hz; expected 60 Hz`);
   const peer = { room, username, index, input, counters, timer: null, lastAck: 0, lastAckAt: Date.now(), localAckProgress: 0, forcedDrop: false };
@@ -101,9 +101,10 @@ function makePeer(room, username, index, counters) {
   });
   room.onDrop((code, reason) => {
     counters.drops++;
-    if (counters.errorSamples.length < 50) counters.errorSamples.push({ username, type: 'drop', code, reason: String(reason ?? '') });
+    counters.dropsByPhase[currentPhase()]++;
+    if (counters.errorSamples.length < 50) counters.errorSamples.push({ username, type: 'drop', phase: currentPhase(), code, reason: String(reason ?? '') });
   });
-  room.onReconnect(() => { counters.reconnects++; });
+  room.onReconnect(() => { counters.reconnects++; counters.reconnectsByPhase[currentPhase()]++; });
   room.onLeave((code, reason) => {
     counters.leaves++;
     if (counters.errorSamples.length < 50 && code !== 1000) counters.errorSamples.push({ username, type: 'leave', code, reason: String(reason ?? '') });
@@ -175,7 +176,8 @@ async function main() {
   let serverBotsAfterCohort = null;
   let remainingHumansAfterCohort = null;
   let cleanupRemovalTimedOut = false;
-  const commonCounters = () => ({ errors: 0, drops: 0, reconnects: 0, leaves: 0, confirmedHits: 0, fireEchoes: 0, grenadeAccepted: 0, explosionIds: new Set(), damageEvents: 0, killEvents: 0, errorSamples: [], inputRateHz: null, ackAdvances: 0, maxPendingInputs: 0, ackStalls: 0, hadAckStall: false, movementInputsSent: 0, zeroSendResults: 0, shotsAttempted: 0, grenadeAttempts: 0, seatAttempts: 0, seatEntries: 0, vehicleApproachInputs: 0, vehicleInputs: 0, forcedDrops: 0 });
+  let runPhase = 'joining';
+  const commonCounters = () => ({ errors: 0, drops: 0, reconnects: 0, dropsByPhase: { joining: 0, active: 0, cleanup: 0 }, reconnectsByPhase: { joining: 0, active: 0, cleanup: 0 }, leaves: 0, confirmedHits: 0, fireEchoes: 0, grenadeAccepted: 0, explosionIds: new Set(), damageEvents: 0, killEvents: 0, errorSamples: [], inputRateHz: null, ackAdvances: 0, maxPendingInputs: 0, ackStalls: 0, hadAckStall: false, movementInputsSent: 0, zeroSendResults: 0, shotsAttempted: 0, grenadeAttempts: 0, seatAttempts: 0, seatEntries: 0, vehicleApproachInputs: 0, vehicleInputs: 0, forcedDrops: 0 });
 
   const leaveAll = async () => {
     for (const peer of peerHandles) {
@@ -240,7 +242,7 @@ async function main() {
     gate = await withTimeout(gateRoomPromise, JOIN_TIMEOUT_MS, (lateRoom) => { void lateRoom.leave(); });
     roomHandles.push(gate);
     gateStats.joinMs = Date.now() - gateStarted;
-    const gatePeer = makePeer(gate, gateUsername, 0, gateStats);
+    const gatePeer = makePeer(gate, gateUsername, 0, gateStats, () => runPhase);
     peerHandles.push(gatePeer);
     peerCounters.push(gateStats);
     if (gatePeer.input.tickRate !== 60) throw new Error('Gate input did not negotiate the server 60 Hz tick rate');
@@ -312,7 +314,7 @@ async function main() {
         }
         result.stats.joinMs = result.joinMs;
         roomHandles.push(result.room);
-        const peer = makePeer(result.room, result.username, result.index, result.stats);
+        const peer = makePeer(result.room, result.username, result.index, result.stats, () => runPhase);
         peerHandles.push(peer);
         peerCounters.push(result.stats);
       }
@@ -396,7 +398,7 @@ async function main() {
           room.send('fire', { origin, yaw, pitch, shot_id: (peer.shotId = (peer.shotId ?? 0) + 1) });
           counters.shotsAttempted++;
         }
-        if (index < 8 && !peer.grenadeThrown && elapsed >= 8 + index * 0.45) {
+        if (index < 8 && !peer.grenadeThrown && elapsed >= 8 + index * 0.45 && !player.is_dead && !String(player.driving_vehicle ?? '') && Number(player.grenades ?? 0) > 0) {
           peer.grenadeThrown = true;
           const yaw = Number(player.yaw);
           room.send('grenade', { pos: [Number(player.x), Number(player.y) + 1.35, Number(player.z)], vel: [-Math.sin(yaw) * 5.5, 3.0, -Math.cos(yaw) * 5.5] });
@@ -433,6 +435,7 @@ async function main() {
     // The SDK cohort joins the public room only after the native observer has
     // appeared. A single intentional SDK transport drop checks reconnection.
     const loadStartedAt = Date.now();
+    runPhase = 'active';
     let reconnectInjected = false;
     actionTimer = setInterval(() => {
       const elapsed = (Date.now() - loadStartedAt) / 1000;
@@ -489,6 +492,7 @@ async function main() {
     finalReason = abort.signal.aborted ? String(abort.signal.reason?.message ?? 'interrupted') : `failed: ${error.message ?? error}`;
     if (!abort.signal.aborted) process.stderr.write(`LOAD_HARNESS_ERROR ${finalReason}\n`);
   } finally {
+    runPhase = 'cleanup';
     await leaveAll();
     clearTimeout(hardStop);
     loopDelay.disable();
@@ -500,10 +504,14 @@ async function main() {
   const counters = peerCounters.reduce((sum, peer) => {
     for (const key of ['errors', 'drops', 'reconnects', 'leaves', 'confirmedHits', 'fireEchoes', 'grenadeAccepted', 'damageEvents', 'killEvents', 'ackAdvances', 'ackStalls', 'movementInputsSent', 'zeroSendResults', 'shotsAttempted', 'grenadeAttempts', 'seatAttempts', 'seatEntries', 'vehicleApproachInputs', 'vehicleInputs', 'forcedDrops']) sum[key] += Number(peer[key] ?? 0);
     sum.maxPendingInputs = Math.max(sum.maxPendingInputs, Number(peer.maxPendingInputs ?? 0));
+    for (const phase of ['joining', 'active', 'cleanup']) {
+      sum.dropsByPhase[phase] += peer.dropsByPhase[phase];
+      sum.reconnectsByPhase[phase] += peer.reconnectsByPhase[phase];
+    }
     for (const id of peer.explosionIds) allExplosionIds.add(id);
     sum.errorSamples.push(...peer.errorSamples.slice(0, Math.max(0, 50 - sum.errorSamples.length)));
     return sum;
-    }, { errors: 0, drops: 0, reconnects: 0, leaves: 0, confirmedHits: 0, fireEchoes: 0, grenadeAccepted: 0, damageEvents: 0, killEvents: 0, ackAdvances: 0, maxPendingInputs: 0, ackStalls: 0, movementInputsSent: 0, zeroSendResults: 0, shotsAttempted: 0, grenadeAttempts: 0, seatAttempts: 0, seatEntries: 0, vehicleApproachInputs: 0, vehicleInputs: 0, forcedDrops: 0, errorSamples: [] });
+    }, { errors: 0, drops: 0, reconnects: 0, dropsByPhase: { joining: 0, active: 0, cleanup: 0 }, reconnectsByPhase: { joining: 0, active: 0, cleanup: 0 }, leaves: 0, confirmedHits: 0, fireEchoes: 0, grenadeAccepted: 0, damageEvents: 0, killEvents: 0, ackAdvances: 0, maxPendingInputs: 0, ackStalls: 0, movementInputsSent: 0, zeroSendResults: 0, shotsAttempted: 0, grenadeAttempts: 0, seatAttempts: 0, seatEntries: 0, vehicleApproachInputs: 0, vehicleInputs: 0, forcedDrops: 0, errorSamples: [] });
   const report = {
     test: 'official-colyseus-sdk-buffered-input-load',
     endpoint: OFFICIAL_URL,
@@ -517,7 +525,7 @@ async function main() {
     gameplay: { shotsAttempted: counters.shotsAttempted, fireEchoes: counters.fireEchoes, confirmedHits: counters.confirmedHits, grenadeAttempts: counters.grenadeAttempts, grenadesAccepted: counters.grenadeAccepted, uniqueExplosionsSeen: allExplosionIds.size, seatAttempts: counters.seatAttempts, vehicleApproachInputs: counters.vehicleApproachInputs, seatEntries: counters.seatEntries, vehicleInputs: counters.vehicleInputs, damageEvents: counters.damageEvents, killEvents: counters.killEvents },
     authoritativeMovement: { sampledSdkPlayers: serverPositions.size, playersMovedOverHalfMeter: [...serverPositions.values()].filter((v) => v.path >= 0.5).length, totalPathMeters: Number([...serverPositions.values()].reduce((sum, v) => sum + v.path, 0).toFixed(2)), playersWithPositionUpdates: [...serverPositions.values()].filter((v) => v.updates > 0).length },
     vehicleMovement: { vehiclesSampled: vehiclePositions.size, vehiclesMoved: [...vehiclePositions.values()].filter((v) => v.path >= 0.25).length, totalVehiclePathMeters: Number([...vehiclePositions.values()].reduce((sum, v) => sum + v.path, 0).toFixed(2)) },
-    lifecycle: { controlledTransportDrops: counters.forcedDrops, drops: counters.drops, reconnects: counters.reconnects, clientLeaves: counters.leaves, sdkCohortRemovalsExpected: Math.max(0, joinedPeers - 1), sdkCohortRemovalsObserved: removalsObserved.size, remainingHumanActorsAfterSdkLeaves: remainingHumansAfterCohort, serverClientsAfterSdkLeaves: serverClientsAfterCohort, serverBotsAfterSdkLeaves: serverBotsAfterCohort, cleanupRemovalTimedOut, errors: counters.errors },
+    lifecycle: { controlledTransportDrops: counters.forcedDrops, drops: counters.drops, dropsByPhase: counters.dropsByPhase, reconnects: counters.reconnects, reconnectsByPhase: counters.reconnectsByPhase, clientLeaves: counters.leaves, sdkCohortRemovalsExpected: Math.max(0, joinedPeers - 1), sdkCohortRemovalsObserved: removalsObserved.size, remainingHumanActorsAfterSdkLeaves: remainingHumansAfterCohort, serverClientsAfterSdkLeaves: serverClientsAfterCohort, serverBotsAfterSdkLeaves: serverBotsAfterCohort, cleanupRemovalTimedOut, errors: counters.errors },
     network: { sdkPingRttP50Ms: percentile(pingSamples.map((sample) => sample.ms), 0.5), sdkPingRttP95Ms: percentile(pingSamples.map((sample) => sample.ms), 0.95), sdkClockRttP50Ms: percentile(clockRttSamples.map((sample) => sample.rttMs), 0.5), sdkClockSmoothedRttP95Ms: percentile(clockRttSamples.map((sample) => sample.smoothedRttMs), 0.95), inputAckTotalSamples: ackSamples.length, ackPendingMeanP95: percentile(ackSamples.map((sample) => sample.pendingMean), 0.95), ackPendingFrameMax: Math.max(0, ...ackSamples.map((sample) => sample.pendingMax)), roomStateGapP50Ms: percentile(stateGaps, 0.5), roomStateGapP95Ms: percentile(stateGaps, 0.95), roomStateGapMaxMs: Math.max(0, ...stateGaps) },
     helperResources: { rssP95Bytes: percentile(resources.map((sample) => sample.rssBytes), 0.95), heapP95Bytes: percentile(resources.map((sample) => sample.heapUsedBytes), 0.95), processCpuUserMs: Number((endCpu.user / 1000).toFixed(1)), processCpuSystemMs: Number((endCpu.system / 1000).toFixed(1)), eventLoopP95MsMax: Math.max(0, ...resources.map((sample) => sample.eventLoopP95Ms)), samples: resources },
     serverContainerResources: 'Collected separately by scripts/run_colyseus_official_load.sh via docker stats; cohort executes on the server network/host, so its route and RTT differ from the Mac observer.',

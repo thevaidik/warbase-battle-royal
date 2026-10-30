@@ -14,6 +14,8 @@ import struct
 import subprocess
 import tempfile
 
+from client_provenance import WEB_EXPORT_ASSETS, read_provenance, verify_artifacts, verify_current_export
+
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 CLIENT = ROOT / "warbase-godot/client"
@@ -21,12 +23,41 @@ PLAYABLE_MAPS = (
     "football", "resoforge", "industrial", "village", "arena",
     "shipment", "dust2", "nuketown", "canyon", "desert_oasis",
 )
-ASSETS = (
-    "index.js", "index.wasm", "index.side.wasm", "index.pck",
-    "index.audio.worklet.js", "index.audio.position.worklet.js",
-    "libcolyseus_godot.web.wasm32.release.wasm",
-    "index.png", "index.icon.png", "index.apple-touch-icon.png",
-)
+ASSETS = WEB_EXPORT_ASSETS
+SDK_WASM_ASSET = "libcolyseus_godot.web.wasm32.release.wasm"
+SDK_WASM_RUNTIME_PATH = SDK_WASM_ASSET
+
+
+def configure_gdextension_runtime(config: dict, renames: dict[str, str]) -> None:
+    """Keep the SDK's original preload name, which the Web runtime requests."""
+    if SDK_WASM_ASSET not in config.get("gdextensionLibs", []):
+        raise RuntimeError("Candidate HTML is missing the Colyseus Web library registration")
+    renames[SDK_WASM_ASSET] = SDK_WASM_RUNTIME_PATH
+    config["gdextensionLibs"] = [
+        SDK_WASM_RUNTIME_PATH if name == SDK_WASM_ASSET else renames.get(name, name)
+        for name in config["gdextensionLibs"]
+    ]
+
+
+def copy_renamed_assets(source: pathlib.Path, output: pathlib.Path, renames: dict[str, str]) -> None:
+    for original, renamed in renames.items():
+        destination = output / renamed
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(source / original, destination)
+
+
+def render_packaged_html(html: str, config: dict, config_match: re.Match[str], renames: dict[str, str]) -> str:
+    config["executable"] = renames["index.js"].removesuffix(".js")
+    config["mainPack"] = renames["index.pck"]
+    config["fileSizes"] = {renames.get(name, name): size for name, size in config.get("fileSizes", {}).items()}
+    config["gdextensionLibs"] = [renames.get(name, name) for name in config.get("gdextensionLibs", [])]
+    packaged_html = html[:config_match.start(1)] + json.dumps(config, separators=(",", ":")) + html[config_match.end(1):]
+    for original, renamed in renames.items():
+        # The SDK preload name must match the basename used by the runtime.
+        if original != SDK_WASM_ASSET:
+            packaged_html = packaged_html.replace(original, renamed)
+    packaged_html = packaged_html.replace('src="index.js"', f'src="{renames["index.js"]}"')
+    return packaged_html
 
 
 def parse_pack_paths(path: pathlib.Path) -> set[str]:
@@ -108,6 +139,7 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--source", default=str(CLIENT / "candidate-web-dist"))
     parser.add_argument("--output", help="defaults to client/candidate-static")
+    parser.add_argument("--server-only", action="store_true", help="package the existing client artifact unchanged for a server-only release")
     args = parser.parse_args()
     source = pathlib.Path(args.source).expanduser().resolve()
     output = choose_output(args.output)
@@ -126,17 +158,10 @@ def main() -> int:
     if config.get("executable") != "index" or "libcolyseus_godot.web.wasm32.release.wasm" not in config.get("gdextensionLibs", []):
         raise RuntimeError("Candidate HTML does not reference the expected SDK-enabled Godot Web export")
 
-    main_source = (CLIENT / "scripts/core/Main.gd").read_text()
-    network_source = (CLIENT / "scripts/net/ColyseusNetwork.gd").read_text()
-    route_contract = (
-        'web_backend.to_lower() == "colyseus"' in main_source
-        and 'web_path == "/colyseus" or web_path.begins_with("/colyseus/")' in main_source
-        and 'if _use_colyseus else NetScript.new()' in main_source
-        and 'String(web_path).begins_with("/colyseus") or web_backend in ["colyseus", "qa_colyseus"]' in network_source
-        and 'endpoint = "%s://%s%s"' in network_source
-    )
-    if not route_contract:
-        raise RuntimeError("Web backend-selection contract changed; verify bare-root fallback and /colyseus prefix before packaging")
+    provenance = read_provenance(source / "client-provenance.json")
+    verify_artifacts(provenance, source, ["index.html", *ASSETS])
+    if not args.server_only:
+        verify_current_export(provenance, CLIENT)
 
     pck_paths = parse_pack_paths(source / "index.pck")
     required_pck = {
@@ -149,11 +174,6 @@ def main() -> int:
     missing = required_pck - pck_paths
     if missing:
         raise RuntimeError("Candidate PCK is missing runtime resources: " + ", ".join(sorted(missing)))
-    audio_source = (CLIENT / "scripts/core/AudioManager.gd").read_text()
-    for audio_guard in ("const AUDIO_ENABLED := false", "var muted := true", "var master_volume := 0.0", 'AudioServer.set_bus_mute(master, true)'):
-        if audio_guard not in audio_source:
-            raise RuntimeError("Candidate audio mute contract changed; review before packaging")
-
     engine_hash = hashlib.sha256()
     for name in ASSETS:
         if name.startswith("index.") and name != "index.pck":
@@ -161,7 +181,6 @@ def main() -> int:
             engine_hash.update((source / name).read_bytes())
     engine_stem = "engine-" + engine_hash.hexdigest()[:16]
     pack_name = "game-" + sha(source / "index.pck")[:16] + ".pck"
-    sdk_name = "colyseus-" + sha(source / "libcolyseus_godot.web.wasm32.release.wasm")[:16] + ".wasm"
     renames = {
         "index.js": engine_stem + ".js",
         "index.wasm": engine_stem + ".wasm",
@@ -169,25 +188,18 @@ def main() -> int:
         "index.audio.worklet.js": engine_stem + ".audio.worklet.js",
         "index.audio.position.worklet.js": engine_stem + ".audio.position.worklet.js",
         "index.pck": pack_name,
-        "libcolyseus_godot.web.wasm32.release.wasm": sdk_name,
+        "libcolyseus_godot.web.wasm32.release.wasm": SDK_WASM_ASSET,
         "index.png": "icon-" + sha(source / "index.png")[:16] + ".png",
         "index.icon.png": "icon-app-" + sha(source / "index.icon.png")[:16] + ".png",
         "index.apple-touch-icon.png": "icon-touch-" + sha(source / "index.apple-touch-icon.png")[:16] + ".png",
     }
+    configure_gdextension_runtime(config, renames)
 
     if output.exists():
         shutil.rmtree(output)
     output.mkdir(parents=True)
-    for original, renamed in renames.items():
-        shutil.copyfile(source / original, output / renamed)
-    config["executable"] = engine_stem
-    config["mainPack"] = pack_name
-    config["fileSizes"] = {renames.get(name, name): size for name, size in config.get("fileSizes", {}).items()}
-    config["gdextensionLibs"] = [renames.get(name, name) for name in config.get("gdextensionLibs", [])]
-    packaged_html = html[:config_match.start(1)] + json.dumps(config, separators=(",", ":")) + html[config_match.end(1):]
-    for original, renamed in renames.items():
-        packaged_html = packaged_html.replace(original, renamed)
-    packaged_html = packaged_html.replace('src="index.js"', f'src="{renames["index.js"]}"')
+    copy_renamed_assets(source, output, renames)
+    packaged_html = render_packaged_html(html, config, config_match, renames)
     (output / "index.html").write_text(packaged_html)
 
     names = ["index.html", *renames.values()]
@@ -202,11 +214,17 @@ def main() -> int:
 
     manifest = {
         "product": "warbase-colyseus-web-candidate",
+        "releaseScope": "server-only" if args.server_only else "full-client",
+        "client": {
+            **provenance,
+            "artifact": "index.pck and Godot Web runtime files from the supplied export",
+            "sourceMatchAtPackaging": not args.server_only,
+        },
         "routePrefix": "/colyseus/",
         "entrypoint": "index.html",
         "engine": engine_stem,
         "pack": pack_name,
-        "sdkWasm": sdk_name,
+        "sdkWasm": SDK_WASM_RUNTIME_PATH,
         "pckResourceCount": len(pck_paths),
         "playableMapData": [f"assets/data/maps/{name}.json.gz" for name in PLAYABLE_MAPS],
         "compression": {"contentNegotiated": ["br", "gzip"], "sidecarSuffixes": [".br", ".gz"]},
@@ -214,6 +232,7 @@ def main() -> int:
             "index.html": "no-cache",
             "hashedAssetPattern": r"^(engine|game|colyseus|icon|icon-app|icon-touch)-[0-9a-f]{16}\.",
             "hashedAssets": "public, max-age=31536000, immutable",
+            "noCacheAssets": [SDK_WASM_RUNTIME_PATH],
         },
         "headers": {
             "index.html": {"Cache-Control": "no-cache"},
@@ -222,17 +241,12 @@ def main() -> int:
             "wasm": {"Content-Type": "application/wasm"},
             "crossOriginIsolation": {"Cross-Origin-Opener-Policy": "same-origin", "Cross-Origin-Embedder-Policy": "require-corp"},
         },
-        "audio": {
-            "runtimeMuted": True,
-            "contract": "AUDIO_ENABLED=false; Master bus muted in WarAudioManager._ready().",
-            "worklets": "Web template worklet files remain bundled but produce no game audio while runtime is muted.",
-        },
         "files": {},
     }
     for name in names:
         manifest["files"][name] = {"sha256": sha(output / name), "bytes": (output / name).stat().st_size}
     (output / "candidate-manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")
-    print(json.dumps({"output": str(output), "pck_resources": len(pck_paths), "maps": len(PLAYABLE_MAPS), "web_route_contract": "bare root defaults to legacy; /colyseus/ selects Colyseus; backend=colyseus preserves prefix", "files": len(names), "bytes": {encoding: sum((output / (name + suffix)).stat().st_size for name in names) for encoding, suffix in (("identity", ""), ("gzip", ".gz"), ("br", ".br"))}}, indent=2))
+    print(json.dumps({"output": str(output), "release_scope": manifest["releaseScope"], "client_source_fingerprint": provenance["sourceFingerprint"], "godot_version": provenance["godotVersion"], "colyseus_sdk_version": provenance["colyseusSdkVersion"], "pck_resources": len(pck_paths), "maps": len(PLAYABLE_MAPS), "files": len(names), "bytes": {encoding: sum((output / (name + suffix)).stat().st_size for name in names) for encoding, suffix in (("identity", ""), ("gzip", ".gz"), ("br", ".br"))}}, indent=2))
     return 0
 
 

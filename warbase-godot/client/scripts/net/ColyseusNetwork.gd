@@ -5,8 +5,10 @@ extends WarNetwork
 
 const SchemaTypes := preload("res://scripts/net/ColyseusSchema.gd")
 const WorldGeometry := preload("res://scripts/net/ColyseusWorldGeometry.gd")
+const RemotePoseTiming := preload("res://scripts/qa/RemotePoseTiming.gd")
 # Leave one second of margin before the server's 15-second seat-reconnection expiry.
 const CLIENT_RECONNECT_GRACE_MS := 14000
+const PREDICTION_MOVE_CACHE_LIMIT := 4096
 
 var client
 var room
@@ -29,6 +31,10 @@ var _desired_weapon := "ak47"
 var _desired_quat := Quaternion.IDENTITY
 var _desired_pitch := 0.0
 var _drop_started_ms := 0
+var _connection_generation := 0
+var _awaiting_fresh_state := false
+var _reconnect_transport_ready := false
+var _input_epoch_before_drop := -1
 var _jump_pending := false
 var _drop_count := 0
 var _reconnect_count := 0
@@ -36,14 +42,42 @@ var _last_reconnect_gap_ms := -1
 var _last_lifecycle_event := ""
 var _last_steps_due := 0
 var _max_steps_due := 0
+var _qa_timing := false
+var _qa_step_us := 0
+var _qa_step_count := 0
+var _qa_step_max_us := 0
+var _qa_state_us := 0
+var _qa_state_count := 0
+var _qa_state_max_us := 0
+var _prediction_move_cache: Dictionary = {}
+var _prediction_cache_map := ""
+var _qa_move_cache_hits := 0
+var _qa_move_cache_misses := 0
+var _qa_remote_pose_timing
 
 func connect_to(username: String, room_name: String, host: String) -> void:
 	disconnect_from()
+	_qa_timing = _qa_timing or "qa_official" in OS.get_cmdline_user_args()
+	_qa_step_us = 0
+	_qa_step_count = 0
+	_qa_step_max_us = 0
+	_qa_state_us = 0
+	_qa_state_count = 0
+	_qa_state_max_us = 0
+	_prediction_move_cache.clear()
+	_prediction_cache_map = ""
+	_qa_move_cache_hits = 0
+	_qa_move_cache_misses = 0
+	_qa_remote_pose_timing = RemotePoseTiming.new() if _qa_timing else null
+	_connection_generation += 1
+	var generation := _connection_generation
 	_username = username
 	_room = room_name
 	_host = host
 	_want_connection = true
 	_has_initial_state = false
+	_awaiting_fresh_state = false
+	_input_epoch_before_drop = -1
 	_drop_count = 0
 	_reconnect_count = 0
 	_last_reconnect_gap_ms = -1
@@ -80,45 +114,85 @@ func connect_to(username: String, room_name: String, host: String) -> void:
 		connection_error.emit("Unable to create Colyseus room connection")
 		return
 	room.set_state_type(SchemaTypes.RoomState)
-	room.joined.connect(_on_joined)
-	room.state_changed.connect(_on_state_changed)
-	room.message_received.connect(_on_message)
-	room.error.connect(func(code: int, message: String) -> void:
-		_last_lifecycle_event = "error"
-		_want_connection = false
-		connection_error.emit(message if not message.is_empty() else "Colyseus room error %d" % code)
-	)
-	room.left.connect(func(_code: int, reason: String) -> void:
-		_last_lifecycle_event = "left"
-		_set_connected(false)
-		if _want_connection:
-			_want_connection = false
-			connection_error.emit("Colyseus room closed: " + reason)
-	)
-	room.dropped.connect(func(_code: int, _reason: String) -> void:
-		_drop_started_ms = Time.get_ticks_msec()
-		_drop_count += 1
-		_last_lifecycle_event = "dropped"
-		_set_connected(false)
-	)
-	room.reconnected.connect(_on_joined)
+	room.joined.connect(_on_joined.bind(room, generation))
+	room.state_changed.connect(_on_state_changed.bind(room, generation))
+	room.message_received.connect(_on_message.bind(room, generation))
+	room.error.connect(_on_room_error.bind(room, generation))
+	room.left.connect(_on_room_left.bind(room, generation))
+	room.dropped.connect(_on_room_dropped.bind(room, generation))
+	room.reconnected.connect(_on_joined.bind(room, generation))
 
-func _on_joined() -> void:
-	if _drop_started_ms > 0:
+func _is_current_room(source_room: Variant, generation: int) -> bool:
+	return generation == _connection_generation and source_room != null and source_room == room and _want_connection
+
+func _on_room_error(code: int, message: String, source_room: Variant, generation: int) -> void:
+	if not _is_current_room(source_room, generation): return
+	_fail_current_room(message if not message.is_empty() else "Colyseus room error %d" % code, source_room, generation, "error")
+
+func _on_room_left(_code: int, reason: String, source_room: Variant, generation: int) -> void:
+	if not _is_current_room(source_room, generation): return
+	_fail_current_room("Colyseus room closed: " + reason, source_room, generation, "left", false)
+
+func _on_room_dropped(_code: int, _reason: String, source_room: Variant, generation: int) -> void:
+	if not _is_current_room(source_room, generation): return
+	if OS.has_feature("web"):
+		_fail_current_room("Colyseus connection dropped; reconnect from the lobby", source_room, generation, "dropped")
+		return
+	_drop_started_ms = maxi(Time.get_ticks_msec(), 1)
+	_drop_count += 1
+	_input_epoch_before_drop = int(input_handle.epoch) if input_handle != null else -1
+	_awaiting_fresh_state = true
+	_reconnect_transport_ready = false
+	_has_initial_state = false
+	_last_lifecycle_event = "dropped"
+	_set_connected(false)
+
+func _fail_current_room(reason: String, source_room: Variant, generation: int, event: String, should_leave := true) -> void:
+	if not _is_current_room(source_room, generation): return
+	# Invalidate callbacks before leave(), which can synchronously emit `left`.
+	_connection_generation += 1
+	_want_connection = false
+	_drop_started_ms = 0
+	_awaiting_fresh_state = false
+	_reconnect_transport_ready = false
+	_last_lifecycle_event = event
+	room = null
+	client = null
+	input_handle = null
+	predictor = null
+	local_reconciler = null
+	_reconciled_instance = null
+	_last_normalized_state = {}
+	_prediction_move_cache.clear()
+	_prediction_cache_map = ""
+	_has_initial_state = false
+	_local_driving_vehicle = false
+	_set_connected(false)
+	source_room.set_reconnection_options({"enabled": false})
+	if should_leave: source_room.leave()
+	connection_error.emit(reason)
+
+func _on_joined(source_room: Variant, generation: int) -> void:
+	if not _is_current_room(source_room, generation): return
+	if _drop_started_ms > 0 and Time.get_ticks_msec() - _drop_started_ms >= CLIENT_RECONNECT_GRACE_MS:
+		_fail_current_room("Colyseus reconnection timed out", source_room, generation, "timeout")
+		return
+	var was_reconnecting := _drop_started_ms > 0 or _awaiting_fresh_state
+	if was_reconnecting:
 		_reconnect_count += 1
 		_last_reconnect_gap_ms = Time.get_ticks_msec() - _drop_started_ms
 		_last_lifecycle_event = "reconnected"
 	else:
 		_last_lifecycle_event = "joined"
 	_want_connection = true
-	_drop_started_ms = 0
+	_reconnect_transport_ready = was_reconnecting
 	# The SDK's default min-uptime rejects reconnects for rooms dropped soon
 	# after joining. The server explicitly allows reconnect windows, so avoid
 	# discarding a valid seat on short-lived network interruption.
 	room.set_reconnection_options({"min_uptime_ms": 0})
 	input_handle = room.input()
 	if input_handle == null:
-		connection_error.emit("Colyseus server did not declare buffered inputs")
+		_fail_current_room("Colyseus server did not declare buffered inputs", source_room, generation, "error")
 		return
 	predictor = Colyseus.Predict.of(room)
 	predictor.attach_all("players", {
@@ -129,19 +203,32 @@ func _on_joined() -> void:
 	}, _username)
 	local_reconciler = null
 	_reconciled_instance = null
-	_set_connected(true)
+	_awaiting_fresh_state = was_reconnecting
+	if not was_reconnecting: _set_connected(true)
 
-func _on_state_changed() -> void:
-	if room == null: return
-	var state = SchemaTypes.to_dictionary(room.get_state())
+func _on_state_changed(source_room: Variant, generation: int) -> void:
+	if not _is_current_room(source_room, generation): return
+	if _drop_started_ms > 0 and Time.get_ticks_msec() - _drop_started_ms >= CLIENT_RECONNECT_GRACE_MS:
+		_fail_current_room("Colyseus reconnection timed out", source_room, generation, "timeout")
+		return
+	if _awaiting_fresh_state and not _reconnect_transport_ready: return
+	var timing_start := Time.get_ticks_usec() if _qa_timing else 0
+	var ready_after_state := false
+	var state = SchemaTypes.to_dictionary(source_room.get_state())
 	if state is Dictionary:
 		if not _has_initial_state:
-			if int(state.get("protocol_version", 0)) <= 0: return
+			var players: Dictionary = state.get("players", {})
+			if int(state.get("protocol_version", 0)) <= 0 or not players.has(_username): return
 			_has_initial_state = true
+			if _awaiting_fresh_state:
+				_awaiting_fresh_state = false
+				_reconnect_transport_ready = false
+				_drop_started_ms = 0
+				ready_after_state = true
 		var authoritative_map := String(state.get("map_name", ""))
 		if not authoritative_map.is_empty():
 			WorldGeometry.set_map_override(authoritative_map)
-		var decoded = room.get_state()
+		var decoded = source_room.get_state()
 		var instances: Dictionary = decoded.get("players") if decoded != null else {}
 		var normalized_players := {}
 		for player_id in state.get("players", {}):
@@ -160,7 +247,7 @@ func _on_state_changed() -> void:
 					local_reconciler = predictor.reconciler(instance, {
 						"input": input_handle,
 						"fields": ["x", "y", "z", "vx", "vy", "vz", "health"],
-						"step": Callable(self, "_predict_server_step"),
+						"step": Callable(self, "_profiled_predict_server_step" if _qa_timing else "_predict_server_step"),
 						"smooth_ms": 80.0,
 						"snap": 1.5,
 					})
@@ -182,12 +269,21 @@ func _on_state_changed() -> void:
 			vehicle_state["pos"] = _vec(vehicle_state.get("pos", []))
 		state["vehicles"] = normalized_vehicles
 		_last_normalized_state = state
+		if ready_after_state: _set_connected(true)
 		state_received.emit(state)
 		_apply_local_reconciler()
+		if _qa_timing:
+			var elapsed := Time.get_ticks_usec() - timing_start
+			_qa_state_us += elapsed
+			_qa_state_count += 1
+			_qa_state_max_us = maxi(_qa_state_max_us, elapsed)
 
 func get_sdk_remote_poses() -> Dictionary:
+	var timing_start := Time.get_ticks_usec() if _qa_timing else 0
 	var players: Dictionary = _last_normalized_state.get("players", {})
-	if players.is_empty(): return {}
+	if players.is_empty():
+		if _qa_timing: _qa_remote_pose_timing.record(Time.get_ticks_usec() - timing_start, 0)
+		return {}
 	var decoded = room.get_state() if room != null and predictor != null else null
 	var instances: Dictionary = decoded.get("players") if decoded != null else {}
 	var render_time_ms := float(room.clock.render_now()) if room != null and predictor != null else 0.0
@@ -223,7 +319,16 @@ func get_sdk_remote_poses() -> Dictionary:
 		pose["rz"] = rotation.z
 		pose["rw"] = rotation.w
 		poses[username] = pose
+	if _qa_timing: _qa_remote_pose_timing.record(Time.get_ticks_usec() - timing_start, poses.size())
 	return poses
+
+## Explicit QA report; ordinary gameplay does not allocate timing samples or summaries.
+func get_remote_pose_preparation_diagnostics() -> Dictionary:
+	return _qa_remote_pose_timing.summary() if _qa_timing and _qa_remote_pose_timing != null else {"enabled": false}
+
+func set_qa_timing(enabled: bool) -> void:
+	_qa_timing = enabled
+	_qa_remote_pose_timing = RemotePoseTiming.new() if enabled else null
 
 func get_sdk_remote_pose(username: String) -> Dictionary:
 	return get_sdk_remote_poses().get(username, {})
@@ -263,6 +368,8 @@ func get_prediction_diagnostics() -> Dictionary:
 		"drop_count": _drop_count,
 		"reconnect_count": _reconnect_count,
 		"reconnect_gap_ms": _last_reconnect_gap_ms,
+		"awaiting_fresh_state": _awaiting_fresh_state,
+		"input_epoch_before_drop": _input_epoch_before_drop,
 		"sdk_reconnecting": room != null and room.reconnecting,
 		"steps_due": _last_steps_due,
 		"steps_due_max": _max_steps_due,
@@ -270,6 +377,14 @@ func get_prediction_diagnostics() -> Dictionary:
 		"input_ack": input_ack,
 		"input_pending": input_pending,
 		"input_epoch": input_epoch,
+		"qa_prediction_step_count": _qa_step_count,
+		"qa_prediction_step_mean_us": float(_qa_step_us) / maxi(_qa_step_count, 1),
+		"qa_prediction_step_max_us": _qa_step_max_us,
+		"qa_state_count": _qa_state_count,
+		"qa_state_mean_us": float(_qa_state_us) / maxi(_qa_state_count, 1),
+		"qa_state_max_us": _qa_state_max_us,
+		"qa_move_cache_hits": _qa_move_cache_hits,
+		"qa_move_cache_misses": _qa_move_cache_misses,
 		"reconcile_seq": reconcile_seq,
 		"reconciler_pending": reconciler_pending,
 		"last_correction_m": correction_mag,
@@ -278,6 +393,33 @@ func get_prediction_diagnostics() -> Dictionary:
 		"server_position": [server_pos.x, server_pos.y, server_pos.z],
 		"predicted_position": [predicted_pos.x, predicted_pos.y, predicted_pos.z],
 	}
+
+func _profiled_predict_server_step(ctx: Variant, state: Variant, command: Variant) -> void:
+	var started := Time.get_ticks_usec()
+	_predict_server_step(ctx, state, command)
+	var elapsed := Time.get_ticks_usec() - started
+	_qa_step_us += elapsed
+	_qa_step_count += 1
+	_qa_step_max_us = maxi(_qa_step_max_us, elapsed)
+
+func _resolve_prediction_move(from: Vector3, to: Vector3) -> Vector3:
+	# Reuse only an exactly identical sweep on the same static map. A replay
+	# starting from a different server position still runs the collision solver.
+	var map_name := WorldGeometry.get_loaded_map()
+	if map_name != _prediction_cache_map:
+		_prediction_move_cache.clear()
+		_prediction_cache_map = map_name
+	if map_name.is_empty(): return WorldGeometry.resolve_move(from, to)
+	var key := [from, to]
+	if _prediction_move_cache.has(key):
+		if _qa_timing: _qa_move_cache_hits += 1
+		return _prediction_move_cache[key]
+	if _qa_timing: _qa_move_cache_misses += 1
+	var result: Vector3 = WorldGeometry.resolve_move(from, to)
+	if _prediction_move_cache.size() >= PREDICTION_MOVE_CACHE_LIMIT:
+		_prediction_move_cache.clear()
+	_prediction_move_cache[key] = result
+	return result
 
 func _predict_server_step(ctx: Variant, state: Variant, command: Variant) -> void:
 	if state.health <= 0.0 or _local_driving_vehicle: return
@@ -307,7 +449,7 @@ func _predict_server_step(ctx: Variant, state: Variant, command: Variant) -> voi
 		state.vy = 6.2
 	state.vy -= 18.0 * ctx.dt
 	var requested: Vector3 = from + Vector3(state.vx, state.vy, state.vz) * ctx.dt
-	var resolved: Vector3 = WorldGeometry.resolve_move(from, requested)
+	var resolved: Vector3 = _resolve_prediction_move(from, requested)
 	state.x = resolved.x
 	state.y = resolved.y
 	state.z = resolved.z
@@ -329,9 +471,19 @@ func _apply_local_reconciler() -> void:
 	if predicted_state != null:
 		player.velocity = Vector3(predicted_state.vx, predicted_state.vy, predicted_state.vz)
 
-func _on_message(kind: Variant, payload: Variant) -> void:
+func _on_message(kind: Variant, payload: Variant, source_room: Variant, generation: int) -> void:
+	if not _is_current_room(source_room, generation): return
 	if not payload is Dictionary: return
 	var msg: Dictionary = payload
+	if String(kind) == "identity":
+		# The server normalizes display names before using them as player keys.
+		# Apply its identity before waiting for the matching state entry.
+		var canonical_name := String(msg.get("username", ""))
+		if not canonical_name.is_empty():
+			_username = canonical_name
+			GameState.username = canonical_name
+		return
+	if not connected: return
 	match String(kind):
 		"fire":
 			fire_received.emit(String(msg.get("shooter", "")), _vec(msg.get("origin", [])), _vec(msg.get("hit", [])), _vec(msg.get("normal", [])), bool(msg.get("wall", false)))
@@ -350,22 +502,35 @@ func _vec(value: Variant) -> Vector3:
 
 func disconnect_from() -> void:
 	_want_connection = false
-	if room != null:
-		room.leave()
+	# Invalidate bound signal callbacks before leaving: leave() may emit `left`
+	# immediately, and an SDK reconnect callback may already be queued.
+	_connection_generation += 1
+	var old_room = room
 	room = null
 	client = null
 	input_handle = null
 	predictor = null
+	local_reconciler = null
+	_reconciled_instance = null
+	_last_normalized_state = {}
+	_prediction_move_cache.clear()
+	_prediction_cache_map = ""
+	_has_initial_state = false
+	_awaiting_fresh_state = false
+	_reconnect_transport_ready = false
+	_drop_started_ms = 0
+	_input_epoch_before_drop = -1
 	_local_driving_vehicle = false
 	_set_connected(false)
+	if old_room != null:
+		old_room.set_reconnection_options({"enabled": false})
+		old_room.leave()
 
 func _process(delta: float) -> void:
 	if room == null: return
 	if not connected:
-		if _want_connection and _drop_started_ms > 0 and Time.get_ticks_msec() - _drop_started_ms > CLIENT_RECONNECT_GRACE_MS:
-			_drop_started_ms = 0
-			_want_connection = false
-			connection_error.emit("Colyseus reconnection timed out")
+		if _want_connection and _drop_started_ms > 0 and Time.get_ticks_msec() - _drop_started_ms >= CLIENT_RECONNECT_GRACE_MS:
+			_fail_current_room("Colyseus reconnection timed out", room, _connection_generation, "timeout")
 		return
 	if input_handle == null: return
 	if Input.is_action_just_pressed("jump"):

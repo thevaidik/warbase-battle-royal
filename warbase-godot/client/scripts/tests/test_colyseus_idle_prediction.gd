@@ -155,6 +155,30 @@ func run() -> void:
 			cached_comparisons += 1
 	var reference_move_mean_usec := float(reference_total_usec) / maxf(float(cached_comparisons), 1.0)
 	var cached_move_mean_usec := float(cached_total_usec) / maxf(float(cached_comparisons), 1.0)
+	# Compare the candidate cache with the full BVH path at varied positions,
+	# including short horizontal and vertical moves around authored spawns.
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 20261029
+	network._qa_timing = true
+	for map_name in MAPS:
+		Geometry.set_map_override(map_name)
+		var spawns: Array[Vector3] = Geometry.get_authored_spawns()
+		for index in 15:
+			var start: Vector3 = spawns[index % spawns.size()] + Vector3(rng.randf_range(-3.0, 3.0), rng.randf_range(-0.2, 0.4), rng.randf_range(-3.0, 3.0))
+			var target := start + Vector3(rng.randf_range(-0.4, 0.4), rng.randf_range(-0.25, 0.25), rng.randf_range(-0.4, 0.4))
+			var reference: Vector3 = Geometry.resolve_move(start, target, 0.4, 1.8, false)
+			var candidate: Vector3 = Geometry.resolve_move(start, target)
+			if reference.distance_to(candidate) > 0.0000001:
+				push_error("Candidate cache changed sampled move on %s: reference=%s cached=%s" % [map_name, reference, candidate])
+				failures += 1
+			var replay: Vector3 = network._resolve_prediction_move(start, target)
+			var repeated: Vector3 = network._resolve_prediction_move(start, target)
+			if replay != candidate or repeated != candidate or network._prediction_cache_map != map_name:
+				push_error("Prediction replay cache differs from the map collision solver on " + map_name)
+				failures += 1
+	if network._qa_move_cache_hits < MAPS.size() * 15:
+		push_error("Identical prediction replay sweeps were not reused")
+		failures += 1
 	var result_label := "OK" if failures == 0 else "FAILED"
 	print("COLYSEUS_IDLE_PREDICTION_%s maps=%d reference_mean_us=%0.1f idle_60_total_ms=%0.3f idle_60_mean_us=%0.1f moving_with_old_floor_query_mean_us=%0.1f moving_gated_mean_us=%0.1f open_sweep_mean_us=%0.1f near_wall_sweep_mean_us=%0.1f move_bvh_reference_mean_us=%0.1f move_candidates_mean_us=%0.1f candidate_comparisons=%d failures=%d" % [result_label, MAPS.size(), float(baseline_total_usec) / MAPS.size(), float(optimized_total_usec) / 1000.0, optimized_mean_usec, old_movement_mean_usec, gated_movement_mean_usec, open_sweep_mean_usec, wall_sweep_mean_usec, reference_move_mean_usec, cached_move_mean_usec, cached_comparisons, failures])
 	Geometry.set_map_override()

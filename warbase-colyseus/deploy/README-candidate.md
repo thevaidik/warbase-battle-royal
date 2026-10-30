@@ -12,9 +12,28 @@ python3 scripts/package_colyseus_web_candidate.py
 docker build -f warbase-colyseus/Dockerfile.candidate -t warbase-colyseus:candidate .
 ```
 
-Or run `scripts/build_colyseus_candidate.sh` on the Mac export host to perform all three steps. For the Umbrel build, transfer the source snapshot plus `warbase-godot/client/candidate-static/` and run `scripts/build_colyseus_candidate_image.sh`; this verifies the manifest and builds without requiring Godot or the SDK on Umbrel. The package step rejects a PCK that omits any of the ten playable maps' compressed collision data, the Industrial compatibility fallback, or the GDExtension descriptor. It records hashes and sizes in `warbase-godot/client/candidate-static/candidate-manifest.json`, then produces deterministic gzip and Brotli sidecars for the HTML and every referenced asset. Asset names are content-hashed and HTML is marked `no-cache`; hashed assets are safe for long immutable caching. The package step verifies gzip and Brotli decompression against each source asset.
+Or run `scripts/build_colyseus_candidate.sh` on the Mac export host to perform all three steps. The export records a fingerprint of the client inputs, Godot and Colyseus SDK versions, and SHA-256/size records for the PCK and required Web runtime files in `candidate-web-dist/client-provenance.json`; packaging verifies every recorded file before either release mode. Full-client packaging also rejects any source change since export. For an intentional server-only release, run `python3 scripts/package_colyseus_web_candidate.py --server-only`. This packages the supplied client artifact as-is and carries forward its verified fingerprint and tool versions while marking the release scope as `server-only`.
+
+For the Umbrel build, transfer the source snapshot plus `warbase-godot/client/candidate-static/` and run `scripts/build_colyseus_candidate_image.sh`; this verifies the manifest and builds without requiring Godot or the SDK on Umbrel. The package step inspects the Web export configuration and PCK resource directory, and rejects a PCK that omits any of the ten playable maps' compressed collision data, the Industrial compatibility fallback, or the GDExtension descriptor. It records hashes and sizes in `warbase-godot/client/candidate-static/candidate-manifest.json`, then produces deterministic gzip and Brotli sidecars for the HTML and every referenced asset. Asset names are content-hashed and HTML is marked `no-cache`; hashed assets are safe for long immutable caching. The package step verifies gzip and Brotli decompression against each source asset.
 
 The Godot runtime already mutes its Master bus and starts with SFX at zero. Its audio worklet files remain in the export because the Web template includes them regardless of the runtime mute state.
+
+## Isolated native Mac candidate
+
+Export a separate native candidate without replacing the installed or running game:
+
+```sh
+python3 scripts/export_colyseus_native_candidate.py
+```
+
+It writes `warbase-godot/client/candidate-native/WarBase-Colyseus-macOS.zip` and an adjacent `client-provenance.json`. The provenance records the client source fingerprint, Godot and Colyseus SDK versions, and the exact ZIP hash and size. Godot strips symbol data and ad hoc signs the macOS library during export, so its bytes differ from the SDK download; the exporter verifies the Mach-O load commands and executable/data segments and checks the exported signature. Its default output is separate from `build/WarBase-macOS.zip`, so the existing app stays untouched. To launch the exported app on the Colyseus candidate backend:
+
+```sh
+DEST=$(mktemp -d /tmp/warbase-colyseus-native.XXXXXX)
+ditto -x -k warbase-godot/client/candidate-native/WarBase-Colyseus-macOS.zip "$DEST"
+APP=$(find "$DEST" -maxdepth 2 -name '*.app' -print -quit)
+open -a "$APP" --args -- backend=colyseus
+```
 
 ## Isolated sidecar deployment
 

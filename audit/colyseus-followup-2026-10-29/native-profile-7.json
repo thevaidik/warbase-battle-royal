@@ -1,0 +1,3276 @@
+{
+  "ads_frames": 0,
+  "applied_corrections": 0,
+  "audio_disabled": true,
+  "backend": "colyseus",
+  "confirmed_hits": 0,
+  "confirmed_kills": 0,
+  "cpu_process_ms_p95": 107.49,
+  "damage_events": 81,
+  "disconnects": 0,
+  "draw_calls_p95": 263.0,
+  "drive_distance_m": 102.814016381577,
+  "driving_seconds": 36.2138560000011,
+  "event_markers": [
+    {
+      "awaiting_fresh_state": false,
+      "connected": true,
+      "drift_ema_m": 0.0,
+      "drop_count": 0,
+      "event": "connection_restored",
+      "initial_state": false,
+      "input_ack": 0,
+      "input_epoch": 0,
+      "input_epoch_before_drop": -1,
+      "input_pending": 0,
+      "input_sent": 0,
+      "last_correction_m": 0.0,
+      "lifecycle": "joined",
+      "local_driving": false,
+      "monotonic_ms": 3409,
+      "phase": "",
+      "predicted_position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "qa_prediction_step_count": 0,
+      "qa_prediction_step_max_us": 0,
+      "qa_prediction_step_mean_us": 0.0,
+      "qa_state_count": 0,
+      "qa_state_max_us": 0,
+      "qa_state_mean_us": 0.0,
+      "reconcile_seq": 0,
+      "reconciler_pending": 0,
+      "reconnect_count": 0,
+      "reconnect_gap_ms": -1,
+      "sdk_reconnecting": false,
+      "server_position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "steps_due": 0,
+      "steps_due_max": 0,
+      "t_s": 0.0
+    },
+    {
+      "event": "phase_changed",
+      "from": "",
+      "monotonic_ms": 3879,
+      "phase": "",
+      "player_pos": [
+        -22.0,
+        1.5,
+        -22.0
+      ],
+      "prediction": {
+        "awaiting_fresh_state": false,
+        "connected": true,
+        "drift_ema_m": 0.0,
+        "drop_count": 0,
+        "initial_state": true,
+        "input_ack": 0,
+        "input_epoch": 0,
+        "input_epoch_before_drop": -1,
+        "input_pending": 26,
+        "input_sent": 26,
+        "last_correction_m": 0.0,
+        "lifecycle": "joined",
+        "local_driving": false,
+        "predicted_position": [
+          -22.0,
+          0.842097997665405,
+          -22.0
+        ],
+        "qa_prediction_step_count": 0,
+        "qa_prediction_step_max_us": 0,
+        "qa_prediction_step_mean_us": 0.0,
+        "qa_state_count": 0,
+        "qa_state_max_us": 0,
+        "qa_state_mean_us": 0.0,
+        "reconcile_seq": 0,
+        "reconciler_pending": 26,
+        "reconnect_count": 0,
+        "reconnect_gap_ms": -1,
+        "sdk_reconnecting": false,
+        "server_position": [
+          -22.0,
+          0.842097997665405,
+          -22.0
+        ],
+        "steps_due": 0,
+        "steps_due_max": 2
+      },
+      "server_player_pos": [
+        -22.0,
+        0.842097997665405,
+        -22.0
+      ],
+      "t_s": 0.0,
+      "to": "walking"
+    },
+    {
+      "driving": false,
+      "event": "frame_stall_started",
+      "fps": 58.0,
+      "frame_ms": 121.612333333333,
+      "monotonic_ms": 4230,
+      "phase": "walking",
+      "prediction": {
+        "awaiting_fresh_state": false,
+        "connected": true,
+        "drift_ema_m": 0.0,
+        "drop_count": 0,
+        "initial_state": true,
+        "input_ack": 3,
+        "input_epoch": 0,
+        "input_epoch_before_drop": -1,
+        "input_pending": 25,
+        "input_sent": 28,
+        "last_correction_m": 0.0,
+        "lifecycle": "joined",
+        "local_driving": false,
+        "predicted_position": [
+          -22.0,
+          0.842097997665405,
+          -22.0
+        ],
+        "qa_prediction_step_count": 2,
+        "qa_prediction_step_max_us": 64143,
+        "qa_prediction_step_mean_us": 32113.0,
+        "qa_state_count": 3,
+        "qa_state_max_us": 1051,
+        "qa_state_mean_us": 488.0,
+        "reconcile_seq": 0,
+        "reconciler_pending": 25,
+        "reconnect_count": 0,
+        "reconnect_gap_ms": -1,
+        "sdk_reconnecting": false,
+        "server_position": [
+          -22.0,
+          0.842097997665405,
+          -22.0
+        ],
+        "steps_due": 2,
+        "steps_due_max": 2
+      },
+      "remotes": 1,
+      "t_s": 0.121612333333333
+    },
+    {
+      "driving": false,
+      "event": "frame_stall_ended",
+      "fps": 54.0,
+      "monotonic_ms": 4962,
+      "phase": "walking",
+      "remotes": 4,
+      "t_s": 0.354295333333333
+    },
+    {
+      "event": "phase_changed",
+      "from": "walking",
+      "monotonic_ms": 6393,
+      "phase": "walking",
+      "player_pos": [
+        -21.792516708374,
+        0.842099905014038,
+        -11.7649812698364
+      ],
+      "prediction": {
+        "awaiting_fresh_state": false,
+        "connected": true,
+        "drift_ema_m": 0.00000240618708488869,
+        "drop_count": 0,
+        "initial_state": true,
+        "input_ack": 87,
+        "input_epoch": 0,
+        "input_epoch_before_drop": -1,
+        "input_pending": 42,
+        "input_sent": 129,
+        "last_correction_m": 0.00000472699774256569,
+        "lifecycle": "joined",
+        "local_driving": false,
+        "predicted_position": [
+          -21.792516708374,
+          0.842099905014038,
+          -11.7649812698364
+        ],
+        "qa_prediction_step_count": 903,
+        "qa_prediction_step_max_us": 64143,
+        "qa_prediction_step_mean_us": 441.551495016611,
+        "qa_state_count": 49,
+        "qa_state_max_us": 1051,
+        "qa_state_mean_us": 260.632653061225,
+        "reconcile_seq": 23,
+        "reconciler_pending": 42,
+        "reconnect_count": 0,
+        "reconnect_gap_ms": -1,
+        "sdk_reconnecting": false,
+        "server_position": [
+          -22.0457382202148,
+          0.842099070549011,
+          -16.2528476715088
+        ],
+        "steps_due": 1,
+        "steps_due_max": 5
+      },
+      "server_player_pos": [
+        -22.0457382202148,
+        0.842099070549011,
+        -16.2528476715088
+      ],
+      "t_s": 1.78327933333333,
+      "to": "dead"
+    },
+    {
+      "driving": false,
+      "event": "frame_stall_started",
+      "fps": 58.0,
+      "frame_ms": 104.607,
+      "monotonic_ms": 6506,
+      "phase": "dead",
+      "prediction": {
+        "awaiting_fresh_state": false,
+        "connected": true,
+        "drift_ema_m": 0.00000240618708488869,
+        "drop_count": 0,
+        "initial_state": true,
+        "input_ack": 87,
+        "input_epoch": 0,
+        "input_epoch_before_drop": -1,
+        "input_pending": 43,
+        "input_sent": 130,
+        "last_correction_m": 9.0,
+        "lifecycle": "joined",
+        "local_driving": false,
+        "predicted_position": [
+          -22.0457382202148,
+          0.842099070549011,
+          -16.2528476715088
+        ],
+        "qa_prediction_step_count": 946,
+        "qa_prediction_step_max_us": 64143,
+        "qa_prediction_step_mean_us": 421.492600422833,
+        "qa_state_count": 50,
+        "qa_state_max_us": 1051,
+        "qa_state_mean_us": 270.0,
+        "reconcile_seq": 24,
+        "reconciler_pending": 43,
+        "reconnect_count": 0,
+        "reconnect_gap_ms": -1,
+        "sdk_reconnecting": false,
+        "server_position": [
+          -22.0457382202148,
+          0.842099070549011,
+          -16.2528476715088
+        ],
+        "steps_due": 1,
+        "steps_due_max": 5
+      },
+      "remotes": 7,
+      "t_s": 1.89823333333333
+    },
+    {
+      "driving": false,
+      "event": "frame_stall_ended",
+      "fps": 58.0,
+      "monotonic_ms": 6513,
+      "phase": "dead",
+      "remotes": 7,
+      "t_s": 1.90462833333333
+    },
+    {
+      "awaiting_fresh_state": false,
+      "connected": true,
+      "drift_ema_m": 0.00000000732263539613887,
+      "drop_count": 0,
+      "event": "respawn_received",
+      "initial_state": true,
+      "input_ack": 263,
+      "input_epoch": 0,
+      "input_epoch_before_drop": -1,
+      "input_pending": 43,
+      "input_sent": 306,
+      "last_correction_m": 0.0,
+      "lifecycle": "joined",
+      "local_driving": false,
+      "monotonic_ms": 9360,
+      "phase": "dead",
+      "predicted_position": [
+        -22.0457382202148,
+        0.842099070549011,
+        -16.2528476715088
+      ],
+      "qa_prediction_step_count": 1122,
+      "qa_prediction_step_max_us": 64143,
+      "qa_prediction_step_mean_us": 355.872549019608,
+      "qa_state_count": 107,
+      "qa_state_max_us": 1255,
+      "qa_state_mean_us": 416.953271028037,
+      "reconcile_seq": 79,
+      "reconciler_pending": 43,
+      "reconnect_count": 0,
+      "reconnect_gap_ms": -1,
+      "sdk_reconnecting": false,
+      "server_position": [
+        -22.0457382202148,
+        0.842099070549011,
+        -16.2528476715088
+      ],
+      "steps_due": 1,
+      "steps_due_max": 5,
+      "t_s": 4.74969533333334
+    },
+    {
+      "event": "phase_changed",
+      "from": "dead",
+      "monotonic_ms": 9432,
+      "phase": "dead",
+      "player_pos": [
+        -22.0457382202148,
+        0.842099070549011,
+        -16.2528476715088
+      ],
+      "prediction": {
+        "awaiting_fresh_state": false,
+        "connected": true,
+        "drift_ema_m": 0.00000000659037185652499,
+        "drop_count": 0,
+        "initial_state": true,
+        "input_ack": 266,
+        "input_epoch": 0,
+        "input_epoch_before_drop": -1,
+        "input_pending": 44,
+        "input_sent": 310,
+        "last_correction_m": 0.0,
+        "lifecycle": "joined",
+        "local_driving": false,
+        "predicted_position": [
+          -22.0457382202148,
+          0.842099070549011,
+          -16.2528476715088
+        ],
+        "qa_prediction_step_count": 1126,
+        "qa_prediction_step_max_us": 64143,
+        "qa_prediction_step_mean_us": 354.611012433393,
+        "qa_state_count": 107,
+        "qa_state_max_us": 1255,
+        "qa_state_mean_us": 416.953271028037,
+        "reconcile_seq": 80,
+        "reconciler_pending": 44,
+        "reconnect_count": 0,
+        "reconnect_gap_ms": -1,
+        "sdk_reconnecting": false,
+        "server_position": [
+          22.0116443634033,
+          1.2849999666214,
+          22.2063388824463
+        ],
+        "steps_due": 4,
+        "steps_due_max": 5
+      },
+      "server_player_pos": [
+        22.0116443634033,
+        1.2849999666214,
+        22.2063388824463
+      ],
+      "t_s": 4.82252533333334,
+      "to": "respawn_grace"
+    },
+    {
+      "event": "vehicle_seat_enter_authoritative",
+      "monotonic_ms": 10997,
+      "phase": "respawn_grace",
+      "prediction": {
+        "awaiting_fresh_state": false,
+        "connected": true,
+        "drift_ema_m": 0.0000048847640100817,
+        "drop_count": 0,
+        "initial_state": true,
+        "input_ack": 362,
+        "input_epoch": 0,
+        "input_epoch_before_drop": -1,
+        "input_pending": 42,
+        "input_sent": 404,
+        "last_correction_m": 0.00000554664130802962,
+        "lifecycle": "joined",
+        "local_driving": true,
+        "predicted_position": [
+          20.0816459655762,
+          0.842105090618134,
+          20.2242794036865
+        ],
+        "qa_prediction_step_count": 2503,
+        "qa_prediction_step_max_us": 64143,
+        "qa_prediction_step_mean_us": 407.284858170196,
+        "qa_state_count": 138,
+        "qa_state_max_us": 1255,
+        "qa_state_mean_us": 372.463768115942,
+        "reconcile_seq": 111,
+        "reconciler_pending": 42,
+        "reconnect_count": 0,
+        "reconnect_gap_ms": -1,
+        "sdk_reconnecting": false,
+        "server_position": [
+          20.0,
+          0.922105073928833,
+          20.0
+        ],
+        "steps_due": 1,
+        "steps_due_max": 5
+      },
+      "previous_seat": "",
+      "server_player_pos": [
+        20.0,
+        0.922105073928833,
+        20.0
+      ],
+      "server_seat": "CAR_1",
+      "t_s": 6.38695633333333
+    },
+    {
+      "event": "phase_changed",
+      "from": "respawn_grace",
+      "monotonic_ms": 10997,
+      "phase": "respawn_grace",
+      "player_pos": [
+        20.0,
+        0.922105073928833,
+        20.0
+      ],
+      "prediction": {
+        "awaiting_fresh_state": false,
+        "connected": true,
+        "drift_ema_m": 0.0000048847640100817,
+        "drop_count": 0,
+        "initial_state": true,
+        "input_ack": 362,
+        "input_epoch": 0,
+        "input_epoch_before_drop": -1,
+        "input_pending": 42,
+        "input_sent": 404,
+        "last_correction_m": 0.00000554664130802962,
+        "lifecycle": "joined",
+        "local_driving": true,
+        "predicted_position": [
+          20.0816459655762,
+          0.842105090618134,
+          20.2242794036865
+        ],
+        "qa_prediction_step_count": 2503,
+        "qa_prediction_step_max_us": 64143,
+        "qa_prediction_step_mean_us": 407.284858170196,
+        "qa_state_count": 138,
+        "qa_state_max_us": 1255,
+        "qa_state_mean_us": 372.463768115942,
+        "reconcile_seq": 111,
+        "reconciler_pending": 42,
+        "reconnect_count": 0,
+        "reconnect_gap_ms": -1,
+        "sdk_reconnecting": false,
+        "server_position": [
+          20.0,
+          0.922105073928833,
+          20.0
+        ],
+        "steps_due": 1,
+        "steps_due_max": 5
+      },
+      "server_player_pos": [
+        20.0,
+        0.922105073928833,
+        20.0
+      ],
+      "t_s": 6.38695633333333,
+      "to": "driving"
+    },
+    {
+      "event": "vehicle_entered",
+      "monotonic_ms": 11011,
+      "phase": "driving",
+      "pos": [
+        20.0,
+        0.922105073928833,
+        20.0
+      ],
+      "prediction": {
+        "awaiting_fresh_state": false,
+        "connected": true,
+        "drift_ema_m": 0.0000048847640100817,
+        "drop_count": 0,
+        "initial_state": true,
+        "input_ack": 362,
+        "input_epoch": 0,
+        "input_epoch_before_drop": -1,
+        "input_pending": 42,
+        "input_sent": 404,
+        "last_correction_m": 0.00000554664130802962,
+        "lifecycle": "joined",
+        "local_driving": true,
+        "predicted_position": [
+          20.0816459655762,
+          0.842105090618134,
+          20.2242794036865
+        ],
+        "qa_prediction_step_count": 2503,
+        "qa_prediction_step_max_us": 64143,
+        "qa_prediction_step_mean_us": 407.284858170196,
+        "qa_state_count": 139,
+        "qa_state_max_us": 1255,
+        "qa_state_mean_us": 373.014388489209,
+        "reconcile_seq": 111,
+        "reconciler_pending": 42,
+        "reconnect_count": 0,
+        "reconnect_gap_ms": -1,
+        "sdk_reconnecting": false,
+        "server_position": [
+          20.0,
+          0.922105073928833,
+          20.0
+        ],
+        "steps_due": 1,
+        "steps_due_max": 5
+      },
+      "t_s": 6.40242233333333,
+      "vehicle_id": "CAR_1"
+    },
+    {
+      "event": "vehicle_seat_exit_authoritative",
+      "monotonic_ms": 47200,
+      "phase": "driving",
+      "prediction": {
+        "awaiting_fresh_state": false,
+        "connected": true,
+        "drift_ema_m": 0.000238765691578082,
+        "drop_count": 0,
+        "initial_state": true,
+        "input_ack": 2521,
+        "input_epoch": 0,
+        "input_epoch_before_drop": -1,
+        "input_pending": 51,
+        "input_sent": 2572,
+        "last_correction_m": 0.0,
+        "lifecycle": "joined",
+        "local_driving": false,
+        "predicted_position": [
+          15.4083557128906,
+          0.992699980735779,
+          29.0995597839355
+        ],
+        "qa_prediction_step_count": 22266,
+        "qa_prediction_step_max_us": 64143,
+        "qa_prediction_step_mean_us": 46.5817389742208,
+        "qa_state_count": 837,
+        "qa_state_max_us": 1423,
+        "qa_state_mean_us": 576.783751493429,
+        "reconcile_seq": 795,
+        "reconciler_pending": 51,
+        "reconnect_count": 0,
+        "reconnect_gap_ms": -1,
+        "sdk_reconnecting": false,
+        "server_position": [
+          13.2157363891602,
+          0.922106742858887,
+          28.9195041656494
+        ],
+        "steps_due": 1,
+        "steps_due_max": 5
+      },
+      "previous_seat": "CAR_1",
+      "server_player_pos": [
+        13.2157363891602,
+        0.922106742858887,
+        28.9195041656494
+      ],
+      "server_seat": "",
+      "t_s": 42.6008123333346
+    },
+    {
+      "event": "phase_changed",
+      "from": "driving",
+      "monotonic_ms": 47200,
+      "phase": "driving",
+      "player_pos": [
+        13.2157363891602,
+        0.922106742858887,
+        28.9195041656494
+      ],
+      "prediction": {
+        "awaiting_fresh_state": false,
+        "connected": true,
+        "drift_ema_m": 0.000238765691578082,
+        "drop_count": 0,
+        "initial_state": true,
+        "input_ack": 2521,
+        "input_epoch": 0,
+        "input_epoch_before_drop": -1,
+        "input_pending": 51,
+        "input_sent": 2572,
+        "last_correction_m": 0.0,
+        "lifecycle": "joined",
+        "local_driving": false,
+        "predicted_position": [
+          15.4083557128906,
+          0.992699980735779,
+          29.0995597839355
+        ],
+        "qa_prediction_step_count": 22266,
+        "qa_prediction_step_max_us": 64143,
+        "qa_prediction_step_mean_us": 46.5817389742208,
+        "qa_state_count": 837,
+        "qa_state_max_us": 1423,
+        "qa_state_mean_us": 576.783751493429,
+        "reconcile_seq": 795,
+        "reconciler_pending": 51,
+        "reconnect_count": 0,
+        "reconnect_gap_ms": -1,
+        "sdk_reconnecting": false,
+        "server_position": [
+          13.2157363891602,
+          0.922106742858887,
+          28.9195041656494
+        ],
+        "steps_due": 1,
+        "steps_due_max": 5
+      },
+      "server_player_pos": [
+        13.2157363891602,
+        0.922106742858887,
+        28.9195041656494
+      ],
+      "t_s": 42.6008123333346,
+      "to": "walking"
+    },
+    {
+      "event": "vehicle_exited",
+      "monotonic_ms": 47214,
+      "phase": "walking",
+      "pos": [
+        15.4083557128906,
+        0.992699980735779,
+        29.0995597839355
+      ],
+      "prediction": {
+        "awaiting_fresh_state": false,
+        "connected": true,
+        "drift_ema_m": 0.000238765691578082,
+        "drop_count": 0,
+        "initial_state": true,
+        "input_ack": 2521,
+        "input_epoch": 0,
+        "input_epoch_before_drop": -1,
+        "input_pending": 51,
+        "input_sent": 2572,
+        "last_correction_m": 0.0,
+        "lifecycle": "joined",
+        "local_driving": false,
+        "predicted_position": [
+          15.4083557128906,
+          0.992699980735779,
+          29.0995597839355
+        ],
+        "qa_prediction_step_count": 22266,
+        "qa_prediction_step_max_us": 64143,
+        "qa_prediction_step_mean_us": 46.5817389742208,
+        "qa_state_count": 838,
+        "qa_state_max_us": 1423,
+        "qa_state_mean_us": 577.306682577566,
+        "reconcile_seq": 795,
+        "reconciler_pending": 51,
+        "reconnect_count": 0,
+        "reconnect_gap_ms": -1,
+        "sdk_reconnecting": false,
+        "server_position": [
+          13.2157363891602,
+          0.922106742858887,
+          28.9195041656494
+        ],
+        "steps_due": 1,
+        "steps_due_max": 5
+      },
+      "t_s": 42.6174783333346
+    }
+  ],
+  "explosion_events": 0,
+  "fire_events": 421,
+  "frame_ms_max": 130.85,
+  "frame_ms_p50": 16.666,
+  "frame_ms_p95": 17.597,
+  "frame_ms_p99": 28.959,
+  "host": "war.vaidik.blog/colyseus",
+  "local_bots": 0,
+  "local_grenades": 0,
+  "local_respawns": 1,
+  "local_shots": 0,
+  "max_position_error_m": 58.4838256835938,
+  "peak_remotes": 7,
+  "phase_position_errors": {
+    "driving_vehicle_render": {
+      "count": 699,
+      "last_error_m": 0.00000213331350096269,
+      "last_local": [
+        15.4083547592163,
+        0.992700040340424,
+        29.0995616912842
+      ],
+      "last_server": [
+        15.4083557128906,
+        0.992699980735779,
+        29.0995597839355
+      ],
+      "max_m": 1.95078933238983,
+      "over_2_5m": 0
+    },
+    "respawn_grace": {
+      "count": 31,
+      "last_error_m": 1.30818915367126,
+      "last_local": [
+        19.9925727844238,
+        0.842104971408844,
+        19.9795932769775
+      ],
+      "last_server": [
+        20.4391498565674,
+        0.842105269432068,
+        21.2091979980469
+      ],
+      "max_m": 58.4838256835938,
+      "over_2_5m": 19
+    },
+    "walking": {
+      "count": 97,
+      "last_error_m": 1.50196015834808,
+      "last_local": [
+        10.0280666351318,
+        0.842105448246002,
+        22.3612251281738
+      ],
+      "last_server": [
+        10.9232988357544,
+        0.842105746269226,
+        23.5672283172607
+      ],
+      "max_m": 4.44332933425903,
+      "over_2_5m": 25
+    }
+  },
+  "ping_ms_p50": 0.0,
+  "ping_ms_p95": 0.0,
+  "platform": "native-release",
+  "prediction_final": {
+    "awaiting_fresh_state": false,
+    "connected": true,
+    "drift_ema_m": 0.00000372864761240551,
+    "drop_count": 0,
+    "initial_state": true,
+    "input_ack": 2664,
+    "input_epoch": 0,
+    "input_epoch_before_drop": -1,
+    "input_pending": 52,
+    "input_sent": 2716,
+    "last_correction_m": 0.00000275086980039418,
+    "lifecycle": "joined",
+    "local_driving": false,
+    "predicted_position": [
+      9.97761249542236,
+      0.842105448246002,
+      22.3015842437744
+    ],
+    "qa_prediction_step_count": 24796,
+    "qa_prediction_step_max_us": 64143,
+    "qa_prediction_step_mean_us": 84.4882642361671,
+    "qa_state_count": 885,
+    "qa_state_max_us": 1423,
+    "qa_state_mean_us": 559.100564971751,
+    "reconcile_seq": 843,
+    "reconciler_pending": 52,
+    "reconnect_count": 0,
+    "reconnect_gap_ms": -1,
+    "sdk_reconnecting": false,
+    "server_position": [
+      10.9232988357544,
+      0.842105746269226,
+      23.5672283172607
+    ],
+    "steps_due": 2,
+    "steps_due_max": 5
+  },
+  "prediction_samples": [
+    {
+      "diagnostics": {
+        "awaiting_fresh_state": false,
+        "connected": true,
+        "drift_ema_m": 0.0,
+        "drop_count": 0,
+        "initial_state": true,
+        "input_ack": 3,
+        "input_epoch": 0,
+        "input_epoch_before_drop": -1,
+        "input_pending": 25,
+        "input_sent": 28,
+        "last_correction_m": 0.0,
+        "lifecycle": "joined",
+        "local_driving": false,
+        "predicted_position": [
+          -22.0,
+          0.842097997665405,
+          -22.0
+        ],
+        "qa_prediction_step_count": 2,
+        "qa_prediction_step_max_us": 64143,
+        "qa_prediction_step_mean_us": 32113.0,
+        "qa_state_count": 3,
+        "qa_state_max_us": 1051,
+        "qa_state_mean_us": 488.0,
+        "reconcile_seq": 0,
+        "reconciler_pending": 25,
+        "reconnect_count": 0,
+        "reconnect_gap_ms": -1,
+        "sdk_reconnecting": false,
+        "server_position": [
+          -22.0,
+          0.842097997665405,
+          -22.0
+        ],
+        "steps_due": 2,
+        "steps_due_max": 2
+      },
+      "phase": "walking",
+      "player_pos": [
+        -22.0,
+        0.842097997665405,
+        -22.0
+      ],
+      "t_s": 0.121612333333333,
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "diagnostics": {
+        "awaiting_fresh_state": false,
+        "connected": true,
+        "drift_ema_m": 0.0,
+        "drop_count": 0,
+        "initial_state": true,
+        "input_ack": 28,
+        "input_epoch": 0,
+        "input_epoch_before_drop": -1,
+        "input_pending": 30,
+        "input_sent": 58,
+        "last_correction_m": 0.0,
+        "lifecycle": "joined",
+        "local_driving": false,
+        "predicted_position": [
+          -22.2031650543213,
+          0.842098653316498,
+          -19.0425586700439
+        ],
+        "qa_prediction_step_count": 57,
+        "qa_prediction_step_max_us": 64143,
+        "qa_prediction_step_mean_us": 1384.12280701754,
+        "qa_state_count": 27,
+        "qa_state_max_us": 1051,
+        "qa_state_mean_us": 231.62962962963,
+        "reconcile_seq": 4,
+        "reconciler_pending": 30,
+        "reconnect_count": 0,
+        "reconnect_gap_ms": -1,
+        "sdk_reconnecting": false,
+        "server_position": [
+          -22.0,
+          0.842097997665405,
+          -22.0
+        ],
+        "steps_due": 1,
+        "steps_due_max": 5
+      },
+      "phase": "walking",
+      "player_pos": [
+        -22.2031650543213,
+        0.842098653316498,
+        -19.0425586700439
+      ],
+      "t_s": 0.621819333333333,
+      "velocity": [
+        0.349273681640625,
+        0.0,
+        6.19010925292969
+      ]
+    },
+    {
+      "diagnostics": {
+        "awaiting_fresh_state": false,
+        "connected": true,
+        "drift_ema_m": 0.00000217509374528271,
+        "drop_count": 0,
+        "initial_state": true,
+        "input_ack": 74,
+        "input_epoch": 0,
+        "input_epoch_before_drop": -1,
+        "input_pending": 45,
+        "input_sent": 119,
+        "last_correction_m": 0.00000298062299464164,
+        "lifecycle": "joined",
+        "local_driving": false,
+        "predicted_position": [
+          -21.853645324707,
+          0.842099666595459,
+          -12.8482675552368
+        ],
+        "qa_prediction_step_count": 764,
+        "qa_prediction_step_max_us": 64143,
+        "qa_prediction_step_mean_us": 453.791884816754,
+        "qa_state_count": 46,
+        "qa_state_max_us": 1051,
+        "qa_state_mean_us": 260.739130434783,
+        "reconcile_seq": 20,
+        "reconciler_pending": 45,
+        "reconnect_count": 0,
+        "reconnect_gap_ms": -1,
+        "sdk_reconnecting": false,
+        "server_position": [
+          -22.1097774505615,
+          0.842098891735077,
+          -17.3877086639404
+        ],
+        "steps_due": 2,
+        "steps_due_max": 5
+      },
+      "phase": "walking",
+      "player_pos": [
+        -21.853645324707,
+        0.842099666595459,
+        -12.8482675552368
+      ],
+      "t_s": 1.62385533333333,
+      "velocity": [
+        0.349273681640625,
+        0.0,
+        6.19016647338867
+      ]
+    },
+    {
+      "diagnostics": {
+        "awaiting_fresh_state": false,
+        "connected": true,
+        "drift_ema_m": 0.00000000732263539613887,
+        "drop_count": 0,
+        "initial_state": true,
+        "input_ack": 263,
+        "input_epoch": 0,
+        "input_epoch_before_drop": -1,
+        "input_pending": 43,
+        "input_sent": 306,
+        "last_correction_m": 0.0,
+        "lifecycle": "joined",
+        "local_driving": false,
+        "predicted_position": [
+          -22.0457382202148,
+          0.842099070549011,
+          -16.2528476715088
+        ],
+        "qa_prediction_step_count": 1122,
+        "qa_prediction_step_max_us": 64143,
+        "qa_prediction_step_mean_us": 355.872549019608,
+        "qa_state_count": 107,
+        "qa_state_max_us": 1255,
+        "qa_state_mean_us": 416.953271028037,
+        "reconcile_seq": 79,
+        "reconciler_pending": 43,
+        "reconnect_count": 0,
+        "reconnect_gap_ms": -1,
+        "sdk_reconnecting": false,
+        "server_position": [
+          -22.0457382202148,
+          0.842099070549011,
+          -16.2528476715088
+        ],
+        "steps_due": 1,
+        "steps_due_max": 5
+      },
+      "phase": "respawn_grace",
+      "player_pos": [
+        22.0,
+        1.29999995231628,
+        22.0
+      ],
+      "t_s": 4.82252533333334,
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "diagnostics": {
+        "awaiting_fresh_state": false,
+        "connected": true,
+        "drift_ema_m": 0.00000353566268114308,
+        "drop_count": 0,
+        "initial_state": true,
+        "input_ack": 328,
+        "input_epoch": 0,
+        "input_epoch_before_drop": -1,
+        "input_pending": 41,
+        "input_sent": 369,
+        "last_correction_m": 0.00000456455471464778,
+        "lifecycle": "joined",
+        "local_driving": false,
+        "predicted_position": [
+          20.1068820953369,
+          0.842105090618134,
+          20.2943019866943
+        ],
+        "qa_prediction_step_count": 2015,
+        "qa_prediction_step_max_us": 64143,
+        "qa_prediction_step_mean_us": 396.099751861042,
+        "qa_state_count": 128,
+        "qa_state_max_us": 1255,
+        "qa_state_mean_us": 383.8515625,
+        "reconcile_seq": 100,
+        "reconciler_pending": 41,
+        "reconnect_count": 0,
+        "reconnect_gap_ms": -1,
+        "sdk_reconnecting": false,
+        "server_position": [
+          21.532600402832,
+          0.842105805873871,
+          24.2201309204102
+        ],
+        "steps_due": 0,
+        "steps_due_max": 5
+      },
+      "phase": "respawn_grace",
+      "player_pos": [
+        20.1068820953369,
+        0.842105090618134,
+        20.2943019866943
+      ],
+      "t_s": 5.83311633333333,
+      "velocity": [
+        -2.11635589599609,
+        0.0,
+        -5.82756042480469
+      ]
+    },
+    {
+      "diagnostics": {
+        "awaiting_fresh_state": false,
+        "connected": true,
+        "drift_ema_m": 0.0196322675422715,
+        "drop_count": 0,
+        "initial_state": true,
+        "input_ack": 387,
+        "input_epoch": 0,
+        "input_epoch_before_drop": -1,
+        "input_pending": 43,
+        "input_sent": 430,
+        "last_correction_m": 0.0000100135803222656,
+        "lifecycle": "joined",
+        "local_driving": true,
+        "predicted_position": [
+          20.0,
+          0.922105073928833,
+          20.0
+        ],
+        "qa_prediction_step_count": 2904,
+        "qa_prediction_step_max_us": 64143,
+        "qa_prediction_step_mean_us": 351.12258953168,
+        "qa_state_count": 147,
+        "qa_state_max_us": 1255,
+        "qa_state_mean_us": 375.993197278912,
+        "reconcile_seq": 120,
+        "reconciler_pending": 43,
+        "reconnect_count": 0,
+        "reconnect_gap_ms": -1,
+        "sdk_reconnecting": false,
+        "server_position": [
+          20.0,
+          0.922105073928833,
+          20.0
+        ],
+        "steps_due": 1,
+        "steps_due_max": 5
+      },
+      "phase": "driving",
+      "player_pos": [
+        20.0,
+        0.922105073928833,
+        20.0
+      ],
+      "t_s": 6.83519933333333,
+      "vehicle_pos": [
+        20.0,
+        0.922105073928833,
+        20.0
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "diagnostics": {
+        "awaiting_fresh_state": false,
+        "connected": true,
+        "drift_ema_m": 0.177657187169439,
+        "drop_count": 0,
+        "initial_state": true,
+        "input_ack": 439,
+        "input_epoch": 0,
+        "input_epoch_before_drop": -1,
+        "input_pending": 51,
+        "input_sent": 490,
+        "last_correction_m": 0.407956806974656,
+        "lifecycle": "joined",
+        "local_driving": true,
+        "predicted_position": [
+          21.3778381347656,
+          0.922105014324188,
+          20.0
+        ],
+        "qa_prediction_step_count": 3811,
+        "qa_prediction_step_max_us": 64143,
+        "qa_prediction_step_mean_us": 267.719758593545,
+        "qa_state_count": 167,
+        "qa_state_max_us": 1255,
+        "qa_state_mean_us": 389.640718562874,
+        "reconcile_seq": 138,
+        "reconciler_pending": 51,
+        "reconnect_count": 0,
+        "reconnect_gap_ms": -1,
+        "sdk_reconnecting": false,
+        "server_position": [
+          21.7118453979492,
+          0.922105014324188,
+          20.0
+        ],
+        "steps_due": 1,
+        "steps_due_max": 5
+      },
+      "phase": "driving",
+      "player_pos": [
+        21.367280960083,
+        0.922105073928833,
+        20.0
+      ],
+      "t_s": 7.83693733333334,
+      "vehicle_pos": [
+        21.4609565734863,
+        0.922105073928833,
+        20.0
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "diagnostics": {
+        "awaiting_fresh_state": false,
+        "connected": true,
+        "drift_ema_m": 0.570239180920503,
+        "drop_count": 0,
+        "initial_state": true,
+        "input_ack": 500,
+        "input_epoch": 0,
+        "input_epoch_before_drop": -1,
+        "input_pending": 50,
+        "input_sent": 550,
+        "last_correction_m": 0.700554588426769,
+        "lifecycle": "joined",
+        "local_driving": true,
+        "predicted_position": [
+          26.7312049865723,
+          0.922104954719543,
+          20.0
+        ],
+        "qa_prediction_step_count": 4780,
+        "qa_prediction_step_max_us": 64143,
+        "qa_prediction_step_mean_us": 213.566317991632,
+        "qa_state_count": 186,
+        "qa_state_max_us": 1255,
+        "qa_state_mean_us": 398.091397849462,
+        "reconcile_seq": 156,
+        "reconciler_pending": 50,
+        "reconnect_count": 0,
+        "reconnect_gap_ms": -1,
+        "sdk_reconnecting": false,
+        "server_position": [
+          27.4061832427979,
+          0.922104954719543,
+          20.0
+        ],
+        "steps_due": 1,
+        "steps_due_max": 5
+      },
+      "phase": "driving",
+      "player_pos": [
+        26.7402286529541,
+        0.922105014324188,
+        20.0
+      ],
+      "t_s": 8.83686533333334,
+      "vehicle_pos": [
+        26.8071784973145,
+        0.922105014324188,
+        20.0
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "diagnostics": {
+        "awaiting_fresh_state": false,
+        "connected": true,
+        "drift_ema_m": 0.487326734717354,
+        "drop_count": 0,
+        "initial_state": true,
+        "input_ack": 558,
+        "input_epoch": 0,
+        "input_epoch_before_drop": -1,
+        "input_pending": 52,
+        "input_sent": 610,
+        "last_correction_m": 0.370439750489744,
+        "lifecycle": "joined",
+        "local_driving": true,
+        "predicted_position": [
+          31.7489585876465,
+          0.922104895114899,
+          20.0
+        ],
+        "qa_prediction_step_count": 5800,
+        "qa_prediction_step_max_us": 64143,
+        "qa_prediction_step_mean_us": 176.154827586207,
+        "qa_state_count": 205,
+        "qa_state_max_us": 1255,
+        "qa_state_mean_us": 426.639024390244,
+        "reconcile_seq": 175,
+        "reconciler_pending": 52,
+        "reconnect_count": 0,
+        "reconnect_gap_ms": -1,
+        "sdk_reconnecting": false,
+        "server_position": [
+          31.9941864013672,
+          0.922104895114899,
+          20.0
+        ],
+        "steps_due": 1,
+        "steps_due_max": 5
+      },
+      "phase": "driving",
+      "player_pos": [
+        31.7046241760254,
+        0.922104954719543,
+        20.0
+      ],
+      "t_s": 9.83682933333334,
+      "vehicle_pos": [
+        31.7553901672363,
+        0.922104954719543,
+        20.0
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "diagnostics": {
+        "awaiting_fresh_state": false,
+        "connected": true,
+        "drift_ema_m": 0.553223632947806,
+        "drop_count": 0,
+        "initial_state": true,
+        "input_ack": 618,
+        "input_epoch": 0,
+        "input_epoch_before_drop": -1,
+        "input_pending": 52,
+        "input_sent": 670,
+        "last_correction_m": 0.641812335645902,
+        "lifecycle": "joined",
+        "local_driving": true,
+        "predicted_position": [
+          36.4463386535645,
+          0.922104895114899,
+          20.0
+        ],
+        "qa_prediction_step_count": 6864,
+        "qa_prediction_step_max_us": 64143,
+        "qa_prediction_step_mean_us": 148.936334498834,
+        "qa_state_count": 225,
+        "qa_state_max_us": 1255,
+        "qa_state_mean_us": 429.648888888889,
+        "reconcile_seq": 195,
+        "reconciler_pending": 52,
+        "reconnect_count": 0,
+        "reconnect_gap_ms": -1,
+        "sdk_reconnecting": false,
+        "server_position": [
+          36.8765602111816,
+          0.922104895114899,
+          20.0
+        ],
+        "steps_due": 1,
+        "steps_due_max": 5
+      },
+      "phase": "driving",
+      "player_pos": [
+        36.3022918701172,
+        0.922104954719543,
+        20.0
+      ],
+      "t_s": 10.8368133333333,
+      "vehicle_pos": [
+        36.3991622924805,
+        0.922104954719543,
+        20.0
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "diagnostics": {
+        "awaiting_fresh_state": false,
+        "connected": true,
+        "drift_ema_m": 0.478194332328083,
+        "drop_count": 0,
+        "initial_state": true,
+        "input_ack": 678,
+        "input_epoch": 0,
+        "input_epoch_before_drop": -1,
+        "input_pending": 52,
+        "input_sent": 730,
+        "last_correction_m": 0.423407754340296,
+        "lifecycle": "joined",
+        "local_driving": true,
+        "predicted_position": [
+          41.5389785766602,
+          0.922104835510254,
+          20.0
+        ],
+        "qa_prediction_step_count": 7929,
+        "qa_prediction_step_max_us": 64143,
+        "qa_prediction_step_mean_us": 129.044141758103,
+        "qa_state_count": 245,
+        "qa_state_max_us": 1255,
+        "qa_state_mean_us": 448.318367346939,
+        "reconcile_seq": 215,
+        "reconciler_pending": 52,
+        "reconnect_count": 0,
+        "reconnect_gap_ms": -1,
+        "sdk_reconnecting": false,
+        "server_position": [
+          41.8899955749512,
+          0.922104835510254,
+          19.9999980926514
+        ],
+        "steps_due": 1,
+        "steps_due_max": 5
+      },
+      "phase": "driving",
+      "player_pos": [
+        41.5367279052734,
+        0.922104895114899,
+        20.0
+      ],
+      "t_s": 11.8367593333333,
+      "vehicle_pos": [
+        41.6082496643066,
+        0.922104895114899,
+        20.0
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "diagnostics": {
+        "awaiting_fresh_state": false,
+        "connected": true,
+        "drift_ema_m": 0.353431940745993,
+        "drop_count": 0,
+        "initial_state": true,
+        "input_ack": 738,
+        "input_epoch": 0,
+        "input_epoch_before_drop": -1,
+        "input_pending": 52,
+        "input_sent": 790,
+        "last_correction_m": 0.451661370755197,
+        "lifecycle": "joined",
+        "local_driving": true,
+        "predicted_position": [
+          44.5533332824707,
+          0.922104775905609,
+          19.9999980926514
+        ],
+        "qa_prediction_step_count": 8959,
+        "qa_prediction_step_max_us": 64143,
+        "qa_prediction_step_mean_us": 114.297577854671,
+        "qa_state_count": 265,
+        "qa_state_max_us": 1255,
+        "qa_state_mean_us": 464.158490566038,
+        "reconcile_seq": 234,
+        "reconciler_pending": 52,
+        "reconnect_count": 0,
+        "reconnect_gap_ms": -1,
+        "sdk_reconnecting": false,
+        "server_position": [
+          44.8730354309082,
+          0.922104775905609,
+          19.9999980926514
+        ],
+        "steps_due": 1,
+        "steps_due_max": 5
+      },
+      "phase": "driving",
+      "player_pos": [
+        44.4689750671387,
+        0.922104835510254,
+        20.0
+      ],
+      "t_s": 12.8425833333333,
+      "vehicle_pos": [
+        44.506965637207,
+        0.922104835510254,
+        20.0
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "diagnostics": {
+        "awaiting_fresh_state": false,
+        "connected": true,
+        "drift_ema_m": 0.268690710079798,
+        "drop_count": 0,
+        "initial_state": true,
+        "input_ack": 796,
+        "input_epoch": 0,
+        "input_epoch_before_drop": -1,
+        "input_pending": 54,
+        "input_sent": 850,
+        "last_correction_m": 0.42758511669318,
+        "lifecycle": "joined",
+        "local_driving": true,
+        "predicted_position": [
+          44.4351119995117,
+          0.922104775905609,
+          19.9999980926514
+        ],
+        "qa_prediction_step_count": 10043,
+        "qa_prediction_step_max_us": 64143,
+        "qa_prediction_step_mean_us": 102.056755949418,
+        "qa_state_count": 284,
+        "qa_state_max_us": 1255,
+        "qa_state_mean_us": 482.042253521127,
+        "reconcile_seq": 254,
+        "reconciler_pending": 54,
+        "reconnect_count": 0,
+        "reconnect_gap_ms": -1,
+        "sdk_reconnecting": false,
+        "server_position": [
+          44.148494720459,
+          0.922104775905609,
+          19.9999980926514
+        ],
+        "steps_due": 1,
+        "steps_due_max": 5
+      },
+      "phase": "driving",
+      "player_pos": [
+        44.5451316833496,
+        0.922104835510254,
+        20.0
+      ],
+      "t_s": 13.8429103333334,
+      "vehicle_pos": [
+        44.4821815490723,
+        0.922104835510254,
+        20.0
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "diagnostics": {
+        "awaiting_fresh_state": false,
+        "connected": true,
+        "drift_ema_m": 0.90544046037548,
+        "drop_count": 0,
+        "initial_state": true,
+        "input_ack": 857,
+        "input_epoch": 0,
+        "input_epoch_before_drop": -1,
+        "input_pending": 52,
+        "input_sent": 909,
+        "last_correction_m": 1.13097664261096,
+        "lifecycle": "joined",
+        "local_driving": true,
+        "predicted_position": [
+          36.3156814575195,
+          0.922104895114899,
+          20.0
+        ],
+        "qa_prediction_step_count": 11044,
+        "qa_prediction_step_max_us": 64143,
+        "qa_prediction_step_mean_us": 92.8551249547265,
+        "qa_state_count": 304,
+        "qa_state_max_us": 1255,
+        "qa_state_mean_us": 480.269736842105,
+        "reconcile_seq": 273,
+        "reconciler_pending": 52,
+        "reconnect_count": 0,
+        "reconnect_gap_ms": -1,
+        "sdk_reconnecting": false,
+        "server_position": [
+          35.5669822692871,
+          0.922104895114899,
+          20.0
+        ],
+        "steps_due": 1,
+        "steps_due_max": 5
+      },
+      "phase": "driving",
+      "player_pos": [
+        36.283275604248,
+        0.922104835510254,
+        19.9999980926514
+      ],
+      "t_s": 14.8595363333334,
+      "vehicle_pos": [
+        36.0976333618164,
+        0.922104835510254,
+        19.9999980926514
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "diagnostics": {
+        "awaiting_fresh_state": false,
+        "connected": true,
+        "drift_ema_m": 1.20048835988295,
+        "drop_count": 0,
+        "initial_state": true,
+        "input_ack": 920,
+        "input_epoch": 0,
+        "input_epoch_before_drop": -1,
+        "input_pending": 50,
+        "input_sent": 970,
+        "last_correction_m": 1.36960297611755,
+        "lifecycle": "joined",
+        "local_driving": true,
+        "predicted_position": [
+          23.190258026123,
+          0.922104299068451,
+          16.1785163879395
+        ],
+        "qa_prediction_step_count": 12097,
+        "qa_prediction_step_max_us": 64143,
+        "qa_prediction_step_mean_us": 84.8345870877077,
+        "qa_state_count": 324,
+        "qa_state_max_us": 1255,
+        "qa_state_mean_us": 485.45987654321,
+        "reconcile_seq": 293,
+        "reconciler_pending": 50,
+        "reconnect_count": 0,
+        "reconnect_gap_ms": -1,
+        "sdk_reconnecting": false,
+        "server_position": [
+          22.0828514099121,
+          0.922104179859161,
+          15.369647026062
+        ],
+        "steps_due": 1,
+        "steps_due_max": 5
+      },
+      "phase": "driving",
+      "player_pos": [
+        23.2976245880127,
+        0.922104299068451,
+        16.2695484161377
+      ],
+      "t_s": 15.8758743333334,
+      "vehicle_pos": [
+        22.9907608032227,
+        0.922104239463806,
+        16.0422248840332
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "diagnostics": {
+        "awaiting_fresh_state": false,
+        "connected": true,
+        "drift_ema_m": 0.945627498720082,
+        "drop_count": 0,
+        "initial_state": true,
+        "input_ack": 980,
+        "input_epoch": 0,
+        "input_epoch_before_drop": -1,
+        "input_pending": 50,
+        "input_sent": 1030,
+        "last_correction_m": 0.705825117871737,
+        "lifecycle": "joined",
+        "local_driving": true,
+        "predicted_position": [
+          16.017204284668,
+          0.922102808952332,
+          7.06578159332275
+        ],
+        "qa_prediction_step_count": 13094,
+        "qa_prediction_step_max_us": 64143,
+        "qa_prediction_step_mean_us": 78.4179776997098,
+        "qa_state_count": 344,
+        "qa_state_max_us": 1255,
+        "qa_state_mean_us": 484.767441860465,
+        "reconcile_seq": 312,
+        "reconciler_pending": 50,
+        "reconnect_count": 0,
+        "reconnect_gap_ms": -1,
+        "sdk_reconnecting": false,
+        "server_position": [
+          15.6829261779785,
+          0.922102630138397,
+          6.29416990280151
+        ],
+        "steps_due": 1,
+        "steps_due_max": 5
+      },
+      "phase": "driving",
+      "player_pos": [
+        15.9905471801758,
+        0.922102808952332,
+        7.0132303237915
+      ],
+      "t_s": 16.8847253333335,
+      "vehicle_pos": [
+        15.9521465301514,
+        0.922102808952332,
+        6.92770290374756
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "diagnostics": {
+        "awaiting_fresh_state": false,
+        "connected": true,
+        "drift_ema_m": 0.701867622199474,
+        "drop_count": 0,
+        "initial_state": true,
+        "input_ack": 1041,
+        "input_epoch": 0,
+        "input_epoch_before_drop": -1,
+        "input_pending": 49,
+        "input_sent": 1090,
+        "last_correction_m": 0.0816247745438344,
+        "lifecycle": "joined",
+        "local_driving": true,
+        "predicted_position": [
+          14.2449398040771,
+          1.20094108581543,
+          -0.56788831949234
+        ],
+        "qa_prediction_step_count": 14141,
+        "qa_prediction_step_max_us": 64143,
+        "qa_prediction_step_mean_us": 72.6621172477194,
+        "qa_state_count": 364,
+        "qa_state_max_us": 1255,
+        "qa_state_mean_us": 491.881868131868,
+        "reconcile_seq": 332,
+        "reconciler_pending": 49,
+        "reconnect_count": 0,
+        "reconnect_gap_ms": -1,
+        "sdk_reconnecting": false,
+        "server_position": [
+          14.2419385910034,
+          1.20160007476807,
+          -0.623087763786316
+        ],
+        "steps_due": 1,
+        "steps_due_max": 5
+      },
+      "phase": "driving",
+      "player_pos": [
+        14.2435503005981,
+        1.20148551464081,
+        -0.583897233009338
+      ],
+      "t_s": 17.8846853333335,
+      "vehicle_pos": [
+        14.2431554794312,
+        1.20151519775391,
+        -0.593406796455383
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "diagnostics": {
+        "awaiting_fresh_state": false,
+        "connected": true,
+        "drift_ema_m": 0.086076379824893,
+        "drop_count": 0,
+        "initial_state": true,
+        "input_ack": 1099,
+        "input_epoch": 0,
+        "input_epoch_before_drop": -1,
+        "input_pending": 51,
+        "input_sent": 1150,
+        "last_correction_m": 0.0,
+        "lifecycle": "joined",
+        "local_driving": true,
+        "predicted_position": [
+          14.2419385910034,
+          1.20160007476807,
+          -0.623087525367737
+        ],
+        "qa_prediction_step_count": 14250,
+        "qa_prediction_step_max_us": 64143,
+        "qa_prediction_step_mean_us": 72.1265964912281,
+        "qa_state_count": 383,
+        "qa_state_max_us": 1255,
+        "qa_state_mean_us": 496.485639686684,
+        "reconcile_seq": 352,
+        "reconciler_pending": 51,
+        "reconnect_count": 0,
+        "reconnect_gap_ms": -1,
+        "sdk_reconnecting": false,
+        "server_position": [
+          14.2419385910034,
+          1.20160007476807,
+          -0.623087763786316
+        ],
+        "steps_due": 1,
+        "steps_due_max": 5
+      },
+      "phase": "driving",
+      "player_pos": [
+        14.2419395446777,
+        1.20159995555878,
+        -0.623087704181671
+      ],
+      "t_s": 18.8846453333336,
+      "vehicle_pos": [
+        14.2419395446777,
+        1.20159995555878,
+        -0.623087704181671
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "diagnostics": {
+        "awaiting_fresh_state": false,
+        "connected": true,
+        "drift_ema_m": 0.011627642553753,
+        "drop_count": 0,
+        "initial_state": true,
+        "input_ack": 1159,
+        "input_epoch": 0,
+        "input_epoch_before_drop": -1,
+        "input_pending": 52,
+        "input_sent": 1211,
+        "last_correction_m": 0.0,
+        "lifecycle": "joined",
+        "local_driving": true,
+        "predicted_position": [
+          14.2419385910034,
+          1.20160007476807,
+          -0.623087763786316
+        ],
+        "qa_prediction_step_count": 14311,
+        "qa_prediction_step_max_us": 64143,
+        "qa_prediction_step_mean_us": 71.8377471874782,
+        "qa_state_count": 402,
+        "qa_state_max_us": 1255,
+        "qa_state_mean_us": 506.097014925373,
+        "reconcile_seq": 371,
+        "reconciler_pending": 52,
+        "reconnect_count": 0,
+        "reconnect_gap_ms": -1,
+        "sdk_reconnecting": false,
+        "server_position": [
+          14.2419385910034,
+          1.20160007476807,
+          -0.623087763786316
+        ],
+        "steps_due": 1,
+        "steps_due_max": 5
+      },
+      "phase": "driving",
+      "player_pos": [
+        14.2419395446777,
+        1.20159995555878,
+        -0.623087704181671
+      ],
+      "t_s": 19.9012713333336,
+      "vehicle_pos": [
+        14.2419395446777,
+        1.20159995555878,
+        -0.623087704181671
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "diagnostics": {
+        "awaiting_fresh_state": false,
+        "connected": true,
+        "drift_ema_m": 0.00157072209162248,
+        "drop_count": 0,
+        "initial_state": true,
+        "input_ack": 1219,
+        "input_epoch": 0,
+        "input_epoch_before_drop": -1,
+        "input_pending": 52,
+        "input_sent": 1271,
+        "last_correction_m": 0.0,
+        "lifecycle": "joined",
+        "local_driving": true,
+        "predicted_position": [
+          14.2419385910034,
+          1.20160007476807,
+          -0.623087763786316
+        ],
+        "qa_prediction_step_count": 14371,
+        "qa_prediction_step_max_us": 64143,
+        "qa_prediction_step_mean_us": 71.5625913297613,
+        "qa_state_count": 421,
+        "qa_state_max_us": 1255,
+        "qa_state_mean_us": 518.969121140143,
+        "reconcile_seq": 390,
+        "reconciler_pending": 52,
+        "reconnect_count": 0,
+        "reconnect_gap_ms": -1,
+        "sdk_reconnecting": false,
+        "server_position": [
+          14.2419385910034,
+          1.20160007476807,
+          -0.623087763786316
+        ],
+        "steps_due": 1,
+        "steps_due_max": 5
+      },
+      "phase": "driving",
+      "player_pos": [
+        14.2419395446777,
+        1.20159995555878,
+        -0.623087704181671
+      ],
+      "t_s": 20.9012313333337,
+      "vehicle_pos": [
+        14.2419395446777,
+        1.20159995555878,
+        -0.623087704181671
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "diagnostics": {
+        "awaiting_fresh_state": false,
+        "connected": true,
+        "drift_ema_m": 0.000190963137190962,
+        "drop_count": 0,
+        "initial_state": true,
+        "input_ack": 1281,
+        "input_epoch": 0,
+        "input_epoch_before_drop": -1,
+        "input_pending": 51,
+        "input_sent": 1332,
+        "last_correction_m": 0.0,
+        "lifecycle": "joined",
+        "local_driving": true,
+        "predicted_position": [
+          14.2419385910034,
+          1.20160007476807,
+          -0.623087763786316
+        ],
+        "qa_prediction_step_count": 14432,
+        "qa_prediction_step_max_us": 64143,
+        "qa_prediction_step_mean_us": 71.2835365853659,
+        "qa_state_count": 441,
+        "qa_state_max_us": 1295,
+        "qa_state_mean_us": 530.460317460317,
+        "reconcile_seq": 410,
+        "reconciler_pending": 51,
+        "reconnect_count": 0,
+        "reconnect_gap_ms": -1,
+        "sdk_reconnecting": false,
+        "server_position": [
+          14.2419385910034,
+          1.20160007476807,
+          -0.623087763786316
+        ],
+        "steps_due": 1,
+        "steps_due_max": 5
+      },
+      "phase": "driving",
+      "player_pos": [
+        14.2419395446777,
+        1.20159995555878,
+        -0.623087704181671
+      ],
+      "t_s": 21.9178573333337,
+      "vehicle_pos": [
+        14.2419395446777,
+        1.20159995555878,
+        -0.623087704181671
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "diagnostics": {
+        "awaiting_fresh_state": false,
+        "connected": true,
+        "drift_ema_m": 0.0000286625424318483,
+        "drop_count": 0,
+        "initial_state": true,
+        "input_ack": 1343,
+        "input_epoch": 0,
+        "input_epoch_before_drop": -1,
+        "input_pending": 49,
+        "input_sent": 1392,
+        "last_correction_m": 0.0,
+        "lifecycle": "joined",
+        "local_driving": true,
+        "predicted_position": [
+          14.2419385910034,
+          1.20160007476807,
+          -0.623087763786316
+        ],
+        "qa_prediction_step_count": 14492,
+        "qa_prediction_step_max_us": 64143,
+        "qa_prediction_step_mean_us": 71.0065553408777,
+        "qa_state_count": 460,
+        "qa_state_max_us": 1295,
+        "qa_state_mean_us": 535.730434782609,
+        "reconcile_seq": 428,
+        "reconciler_pending": 49,
+        "reconnect_count": 0,
+        "reconnect_gap_ms": -1,
+        "sdk_reconnecting": false,
+        "server_position": [
+          14.2419385910034,
+          1.20160007476807,
+          -0.623087763786316
+        ],
+        "steps_due": 1,
+        "steps_due_max": 5
+      },
+      "phase": "driving",
+      "player_pos": [
+        14.2419395446777,
+        1.20159995555878,
+        -0.623087704181671
+      ],
+      "t_s": 22.9178173333337,
+      "vehicle_pos": [
+        14.2419395446777,
+        1.20159995555878,
+        -0.623087704181671
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "diagnostics": {
+        "awaiting_fresh_state": false,
+        "connected": true,
+        "drift_ema_m": 0.0463784339586861,
+        "drop_count": 0,
+        "initial_state": true,
+        "input_ack": 1404,
+        "input_epoch": 0,
+        "input_epoch_before_drop": -1,
+        "input_pending": 49,
+        "input_sent": 1453,
+        "last_correction_m": 0.0,
+        "lifecycle": "joined",
+        "local_driving": true,
+        "predicted_position": [
+          14.2418527603149,
+          1.20160007476807,
+          -0.625586271286011
+        ],
+        "qa_prediction_step_count": 14650,
+        "qa_prediction_step_max_us": 64143,
+        "qa_prediction_step_mean_us": 70.2600682593857,
+        "qa_state_count": 479,
+        "qa_state_max_us": 1295,
+        "qa_state_mean_us": 543.567849686848,
+        "reconcile_seq": 447,
+        "reconciler_pending": 49,
+        "reconnect_count": 0,
+        "reconnect_gap_ms": -1,
+        "sdk_reconnecting": false,
+        "server_position": [
+          14.2418527603149,
+          1.20160007476807,
+          -0.625586271286011
+        ],
+        "steps_due": 1,
+        "steps_due_max": 5
+      },
+      "phase": "driving",
+      "player_pos": [
+        14.2418537139893,
+        1.20159995555878,
+        -0.625586211681366
+      ],
+      "t_s": 23.9344433333338,
+      "vehicle_pos": [
+        14.2418537139893,
+        1.20159995555878,
+        -0.625586211681366
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "diagnostics": {
+        "awaiting_fresh_state": false,
+        "connected": true,
+        "drift_ema_m": 0.00974953534535575,
+        "drop_count": 0,
+        "initial_state": true,
+        "input_ack": 1462,
+        "input_epoch": 0,
+        "input_epoch_before_drop": -1,
+        "input_pending": 51,
+        "input_sent": 1513,
+        "last_correction_m": 0.0316907843093277,
+        "lifecycle": "joined",
+        "local_driving": true,
+        "predicted_position": [
+          14.2422170639038,
+          1.20160007476807,
+          -0.615048289299011
+        ],
+        "qa_prediction_step_count": 14810,
+        "qa_prediction_step_max_us": 64143,
+        "qa_prediction_step_mean_us": 69.5166103983795,
+        "qa_state_count": 498,
+        "qa_state_max_us": 1295,
+        "qa_state_mean_us": 546.738955823293,
+        "reconcile_seq": 467,
+        "reconciler_pending": 51,
+        "reconnect_count": 0,
+        "reconnect_gap_ms": -1,
+        "sdk_reconnecting": false,
+        "server_position": [
+          14.2431135177612,
+          1.20160007476807,
+          -0.58910208940506
+        ],
+        "steps_due": 1,
+        "steps_due_max": 5
+      },
+      "phase": "driving",
+      "player_pos": [
+        14.241888999939,
+        1.20159995555878,
+        -0.624548375606537
+      ],
+      "t_s": 24.9344033333338,
+      "vehicle_pos": [
+        14.2420358657837,
+        1.20159995555878,
+        -0.620302617549896
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "diagnostics": {
+        "awaiting_fresh_state": false,
+        "connected": true,
+        "drift_ema_m": 0.40385900950652,
+        "drop_count": 0,
+        "initial_state": true,
+        "input_ack": 1522,
+        "input_epoch": 0,
+        "input_epoch_before_drop": -1,
+        "input_pending": 51,
+        "input_sent": 1573,
+        "last_correction_m": 0.670238434916284,
+        "lifecycle": "joined",
+        "local_driving": true,
+        "predicted_position": [
+          14.3450651168823,
+          0.966332674026489,
+          2.36145687103271
+        ],
+        "qa_prediction_step_count": 15634,
+        "qa_prediction_step_max_us": 64143,
+        "qa_prediction_step_mean_us": 65.883011385442,
+        "qa_state_count": 518,
+        "qa_state_max_us": 1295,
+        "qa_state_mean_us": 543.878378378378,
+        "reconcile_seq": 482,
+        "reconciler_pending": 51,
+        "reconnect_count": 0,
+        "reconnect_gap_ms": -1,
+        "sdk_reconnecting": false,
+        "server_position": [
+          14.3645238876343,
+          0.922102034091949,
+          2.9246027469635
+        ],
+        "steps_due": 1,
+        "steps_due_max": 5
+      },
+      "phase": "driving",
+      "player_pos": [
+        14.3477563858032,
+        0.94808304309845,
+        2.43933606147766
+      ],
+      "t_s": 25.9343633333339,
+      "vehicle_pos": [
+        14.3503122329712,
+        0.941349446773529,
+        2.51330041885376
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "diagnostics": {
+        "awaiting_fresh_state": false,
+        "connected": true,
+        "drift_ema_m": 0.638185665796429,
+        "drop_count": 0,
+        "initial_state": true,
+        "input_ack": 1581,
+        "input_epoch": 0,
+        "input_epoch_before_drop": -1,
+        "input_pending": 52,
+        "input_sent": 1633,
+        "last_correction_m": 0.646962369158027,
+        "lifecycle": "joined",
+        "local_driving": true,
+        "predicted_position": [
+          14.5534687042236,
+          0.9221031665802,
+          8.39279937744141
+        ],
+        "qa_prediction_step_count": 16650,
+        "qa_prediction_step_max_us": 64143,
+        "qa_prediction_step_mean_us": 61.9037237237237,
+        "qa_state_count": 537,
+        "qa_state_max_us": 1295,
+        "qa_state_mean_us": 542.171322160149,
+        "reconcile_seq": 501,
+        "reconciler_pending": 52,
+        "reconnect_count": 0,
+        "reconnect_gap_ms": -1,
+        "sdk_reconnecting": false,
+        "server_position": [
+          14.5682668685913,
+          0.922103106975555,
+          8.82108402252197
+        ],
+        "steps_due": 1,
+        "steps_due_max": 5
+      },
+      "phase": "driving",
+      "player_pos": [
+        14.5518913269043,
+        0.922103047370911,
+        8.34716701507568
+      ],
+      "t_s": 26.9343233333339,
+      "vehicle_pos": [
+        14.5552406311035,
+        0.922103047370911,
+        8.444091796875
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "diagnostics": {
+        "awaiting_fresh_state": false,
+        "connected": true,
+        "drift_ema_m": 0.657945641591361,
+        "drop_count": 0,
+        "initial_state": true,
+        "input_ack": 1642,
+        "input_epoch": 0,
+        "input_epoch_before_drop": -1,
+        "input_pending": 49,
+        "input_sent": 1691,
+        "last_correction_m": 0.635075008908485,
+        "lifecycle": "joined",
+        "local_driving": true,
+        "predicted_position": [
+          14.7569580078125,
+          0.922104120254517,
+          14.2819156646729
+        ],
+        "qa_prediction_step_count": 17592,
+        "qa_prediction_step_max_us": 64143,
+        "qa_prediction_step_mean_us": 58.6119258753979,
+        "qa_state_count": 557,
+        "qa_state_max_us": 1295,
+        "qa_state_mean_us": 534.696588868941,
+        "reconcile_seq": 519,
+        "reconciler_pending": 49,
+        "reconnect_count": 0,
+        "reconnect_gap_ms": -1,
+        "sdk_reconnecting": false,
+        "server_position": [
+          14.7789173126221,
+          0.922104239463806,
+          14.9174451828003
+        ],
+        "steps_due": 1,
+        "steps_due_max": 5
+      },
+      "phase": "driving",
+      "player_pos": [
+        14.7524795532227,
+        0.922104060649872,
+        14.1523323059082
+      ],
+      "t_s": 27.934283333334,
+      "vehicle_pos": [
+        14.7548561096191,
+        0.922104060649872,
+        14.2211198806763
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "diagnostics": {
+        "awaiting_fresh_state": false,
+        "connected": true,
+        "drift_ema_m": 0.653717878429774,
+        "drop_count": 0,
+        "initial_state": true,
+        "input_ack": 1700,
+        "input_epoch": 0,
+        "input_epoch_before_drop": -1,
+        "input_pending": 51,
+        "input_sent": 1751,
+        "last_correction_m": 0.692755559860661,
+        "lifecycle": "joined",
+        "local_driving": true,
+        "predicted_position": [
+          14.9633617401123,
+          0.922105193138123,
+          20.2553863525391
+        ],
+        "qa_prediction_step_count": 18639,
+        "qa_prediction_step_max_us": 64143,
+        "qa_prediction_step_mean_us": 55.3680991469499,
+        "qa_state_count": 576,
+        "qa_state_max_us": 1295,
+        "qa_state_mean_us": 540.020833333333,
+        "reconcile_seq": 539,
+        "reconciler_pending": 51,
+        "reconnect_count": 0,
+        "reconnect_gap_ms": -1,
+        "sdk_reconnecting": false,
+        "server_position": [
+          14.9792079925537,
+          0.922105252742767,
+          20.7139854431152
+        ],
+        "steps_due": 1,
+        "steps_due_max": 5
+      },
+      "phase": "driving",
+      "player_pos": [
+        14.9630479812622,
+        0.922105193138123,
+        20.2462997436523
+      ],
+      "t_s": 28.934437333334,
+      "vehicle_pos": [
+        14.9673662185669,
+        0.922105193138123,
+        20.3712692260742
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "diagnostics": {
+        "awaiting_fresh_state": false,
+        "connected": true,
+        "drift_ema_m": 0.641173231974632,
+        "drop_count": 0,
+        "initial_state": true,
+        "input_ack": 1757,
+        "input_epoch": 0,
+        "input_epoch_before_drop": -1,
+        "input_pending": 54,
+        "input_sent": 1811,
+        "last_correction_m": 0.598582199898768,
+        "lifecycle": "joined",
+        "local_driving": true,
+        "predicted_position": [
+          15.1668663024902,
+          0.922106206417084,
+          26.1449680328369
+        ],
+        "qa_prediction_step_count": 19637,
+        "qa_prediction_step_max_us": 64143,
+        "qa_prediction_step_mean_us": 52.5930131893874,
+        "qa_state_count": 595,
+        "qa_state_max_us": 1295,
+        "qa_state_mean_us": 541.971428571429,
+        "reconcile_seq": 558,
+        "reconciler_pending": 54,
+        "reconnect_count": 0,
+        "reconnect_gap_ms": -1,
+        "sdk_reconnecting": false,
+        "server_position": [
+          15.1760444641113,
+          0.922106266021729,
+          26.410587310791
+        ],
+        "steps_due": 1,
+        "steps_due_max": 5
+      },
+      "phase": "driving",
+      "player_pos": [
+        15.168906211853,
+        0.922106206417084,
+        26.2039966583252
+      ],
+      "t_s": 29.934652333334,
+      "vehicle_pos": [
+        15.1707563400269,
+        0.922106206417084,
+        26.2575397491455
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "diagnostics": {
+        "awaiting_fresh_state": false,
+        "connected": true,
+        "drift_ema_m": 0.4917074900786,
+        "drop_count": 0,
+        "initial_state": true,
+        "input_ack": 1818,
+        "input_epoch": 0,
+        "input_epoch_before_drop": -1,
+        "input_pending": 54,
+        "input_sent": 1872,
+        "last_correction_m": 0.0,
+        "lifecycle": "joined",
+        "local_driving": true,
+        "predicted_position": [
+          15.3480739593506,
+          0.992653965950012,
+          31.3892192840576
+        ],
+        "qa_prediction_step_count": 20604,
+        "qa_prediction_step_max_us": 64143,
+        "qa_prediction_step_mean_us": 50.153805086391,
+        "qa_state_count": 614,
+        "qa_state_max_us": 1295,
+        "qa_state_mean_us": 540.469055374593,
+        "reconcile_seq": 577,
+        "reconciler_pending": 54,
+        "reconnect_count": 0,
+        "reconnect_gap_ms": -1,
+        "sdk_reconnecting": false,
+        "server_position": [
+          15.3493776321411,
+          0.992701709270477,
+          31.4269485473633
+        ],
+        "steps_due": 1,
+        "steps_due_max": 5
+      },
+      "phase": "driving",
+      "player_pos": [
+        15.3488941192627,
+        0.992699086666107,
+        31.4129505157471
+      ],
+      "t_s": 30.951278333334,
+      "vehicle_pos": [
+        15.3490190505981,
+        0.9926997423172,
+        31.4165782928467
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "diagnostics": {
+        "awaiting_fresh_state": false,
+        "connected": true,
+        "drift_ema_m": 0.295973358445241,
+        "drop_count": 0,
+        "initial_state": true,
+        "input_ack": 1881,
+        "input_epoch": 0,
+        "input_epoch_before_drop": -1,
+        "input_pending": 51,
+        "input_sent": 1932,
+        "last_correction_m": 0.0712728149477755,
+        "lifecycle": "joined",
+        "local_driving": true,
+        "predicted_position": [
+          15.4056348800659,
+          0.992700040340424,
+          29.1377086639404
+        ],
+        "qa_prediction_step_count": 21575,
+        "qa_prediction_step_max_us": 64143,
+        "qa_prediction_step_mean_us": 47.9389571263036,
+        "qa_state_count": 634,
+        "qa_state_max_us": 1295,
+        "qa_state_mean_us": 548.976340694006,
+        "reconcile_seq": 596,
+        "reconciler_pending": 51,
+        "reconnect_count": 0,
+        "reconnect_gap_ms": -1,
+        "sdk_reconnecting": false,
+        "server_position": [
+          15.4083557128906,
+          0.992699980735779,
+          29.0995597839355
+        ],
+        "steps_due": 1,
+        "steps_due_max": 5
+      },
+      "phase": "driving",
+      "player_pos": [
+        15.4067449569702,
+        0.992700040340424,
+        29.1205425262451
+      ],
+      "t_s": 31.9512383333341,
+      "vehicle_pos": [
+        15.4071626663208,
+        0.992700040340424,
+        29.115104675293
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "diagnostics": {
+        "awaiting_fresh_state": false,
+        "connected": true,
+        "drift_ema_m": 0.0359834507677079,
+        "drop_count": 0,
+        "initial_state": true,
+        "input_ack": 1942,
+        "input_epoch": 0,
+        "input_epoch_before_drop": -1,
+        "input_pending": 51,
+        "input_sent": 1993,
+        "last_correction_m": 0.0,
+        "lifecycle": "joined",
+        "local_driving": true,
+        "predicted_position": [
+          15.4083557128906,
+          0.992699980735779,
+          29.0995597839355
+        ],
+        "qa_prediction_step_count": 21636,
+        "qa_prediction_step_max_us": 64143,
+        "qa_prediction_step_mean_us": 47.8186818265853,
+        "qa_state_count": 654,
+        "qa_state_max_us": 1295,
+        "qa_state_mean_us": 552.819571865443,
+        "reconcile_seq": 616,
+        "reconciler_pending": 51,
+        "reconnect_count": 0,
+        "reconnect_gap_ms": -1,
+        "sdk_reconnecting": false,
+        "server_position": [
+          15.4083557128906,
+          0.992699980735779,
+          29.0995597839355
+        ],
+        "steps_due": 1,
+        "steps_due_max": 5
+      },
+      "phase": "driving",
+      "player_pos": [
+        15.4083547592163,
+        0.992700040340424,
+        29.0995616912842
+      ],
+      "t_s": 32.9678643333341,
+      "vehicle_pos": [
+        15.4083547592163,
+        0.992700040340424,
+        29.0995616912842
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "diagnostics": {
+        "awaiting_fresh_state": false,
+        "connected": true,
+        "drift_ema_m": 0.00437474756496237,
+        "drop_count": 0,
+        "initial_state": true,
+        "input_ack": 2003,
+        "input_epoch": 0,
+        "input_epoch_before_drop": -1,
+        "input_pending": 51,
+        "input_sent": 2054,
+        "last_correction_m": 0.0,
+        "lifecycle": "joined",
+        "local_driving": true,
+        "predicted_position": [
+          15.4083557128906,
+          0.992699980735779,
+          29.0995597839355
+        ],
+        "qa_prediction_step_count": 21697,
+        "qa_prediction_step_max_us": 64143,
+        "qa_prediction_step_mean_us": 47.6995898050422,
+        "qa_state_count": 674,
+        "qa_state_max_us": 1295,
+        "qa_state_mean_us": 559.933234421365,
+        "reconcile_seq": 636,
+        "reconciler_pending": 51,
+        "reconnect_count": 0,
+        "reconnect_gap_ms": -1,
+        "sdk_reconnecting": false,
+        "server_position": [
+          15.4083557128906,
+          0.992699980735779,
+          29.0995597839355
+        ],
+        "steps_due": 1,
+        "steps_due_max": 5
+      },
+      "phase": "driving",
+      "player_pos": [
+        15.4083547592163,
+        0.992700040340424,
+        29.0995616912842
+      ],
+      "t_s": 33.9844903333342,
+      "vehicle_pos": [
+        15.4083547592163,
+        0.992700040340424,
+        29.0995616912842
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "diagnostics": {
+        "awaiting_fresh_state": false,
+        "connected": true,
+        "drift_ema_m": 0.000531867173626365,
+        "drop_count": 0,
+        "initial_state": true,
+        "input_ack": 2063,
+        "input_epoch": 0,
+        "input_epoch_before_drop": -1,
+        "input_pending": 51,
+        "input_sent": 2114,
+        "last_correction_m": 0.0,
+        "lifecycle": "joined",
+        "local_driving": true,
+        "predicted_position": [
+          15.4083557128906,
+          0.992699980735779,
+          29.0995597839355
+        ],
+        "qa_prediction_step_count": 21757,
+        "qa_prediction_step_max_us": 64143,
+        "qa_prediction_step_mean_us": 47.5811922599623,
+        "qa_state_count": 694,
+        "qa_state_max_us": 1423,
+        "qa_state_mean_us": 566.342939481268,
+        "reconcile_seq": 656,
+        "reconciler_pending": 51,
+        "reconnect_count": 0,
+        "reconnect_gap_ms": -1,
+        "sdk_reconnecting": false,
+        "server_position": [
+          15.4083557128906,
+          0.992699980735779,
+          29.0995597839355
+        ],
+        "steps_due": 1,
+        "steps_due_max": 5
+      },
+      "phase": "driving",
+      "player_pos": [
+        15.4083547592163,
+        0.992700040340424,
+        29.0995616912842
+      ],
+      "t_s": 34.9844503333342,
+      "vehicle_pos": [
+        15.4083547592163,
+        0.992700040340424,
+        29.0995616912842
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "diagnostics": {
+        "awaiting_fresh_state": false,
+        "connected": true,
+        "drift_ema_m": 0.0000798304094518949,
+        "drop_count": 0,
+        "initial_state": true,
+        "input_ack": 2123,
+        "input_epoch": 0,
+        "input_epoch_before_drop": -1,
+        "input_pending": 51,
+        "input_sent": 2174,
+        "last_correction_m": 0.0,
+        "lifecycle": "joined",
+        "local_driving": true,
+        "predicted_position": [
+          15.4083557128906,
+          0.992699980735779,
+          29.0995597839355
+        ],
+        "qa_prediction_step_count": 21817,
+        "qa_prediction_step_max_us": 64143,
+        "qa_prediction_step_mean_us": 47.4587248475959,
+        "qa_state_count": 712,
+        "qa_state_max_us": 1423,
+        "qa_state_mean_us": 562.98595505618,
+        "reconcile_seq": 674,
+        "reconciler_pending": 51,
+        "reconnect_count": 0,
+        "reconnect_gap_ms": -1,
+        "sdk_reconnecting": false,
+        "server_position": [
+          15.4083557128906,
+          0.992699980735779,
+          29.0995597839355
+        ],
+        "steps_due": 1,
+        "steps_due_max": 5
+      },
+      "phase": "driving",
+      "player_pos": [
+        15.4083547592163,
+        0.992700040340424,
+        29.0995616912842
+      ],
+      "t_s": 35.9844103333343,
+      "vehicle_pos": [
+        15.4083547592163,
+        0.992700040340424,
+        29.0995616912842
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "diagnostics": {
+        "awaiting_fresh_state": false,
+        "connected": true,
+        "drift_ema_m": 0.000014792736039867,
+        "drop_count": 0,
+        "initial_state": true,
+        "input_ack": 2181,
+        "input_epoch": 0,
+        "input_epoch_before_drop": -1,
+        "input_pending": 53,
+        "input_sent": 2234,
+        "last_correction_m": 0.0,
+        "lifecycle": "joined",
+        "local_driving": true,
+        "predicted_position": [
+          15.4083557128906,
+          0.992699980735779,
+          29.0995597839355
+        ],
+        "qa_prediction_step_count": 21877,
+        "qa_prediction_step_max_us": 64143,
+        "qa_prediction_step_mean_us": 47.341728756228,
+        "qa_state_count": 729,
+        "qa_state_max_us": 1423,
+        "qa_state_mean_us": 565.61865569273,
+        "reconcile_seq": 690,
+        "reconciler_pending": 53,
+        "reconnect_count": 0,
+        "reconnect_gap_ms": -1,
+        "sdk_reconnecting": false,
+        "server_position": [
+          15.4083557128906,
+          0.992699980735779,
+          29.0995597839355
+        ],
+        "steps_due": 1,
+        "steps_due_max": 5
+      },
+      "phase": "driving",
+      "player_pos": [
+        15.4083547592163,
+        0.992700040340424,
+        29.0995616912842
+      ],
+      "t_s": 36.9843703333343,
+      "vehicle_pos": [
+        15.4083547592163,
+        0.992700040340424,
+        29.0995616912842
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "diagnostics": {
+        "awaiting_fresh_state": false,
+        "connected": true,
+        "drift_ema_m": 0.00000199827928885375,
+        "drop_count": 0,
+        "initial_state": true,
+        "input_ack": 2242,
+        "input_epoch": 0,
+        "input_epoch_before_drop": -1,
+        "input_pending": 52,
+        "input_sent": 2294,
+        "last_correction_m": 0.0,
+        "lifecycle": "joined",
+        "local_driving": true,
+        "predicted_position": [
+          15.4083557128906,
+          0.992699980735779,
+          29.0995597839355
+        ],
+        "qa_prediction_step_count": 21937,
+        "qa_prediction_step_max_us": 64143,
+        "qa_prediction_step_mean_us": 47.2219537767243,
+        "qa_state_count": 748,
+        "qa_state_max_us": 1423,
+        "qa_state_mean_us": 566.97192513369,
+        "reconcile_seq": 709,
+        "reconciler_pending": 52,
+        "reconnect_count": 0,
+        "reconnect_gap_ms": -1,
+        "sdk_reconnecting": false,
+        "server_position": [
+          15.4083557128906,
+          0.992699980735779,
+          29.0995597839355
+        ],
+        "steps_due": 1,
+        "steps_due_max": 5
+      },
+      "phase": "driving",
+      "player_pos": [
+        15.4083547592163,
+        0.992700040340424,
+        29.0995616912842
+      ],
+      "t_s": 37.9843303333344,
+      "vehicle_pos": [
+        15.4083547592163,
+        0.992700040340424,
+        29.0995616912842
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "diagnostics": {
+        "awaiting_fresh_state": false,
+        "connected": true,
+        "drift_ema_m": 0.000000269937900973845,
+        "drop_count": 0,
+        "initial_state": true,
+        "input_ack": 2301,
+        "input_epoch": 0,
+        "input_epoch_before_drop": -1,
+        "input_pending": 53,
+        "input_sent": 2354,
+        "last_correction_m": 0.0,
+        "lifecycle": "joined",
+        "local_driving": true,
+        "predicted_position": [
+          15.4083557128906,
+          0.992699980735779,
+          29.0995597839355
+        ],
+        "qa_prediction_step_count": 21997,
+        "qa_prediction_step_max_us": 64143,
+        "qa_prediction_step_mean_us": 47.1058780742829,
+        "qa_state_count": 767,
+        "qa_state_max_us": 1423,
+        "qa_state_mean_us": 570.061277705345,
+        "reconcile_seq": 728,
+        "reconciler_pending": 53,
+        "reconnect_count": 0,
+        "reconnect_gap_ms": -1,
+        "sdk_reconnecting": false,
+        "server_position": [
+          15.4083557128906,
+          0.992699980735779,
+          29.0995597839355
+        ],
+        "steps_due": 1,
+        "steps_due_max": 5
+      },
+      "phase": "driving",
+      "player_pos": [
+        15.4083547592163,
+        0.992700040340424,
+        29.0995616912842
+      ],
+      "t_s": 38.9842903333344,
+      "vehicle_pos": [
+        15.4083547592163,
+        0.992700040340424,
+        29.0995616912842
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "diagnostics": {
+        "awaiting_fresh_state": false,
+        "connected": true,
+        "drift_ema_m": 0.0337733374387763,
+        "drop_count": 0,
+        "initial_state": true,
+        "input_ack": 2363,
+        "input_epoch": 0,
+        "input_epoch_before_drop": -1,
+        "input_pending": 52,
+        "input_sent": 2415,
+        "last_correction_m": 0.0,
+        "lifecycle": "joined",
+        "local_driving": true,
+        "predicted_position": [
+          15.4083557128906,
+          0.992699980735779,
+          29.0995597839355
+        ],
+        "qa_prediction_step_count": 22109,
+        "qa_prediction_step_max_us": 64143,
+        "qa_prediction_step_mean_us": 46.8812248405627,
+        "qa_state_count": 787,
+        "qa_state_max_us": 1423,
+        "qa_state_mean_us": 573.218551461245,
+        "reconcile_seq": 748,
+        "reconciler_pending": 52,
+        "reconnect_count": 0,
+        "reconnect_gap_ms": -1,
+        "sdk_reconnecting": false,
+        "server_position": [
+          15.4083557128906,
+          0.992699980735779,
+          29.0995597839355
+        ],
+        "steps_due": 1,
+        "steps_due_max": 5
+      },
+      "phase": "driving",
+      "player_pos": [
+        15.4083547592163,
+        0.992700040340424,
+        29.0995616912842
+      ],
+      "t_s": 40.0009163333344,
+      "vehicle_pos": [
+        15.4083547592163,
+        0.992700040340424,
+        29.0995616912842
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "diagnostics": {
+        "awaiting_fresh_state": false,
+        "connected": true,
+        "drift_ema_m": 0.00456227708907206,
+        "drop_count": 0,
+        "initial_state": true,
+        "input_ack": 2425,
+        "input_epoch": 0,
+        "input_epoch_before_drop": -1,
+        "input_pending": 51,
+        "input_sent": 2476,
+        "last_correction_m": 0.0,
+        "lifecycle": "joined",
+        "local_driving": true,
+        "predicted_position": [
+          15.4083557128906,
+          0.992699980735779,
+          29.0995597839355
+        ],
+        "qa_prediction_step_count": 22170,
+        "qa_prediction_step_max_us": 64143,
+        "qa_prediction_step_mean_us": 46.7630130807397,
+        "qa_state_count": 807,
+        "qa_state_max_us": 1423,
+        "qa_state_mean_us": 573.671623296159,
+        "reconcile_seq": 767,
+        "reconciler_pending": 51,
+        "reconnect_count": 0,
+        "reconnect_gap_ms": -1,
+        "sdk_reconnecting": false,
+        "server_position": [
+          15.4083557128906,
+          0.992699980735779,
+          29.0995597839355
+        ],
+        "steps_due": 1,
+        "steps_due_max": 5
+      },
+      "phase": "driving",
+      "player_pos": [
+        15.4083547592163,
+        0.992700040340424,
+        29.0995616912842
+      ],
+      "t_s": 41.0175423333345,
+      "vehicle_pos": [
+        15.4083547592163,
+        0.992700040340424,
+        29.0995616912842
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "diagnostics": {
+        "awaiting_fresh_state": false,
+        "connected": true,
+        "drift_ema_m": 0.000760859239786806,
+        "drop_count": 0,
+        "initial_state": true,
+        "input_ack": 2485,
+        "input_epoch": 0,
+        "input_epoch_before_drop": -1,
+        "input_pending": 51,
+        "input_sent": 2536,
+        "last_correction_m": 0.0,
+        "lifecycle": "joined",
+        "local_driving": true,
+        "predicted_position": [
+          15.4083557128906,
+          0.992699980735779,
+          29.0995597839355
+        ],
+        "qa_prediction_step_count": 22230,
+        "qa_prediction_step_max_us": 64143,
+        "qa_prediction_step_mean_us": 46.6511470985155,
+        "qa_state_count": 826,
+        "qa_state_max_us": 1423,
+        "qa_state_mean_us": 576.547215496368,
+        "reconcile_seq": 784,
+        "reconciler_pending": 51,
+        "reconnect_count": 0,
+        "reconnect_gap_ms": -1,
+        "sdk_reconnecting": false,
+        "server_position": [
+          15.4083557128906,
+          0.992699980735779,
+          29.0995597839355
+        ],
+        "steps_due": 1,
+        "steps_due_max": 5
+      },
+      "phase": "driving",
+      "player_pos": [
+        15.4083547592163,
+        0.992700040340424,
+        29.0995616912842
+      ],
+      "t_s": 42.0175023333345,
+      "vehicle_pos": [
+        15.4083547592163,
+        0.992700040340424,
+        29.0995616912842
+      ],
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "diagnostics": {
+        "awaiting_fresh_state": false,
+        "connected": true,
+        "drift_ema_m": 0.000104078419537626,
+        "drop_count": 0,
+        "initial_state": true,
+        "input_ack": 2548,
+        "input_epoch": 0,
+        "input_epoch_before_drop": -1,
+        "input_pending": 48,
+        "input_sent": 2596,
+        "last_correction_m": 0.00000282958180264359,
+        "lifecycle": "joined",
+        "local_driving": false,
+        "predicted_position": [
+          11.9258718490601,
+          0.84210604429245,
+          25.4354858398438
+        ],
+        "qa_prediction_step_count": 22737,
+        "qa_prediction_step_max_us": 64143,
+        "qa_prediction_step_mean_us": 54.5329199102784,
+        "qa_state_count": 847,
+        "qa_state_max_us": 1423,
+        "qa_state_mean_us": 573.765053128689,
+        "reconcile_seq": 804,
+        "reconciler_pending": 48,
+        "reconnect_count": 0,
+        "reconnect_gap_ms": -1,
+        "sdk_reconnecting": false,
+        "server_position": [
+          12.2612209320068,
+          0.842106223106384,
+          26.2978630065918
+        ],
+        "steps_due": 1,
+        "steps_due_max": 5
+      },
+      "phase": "walking",
+      "player_pos": [
+        11.9258718490601,
+        0.84210604429245,
+        25.4354858398438
+      ],
+      "t_s": 43.0174623333346,
+      "velocity": [
+        -0.735740661621094,
+        0.0,
+        -1.70825958251953
+      ]
+    },
+    {
+      "diagnostics": {
+        "awaiting_fresh_state": false,
+        "connected": true,
+        "drift_ema_m": 0.0000157475284985845,
+        "drop_count": 0,
+        "initial_state": true,
+        "input_ack": 2607,
+        "input_epoch": 0,
+        "input_epoch_before_drop": -1,
+        "input_pending": 50,
+        "input_sent": 2657,
+        "last_correction_m": 0.000000715543011509112,
+        "lifecycle": "joined",
+        "local_driving": false,
+        "predicted_position": [
+          11.0524663925171,
+          0.842105805873871,
+          23.7694396972656
+        ],
+        "qa_prediction_step_count": 23793,
+        "qa_prediction_step_max_us": 64143,
+        "qa_prediction_step_mean_us": 70.1663514479048,
+        "qa_state_count": 866,
+        "qa_state_max_us": 1423,
+        "qa_state_mean_us": 566.453810623557,
+        "reconcile_seq": 824,
+        "reconciler_pending": 50,
+        "reconnect_count": 0,
+        "reconnect_gap_ms": -1,
+        "sdk_reconnecting": false,
+        "server_position": [
+          11.780647277832,
+          0.84210604429245,
+          25.1105937957764
+        ],
+        "steps_due": 1,
+        "steps_due_max": 5
+      },
+      "phase": "walking",
+      "player_pos": [
+        11.0524663925171,
+        0.842105805873871,
+        23.7694396972656
+      ],
+      "t_s": 44.0340883333346,
+      "velocity": [
+        -0.9906005859375,
+        0.0,
+        -1.57424926757812
+      ]
+    }
+  ],
+  "release_export": true,
+  "remote_pose_application": {
+    "bucket_limits_us": [
+      10,
+      25,
+      50,
+      100,
+      250,
+      500,
+      1000,
+      2500,
+      5000,
+      10000,
+      25000,
+      50000
+    ],
+    "max_items": 7,
+    "max_us": 316,
+    "mean_items": 6.60861823361823,
+    "mean_us": 70.2603276353276,
+    "p50_us_upper_bound": 100,
+    "p95_us_upper_bound": 250,
+    "p99_us_upper_bound": 250,
+    "samples": 2808
+  },
+  "remote_pose_preparation": {
+    "bucket_limits_us": [
+      10,
+      25,
+      50,
+      100,
+      250,
+      500,
+      1000,
+      2500,
+      5000,
+      10000,
+      25000,
+      50000
+    ],
+    "max_items": 7,
+    "max_us": 579,
+    "mean_items": 6.61609686609687,
+    "mean_us": 130.036680911681,
+    "p50_us_upper_bound": 250,
+    "p95_us_upper_bound": 500,
+    "p99_us_upper_bound": 500,
+    "samples": 2808
+  },
+  "sdk_ack_sequence_max": 2664,
+  "sdk_inputs_sent_max": 2716,
+  "sdk_reconcile_seq_max": 843,
+  "seat_entries": 1,
+  "seat_exits": 1,
+  "seconds": 45.0007163333347,
+  "snapshot_gap_ms_max": 630.0,
+  "snapshot_gap_ms_p95": 68.0,
+  "snapshots_with_error_over_2_5m": 44,
+  "walking_distance_m": 28.5072847846895
+}

@@ -23,6 +23,9 @@ for arg in "$@"; do
 done
 
 mkdir -p "$OUTDIR"
+# Create the file before tail starts; otherwise a fast tail can exit before the
+# container's redirected output creates it, hiding the prepared room ID.
+: > "$LOG"
 if [ "$BUILD_IMAGE" = 1 ]; then
   "$DOCKER_BIN" build --file "$ROOT/warbase-colyseus/Dockerfile.load-harness" --tag "$IMAGE" "$ROOT"
 else

@@ -2,6 +2,7 @@
 
 /** Read-only smoke check for the public Colyseus API and optional ops metrics. */
 import { pathToFileURL } from 'node:url';
+import { readFileSync } from 'node:fs';
 
 const PLAYABLE_MAPS = [
   'football', 'resoforge', 'industrial', 'village', 'arena', 'shipment',
@@ -10,7 +11,8 @@ const PLAYABLE_MAPS = [
 const MAX_BODY_BYTES = 256 * 1024;
 
 export function parseOptions(argv, env = process.env) {
-  const options = { baseUrl: '', timeoutMs: 5000, metricsToken: env.OPS_METRICS_TOKEN ?? '' };
+  const fileToken = env.OPS_METRICS_TOKEN_FILE ? readFileSync(env.OPS_METRICS_TOKEN_FILE, 'utf8').trim() : '';
+  const options = { baseUrl: '', timeoutMs: 5000, metricsToken: fileToken || env.OPS_METRICS_TOKEN || '' };
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i];
     if (arg === '--base-url') options.baseUrl = argv[++i] ?? '';
@@ -40,7 +42,13 @@ async function getJson(url, timeoutMs, headers = {}) {
     const text = await response.text();
     if (Buffer.byteLength(text) > MAX_BODY_BYTES) throw new Error(`${new URL(url).pathname} response exceeded ${MAX_BODY_BYTES} bytes`);
     let json;
-    try { json = JSON.parse(text); } catch { throw new Error(`${new URL(url).pathname} did not return JSON (HTTP ${response.status})`); }
+    // Denial statuses often carry framework-generated plaintext/HTML bodies.
+    // Callers validate the status first; do not mask an expected 401/403/404
+    // with an unrelated JSON parse failure.
+    if (!response.ok) json = null;
+    else {
+      try { json = JSON.parse(text); } catch { throw new Error(`${new URL(url).pathname} did not return JSON (HTTP ${response.status})`); }
+    }
     return { response, json, elapsedMs: performance.now() - started };
   } finally {
     clearTimeout(timer);

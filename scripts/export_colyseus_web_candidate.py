@@ -15,6 +15,8 @@ import subprocess
 import sys
 import tempfile
 
+from client_provenance import WEB_EXPORT_ASSETS, artifact_records, client_fingerprint, make_provenance
+
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 CLIENT = ROOT / "warbase-godot/client"
@@ -120,6 +122,7 @@ def main() -> int:
     if output.exists():
         shutil.rmtree(output)
     output.mkdir(parents=True)
+    export_fingerprint = client_fingerprint(CLIENT)
     log_file = tempfile.NamedTemporaryFile(prefix="godot-colyseus-web-export-", suffix=".log", delete=False)
     log_path = pathlib.Path(log_file.name)
     log_file.close()
@@ -179,6 +182,12 @@ def main() -> int:
             raise SystemExit("Candidate export omitted the external Colyseus Web extension library")
         if exported_library.read_bytes() != SDK_WASM.read_bytes():
             raise SystemExit("Candidate extension library does not match the pinned SDK wasm")
+        if client_fingerprint(CLIENT) != export_fingerprint:
+            raise SystemExit("Client source changed while the export was running; discard it and export again")
+        sdk_version = json.loads((CLIENT / "addons/colyseus/version.json").read_text())["version"]
+        provenance = make_provenance(CLIENT, version_match.group(1), str(sdk_version))
+        provenance["artifacts"] = artifact_records(output, ["index.html", *WEB_EXPORT_ASSETS])
+        (output / "client-provenance.json").write_text(json.dumps(provenance, indent=2) + "\n")
         print(f"COLYSEUS_WEB_CANDIDATE_OK: Godot {version_match.group(1)}, dlink template, {len(paths)} PCK resources; exact SDK wasm ({exported_library.stat().st_size} bytes), side module ({side_wasm_path.stat().st_size} bytes)")
         print(f"Candidate: {output}")
         return 0

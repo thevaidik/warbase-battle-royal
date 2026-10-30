@@ -13,7 +13,7 @@ const PLAYABLE_MAPS: Array[String] = ["football", "resoforge", "industrial", "vi
 const NODE_STRIDE := 10
 const SPOKES := 12
 const CAPSULE_LEVELS: Array[float] = [0.08, 0.24, 0.4, 0.9, 1.4, 1.56, 1.72]
-const MOVE_CANDIDATE_LIMIT := 12
+const MOVE_CANDIDATE_LIMIT := 64
 const SWEEP_EPSILON := 0.0001
 
 static var _loaded := false
@@ -81,13 +81,20 @@ static func _ensure_data() -> void:
 
 ## Optional explicit selection for standalone geometry fixtures and tools.
 static func set_map_override(map_name: String = "") -> void:
-	_map_override = map_name.strip_edges().to_lower()
+	var normalized := map_name.strip_edges().to_lower()
+	if normalized == _map_override:
+		return
+	_map_override = normalized
 	_loaded = false
 
 
 static func get_authored_spawns() -> Array[Vector3]:
 	_ensure_data()
 	return _spawns.duplicate()
+
+static func get_loaded_map() -> String:
+	_ensure_data()
+	return _loaded_map
 
 
 static func _finite_vector(value: Vector3) -> bool:

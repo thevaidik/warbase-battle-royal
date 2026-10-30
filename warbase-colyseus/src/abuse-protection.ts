@@ -25,6 +25,7 @@ export class FixedWindowLimiter {
 
 export const anonymousJoinLimiter = new FixedWindowLimiter(8192);
 export const gameMessageLimiter = new FixedWindowLimiter(131072);
+/** Shared process ceiling: protects aggregate room initialization cost. */
 export const roomCreationLimiter = new FixedWindowLimiter(8192);
 
 /** Normalize and bound the public display name without relying on an account system. */

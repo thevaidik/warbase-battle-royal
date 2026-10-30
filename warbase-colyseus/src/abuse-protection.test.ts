@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { canonicalizeUsername, FixedWindowLimiter } from './abuse-protection.js';
+import { consumeRoomCreationAllowance } from './battle-room.js';
 
 test('anonymous username admission canonicalizes and bounds display names', () => {
   assert.equal(canonicalizeUsername('  Alice_7  '), 'Alice_7');
@@ -22,4 +23,19 @@ test('fixed window limiter resets, isolates keys, and bounds key storage', () =>
   assert.equal(limiter.allow('a', 1, 1000, 1010), true);
   assert.equal(limiter.allow('c', 1, 1000, 1011), true);
   assert.equal(limiter.allow('b', 1, 1000, 1012), true, 'evicted keys fail open for availability');
+});
+
+test('invalid and over-capacity room creates do not spend the shared valid-create allowance', () => {
+  const limiter = new FixedWindowLimiter();
+  for (let i = 0; i < 20; i++) {
+    assert.throws(() => consumeRoomCreationAllowance({ map: 'not-a-map' }, 0, limiter, 100), /Unsupported map/);
+    assert.throws(() => consumeRoomCreationAllowance({ map: 'industrial', mode: 'duel' }, 0, limiter, 100), /Unsupported room mode/);
+    assert.throws(() => consumeRoomCreationAllowance({ map: 'industrial', time_of_day: 'midnight' }, 0, limiter, 100), /Unsupported time of day/);
+  }
+  assert.throws(() => consumeRoomCreationAllowance({ map: 'industrial' }, 128, limiter, 100), /capacity reached/);
+  assert.deepEqual(consumeRoomCreationAllowance({ map: 'industrial' }, 0, limiter, 100), {
+    requested: 'industrial-public', map: 'industrial', requestedMode: 'TDM', timeOfDay: 'noon',
+  });
+  for (let i = 1; i < 60; i++) consumeRoomCreationAllowance({ map: 'industrial' }, 0, limiter, 100);
+  assert.throws(() => consumeRoomCreationAllowance({ map: 'industrial' }, 0, limiter, 100), /rate limited/);
 });

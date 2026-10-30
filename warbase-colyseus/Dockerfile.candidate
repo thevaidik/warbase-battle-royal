@@ -15,6 +15,7 @@ COPY warbase-colyseus/package*.json ./
 RUN npm ci --omit=dev --ignore-scripts --no-audit --no-fund
 COPY --from=build /src/warbase-colyseus/dist ./dist
 COPY --from=build /src/warbase-colyseus/src/data ./dist/data
+COPY --from=build /src/warbase-colyseus/scripts/check_public_observability.mjs ./scripts/check_public_observability.mjs
 COPY warbase-godot/client/candidate-static/ ./static/
 EXPOSE 8081
 HEALTHCHECK --interval=30s --timeout=3s --start-period=20s --retries=3 CMD ["node", "-e", "fetch('http://127.0.0.1:8081/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]

@@ -247,7 +247,7 @@ func _start_match() -> void:
 	mp = MultiplayerScript.new()
 	mp.name = "Multiplayer"
 	world.add_child(mp)
-	mp.setup(net, world, GameState.username)
+	mp.setup(net, world, GameState.username, _qa_active)
 	if not GameState.practice_mode:
 		net.connect_to(GameState.username, GameState.room_id if not GameState.room_id.is_empty() else "industrial-public", GameState.server_host)
 	
