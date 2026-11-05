@@ -7,7 +7,7 @@ run-server:
 build-server:
 	cd warbase-colyseus && npm run build
 
-test: test-server test-godot test-web
+test: test-server test-godot test-web test-performance-tools
 
 test-server:
 	cd warbase-colyseus && npm test
@@ -37,3 +37,7 @@ export-map-data:
 # Build only. Production replacement follows the staged paired-release runbook.
 docker:
 	scripts/build_colyseus_candidate_image.sh
+
+.PHONY: test-performance-tools
+test-performance-tools:
+	python3 -m unittest discover -s scripts -p 'test_performance_gate.py'

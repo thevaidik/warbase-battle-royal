@@ -1,0 +1,98 @@
+{
+  "status": "FAIL",
+  "platform": "native",
+  "checks": {
+    "full_occupancy_seconds": {
+      "status": "missing",
+      "value": null,
+      "minimum": 60
+    },
+    "platform": {
+      "status": "observed",
+      "value": "native"
+    },
+    "build_version": {
+      "status": "pass",
+      "value": "development Godot run; client fingerprint f42e5a8ccd43d28cdd704eadbf0d16a7cfc2a3a56f9583e0292cc959a0f863fc; sdk=0.18"
+    },
+    "sdk_version": {
+      "status": "pass",
+      "value": "0.18"
+    },
+    "occupancy_players": {
+      "status": "pass",
+      "value": 64.0,
+      "minimum": 64
+    },
+    "duration_seconds": {
+      "status": "pass",
+      "value": 244.1,
+      "minimum": 60
+    },
+    "requested_duration_seconds": {
+      "status": "pass",
+      "value": 65.0,
+      "minimum": 60
+    },
+    "frame_p95_ms": {
+      "status": "fail",
+      "value": 72.732,
+      "maximum": 16.667
+    },
+    "frame_p99_ms": {
+      "status": "fail",
+      "value": 133.056666666667,
+      "maximum": 33.334
+    },
+    "server_tick_p95_ms": {
+      "status": "missing",
+      "value": null,
+      "maximum": 16.667
+    },
+    "disconnects": {
+      "status": "pass",
+      "value": 0.0,
+      "maximum": 0
+    },
+    "correction_rate_per_minute": {
+      "status": "pass",
+      "value": 0.0,
+      "maximum": 10.0
+    },
+    "correction_magnitude_m_max": {
+      "status": "missing",
+      "value": null,
+      "maximum": 2.5
+    },
+    "client_memory_p95_bytes": {
+      "status": "pass",
+      "value": 259342336.0,
+      "maximum": 1610612736
+    },
+    "server_memory_p95_bytes": {
+      "status": "missing",
+      "value": null,
+      "maximum": 1610612736
+    }
+  },
+  "missingMetrics": [
+    "full_occupancy_seconds",
+    "server_tick_p95_ms",
+    "correction_magnitude_m_max",
+    "server_memory_p95_bytes"
+  ],
+  "failedMetrics": [
+    "frame_p95_ms",
+    "frame_p99_ms"
+  ],
+  "limits": {
+    "frameBudgetMs": 16.667,
+    "expectedPlayers": 64,
+    "minimumDurationSeconds": 60,
+    "maxCorrectionsPerMinute": 10.0,
+    "maxCorrectionMagnitudeM": 2.5,
+    "maxClientMemoryBytes": 1610612736,
+    "maxServerMemoryBytes": 1610612736
+  },
+  "note": "SDK helper RSS and client prediction timings are diagnostic only; neither substitutes for game memory or server tick measurements."
+}

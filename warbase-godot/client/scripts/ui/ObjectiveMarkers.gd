@@ -31,10 +31,19 @@ func refresh() -> void:
 		var point: Dictionary = value
 		var ground := Vector3(float(point.get("x", 0)), float(point.get("y", 0)), float(point.get("z", 0)))
 		var target := ground + Vector3.UP * 4.0
-		var position := camera.unproject_position(target)
-		var direction := position - center
-		var behind := camera.is_position_behind(target)
-		if behind: direction = -direction
+		if not target.is_finite(): continue
+		var camera_target := camera.global_transform.affine_inverse() * target
+		# Perspective division is undefined on the camera plane. Use camera-space
+		# direction for points behind/on it and project only points in front.
+		var behind := camera_target.z >= -0.001
+		var position := center
+		var direction := Vector2.ZERO
+		if behind:
+			var projection := camera.get_camera_projection()
+			direction = Vector2(camera_target.x * projection.x.x * center.x, -camera_target.y * projection.y.y * center.y)
+		else:
+			position = camera.unproject_position(target)
+			direction = position - center
 		if not direction.is_finite(): continue
 		var edge := behind or absf(direction.x) > limits.x or absf(direction.y) > limits.y
 		if edge:

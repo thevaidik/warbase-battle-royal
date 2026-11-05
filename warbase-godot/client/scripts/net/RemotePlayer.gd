@@ -45,6 +45,9 @@ var _limb_areas: Array[Area3D] = []
 var _beacons: Array[MeshInstance3D] = []
 var _lod_timer := 0.0
 var _current_lod := 0
+var _server_anim_next_sample_usec := 0
+var _server_anim_paused_for_lod := false
+var _server_anim_original_callback_mode := AnimationMixer.ANIMATION_CALLBACK_MODE_PROCESS_IDLE
 
 @onready var soldier: Node3D = $Soldier
 @onready var anim: AnimationPlayer = $Soldier/AnimationPlayer
@@ -66,6 +69,7 @@ func _ready() -> void:
 	
 	# Enable linear looping on continuous motion animations
 	if anim:
+		_server_anim_original_callback_mode = anim.callback_mode_process
 		for anim_name in ["Rifle Idle", "Rifle Run", "Firing walk Rifle", "Strafe Left", "Strafe Right", "Walking Backwards"]:
 			if anim.has_animation(anim_name):
 				anim.get_animation(anim_name).loop_mode = Animation.LOOP_LINEAR
@@ -334,15 +338,48 @@ func _anim_for(server_anim: String, is_dead: bool) -> String:
 func _sync_anim(server_anim: String, is_dead: bool, phase: float = 0.0) -> void:
 	var target := _anim_for(server_anim, is_dead)
 	if server_authoritative_remote_pose:
-		if target == current_anim:
+		if is_dead:
+			if target != current_anim:
+				current_anim = target
+				if anim and anim.has_animation(target):
+					anim.callback_mode_process = _server_anim_original_callback_mode
+					anim.speed_scale = 1.0
+					anim.play(target, 0.0)
+				_server_anim_paused_for_lod = false
 			return
-		current_anim = target
+		var interval_usec := _server_anim_sample_interval_usec()
+		if interval_usec == 0:
+			# Keep the existing near-player behavior: transition-driven playback
+			# advances naturally and does not force a skeleton update per call.
+			if anim and _server_anim_paused_for_lod:
+				anim.callback_mode_process = _server_anim_original_callback_mode
+				anim.speed_scale = 1.0
+				anim.play(target, 0.0)
+				anim.seek(phase, true)
+				_server_anim_paused_for_lod = false
+			if target == current_anim:
+				return
+			current_anim = target
+			if anim and anim.has_animation(target):
+				anim.callback_mode_process = _server_anim_original_callback_mode
+				anim.speed_scale = 1.0
+				anim.play(target, 0.0)
+				anim.seek(phase, true)
+			return
+		var now_usec := Time.get_ticks_usec()
+		if target == current_anim and now_usec < _server_anim_next_sample_usec:
+			return
 		if anim and anim.has_animation(target):
-			anim.speed_scale = 1.0
-			anim.play(target, 0.0)
+			anim.callback_mode_process = AnimationMixer.ANIMATION_CALLBACK_MODE_PROCESS_MANUAL
+			anim.speed_scale = 0.0
+			if target != current_anim:
+				current_anim = target
+				anim.play(target, 0.0)
 			anim.seek(phase, true)
-			var hit_skeleton := soldier.get_node_or_null("Armature/Skeleton3D") as Skeleton3D
-			if is_instance_valid(hit_skeleton): hit_skeleton.force_update_all_bone_transforms()
+			_server_anim_paused_for_lod = true
+		else:
+			current_anim = target
+		_server_anim_next_sample_usec = now_usec + interval_usec
 		return
 	if is_dead:
 		if target != current_anim:
@@ -367,6 +404,17 @@ func _sync_anim(server_anim: String, is_dead: bool, phase: float = 0.0) -> void:
 		var hit_skeleton := soldier.get_node_or_null("Armature/Skeleton3D") as Skeleton3D
 		if is_instance_valid(hit_skeleton): hit_skeleton.force_update_all_bone_transforms()
 		if is_instance_valid(_hitbox_helper): _hitbox_helper.update_from_skeleton()
+
+func _server_anim_sample_interval_usec() -> int:
+	var cam := get_viewport().get_camera_3d() if is_inside_tree() else null
+	if not cam:
+		return 0
+	var distance := global_position.distance_to(cam.global_position)
+	if distance <= 45.0:
+		return 0
+	if distance <= 120.0:
+		return 33_333
+	return 66_667
 
 func take_damage(dmg: float, _zone: String = "torso") -> void:
 	if dead:

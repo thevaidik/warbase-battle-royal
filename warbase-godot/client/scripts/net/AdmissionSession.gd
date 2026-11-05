@@ -31,9 +31,35 @@ static func ensure(client: Colyseus.Client, endpoint: String, callback: Callable
 		_pending[key].append({"client": client, "callback": callback})
 		return
 	_pending[key] = [{"client": client, "callback": callback}]
+	# The pinned SDK's generic HTTP callback traps in the Web side module.
+	# Godot owns only ticket acquisition on Web; matchmaking, bearer transport,
+	# prediction and synchronized state still use the official Colyseus SDK.
+	if OS.has_feature("web"):
+		_request_web_ticket.call_deferred(key)
+		return
 	client.http.post(ADMISSION_PATH, {}, func(error: Variant, data: Variant) -> void:
 		_complete(key, error, data)
 	)
+
+static func _request_web_ticket(key: String) -> void:
+	var tree := Engine.get_main_loop() as SceneTree
+	if tree == null:
+		_complete(key, {"code": -1, "message": "admission requires scene tree"}, null)
+		return
+	var request := HTTPRequest.new()
+	request.timeout = 8.0
+	tree.root.add_child(request)
+	request.request_completed.connect(func(result: int, code: int, _headers: PackedStringArray, body: PackedByteArray) -> void:
+		request.queue_free()
+		if result != HTTPRequest.RESULT_SUCCESS or code < 200 or code >= 300:
+			_complete(key, {"code": code if result == HTTPRequest.RESULT_SUCCESS else -1, "message": "admission request failed"}, null)
+			return
+		_complete(key, null, JSON.parse_string(body.get_string_from_utf8()))
+	, CONNECT_ONE_SHOT)
+	var error := request.request(key + ADMISSION_PATH, PackedStringArray(["Content-Type: application/json"]), HTTPClient.METHOD_POST, "{}")
+	if error != OK:
+		request.queue_free()
+		_complete(key, {"code": -1, "message": "admission request could not start"}, null)
 
 static func canonical_endpoint(endpoint: String) -> String:
 	var value := endpoint.strip_edges().trim_suffix("/")

@@ -1,0 +1,10 @@
+{
+  "release": "web-recovery-20261105",
+  "serverImage": "warbase-colyseus:web-recovery-20261105",
+  "serverImageId": "sha256:404860b1fb51170fd23ac9d7fb1bcade62fb16cda6aaa3d182391b5945ee1442",
+  "sourceFingerprint": "f42e5a8ccd43d28cdd704eadbf0d16a7cfc2a3a56f9583e0292cc959a0f863fc",
+  "nativeZipSha256": "cf00a36c0fd7e8500e4fd5ea8d82d5279bc5137d58d3cece7df7a8c4aa1fc29f",
+  "browserMenuVerified": true,
+  "browserMatchVerified": true,
+  "fullRoomSmoothnessPassed": false
+}

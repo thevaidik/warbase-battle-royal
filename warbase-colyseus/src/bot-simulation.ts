@@ -47,6 +47,10 @@ const BOT_RELOAD_MS: Record<string, number> = { m4: 2200, mp5: 1800, ak47: 2500,
 const NAV_NEIGHBORS = [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]] as const;
 const vector = (p: Pick<BotPlayer, 'x' | 'y' | 'z'>): Vec3 => [p.x, p.y, p.z];
 const dist = (a: Vec3, b: Vec3): number => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
+const distSquared = (a: Vec3, b: Vec3): number => {
+  const dx = a[0] - b[0], dy = a[1] - b[1], dz = a[2] - b[2];
+  return dx * dx + dy * dy + dz * dz;
+};
 const dot = (a: Vec3, b: Vec3): number => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
 const finite = (n: number): boolean => Number.isFinite(n);
 
@@ -233,20 +237,20 @@ export class BotSimulation {
   private perceive(bot: BotPlayer, brain: Brain, players: ReadonlyMap<string, BotPlayer>, nowMs: number): void {
     brain.perceiveAt = nowMs + 140 + Math.floor(this.random(brain) * 80);
     brain.visible = false;
-    let best = Infinity;
+    let bestScore = Infinity;
     const pos = vector(bot), yaw = finite(bot.yaw ?? 0) ? (bot.yaw ?? 0) : 0;
     const forward: Vec3 = [-Math.sin(yaw), 0, -Math.cos(yaw)];
     for (const target of players.values()) {
       if (!this.enemy(bot, target) || target.driving_vehicle) continue;
-      const targetPos = vector(target), d = dist(pos, targetPos);
-      if (d > 70) continue;
+      const targetPos = vector(target), dSquared = distSquared(pos, targetPos);
+      if (dSquared > 4900) continue;
       const to: Vec3 = [targetPos[0] - pos[0], targetPos[1] - pos[1], targetPos[2] - pos[2]];
-      const inView = d < 10 || dot(to, forward) > d * 0.05;
+      const forwardDistance = dot(to, forward);
+      const inView = dSquared < 100 || (forwardDistance > 0 && forwardDistance * forwardDistance > dSquared * 0.0025);
       const visible = inView && !this.geometry.rayBlocked(this.eye(bot), this.eye(target));
-      let score = d;
-      if (target.username === brain.target) score *= 0.8;
-      if (visible && score < best) {
-        best = score;
+      const score = dSquared * (target.username === brain.target ? 0.64 : 1);
+      if (visible && score < bestScore) {
+        bestScore = score;
         if (brain.target !== target.username) {
           brain.reactAt = nowMs + 450 + Math.floor(this.random(brain) * 300);
           brain.shotsInBurst = 0;
@@ -260,10 +264,12 @@ export class BotSimulation {
   }
 
   private nearest(nodes: readonly NavNode[], point: Vec3): number {
-    let nearest = -1, best = 9;
+    let nearest = -1, bestSquared = 81;
     for (let i = 0; i < nodes.length; i++) {
-      const d = dist(point, nodes[i].position);
-      if (d < best && Math.abs(point[1] - nodes[i].position[1]) < 1 && !movementBlocked(this.geometry, point, nodes[i].position)) { best = d; nearest = i; }
+      const position = nodes[i].position;
+      if (Math.abs(point[1] - position[1]) >= 1) continue;
+      const dSquared = distSquared(point, position);
+      if (dSquared < bestSquared && !movementBlocked(this.geometry, point, position)) { bestSquared = dSquared; nearest = i; }
     }
     return nearest;
   }
@@ -302,13 +308,14 @@ export class BotSimulation {
       const dx = brain.lastKnown[0] - bot.x, dz = brain.lastKnown[2] - bot.z;
       const d = Math.max(Math.hypot(dx, dz), 1);
       if (brain.reloadUntil > nowMs || bot.health < 35) {
-        let best = Infinity;
+        let bestSquared = Infinity;
         goal = [bot.x - dx / d * 8, bot.y, bot.z - dz / d * 8];
+        const botPosition = vector(bot);
         for (const node of nodes) {
-          const cost = dist(vector(bot), node.position);
-          if (cost < 3 || cost > 12 || cost >= best) continue;
+          const costSquared = distSquared(botPosition, node.position);
+          if (costSquared < 9 || costSquared > 144 || costSquared >= bestSquared) continue;
           if (this.geometry.rayBlocked([brain.lastKnown[0], brain.lastKnown[1] + 1.35, brain.lastKnown[2]], [node.position[0], node.position[1] + 1.35, node.position[2]])) {
-            goal = node.position; best = cost;
+            goal = node.position; bestSquared = costSquared;
           }
         }
       } else {

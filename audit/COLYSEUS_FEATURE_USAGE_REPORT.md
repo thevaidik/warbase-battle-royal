@@ -1,5 +1,9 @@
 # Colyseus gameplay and networking feature audit
 
+## Latest follow-up — Web recovery and performance diagnostics
+
+The current deployed release is `warbase-colyseus:web-recovery-20261105`. The browser Connecting crash is fixed and public match entry is verified. A diagnostic reached 64 humans but failed frame-time budgets; it used a development executable with concurrent build activity and does not certify packaged-release capacity. Qualified full-room native/Web acceptance remains open. See [the follow-up report](performance-next-2026-11-05/REPORT.md).
+
 ## Current outcome — cleanup and deployment removal, 5 November 2026
 
 The cleanup release `warbase-colyseus:cleanup-20261105` is deployed and verified on Umbrel with matched native/Web builds. See [cleanup evidence](cleanup-2026-11-05/REPORT.md). Retired WarBase deployment containers and obsolete tagged images have been removed at the owner's request; persistent volumes and the current gateway/combat services are preserved.

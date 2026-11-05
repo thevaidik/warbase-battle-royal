@@ -33,3 +33,10 @@ scripts/__pycache__/
 
 warbase-godot/client/candidate-native/
 warbase-godot/state-view-repro/.godot/
+
+# Local raw performance captures; compact summaries and gates are versioned.
+audit/performance-next-2026-11-05/*.log
+audit/performance-next-2026-11-05/*observer*.json
+audit/performance-next-2026-11-05/next-official-load.json
+audit/performance-next-2026-11-05/next-server-metrics.json
+audit/performance-next-2026-11-05/next-client-memory.json

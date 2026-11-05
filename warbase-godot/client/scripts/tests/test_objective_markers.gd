@@ -29,6 +29,15 @@ func _ready() -> void:
 	assert(overlay.markers[3]["progress"] == 0.5)
 	for marker in overlay.markers:
 		assert(Rect2(Vector2.ZERO, overlay.size).has_point(marker["position"]))
+	# Exact camera-plane objectives used to log a projection error every refresh.
+	for depth in [0.0, -0.00001, 0.00001]:
+		overlay.points = [{"id":"A", "x":20, "y":-2.35, "z":depth}]
+		overlay.refresh()
+		assert(overlay.markers.size() == 1)
+		assert(overlay.markers[0]["edge"])
+		assert(overlay.markers[0]["position"].is_finite())
+		assert(overlay.markers[0]["direction"].x > 0.0)
+		assert(Rect2(Vector2.ZERO, overlay.size).has_point(overlay.markers[0]["position"]))
 	overlay.suppressed = true
 	overlay.refresh()
 	assert(overlay.markers.is_empty())

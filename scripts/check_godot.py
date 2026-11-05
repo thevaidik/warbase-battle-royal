@@ -11,6 +11,8 @@ import time
 root = pathlib.Path(__file__).resolve().parents[1]
 godot = os.environ.get("GODOT", "/Applications/Godot.app/Contents/MacOS/Godot")
 commands = [
+    (["res://scenes/tests/ObjectiveMarkers.tscn"], "OBJECTIVE_MARKERS_OK"),
+    (["res://scenes/tests/RemoteAnimationBudgetTest.tscn"], "REMOTE_ANIMATION_BUDGET_TESTS_OK"),
     (["res://scenes/tests/ColyseusReconnectLifecycle.tscn"], "COLYSEUS_RECONNECT_LIFECYCLE_TEST_OK"),
     (["--script", "res://scripts/tests/test_vehicle_wheels.gd", "--fixed-fps", "60"], "VEHICLE WHEEL TEST: 0 failures"),
     (["--script", "res://scripts/tests/test_network_recovery.gd", "--fixed-fps", "60"], "NETWORK RECOVERY TEST: 0 failures"),

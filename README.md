@@ -2,7 +2,7 @@
 
 WarBase is a Godot 4.7.2 FPS with native and browser clients and a Node.js/Colyseus multiplayer service. Default public rooms use Conquest with four capture points; custom rooms also support free-for-all and team deathmatch with human players and filling AI bots; offline practice remains available.
 
-The cleanup release is deployed on Umbrel with matching native/Web builds; see [cleanup results and remaining limits](audit/cleanup-2026-11-05/REPORT.md). The networking follow-up is documented separately; see [current verification and release status](audit/colyseus-features-2026-11-05/REPORT.md). Signed admission deployment is documented in [the paired release runbook](warbase-colyseus/deploy/ADMISSION.md), and optional Redis requirements in [scaling notes](warbase-colyseus/deploy/SCALING.md).
+The Web recovery and performance follow-up is deployed on Umbrel with matching native/Web builds; see [current results and limits](audit/performance-next-2026-11-05/REPORT.md). For the preceding cleanup, see [cleanup results and remaining limits](audit/cleanup-2026-11-05/REPORT.md). The networking follow-up is documented separately; see [current verification and release status](audit/colyseus-features-2026-11-05/REPORT.md). Signed admission deployment is documented in [the paired release runbook](warbase-colyseus/deploy/ADMISSION.md), and optional Redis requirements in [scaling notes](warbase-colyseus/deploy/SCALING.md).
 
 ## Build and verification commands
 
