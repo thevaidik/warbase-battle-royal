@@ -1,8 +1,12 @@
 # Colyseus gameplay and networking feature audit
 
-## Latest follow-up — Web recovery and performance diagnostics
+## Latest follow-up — controlled packaged-client measurements
 
-The current deployed release is `warbase-colyseus:web-recovery-20261105`. The browser Connecting crash is fixed and public match entry is verified. A diagnostic reached 64 humans but failed frame-time budgets; it used a development executable with concurrent build activity and does not certify packaged-release capacity. Qualified full-room native/Web acceptance remains open. See [the follow-up report](performance-next-2026-11-05/REPORT.md).
+The `warbase-colyseus:controlled-reconnect-20261105` release is deployed. Sustained 64-player native occupancy passed for 94.2 seconds without disconnects, but native/Web frame-time budgets and repeated-session memory stability remain open. See [the measured follow-up](controlled-performance-2026-11-05/REPORT.md). Using Colyseus features does not certify these gameplay performance gates.
+
+## Previous follow-up — Web recovery and performance diagnostics
+
+The preceding release was `warbase-colyseus:web-recovery-20261105`. The browser Connecting crash is fixed and public match entry is verified. A diagnostic reached 64 humans but failed frame-time budgets; it used a development executable with concurrent build activity and does not certify packaged-release capacity. Qualified full-room native/Web acceptance remains open. See [the follow-up report](performance-next-2026-11-05/REPORT.md).
 
 ## Current outcome — cleanup and deployment removal, 5 November 2026
 
@@ -24,7 +28,7 @@ The cleanup release `warbase-colyseus:cleanup-20261105` is deployed and verified
 | Redis multi-worker presence/driver | Configuration exists, disabled; live routing and distributed admission limits unfinished |
 | Alternate transports and streaming collections | Unused; no measured need or established cross-platform fit |
 
-Remaining acceptance work: full-room native/Web frame-time and disconnect gates, interactive current Web gameplay, movement-feel comparison, and native shutdown ObjectDB ownership/long-duration memory checks. Automatic browser reconnect is unsupported by the pinned SDK; focused Node/native reconnection checks do not establish that capability on Web. More optional APIs do not replace these acceptance checks.
+Remaining acceptance work: full-room native/Web frame-time and disconnect gates, interactive current Web gameplay, movement-feel comparison, and native shutdown ObjectDB ownership/long-duration memory checks. The pinned SDK’s built-in browser reconnect has now passed an intentional-drop packaged Web probe (1,084 ms recovery, fresh state and input ACKs); sustained Web load still needs to pass. More optional APIs do not replace these acceptance checks.
 
 Historical sections below describe older releases and are superseded by this table and the linked dated evidence.
 
@@ -100,7 +104,7 @@ However, the most complete integration is on-foot movement. Vehicles, grenade pr
 | Remote interpolation | Used for players | SDK lerp for position and wrap-aware yaw. Existing legacy player interpolation is bypassed for this path. | `predictor.attach_all`, `get_sdk_remote_poses` |
 | Clock/RTT | Used, with custom bridging | SDK clock drives prediction/render timing and ping; an epoch conversion bridges our pose timestamps to SDK time. This conversion deserves continued validation. | `room.clock`, `get_pose_clock_diagnostics` |
 | Lag compensation/rewind | Used | Server retains 400 ms history and resolves shots through `lastSeenBy`; separate interpolation groups preserve discrete animation changes. | `allowRewindState`, `attachAll`, `fire` |
-| Reconnection | Used on native | Server allows 15 seconds; client has a final 14-second deadline and waits for new state. The pinned SDK documents Web automatic reconnect as unsupported; Web interruption is handled as terminal. | `onDrop`; Godot reconnect handlers and `_process` |
+| Reconnection | Used on native and Web | Server allows 15 seconds; client has a final 14-second deadline and waits for new state. Packaged Web intentional-drop verification recovered through the official SDK in 1,084 ms. | `onDrop`; Godot reconnect handlers and `_process` |
 | Transient action messages | Used | Fire, damage, confirmed hit/kill, grenades and explosions use room messages alongside schema state. | `onMessage`, `broadcast`, `client.send` |
 | Framework timers | Used | Reload completion uses the room clock; several game deadlines still use application timestamps. | `this.clock.setTimeout`; runtime deadlines |
 | Graceful shutdown | Used | SIGTERM/SIGINT trigger framework graceful shutdown with a bounded fallback. This does not migrate an active room to another process. | `src/index.ts`: `shutdown` |

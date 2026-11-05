@@ -1,0 +1,33 @@
+{
+  "release_export": true,
+  "seconds": 80.0046753333335,
+  "frame_ms_p50": 8.832,
+  "frame_ms_p95": 64.37,
+  "frame_ms_p99": 111.324,
+  "peak_remotes": 63,
+  "disconnects": 0,
+  "drive_distance_m": 130.441466725466,
+  "confirmed_hits": 1,
+  "local_grenades": 1,
+  "phase_frame_times": {
+    "dead": {
+      "p50_ms": 0.0,
+      "p95_ms": 0.0,
+      "p99_ms": 0.0,
+      "samples": 97
+    },
+    "driving": {
+      "p50_ms": 0.0,
+      "p95_ms": 0.0,
+      "p99_ms": 0.0,
+      "samples": 2018
+    },
+    "walking": {
+      "p50_ms": 0.0,
+      "p95_ms": 0.0,
+      "p99_ms": 0.0,
+      "samples": 2601
+    }
+  },
+  "rawCaptureLocation": "/tmp/warbase-controlled-heartbeat"
+}

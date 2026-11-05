@@ -1,0 +1,16 @@
+{
+  "godotVersion": "4.7.2",
+  "colyseusGodotSdk": "0.18.9",
+  "officialSdkModified": false,
+  "boundedGodotScenes": 14,
+  "godotResult": "pass",
+  "performanceGateUnitTests": 6,
+  "harnessContractTests": 7,
+  "toolTestsResult": "pass",
+  "geometryParityRays": 7680,
+  "vehicleParitySamples": 1320,
+  "nativeWebSourceFingerprint": "95e17f95ac5406ea3a28b3514fd8669988dcafae2416c9e9c019ef1f459da735",
+  "nativeExport": "pass",
+  "webExportAndCompressionRoundtrip": "pass",
+  "capacityAcceptance": "FAIL: native and Web frame-time budgets; Web sustained connection; memory plateau"
+}

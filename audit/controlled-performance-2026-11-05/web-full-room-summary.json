@@ -1,0 +1,14 @@
+{
+  "platform": "web",
+  "release_export": true,
+  "seconds": 34.8151496666674,
+  "peak_remotes": 63,
+  "frame_ms_p50": 16.666,
+  "frame_ms_p95": 33.332,
+  "frame_ms_p99": 133.317333333333,
+  "disconnects": 1,
+  "drive_distance_m": 127.115083657965,
+  "connected_final": false,
+  "result": "FAIL: terminal Web drop and frame-time budget exceeded",
+  "rawCaptureLocation": "/tmp/warbase-controlled-web"
+}

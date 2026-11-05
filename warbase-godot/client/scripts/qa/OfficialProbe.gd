@@ -6,6 +6,7 @@ const COLYSEUS_CANDIDATE_HOST := "war.vaidik.blog/colyseus"
 var main
 var elapsed := 0.0
 var frames: Array[float] = []
+var phase_frame_times: Dictionary = {}
 var gaps: Array[float] = []
 var pings: Array[float] = []
 var last_state_ms := 0
@@ -49,6 +50,8 @@ var _last_server_seat := ""
 var _stall_active := false
 var seconds := 180.0
 var output_path := ""
+var injected_drop_at := -1.0
+var injected_drop := false
 func begin(game: Node) -> void:
 	main = game
 	call_deferred("run")
@@ -68,6 +71,7 @@ func run() -> void:
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("qa_room="): state.room_id = arg.trim_prefix("qa_room=")
 		if arg.begins_with("qa_map="): state.selected_map = arg.trim_prefix("qa_map=")
+		if arg.begins_with("qa_drop_at="): injected_drop_at = float(arg.trim_prefix("qa_drop_at="))
 		if arg.begins_with("qa_seconds="): seconds = float(arg.trim_prefix("qa_seconds="))
 		if arg.begins_with("qa_output="): output_path = arg.trim_prefix("qa_output=")
 	if OS.has_feature("web"):
@@ -79,6 +83,8 @@ func run() -> void:
 		if valid_room_query.search(room_query) != null: state.room_id = room_query
 		if ["industrial", "resoforge", "football", "village", "arena", "shipment", "dust2", "nuketown", "canyon", "desert_oasis"].has(map_query): state.selected_map = map_query
 		if seconds_query.is_valid_float(): seconds = float(seconds_query)
+		var drop_query := String(JavaScriptBridge.eval("new URLSearchParams(window.location.search).get('qa_drop_at') || ''"))
+		if drop_query.is_valid_float(): injected_drop_at = float(drop_query)
 	var allowed_room := RegEx.new()
 	allowed_room.compile("^[A-Za-z0-9_-]{1,64}$")
 	if allowed_room.search(state.room_id) == null:
@@ -118,6 +124,10 @@ func run() -> void:
 		var dt := get_tree().root.get_process_delta_time()
 		elapsed += dt
 		frames.append(dt*1000)
+		if injected_drop_at >= 0.0 and elapsed >= injected_drop_at and not injected_drop:
+			injected_drop = true
+			_mark_event("official_sdk_drop_injected")
+			main.net.room.drop()
 		if dt >= 0.1 and not _stall_active:
 			_stall_active = true
 			_mark_event("frame_stall_started", {"frame_ms": dt * 1000.0, "fps": Engine.get_frames_per_second(), "remotes": main.mp.remotes.size(), "driving": main.current_driven_jeep != null, "prediction": _prediction_diagnostics()})
@@ -131,6 +141,11 @@ func run() -> void:
 		if not is_instance_valid(player):
 			print("OBSERVER: returned to lobby after a terminal connection error")
 			break
+		var render_phase := "dead" if player.is_dead else ("driving" if main.current_driven_jeep != null else "walking")
+		if not phase_frame_times.has(render_phase):
+			var phase_samples: Array[float] = []
+			phase_frame_times[render_phase] = phase_samples
+		phase_frame_times[render_phase].append(dt * 1000.0)
 		if candidate_backend:
 			var reconciler = main.net.get("local_reconciler")
 			var input_handle = main.net.get("input_handle")
@@ -208,6 +223,11 @@ func run() -> void:
 			_record_prediction_sample(player)
 	for action in ["move_forward","move_back","move_right","jump","fire","ads"]: Input.action_release(action)
 	var report := {"host":state.server_host,"backend":"colyseus" if candidate_backend else "legacy","platform":"web" if OS.has_feature("web") else "native-release","audio_disabled":AudioServer.is_bus_mute(AudioServer.get_bus_index("Master")),"release_export":OS.has_feature("release") and not OS.has_feature("editor"),"local_respawns":local_respawns,"local_shots":main.weapons._shot_seq if is_instance_valid(main.weapons) else 0,"confirmed_hits":confirmed_hits,"confirmed_kills":confirmed_kills,"ads_frames":ads_frames,"local_grenades":local_grenades,"sdk_reconcile_seq_max":sdk_reconcile_seq_max,"sdk_ack_sequence_max":sdk_ack_sequence_max,"sdk_inputs_sent_max":sdk_inputs_sent_max,"seconds":elapsed,"peak_remotes":peak_remotes,"frame_ms_p50":percentile(frames,.5),"frame_ms_p95":percentile(frames,.95),"frame_ms_p99":percentile(frames,.99),"frame_ms_max":percentile(frames,1),"cpu_process_ms_p95":percentile(cpu,.95),"draw_calls_p95":percentile(draws,.95),"snapshot_gap_ms_p95":percentile(gaps,.95),"snapshot_gap_ms_max":percentile(gaps,1),"remote_pose_preparation":main.net.get_remote_pose_preparation_diagnostics() if main.net.has_method("get_remote_pose_preparation_diagnostics") else {"enabled":false},"remote_pose_application":main.mp.get_remote_pose_application_diagnostics() if main.mp.has_method("get_remote_pose_application_diagnostics") else {"enabled":false},"ping_ms_p50":percentile(pings,.5),"ping_ms_p95":percentile(pings,.95),"max_position_error_m":max_position_error,"snapshots_with_error_over_2_5m":errors_over_2_5,"phase_position_errors":phase_position_errors,"prediction_samples":prediction_samples,"prediction_final":_prediction_diagnostics(),"event_markers":event_markers,"applied_corrections":applied_corrections,"disconnects":disconnects,"seat_entries":seat_entries,"seat_exits":seat_exits,"driving_seconds":driving_seconds,"drive_distance_m":drive_distance,"walking_distance_m":walking_distance,"fire_events":fire_events,"damage_events":damage_events,"explosion_events":explosion_events,"local_bots":main.bots.bots.size() if is_instance_valid(main.bots) else -1}
+	report["injected_sdk_drop"] = injected_drop
+	report["phase_frame_times"] = {}
+	for phase in phase_frame_times:
+		var values: Array[float] = phase_frame_times[phase]
+		report["phase_frame_times"][phase] = {"samples": values.size(), "p50_ms": percentile(values, .5), "p95_ms": percentile(values, .95), "p99_ms": percentile(values, .99)}
 	if output_path.is_empty(): output_path = "user://qa-latest.json"
 	var file := FileAccess.open(output_path,FileAccess.WRITE)
 	if file: file.store_string(JSON.stringify(report,"  "))

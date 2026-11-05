@@ -1,0 +1,33 @@
+{
+  "release_export": true,
+  "seconds": 125.020632333311,
+  "frame_ms_p50": 6.896,
+  "frame_ms_p95": 13.744,
+  "frame_ms_p99": 24.054,
+  "peak_remotes": 63,
+  "disconnects": 0,
+  "drive_distance_m": 156.660494962444,
+  "confirmed_hits": 0,
+  "local_grenades": 2,
+  "phase_frame_times": {
+    "dead": {
+      "p50_ms": 6.896,
+      "p95_ms": 6.896,
+      "p99_ms": 6.896,
+      "samples": 1297
+    },
+    "driving": {
+      "p50_ms": 6.896,
+      "p95_ms": 9.771,
+      "p99_ms": 67.754,
+      "samples": 4267
+    },
+    "walking": {
+      "p50_ms": 6.896,
+      "p95_ms": 13.792,
+      "p99_ms": 20.071,
+      "samples": 10897
+    }
+  },
+  "rawCaptureLocation": "/tmp/warbase-controlled-native-final"
+}

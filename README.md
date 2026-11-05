@@ -69,3 +69,5 @@ The room's configured ceiling is 64 players; this is not a capacity certificatio
 Native candidate exports use `scripts/export_colyseus_native_candidate.py`. Web export and pack scripts are also maintained in this repository; use the current Colyseus workflow rather than the retired Go `make run-server`, Go test, or Go stress-test targets for production validation. See [the legacy retirement record](warbase-colyseus/deploy/LEGACY_RETIREMENT.md).
 
 Audio is currently disabled throughout the game.
+
+The latest [controlled packaged-client performance report](audit/controlled-performance-2026-11-05/REPORT.md) records sustained occupancy, frame-time limits and remaining memory/reliability gates.

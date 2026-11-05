@@ -1,0 +1,14 @@
+{
+  "image": "warbase-colyseus:controlled-reconnect-20261105",
+  "gateway": "warbase-gateway:features-cache-20261105",
+  "clientSourceFingerprint": "95e17f95ac5406ea3a28b3514fd8669988dcafae2416c9e9c019ef1f459da735",
+  "publicManifestMatches": true,
+  "stagedHealthAdmissionCacheIsolationChecks": "pass",
+  "publicHealth": 200,
+  "maps": 10,
+  "rooms": 10,
+  "nativeWebProvenanceMatches": true,
+  "dashboardVolumesPreserved": true,
+  "prePromotionPublicCheck": "502 during controlled restart; post-promotion check passed",
+  "scope": "optimized client plus SDK-managed Web recovery; full-room performance acceptance remains open"
+}

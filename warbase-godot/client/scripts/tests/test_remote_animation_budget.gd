@@ -33,6 +33,7 @@ func run() -> void:
 		await get_tree().process_frame
 	check(is_equal_approx(player.current_animation_position, first_sample),
 		"far animation phase stays frozen across actual process frames")
+	remote._server_anim_next_sample_usec = Time.get_ticks_usec() + 1_000_000
 	remote.apply_sdk_pose(_make_pose(61.0, 0.8, 1100))
 	check(is_equal_approx(remote.global_position.x, 61.0), "far remote root position remains per-frame")
 	check(remote.get_hit_view_time_ms() == 1100, "far remote authoritative hit time remains per-frame")

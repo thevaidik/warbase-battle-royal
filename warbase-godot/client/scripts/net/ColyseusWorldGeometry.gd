@@ -20,6 +20,10 @@ static var _loaded := false
 static var _loaded_map := ""
 static var _map_override := ""
 static var _vertices := PackedFloat32Array()
+static var _triangle_a := PackedVector3Array()
+static var _triangle_edge_1 := PackedVector3Array()
+static var _triangle_edge_2 := PackedVector3Array()
+static var _triangle_unit_normal := PackedVector3Array()
 static var _nodes := PackedFloat32Array()
 static var _order := PackedInt32Array()
 static var _spawns: Array[Vector3] = []
@@ -42,6 +46,10 @@ static func _ensure_data() -> void:
 	_loaded = false
 	_loaded_map = ""
 	_vertices.clear()
+	_triangle_a.clear()
+	_triangle_edge_1.clear()
+	_triangle_edge_2.clear()
+	_triangle_unit_normal.clear()
 	_nodes.clear()
 	_order.clear()
 	_spawns.clear()
@@ -69,6 +77,22 @@ static func _ensure_data() -> void:
 		_nodes.clear()
 		_order.clear()
 		return
+	var triangle_count := _vertices.size() / 9
+	_triangle_a.resize(triangle_count)
+	_triangle_edge_1.resize(triangle_count)
+	_triangle_edge_2.resize(triangle_count)
+	_triangle_unit_normal.resize(triangle_count)
+	for triangle_index in triangle_count:
+		var offset := triangle_index * 9
+		var a := Vector3(_vertices[offset], _vertices[offset + 1], _vertices[offset + 2])
+		var edge_1 := Vector3(_vertices[offset + 3], _vertices[offset + 4], _vertices[offset + 5]) - a
+		var edge_2 := Vector3(_vertices[offset + 6], _vertices[offset + 7], _vertices[offset + 8]) - a
+		var normal := edge_1.cross(edge_2)
+		var length := normal.length()
+		_triangle_a[triangle_index] = a
+		_triangle_edge_1[triangle_index] = edge_1
+		_triangle_edge_2[triangle_index] = edge_2
+		_triangle_unit_normal[triangle_index] = Vector3.ZERO if length == 0.0 else normal / length
 	for entry in data.get("spawns", []):
 		if entry is Array and entry.size() == 3 and is_finite(float(entry[0])) and is_finite(float(entry[1])) and is_finite(float(entry[2])):
 			_spawns.append(Vector3(float(entry[0]), float(entry[1]), float(entry[2])))
@@ -133,10 +157,9 @@ static func _box_intersects(node_index: int, origin: Vector3, delta: Vector3, li
 
 
 static func _triangle_hit(triangle_index: int, origin: Vector3, delta: Vector3) -> Dictionary:
-	var offset := triangle_index * 9
-	var a := Vector3(_vertices[offset], _vertices[offset + 1], _vertices[offset + 2])
-	var edge_1 := Vector3(_vertices[offset + 3], _vertices[offset + 4], _vertices[offset + 5]) - a
-	var edge_2 := Vector3(_vertices[offset + 6], _vertices[offset + 7], _vertices[offset + 8]) - a
+	var a := _triangle_a[triangle_index]
+	var edge_1 := _triangle_edge_1[triangle_index]
+	var edge_2 := _triangle_edge_2[triangle_index]
 	var h := delta.cross(edge_2)
 	var determinant := edge_1.dot(h)
 	if absf(determinant) < 0.000000001:
@@ -153,11 +176,10 @@ static func _triangle_hit(triangle_index: int, origin: Vector3, delta: Vector3) 
 	var fraction := inverse * edge_2.dot(q)
 	if fraction < 0.0 or fraction > 1.0:
 		return {}
-	var normal := edge_1.cross(edge_2)
-	var length := normal.length()
-	if length == 0.0:
+	var normal := _triangle_unit_normal[triangle_index]
+	if normal == Vector3.ZERO:
 		return {}
-	return {"fraction": fraction, "normal": normal / length}
+	return {"fraction": fraction, "normal": normal}
 
 
 static func _raycast(from: Vector3, to: Vector3) -> Dictionary:

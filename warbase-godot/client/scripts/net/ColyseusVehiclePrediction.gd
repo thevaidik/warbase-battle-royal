@@ -5,17 +5,68 @@ extends RefCounted
 const Geometry := preload("res://scripts/net/ColyseusWorldGeometry.gd")
 const CHASSIS := [Vector3.ZERO, Vector3(-1.1, 0, -2.4), Vector3(1.1, 0, -2.4), Vector3(-1.1, 0, 2.4), Vector3(1.1, 0, 2.4)]
 const RAYS := [Vector3(0, 0.9, 0), Vector3(-0.25, 0.9, 0), Vector3(0.25, 0.9, 0), Vector3(0, 0.9, -0.25), Vector3(0, 0.9, 0.25)]
+static var _ray_cache_limit := 8192
+static var _ray_cache_map := ""
+static var _ray_cache: Dictionary = {}
+static var _ray_cache_size := 0
+static var _ray_cache_enabled := true
+static var _ray_cache_hits := 0
+static var _ray_cache_misses := 0
+
+## Prediction replays often issue identical map queries. Cache the exact
+## nearest-hit dictionary by exact endpoints; never quantize collision input.
+static func set_ray_cache_enabled(enabled: bool) -> void:
+	_ray_cache_enabled = enabled
+
+static func set_ray_cache_limit(limit: int) -> void:
+	_ray_cache_limit = maxi(1, limit)
+	_ray_cache.clear()
+	_ray_cache_size = 0
+
+static func clear_ray_cache() -> void:
+	_ray_cache.clear()
+	_ray_cache_size = 0
+	_ray_cache_map = Geometry.get_loaded_map()
+	_ray_cache_hits = 0
+	_ray_cache_misses = 0
+
+static func ray_cache_stats() -> Dictionary:
+	return {"hits": _ray_cache_hits, "misses": _ray_cache_misses, "size": _ray_cache_size}
+
+static func _raycast(from: Vector3, to: Vector3) -> Dictionary:
+	if not _ray_cache_enabled:
+		_ray_cache_misses += 1
+		return Geometry._raycast(from, to)
+	var map_name := Geometry.get_loaded_map()
+	if map_name != _ray_cache_map:
+		_ray_cache.clear()
+		_ray_cache_size = 0
+		_ray_cache_map = map_name
+	var by_to: Dictionary = _ray_cache.get(from, {})
+	if by_to.has(to):
+		_ray_cache_hits += 1
+		return by_to[to]
+	_ray_cache_misses += 1
+	var hit: Dictionary = Geometry._raycast(from, to)
+	if _ray_cache_size >= _ray_cache_limit:
+		_ray_cache.clear()
+		_ray_cache_size = 0
+		by_to = {}
+	by_to[to] = hit
+	_ray_cache[from] = by_to
+	_ray_cache_size += 1
+	return hit
 
 static func ground_at(at: Vector3) -> Variant:
 	var from := at + Vector3.UP * 2.5
 	var to := at - Vector3.UP * 5.0
-	var hit: Dictionary = Geometry._raycast(from, to)
+	var hit: Dictionary = _raycast(from, to)
 	if hit.is_empty() or absf(Vector3(hit.normal).y) < 0.65: return null
 	return from.y + (to.y - from.y) * float(hit.fraction) + 0.08
 
 static func _blocked(from: Vector3, to: Vector3) -> bool:
 	for offset: Vector3 in RAYS:
-		var hit: Dictionary = Geometry._raycast(from + offset, to + offset)
+		var hit: Dictionary = _raycast(from + offset, to + offset)
 		if not hit.is_empty() and float(hit.fraction) > 0.0001: return true
 	return false
 

@@ -1,9 +1,14 @@
 #!/usr/bin/env node
-import { Client } from '@colyseus/sdk';
+import NodeWebSocket from 'ws';
 import { monitorEventLoopDelay } from 'node:perf_hooks';
 import { setTimeout as sleep } from 'node:timers/promises';
-import { mkdir, writeFile } from 'node:fs/promises';
+import { chmod, lstat, mkdir, readFile, rename, writeFile } from 'node:fs/promises';
 import path from 'node:path';
+import { pathToFileURL } from 'node:url';
+
+globalThis.WebSocket = NodeWebSocket;
+const { Client } = await import('@colyseus/sdk');
+const SDK_VERSION = JSON.parse(await readFile(new URL('../node_modules/@colyseus/sdk/package.json', import.meta.url), 'utf8')).version;
 
 const OFFICIAL_URL = 'https://war.vaidik.blog/colyseus';
 const MAX_PEERS = 63; // 63 SDK peers plus the separately verified QA_NATIVE observer.
@@ -13,19 +18,22 @@ const JOIN_TIMEOUT_MS = 20_000;
 const PLAYABLE_MAPS = new Set(['football', 'resoforge', 'industrial', 'village', 'arena', 'shipment', 'dust2', 'nuketown', 'canyon', 'desert_oasis']);
 
 function argumentsFrom(argv) {
-  const values = { url: '', map: 'industrial', peers: 63, seconds: 180, observer: 'QA_NATIVE', observerTimeout: 90, output: '/results/official-load.json' };
+  const values = { url: '', map: 'industrial', mode: 'CONQUEST', peers: 63, seconds: 180, observer: 'QA_NATIVE', observerTimeout: 90, output: '/results/official-load.json', steady: false, admissionCache: '' };
   for (let i = 0; i < argv.length; i++) {
     const [key, inline] = argv[i].split('=', 2);
     if (key === '--help') return { help: true };
+    if (key === '--steady') { values.steady = true; continue; }
     const value = inline ?? argv[++i];
     if (!value) throw new Error(`Missing value for ${key}`);
     if (key === '--url') values.url = value;
     else if (key === '--map') values.map = value;
+    else if (key === '--mode') values.mode = value;
     else if (key === '--peers') values.peers = Number(value);
     else if (key === '--seconds') values.seconds = Number(value);
     else if (key === '--observer') values.observer = value;
     else if (key === '--observer-timeout') values.observerTimeout = Number(value);
     else if (key === '--output') values.output = value;
+    else if (key === '--admission-cache') values.admissionCache = value;
     else throw new Error(`Unknown option: ${key}`);
   }
   return values;
@@ -37,6 +45,7 @@ function validate(options) {
   if (parsed.protocol !== 'https:' || parsed.hostname !== 'war.vaidik.blog' || parsed.pathname !== '/colyseus' || parsed.search || parsed.hash) {
     throw new Error('Refusing non-official or non-candidate endpoint');
   }
+  if (!['CONQUEST', 'FFA', 'TDM'].includes(options.mode)) throw new Error('Unsupported mode');
   if (!PLAYABLE_MAPS.has(options.map)) throw new Error(`Unsupported map: ${options.map}`);
   if (!Number.isInteger(options.peers) || options.peers < 1 || options.peers > MAX_PEERS) throw new Error(`--peers must be 1..${MAX_PEERS}; the separate native observer uses one additional slot`);
   if (!Number.isFinite(options.seconds) || options.seconds < 15 || options.seconds > MAX_DURATION_SECONDS) throw new Error(`--seconds must be 15..${MAX_DURATION_SECONDS}`);
@@ -59,6 +68,50 @@ function vec3(value) {
 
 function entries(map) {
   return map ? Array.from(map.entries()) : [];
+}
+
+export function stageVehicleControls(data, player, phase) {
+  const driving = Boolean(player?.driving_vehicle);
+  data.vehicle_index = Number(player?.vehicle_index ?? -1);
+  data.vehicle_generation = Number(player?.vehicle_generation ?? 0);
+  data.vehicle_throttle = driving ? 0.65 : 0;
+  data.vehicle_steer = driving ? Math.sin(phase) * 0.25 : 0;
+  data.vehicle_brake = driving ? 0 : 1;
+  data.vehicle_gear = 1;
+  return data;
+}
+
+export function evaluateSteadySample({ gateOpen, stateFresh, liveClients, humanPlayers, observerPresent, cohortOpen }) {
+  return Boolean(gateOpen && stateFresh && liveClients === 64 && humanPlayers >= 64 && observerPresent && cohortOpen);
+}
+
+export function peerDropExpired(dropStartedAt, nowMs, graceMs = 2000) {
+  return Number.isFinite(dropStartedAt) && dropStartedAt > 0 && nowMs - dropStartedAt > graceMs;
+}
+
+export function admissionCacheReusable(cache, { endpoint, count, nowMs, minimumRemainingMs }) {
+  return Boolean(cache && cache.endpoint === endpoint && Array.isArray(cache.tickets) && cache.tickets.length === count &&
+    cache.tickets.every((ticket) => typeof ticket?.token === 'string' && ticket.token.length > 0 && Number.isFinite(ticket.expiresAt) && ticket.expiresAt >= nowMs + minimumRemainingMs));
+}
+
+async function readAdmissionCache(cachePath, required) {
+  if (!cachePath) return null;
+  try {
+    const info = await lstat(cachePath);
+    if (!info.isFile() || (typeof process.getuid === 'function' && info.uid !== process.getuid()) || (info.mode & 0o077) !== 0) return null;
+    const cache = JSON.parse(await readFile(cachePath, 'utf8'));
+    return admissionCacheReusable(cache, required) ? cache : null;
+  } catch { return null; }
+}
+
+async function writeAdmissionCache(cachePath, cache) {
+  if (!cachePath) return;
+  const destination = path.resolve(cachePath);
+  await mkdir(path.dirname(destination), { recursive: true });
+  const temporary = `${destination}.${process.pid}.tmp`;
+  await writeFile(temporary, `${JSON.stringify(cache)}\n`, { mode: 0o600, flag: 'wx' });
+  await chmod(temporary, 0o600);
+  await rename(temporary, destination);
 }
 
 function waitFor(ms, signal) {
@@ -90,24 +143,41 @@ async function withTimeout(promise, timeoutMs, onLate = () => {}) {
   } finally { clearTimeout(timer); }
 }
 
-function makePeer(room, username, index, counters, currentPhase) {
+function makePeer(room, username, index, counters, currentPhase, onGateFatal = () => {}) {
   const input = room.input({ mode: 'reliable' });
   if (input.tickRate !== 60) throw new Error(`Server input rate was ${input.tickRate ?? 'unadvertised'} Hz; expected 60 Hz`);
-  const peer = { room, username, index, input, counters, timer: null, lastAck: 0, lastAckAt: Date.now(), localAckProgress: 0, forcedDrop: false };
+  const peer = { room, username, index, input, counters, timer: null, lastAck: 0, lastAckAt: Date.now(), localAckProgress: 0, forcedDrop: false, dropStartedAt: 0, lastDropAt: 0, maxRecoveryMs: 0, recoveredDrops: 0 };
+  const markDrop = () => { const now = Date.now(); if (!peer.dropStartedAt) peer.dropStartedAt = now; peer.lastDropAt = now; };
   counters.inputRateHz = input.tickRate;
   room.onError((code, message) => {
     counters.errors++;
-    if (counters.errorSamples.length < 50) counters.errorSamples.push({ username, type: 'room_error', code, message: String(message ?? '') });
+    const phase = currentPhase();
+    if (counters.errorSamples.length < 50) counters.errorSamples.push({ username, type: 'room_error', phase, code, message: String(message ?? '') });
+    if (phase === 'active') {
+      if (Number(code) === 1006) markDrop();
+      else onGateFatal(`SDK peer ${username} room error ${code}: ${String(message ?? '')}`);
+    }
   });
   room.onDrop((code, reason) => {
+    markDrop();
     counters.drops++;
     counters.dropsByPhase[currentPhase()]++;
     if (counters.errorSamples.length < 50) counters.errorSamples.push({ username, type: 'drop', phase: currentPhase(), code, reason: String(reason ?? '') });
   });
-  room.onReconnect(() => { counters.reconnects++; counters.reconnectsByPhase[currentPhase()]++; });
+  room.onReconnect(() => {
+    counters.reconnects++;
+    counters.reconnectsByPhase[currentPhase()]++;
+    if (peer.dropStartedAt) {
+      peer.maxRecoveryMs = Math.max(peer.maxRecoveryMs, Date.now() - peer.dropStartedAt);
+      peer.recoveredDrops++;
+      peer.dropStartedAt = 0;
+    }
+  });
   room.onLeave((code, reason) => {
+    const phase = currentPhase();
     counters.leaves++;
-    if (counters.errorSamples.length < 50 && code !== 1000) counters.errorSamples.push({ username, type: 'leave', code, reason: String(reason ?? '') });
+    if (counters.errorSamples.length < 50 && code !== 1000 && code !== 4000) counters.errorSamples.push({ username, type: 'leave', phase, code, reason: String(reason ?? '') });
+    if (phase === 'active' && code !== 1000 && code !== 4000) onGateFatal(`SDK peer ${username} left ${code}: ${String(reason ?? '')}`);
   });
   room.onMessage('hit_confirmed', () => { counters.confirmedHits++; });
   room.onMessage('fire', (event) => { if (event?.shooter === username) counters.fireEchoes++; });
@@ -125,7 +195,7 @@ function getPlayer(room, username) {
 async function main() {
   const options = argumentsFrom(process.argv.slice(2));
   if (options.help) {
-    process.stdout.write(`Usage: node scripts/official-load-harness.mjs --url ${OFFICIAL_URL} [--map industrial] [--peers 63] [--seconds 180] [--observer QA_NATIVE] [--observer-timeout 90] [--output /results/official-load.json]\n`);
+    process.stdout.write(`Usage: node scripts/official-load-harness.mjs --url ${OFFICIAL_URL} [--map industrial] [--mode CONQUEST] [--peers 63] [--seconds 180] [--steady] [--admission-cache /results/admission.json] [--observer QA_NATIVE] [--observer-timeout 90] [--output /results/official-load.json]\n`);
     return 0;
   }
   validate(options);
@@ -154,6 +224,7 @@ async function main() {
   let nativeObserverVerifiedHuman = false;
   let roomId = '';
   let gateStateLastAt = 0;
+  let gateLastStatePatchAt = 0;
   let roomStateCount = 0;
   let roomStateNames = new Set();
   let maxPlayers = 0;
@@ -177,6 +248,14 @@ async function main() {
   let remainingHumansAfterCohort = null;
   let cleanupRemovalTimedOut = false;
   let runPhase = 'joining';
+  let measurementStartedAt = 0;
+  let measurementEndedAt = 0;
+  let previousOccupancySample = null;
+  let fullOccupancyMs = 0;
+  let minHumanPlayersDuringMeasurement = Infinity;
+  let minLiveClientsDuringMeasurement = Infinity;
+  let occupancyTimer;
+  let occupancyPollBusy = false;
   const commonCounters = () => ({ errors: 0, drops: 0, reconnects: 0, dropsByPhase: { joining: 0, active: 0, cleanup: 0 }, reconnectsByPhase: { joining: 0, active: 0, cleanup: 0 }, leaves: 0, confirmedHits: 0, fireEchoes: 0, grenadeAccepted: 0, explosionIds: new Set(), damageEvents: 0, killEvents: 0, errorSamples: [], inputRateHz: null, ackAdvances: 0, maxPendingInputs: 0, ackStalls: 0, hadAckStall: false, movementInputsSent: 0, zeroSendResults: 0, shotsAttempted: 0, grenadeAttempts: 0, seatAttempts: 0, seatEntries: 0, vehicleApproachInputs: 0, vehicleInputs: 0, forcedDrops: 0 });
 
   const leaveAll = async () => {
@@ -226,12 +305,27 @@ async function main() {
     await fetchJson(`${origin}/health`, {}, 7000);
     // Each simulated human needs its own signed identity. Pace issuance below
     // the production per-caller quota; never disable admission for a load run.
+    const requiredCacheHorizonMs = (options.seconds + options.observerTimeout + 60) * 1000;
+    const cacheCriteria = { endpoint: OFFICIAL_URL, count: options.peers, nowMs: Date.now(), minimumRemainingMs: requiredCacheHorizonMs };
+    let admissionCache = await readAdmissionCache(options.admissionCache, cacheCriteria);
     const admittedClients = [];
     const admissionTokens = [];
+    if (admissionCache) process.stdout.write(`ADMISSION_CACHE reused=${admissionCache.tickets.length} endpoint=official\n`);
+    else {
+      const tickets = [];
+      for (let index = 0; index < options.peers; index++) {
+        if (index > 0) await waitFor(2100, abort.signal);
+        const issuedAt = Date.now();
+        const ticket = await fetchJson(`${origin}/api/admission`, { method: 'POST' }, 7000);
+        if (!ticket.token || !Number.isFinite(Number(ticket.expiresIn))) throw new Error('Admission issuer returned an invalid signed ticket');
+        tickets.push({ token: ticket.token, expiresAt: issuedAt + Number(ticket.expiresIn) * 1000 });
+      }
+      admissionCache = { endpoint: OFFICIAL_URL, tickets };
+      await writeAdmissionCache(options.admissionCache, admissionCache);
+      process.stdout.write(`ADMISSION_CACHE reused=0 minted=${tickets.length} endpoint=official\n`);
+    }
     for (let index = 0; index < options.peers; index++) {
-      if (index > 0) await waitFor(2100, abort.signal);
-      const ticket = await fetchJson(`${origin}/api/admission`, { method: 'POST' }, 7000);
-      if (!ticket.token) throw new Error('Admission issuer returned no signed ticket');
+      const ticket = admissionCache.tickets[index];
       const peerClient = new Client(options.url);
       peerClient.auth.token = ticket.token;
       admittedClients.push(peerClient);
@@ -239,7 +333,7 @@ async function main() {
     }
     const createStart = Date.now();
     const created = await fetchJson(`${origin}/api/rooms`, {
-      method: 'POST', headers: { authorization: `Bearer ${admissionTokens[0]}` }, body: JSON.stringify({ map: options.map, mode: 'FFA', name: `${runName} official SDK cohort`, timeOfDay: 'noon' }),
+      method: 'POST', headers: { authorization: `Bearer ${admissionTokens[0]}` }, body: JSON.stringify({ map: options.map, mode: options.mode, name: `${runName} official SDK cohort`, timeOfDay: 'noon' }),
     }, 10_000);
     creationMs = Date.now() - createStart;
     roomId = String(created.room_id ?? '');
@@ -251,11 +345,11 @@ async function main() {
     cohortNames.add(gateUsername);
     const gateStats = commonCounters();
     const gateStarted = Date.now();
-    const gateRoomPromise = sdkClient.joinOrCreate('battle', { room: roomId, username: gateUsername, map: options.map, mode: 'FFA', time_of_day: 'noon' });
+    const gateRoomPromise = sdkClient.joinOrCreate('battle', { room: roomId, username: gateUsername, map: options.map, mode: options.mode, time_of_day: 'noon' });
     gate = await withTimeout(gateRoomPromise, JOIN_TIMEOUT_MS, (lateRoom) => { void lateRoom.leave(); });
     roomHandles.push(gate);
     gateStats.joinMs = Date.now() - gateStarted;
-    const gatePeer = makePeer(gate, gateUsername, 0, gateStats, () => runPhase);
+    const gatePeer = makePeer(gate, gateUsername, 0, gateStats, () => runPhase, (reason) => abort.abort(new Error(reason)));
     peerHandles.push(gatePeer);
     peerCounters.push(gateStats);
     if (gatePeer.input.tickRate !== 60) throw new Error('Gate input did not negotiate the server 60 Hz tick rate');
@@ -264,6 +358,7 @@ async function main() {
       const now = Date.now();
       if (gateStateLastAt) stateGaps.push(now - gateStateLastAt);
       gateStateLastAt = now;
+      gateLastStatePatchAt = now;
       roomStateCount++;
       const players = entries(state.players);
       const names = new Set(players.map(([name]) => String(name)));
@@ -314,7 +409,7 @@ async function main() {
         cohortNames.add(username);
         const stats = commonCounters();
         const joiningAt = Date.now();
-        const pending = admittedClients[index].joinOrCreate('battle', { room: roomId, username, map: options.map, mode: 'FFA', time_of_day: 'noon' });
+        const pending = admittedClients[index].joinOrCreate('battle', { room: roomId, username, map: options.map, mode: options.mode, time_of_day: 'noon' });
         batch.push(withTimeout(pending, JOIN_TIMEOUT_MS, (lateRoom) => { void lateRoom.leave(); }).then((room) => ({ room, username, index, stats, joinMs: Date.now() - joiningAt }), (error) => ({ error, username, index, stats })));
       }
       const joined = await Promise.all(batch);
@@ -327,7 +422,7 @@ async function main() {
         }
         result.stats.joinMs = result.joinMs;
         roomHandles.push(result.room);
-        const peer = makePeer(result.room, result.username, result.index, result.stats, () => runPhase);
+        const peer = makePeer(result.room, result.username, result.index, result.stats, () => runPhase, (reason) => abort.abort(new Error(reason)));
         peerHandles.push(peer);
         peerCounters.push(result.stats);
       }
@@ -384,6 +479,7 @@ async function main() {
         input.data.jump = elapsed % 9 > 8.7 ? 1 : 0;
         input.data.sprint = 1;
         input.data.crouch = 0;
+        stageVehicleControls(input.data, player, phase);
         const sent = input.send();
         if (sent > 0) counters.movementInputsSent++;
         else counters.zeroSendResults++;
@@ -422,7 +518,6 @@ async function main() {
           if (!peer.vehicleStartedAt) { peer.vehicleStartedAt = now; counters.seatEntries++; }
           if (!peer.lastVehicleInputAt || now - peer.lastVehicleInputAt >= 100) {
             peer.lastVehicleInputAt = now;
-            room.send('vehicle_input', { throttle: 0.65, steer: Math.sin(phase) * 0.25, brake: false, gear: 1 });
             counters.vehicleInputs++;
           }
           if (now - peer.vehicleStartedAt > 4500 && !peer.vehicleExitSent) {
@@ -452,7 +547,7 @@ async function main() {
     let reconnectInjected = false;
     actionTimer = setInterval(() => {
       const elapsed = (Date.now() - loadStartedAt) / 1000;
-      if (!reconnectInjected && elapsed >= Math.min(30, options.seconds * 0.25)) {
+      if (!options.steady && !reconnectInjected && elapsed >= Math.min(30, options.seconds * 0.25)) {
         const peer = peerHandles.find((candidate) => candidate.index === Math.min(1, peerHandles.length - 1));
         if (peer && !peer.forcedDrop) {
           peer.forcedDrop = true;
@@ -498,14 +593,58 @@ async function main() {
     }
 
     const startedLoad = Date.now();
+    measurementStartedAt = startedLoad;
+    const sampleOccupancy = async () => {
+      const now = Date.now();
+      if (runPhase !== 'active') return;
+      if (!gate?.connection?.isOpen && !options.steady) { abort.abort(new Error('gate connection closed during active measurement')); return; }
+      if (options.steady && (!gateLastStatePatchAt || now - gateLastStatePatchAt > 5000)) { abort.abort(new Error('gate state patches stale during active measurement')); return; }
+      if (options.steady) {
+        for (const peer of peerHandles) {
+          if (!peer.room.connection?.isOpen && !peer.dropStartedAt) { peer.dropStartedAt = now; peer.lastDropAt = now; }
+          if (peer.room.leaveCode !== undefined && peer.room.leaveCode !== 1000 && peer.room.leaveCode !== 4000) { abort.abort(new Error(`SDK peer ${peer.username} left during active measurement (${peer.room.leaveCode})`)); return; }
+          if (peerDropExpired(peer.dropStartedAt, now)) { abort.abort(new Error(`SDK peer ${peer.username} reconnect exceeded 2000 ms`)); return; }
+        }
+      }
+      if (occupancyPollBusy) return;
+      occupancyPollBusy = true;
+      try {
+        // The public matchmaker directory reads live framework client counts;
+        // schema players can remain cached locally after a transport drop.
+        const info = await fetchJson(`${origin}/api/rooms/${encodeURIComponent(roomId)}`, {}, 3000);
+        if (runPhase !== 'active') return;
+        const clients = Number(info.clients ?? -1);
+        const humans = entries(gate?.state?.players).filter(([, player]) => !player.is_bot).length;
+        const observer = getPlayer(gate, options.observer);
+        const observerPresent = Boolean(observer && !observer.is_bot);
+        minLiveClientsDuringMeasurement = Math.min(minLiveClientsDuringMeasurement, Math.max(0, clients));
+        const freshState = gateLastStatePatchAt > 0 && Date.now() - gateLastStatePatchAt <= 5000;
+        const previousAt = previousOccupancySample?.at ?? Date.now();
+        const noDropSincePreviousSample = peerHandles.every((peer) => !peer.lastDropAt || peer.lastDropAt <= previousAt);
+        const recovering = peerHandles.some((peer) => peer.dropStartedAt > 0);
+        const cohortOpen = peerHandles.every((peer) => peer.room.connection?.isOpen && peer.room.leaveCode === undefined) && !recovering && noDropSincePreviousSample;
+        const full = evaluateSteadySample({ gateOpen: gate.connection?.isOpen, stateFresh: freshState, liveClients: clients, humanPlayers: humans, observerPresent, cohortOpen });
+        minHumanPlayersDuringMeasurement = Math.min(minHumanPlayersDuringMeasurement, Math.min(humans, Math.max(0, clients)));
+        if (previousOccupancySample && previousOccupancySample.full && full) fullOccupancyMs += Math.min(Date.now() - previousOccupancySample.at, 1500);
+        previousOccupancySample = { at: Date.now(), full };
+      } catch {
+        previousOccupancySample = { at: now, full: false };
+      } finally { occupancyPollBusy = false; }
+    };
+    sampleOccupancy();
+    occupancyTimer = setInterval(sampleOccupancy, 1000);
     const deadline = startedLoad + options.seconds * 1000;
     while (Date.now() < deadline && !abort.signal.aborted) await waitFor(250, abort.signal).catch(() => {});
+    measurementEndedAt = Date.now();
+    if (occupancyTimer) clearInterval(occupancyTimer);
     finalReason = abort.signal.reason?.message === 'duration complete' ? 'duration_complete' : abort.signal.reason?.message ?? 'completed';
   } catch (error) {
     finalReason = abort.signal.aborted ? String(abort.signal.reason?.message ?? 'interrupted') : `failed: ${error.message ?? error}`;
     if (!abort.signal.aborted) process.stderr.write(`LOAD_HARNESS_ERROR ${finalReason}\n`);
   } finally {
     runPhase = 'cleanup';
+    if (!measurementEndedAt && measurementStartedAt) measurementEndedAt = Date.now();
+    if (occupancyTimer) clearInterval(occupancyTimer);
     await leaveAll();
     clearTimeout(hardStop);
     loopDelay.disable();
@@ -513,6 +652,9 @@ async function main() {
 
   const endCpu = process.cpuUsage(cpuStart);
   const joinedPeers = peerHandles.length;
+  const negotiatedExtensions = [...new Set(peerHandles.map((peer) => peer.room.connection?.transport?.ws?.extensions).filter((value) => typeof value === 'string'))];
+  const recoveredDropCount = peerHandles.reduce((sum, peer) => sum + peer.recoveredDrops, 0);
+  const maxRecoveryMs = Math.max(0, ...peerHandles.map((peer) => peer.maxRecoveryMs));
   const allExplosionIds = new Set();
   const counters = peerCounters.reduce((sum, peer) => {
     for (const key of ['errors', 'drops', 'reconnects', 'leaves', 'confirmedHits', 'fireEchoes', 'grenadeAccepted', 'damageEvents', 'killEvents', 'ackAdvances', 'ackStalls', 'movementInputsSent', 'zeroSendResults', 'shotsAttempted', 'grenadeAttempts', 'seatAttempts', 'seatEntries', 'vehicleApproachInputs', 'vehicleInputs', 'forcedDrops']) sum[key] += Number(peer[key] ?? 0);
@@ -522,29 +664,32 @@ async function main() {
       sum.reconnectsByPhase[phase] += peer.reconnectsByPhase[phase];
     }
     for (const id of peer.explosionIds) allExplosionIds.add(id);
-    sum.errorSamples.push(...peer.errorSamples.slice(0, Math.max(0, 50 - sum.errorSamples.length)));
+    sum.errorSamples.push(...peer.errorSamples);
     return sum;
     }, { errors: 0, drops: 0, reconnects: 0, dropsByPhase: { joining: 0, active: 0, cleanup: 0 }, reconnectsByPhase: { joining: 0, active: 0, cleanup: 0 }, leaves: 0, confirmedHits: 0, fireEchoes: 0, grenadeAccepted: 0, damageEvents: 0, killEvents: 0, ackAdvances: 0, maxPendingInputs: 0, ackStalls: 0, movementInputsSent: 0, zeroSendResults: 0, shotsAttempted: 0, grenadeAttempts: 0, seatAttempts: 0, seatEntries: 0, vehicleApproachInputs: 0, vehicleInputs: 0, forcedDrops: 0, errorSamples: [] });
+  counters.errorSamples.sort((a, b) => Number(b.phase === 'active') - Number(a.phase === 'active'));
+  counters.errorSamples = counters.errorSamples.slice(0, 50);
   const report = {
     test: 'official-colyseus-sdk-buffered-input-load',
     endpoint: OFFICIAL_URL,
     roomId,
-    map: options.map,
+    map: options.map, mode: options.mode,
     result: finalReason,
     runSeconds: Number(((Date.now() - startedAt) / 1000).toFixed(1)),
-    requested: { sdkPeers: options.peers, nativeObserverUsername: options.observer, humansTotalTarget: options.peers + 1, durationSeconds: options.seconds, maxWallSeconds: MAX_WALL_SECONDS, sdk: Client.VERSION ?? 'unknown', roomCreationMs: creationMs, sdkJoinLatencyP95Ms: percentile(peerCounters.map((peer) => peer.joinMs).filter(Number.isFinite), 0.95) },
-    observed: { sdkPeersJoined: joinedPeers, nativeObserverSeen: nativeObserverJoined, nativeObserverVerifiedHuman, humanActorsAtPeak: maxHumans, maxPlayersIncludingBots: maxPlayers, maxBotsObserved: maxBots, serverStatePatches: roomStateCount, statePlayersAtLastSample: statePlayersCount, maxClients: 64 },
+    requested: { sdkPeers: options.peers, nativeObserverUsername: options.observer, humansTotalTarget: options.peers + 1, durationSeconds: options.seconds, steady: options.steady, helperEndpoint: 'wss://war.vaidik.blog/colyseus', publicRouteTest: true, admissionCacheUsed: Boolean(options.admissionCache), maxWallSeconds: MAX_WALL_SECONDS, sdk: SDK_VERSION, sdkWebSocketImplementation: NodeWebSocket.name, roomCreationMs: creationMs, sdkJoinLatencyP95Ms: percentile(peerCounters.map((peer) => peer.joinMs).filter(Number.isFinite), 0.95) },
+    helperTransport: { label: 'official-public-websocket', implementation: NodeWebSocket.name, negotiatedExtensions },
+    observed: { sdkPeersJoined: joinedPeers, nativeObserverSeen: nativeObserverJoined, nativeObserverVerifiedHuman, humanActorsAtPeak: maxHumans, fullOccupancySeconds: Number((fullOccupancyMs / 1000).toFixed(1)), minHumanPlayersDuringMeasurement: Number.isFinite(minHumanPlayersDuringMeasurement) ? minHumanPlayersDuringMeasurement : 0, minLiveClientsDuringMeasurement: Number.isFinite(minLiveClientsDuringMeasurement) ? minLiveClientsDuringMeasurement : 0, measurementSeconds: measurementStartedAt ? Number(((measurementEndedAt - measurementStartedAt) / 1000).toFixed(1)) : 0, maxPlayersIncludingBots: maxPlayers, maxBotsObserved: maxBots, serverStatePatches: roomStateCount, statePlayersAtLastSample: statePlayersCount, maxClients: 64 },
     input: { tickRateHz: peerCounters.find((p) => p.inputRateHz)?.inputRateHz ?? null, sent: counters.movementInputsSent, ackAdvances: counters.ackAdvances, zeroSendResults: counters.zeroSendResults, maxPendingInputFrames: counters.maxPendingInputs, ackStallIntervals: counters.ackStalls, peersWithAckStalls: peerCounters.filter((peer) => peer.hadAckStall).length },
     gameplay: { shotsAttempted: counters.shotsAttempted, fireEchoes: counters.fireEchoes, confirmedHits: counters.confirmedHits, grenadeAttempts: counters.grenadeAttempts, grenadesAccepted: counters.grenadeAccepted, uniqueExplosionsSeen: allExplosionIds.size, seatAttempts: counters.seatAttempts, vehicleApproachInputs: counters.vehicleApproachInputs, seatEntries: counters.seatEntries, vehicleInputs: counters.vehicleInputs, damageEvents: counters.damageEvents, killEvents: counters.killEvents },
     authoritativeMovement: { sampledSdkPlayers: serverPositions.size, playersMovedOverHalfMeter: [...serverPositions.values()].filter((v) => v.path >= 0.5).length, totalPathMeters: Number([...serverPositions.values()].reduce((sum, v) => sum + v.path, 0).toFixed(2)), playersWithPositionUpdates: [...serverPositions.values()].filter((v) => v.updates > 0).length },
     vehicleMovement: { vehiclesSampled: vehiclePositions.size, vehiclesMoved: [...vehiclePositions.values()].filter((v) => v.path >= 0.25).length, totalVehiclePathMeters: Number([...vehiclePositions.values()].reduce((sum, v) => sum + v.path, 0).toFixed(2)) },
-    lifecycle: { controlledTransportDrops: counters.forcedDrops, drops: counters.drops, dropsByPhase: counters.dropsByPhase, reconnects: counters.reconnects, reconnectsByPhase: counters.reconnectsByPhase, clientLeaves: counters.leaves, sdkCohortRemovalsExpected: Math.max(0, joinedPeers - 1), sdkCohortRemovalsObserved: removalsObserved.size, remainingHumanActorsAfterSdkLeaves: remainingHumansAfterCohort, serverClientsAfterSdkLeaves: serverClientsAfterCohort, serverBotsAfterSdkLeaves: serverBotsAfterCohort, cleanupRemovalTimedOut, errors: counters.errors },
+    lifecycle: { controlledTransportDrops: counters.forcedDrops, drops: counters.drops, dropsByPhase: counters.dropsByPhase, reconnects: counters.reconnects, reconnectsByPhase: counters.reconnectsByPhase, recoveredDrops: recoveredDropCount, maxRecoveryMs, clientLeaves: counters.leaves, sdkCohortRemovalsExpected: Math.max(0, joinedPeers - 1), sdkCohortRemovalsObserved: removalsObserved.size, remainingHumanActorsAfterSdkLeaves: remainingHumansAfterCohort, serverClientsAfterSdkLeaves: serverClientsAfterCohort, serverBotsAfterSdkLeaves: serverBotsAfterCohort, cleanupRemovalTimedOut, errors: counters.errors },
     network: { sdkPingRttP50Ms: percentile(pingSamples.map((sample) => sample.ms), 0.5), sdkPingRttP95Ms: percentile(pingSamples.map((sample) => sample.ms), 0.95), sdkClockRttP50Ms: percentile(clockRttSamples.map((sample) => sample.rttMs), 0.5), sdkClockSmoothedRttP95Ms: percentile(clockRttSamples.map((sample) => sample.smoothedRttMs), 0.95), inputAckTotalSamples: ackSamples.length, ackPendingMeanP95: percentile(ackSamples.map((sample) => sample.pendingMean), 0.95), ackPendingFrameMax: Math.max(0, ...ackSamples.map((sample) => sample.pendingMax)), roomStateGapP50Ms: percentile(stateGaps, 0.5), roomStateGapP95Ms: percentile(stateGaps, 0.95), roomStateGapMaxMs: Math.max(0, ...stateGaps) },
     helperResources: { rssP95Bytes: percentile(resources.map((sample) => sample.rssBytes), 0.95), heapP95Bytes: percentile(resources.map((sample) => sample.heapUsedBytes), 0.95), processCpuUserMs: Number((endCpu.user / 1000).toFixed(1)), processCpuSystemMs: Number((endCpu.system / 1000).toFixed(1)), eventLoopP95MsMax: Math.max(0, ...resources.map((sample) => sample.eventLoopP95Ms)), samples: resources },
     serverContainerResources: 'Collected separately by scripts/run_colyseus_official_load.sh via docker stats; cohort executes on the server network/host, so its route and RTT differ from the Mac observer.',
     errorSamples: counters.errorSamples,
     limits: { officialUrlGuard: true, directTransformMutation: false, localCapacityRun: false, loadPeersIncludeBots: false, nodeContainerCpu: '2.0 cores', nodeContainerMemory: '1536 MiB', nodeContainerPids: 128 },
-    evidenceCoverage: { nativeObserverGate: nativeObserverJoined && nativeObserverVerifiedHuman, peak64HumanActors: maxHumans >= 64, authoritativeMovement: [...serverPositions.values()].some((v) => v.path >= 0.5), fireEcho: counters.fireEchoes > 0, confirmedHit: counters.confirmedHits > 0, acceptedGrenade: counters.grenadeAccepted > 0, explosion: allExplosionIds.size > 0, vehicleSeatEntry: counters.seatEntries > 0, vehicleInputsSent: counters.vehicleInputs > 0, vehicleMotion: [...vehiclePositions.values()].some((v) => v.path >= 0.25), sdkCleanupObserved: removalsObserved.size >= Math.max(0, joinedPeers - 1) && !cleanupRemovalTimedOut },
+    evidenceCoverage: { nativeObserverGate: nativeObserverJoined && nativeObserverVerifiedHuman, peak64HumanActors: maxHumans >= 64, sustained64HumanOccupancy: !options.steady || fullOccupancyMs >= Math.min(60, Math.max(0, options.seconds - 2)) * 1000, authoritativeMovement: [...serverPositions.values()].some((v) => v.path >= 0.5), fireEcho: counters.fireEchoes > 0, confirmedHit: counters.confirmedHits > 0, acceptedGrenade: counters.grenadeAccepted > 0, explosion: allExplosionIds.size > 0, vehicleSeatEntry: counters.seatEntries > 0, vehicleInputsSent: counters.vehicleInputs > 0, vehicleMotion: [...vehiclePositions.values()].some((v) => v.path >= 0.25), sdkCleanupObserved: removalsObserved.size >= Math.max(0, joinedPeers - 1) && !cleanupRemovalTimedOut },
   };
   report.missingEvidence = Object.entries(report.evidenceCoverage).filter(([, observed]) => !observed).map(([name]) => name);
   report.coverageStatus = report.missingEvidence.length === 0 ? 'complete' : 'incomplete';
@@ -560,7 +705,9 @@ async function main() {
   return finalReason === 'duration_complete' ? 0 : 1;
 }
 
-main().then((code) => { process.exitCode = code; }).catch((error) => {
-  process.stderr.write(`LOAD_HARNESS_FATAL ${error.message ?? error}\n`);
-  process.exitCode = 2;
-});
+if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {
+  main().then((code) => { process.exitCode = code; }).catch((error) => {
+    process.stderr.write(`LOAD_HARNESS_FATAL ${error.message ?? error}\n`);
+    process.exitCode = 2;
+  });
+}

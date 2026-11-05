@@ -1,0 +1,24 @@
+{
+  "benchmark": "vehicle prediction ray cache fixture replay",
+  "date": "2026-11-05",
+  "runner": "Godot 4.7.2 headless on macOS",
+  "fixture": "warbase-godot/client/assets/data/vehicle-prediction-fixtures.json",
+  "method": "Run each populated map trace twice from a fresh world at each capacity. Compare all generated position/yaw/speed values exactly against uncached output and check authored fixture tolerances.",
+  "samples_per_capacity": 1320,
+  "fixture_coverage": {
+    "maps_with_steps": ["industrial", "village", "dust2", "canyon", "desert_oasis"],
+    "collision_case": "industrial",
+    "empty_maps_skipped": ["football", "resoforge", "arena", "shipment", "nuketown"],
+    "reverse_boundary_stationary_and_generation_transition_cases": "not separately represented in existing fixtures"
+  },
+  "results": [
+    {"capacity": 0, "elapsed_us": 2546482, "hits": 0, "misses": 33686, "final_entries": 0},
+    {"capacity": 512, "elapsed_us": 2624969, "hits": 1318, "misses": 32368, "final_entries": 226},
+    {"capacity": 4096, "elapsed_us": 1679081, "hits": 12839, "misses": 20847, "final_entries": 2161},
+    {"capacity": 8192, "elapsed_us": 1360918, "hits": 17502, "misses": 16184, "final_entries": 2161}
+  ],
+  "parity_failures": 0,
+  "map_invalidation_and_entry_limit_checks": "passed",
+  "interpretation": "In this fixture run, 8192 entries was about 46.5% faster than uncached and about 48.2% faster than capacity 512. This is not a packaged multiplayer FPS result.",
+  "environment_warnings": ["Godot could not write user://logs", "macOS CA certificate lookup emitted a warning"]
+}

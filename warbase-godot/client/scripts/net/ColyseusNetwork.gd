@@ -29,6 +29,7 @@ var _vehicle_gear := 1
 var _gameplay_input_enabled := true
 var _last_normalized_state: Dictionary = {}
 var _state_callbacks
+var _room_signal_bindings: Array[Dictionary] = []
 var _state_callback_failed := false
 var _state_callback_handles: Array[int] = []
 var _object_callback_handles: Dictionary = {}
@@ -69,6 +70,9 @@ var _qa_timing := false
 var _qa_step_us := 0
 var _qa_step_count := 0
 var _qa_step_max_us := 0
+var _qa_vehicle_us := 0
+var _qa_vehicle_count := 0
+var _qa_vehicle_max_us := 0
 var _qa_state_us := 0
 var _qa_state_count := 0
 var _qa_state_max_us := 0
@@ -93,6 +97,9 @@ func connect_to(username: String, room_name: String, host: String) -> void:
 	_qa_step_us = 0
 	_qa_step_count = 0
 	_qa_step_max_us = 0
+	_qa_vehicle_us = 0
+	_qa_vehicle_count = 0
+	_qa_vehicle_max_us = 0
 	_qa_state_us = 0
 	_qa_state_count = 0
 	_qa_state_max_us = 0
@@ -163,13 +170,29 @@ func _on_admission_ready(token: String, error: Variant, username: String, room_n
 		connection_error.emit("Unable to create Colyseus room connection")
 		return
 	room.set_state_type(SchemaTypes.RoomState)
-	room.joined.connect(_on_joined.bind(room, generation))
-	room.state_changed.connect(_on_state_changed.bind(room, generation))
-	room.message_received.connect(_on_message.bind(room, generation))
-	room.error.connect(_on_room_error.bind(room, generation))
-	room.left.connect(_on_room_left.bind(room, generation))
-	room.dropped.connect(_on_room_dropped.bind(room, generation))
-	room.reconnected.connect(_on_joined.bind(room, generation))
+	_connect_room_signal(room, &"joined", _on_joined.bind(room, generation))
+	_connect_room_signal(room, &"state_changed", _on_state_changed.bind(room, generation))
+	_connect_room_signal(room, &"message_received", _on_message.bind(room, generation))
+	_connect_room_signal(room, &"error", _on_room_error.bind(room, generation))
+	_connect_room_signal(room, &"left", _on_room_left.bind(room, generation))
+	_connect_room_signal(room, &"dropped", _on_room_dropped.bind(room, generation))
+	_connect_room_signal(room, &"reconnected", _on_joined.bind(room, generation))
+
+func _connect_room_signal(source_room: Variant, signal_name: StringName, callback: Callable) -> void:
+	source_room.connect(signal_name, callback)
+	_room_signal_bindings.append({"room": source_room, "signal": signal_name, "callback": callback})
+
+func _disconnect_room_signals() -> void:
+	# Bound generation guards keep the emitting RefCounted room as an argument.
+	# Break that room -> callback -> room cycle on terminal teardown.
+	for binding in _room_signal_bindings:
+		var source_room: Variant = binding["room"]
+		if is_instance_valid(source_room) and source_room.is_connected(binding["signal"], binding["callback"]):
+			source_room.disconnect(binding["signal"], binding["callback"])
+	_room_signal_bindings.clear()
+
+func _exit_tree() -> void:
+	disconnect_from()
 
 func _is_current_room(source_room: Variant, generation: int) -> bool:
 	return generation == _connection_generation and source_room != null and source_room == room and _want_connection
@@ -185,9 +208,6 @@ func _on_room_left(_code: int, reason: String, source_room: Variant, generation:
 
 func _on_room_dropped(_code: int, _reason: String, source_room: Variant, generation: int) -> void:
 	if not _is_current_room(source_room, generation): return
-	if OS.has_feature("web"):
-		_fail_current_room("Colyseus connection dropped; reconnect from the lobby", source_room, generation, "dropped")
-		return
 	if grenade_events != null: grenade_events.clear()
 	grenade_events = null
 	_clear_incremental_state_cache()
@@ -205,6 +225,7 @@ func _fail_current_room(reason: String, source_room: Variant, generation: int, e
 	if grenade_events != null: grenade_events.clear()
 	grenade_events = null
 	_clear_incremental_state_cache()
+	_disconnect_room_signals()
 	# Invalidate callbacks before leave(), which can synchronously emit `left`.
 	_connection_generation += 1
 	_want_connection = false
@@ -629,6 +650,10 @@ func get_prediction_diagnostics() -> Dictionary:
 		"qa_prediction_step_count": _qa_step_count,
 		"qa_prediction_step_mean_us": float(_qa_step_us) / maxi(_qa_step_count, 1),
 		"qa_prediction_step_max_us": _qa_step_max_us,
+		"qa_vehicle_step_count": _qa_vehicle_count,
+		"qa_vehicle_step_mean_us": float(_qa_vehicle_us) / maxi(_qa_vehicle_count, 1),
+		"qa_vehicle_step_max_us": _qa_vehicle_max_us,
+		"qa_vehicle_ray_cache": VehiclePrediction.ray_cache_stats() if _qa_timing else {},
 		"qa_state_count": _qa_state_count,
 		"qa_state_mean_us": float(_qa_state_us) / maxi(_qa_state_count, 1),
 		"qa_state_max_us": _qa_state_max_us,
@@ -636,8 +661,8 @@ func get_prediction_diagnostics() -> Dictionary:
 		"qa_move_cache_misses": _qa_move_cache_misses,
 		"reconcile_seq": reconcile_seq,
 		"reconciler_pending": reconciler_pending,
-		"last_correction_m": correction_mag,
-		"drift_ema_m": drift_ema,
+		"last_correction_max_numeric": correction_mag,
+		"drift_ema_numeric": drift_ema,
 		"local_driving": _local_driving_vehicle,
 		"server_position": [server_pos.x, server_pos.y, server_pos.z],
 		"predicted_position": [predicted_pos.x, predicted_pos.y, predicted_pos.z],
@@ -711,7 +736,13 @@ func _predict_composite_step(ctx: Variant, world: Variant, command: Variant) -> 
 	var state: Variant = world.get("player")
 	if state == null or float(state.health) <= 0.0: return
 	if int(state.vehicle_index) >= 0:
+		var started := Time.get_ticks_usec() if _qa_timing else 0
 		VehiclePrediction.step(world, command, float(ctx.dt), _prediction_car_names)
+		if _qa_timing:
+			var elapsed := Time.get_ticks_usec() - started
+			_qa_vehicle_us += elapsed
+			_qa_vehicle_count += 1
+			_qa_vehicle_max_us = maxi(_qa_vehicle_max_us, elapsed)
 	else:
 		var infantry_command: Variant = command
 		if int(command.vehicle_index) >= 0:
@@ -814,6 +845,7 @@ func disconnect_from() -> void:
 	# immediately, and an SDK reconnect callback may already be queued.
 	_connection_generation += 1
 	var old_room = room
+	_disconnect_room_signals()
 	_clear_incremental_state_cache()
 	room = null
 	client = null

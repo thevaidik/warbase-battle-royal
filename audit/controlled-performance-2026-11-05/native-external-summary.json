@@ -1,0 +1,86 @@
+{
+  "release_export": true,
+  "seconds": 125.003328333328,
+  "frame_ms_p50": 6.896,
+  "frame_ms_p95": 20.572,
+  "frame_ms_p99": 93.395,
+  "peak_remotes": 63,
+  "disconnects": 0,
+  "drive_distance_m": 127.668798996977,
+  "confirmed_hits": 5,
+  "local_grenades": 2,
+  "phase_frame_times": {
+    "dead": {
+      "p50_ms": 6.896,
+      "p95_ms": 7.027,
+      "p99_ms": 7.323,
+      "samples": 860
+    },
+    "driving": {
+      "p50_ms": 6.896,
+      "p95_ms": 18.638,
+      "p99_ms": 72.629,
+      "samples": 3779
+    },
+    "walking": {
+      "p50_ms": 6.896,
+      "p95_ms": 23.821,
+      "p99_ms": 96.929,
+      "samples": 8240
+    }
+  },
+  "loadResult": "duration_complete",
+  "observed": {
+    "sdkPeersJoined": 63,
+    "nativeObserverSeen": true,
+    "nativeObserverVerifiedHuman": true,
+    "humanActorsAtPeak": 64,
+    "fullOccupancySeconds": 94.2,
+    "minHumanPlayersDuringMeasurement": 64,
+    "minLiveClientsDuringMeasurement": 64,
+    "measurementSeconds": 95.1,
+    "maxPlayersIncludingBots": 64,
+    "maxBotsObserved": 7,
+    "serverStatePatches": 1208,
+    "statePlayersAtLastSample": 8,
+    "maxClients": 64
+  },
+  "lifecycle": {
+    "controlledTransportDrops": 0,
+    "drops": 0,
+    "dropsByPhase": {
+      "joining": 0,
+      "active": 0,
+      "cleanup": 0
+    },
+    "reconnects": 0,
+    "reconnectsByPhase": {
+      "joining": 0,
+      "active": 0,
+      "cleanup": 0
+    },
+    "recoveredDrops": 0,
+    "maxRecoveryMs": 0,
+    "clientLeaves": 63,
+    "sdkCohortRemovalsExpected": 62,
+    "sdkCohortRemovalsObserved": 62,
+    "remainingHumanActorsAfterSdkLeaves": 2,
+    "serverClientsAfterSdkLeaves": 0,
+    "serverBotsAfterSdkLeaves": 0,
+    "cleanupRemovalTimedOut": false,
+    "errors": 0
+  },
+  "network": {
+    "sdkPingRttP50Ms": 1198,
+    "sdkPingRttP95Ms": 4122,
+    "sdkClockRttP50Ms": 1484.88,
+    "sdkClockSmoothedRttP95Ms": 1469.55,
+    "inputAckTotalSamples": 19,
+    "ackPendingMeanP95": 837.81,
+    "ackPendingFrameMax": 1197,
+    "roomStateGapP50Ms": 57,
+    "roomStateGapP95Ms": 272,
+    "roomStateGapMaxMs": 432
+  },
+  "rawCaptureLocation": "/tmp/warbase-controlled-native-external"
+}
