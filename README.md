@@ -71,3 +71,5 @@ Native candidate exports use `scripts/export_colyseus_native_candidate.py`. Web 
 Audio is currently disabled throughout the game.
 
 The latest [controlled packaged-client performance report](audit/controlled-performance-2026-11-05/REPORT.md) records sustained occupancy, frame-time limits and remaining memory/reliability gates.
+
+The [state-processing and coordinated-load follow-up](audit/state-optimization-2026-11-05/REPORT.md) records the latest deployed optimization, rejected experiment and failed reliability/capacity gates.

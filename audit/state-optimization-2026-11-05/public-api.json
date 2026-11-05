@@ -1,0 +1,22 @@
+{
+  "ok": true,
+  "checks": {
+    "health": {
+      "status": 200,
+      "elapsedMs": 937
+    },
+    "maps": {
+      "status": 200,
+      "count": 10
+    },
+    "rooms": {
+      "status": 200,
+      "listed": 10,
+      "onlinePlayers": 0
+    },
+    "metrics": {
+      "skipped": true,
+      "reason": "OPS_METRICS_TOKEN is unset or --no-metrics was passed"
+    }
+  }
+}

@@ -86,6 +86,11 @@ class RoomState extends Colyseus.Schema:
 	]
 
 static func to_dictionary(value: Variant) -> Variant:
+	# These schemas contain primitives only. The SDK already returns a fresh
+	# dictionary, so another recursive allocation pass adds no isolation.
+	# Nested schemas/collections retain the recursive path below.
+	if value is PlayerState or value is ObjectiveState:
+		return value.to_dictionary()
 	if value is Colyseus.Schema:
 		return to_dictionary(value.to_dictionary())
 	if value is Dictionary:

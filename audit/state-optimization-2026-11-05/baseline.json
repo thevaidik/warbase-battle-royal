@@ -1,0 +1,358 @@
+{
+  "native": {
+    "seconds": 120.01031633333,
+    "release_export": true,
+    "frame_ms_p50": 10.612,
+    "frame_ms_p95": 55.211,
+    "frame_ms_p99": 113.293,
+    "peak_remotes": 63,
+    "disconnects": 0,
+    "drive_distance_m": 0.0,
+    "confirmed_hits": 0
+  },
+  "server": {
+    "samplesWith64Clients": 71,
+    "firstToLastFullSampleSeconds": 75.667,
+    "effectiveFixedStepsPerWallSecond": 34.88971414222845,
+    "worstRollingTickP95Ms": 43.97143300063908,
+    "note": "Sampled endpoints include any short reconnect intervals; this is not proof of uninterrupted occupancy."
+  },
+  "shards": [
+    {
+      "result": "duration_complete",
+      "requested": {
+        "sdkPeers": 21,
+        "nativeObserverUsername": "QA_NATIVE_APP",
+        "humansTotalTarget": 64,
+        "coordinated": true,
+        "durationSeconds": 75,
+        "steady": true,
+        "helperEndpoint": "wss://war.vaidik.blog/colyseus",
+        "publicRouteTest": true,
+        "admissionCacheUsed": true,
+        "maxWallSeconds": 480,
+        "sdk": "0.18.8",
+        "sdkWebSocketImplementation": "WebSocket",
+        "roomCreationMs": 568,
+        "sdkJoinLatencyP95Ms": 1756
+      },
+      "observed": {
+        "sdkPeersJoined": 21,
+        "nativeObserverSeen": true,
+        "nativeObserverVerifiedHuman": true,
+        "humanActorsAtPeak": 64,
+        "fullOccupancySeconds": 72.4,
+        "minHumanPlayersDuringMeasurement": 64,
+        "minLiveClientsDuringMeasurement": 64,
+        "measurementStartedAt": 1793902586735,
+        "measurementEndedAt": 1793902661906,
+        "measurementSeconds": 75.2,
+        "maxPlayersIncludingBots": 64,
+        "maxBotsObserved": 7,
+        "serverStatePatches": 650,
+        "statePlayersAtLastSample": 8,
+        "maxClients": 64
+      },
+      "input": {
+        "tickRateHz": 60,
+        "sent": 94353,
+        "ackAdvances": 92292,
+        "zeroSendResults": 0,
+        "maxPendingInputFrames": 677,
+        "ackStallIntervals": 718,
+        "peersWithAckStalls": 21
+      },
+      "network": {
+        "sdkPingRttP50Ms": 420,
+        "sdkPingRttP95Ms": 3654,
+        "sdkClockRttP50Ms": 1501.1,
+        "sdkClockSmoothedRttP95Ms": 1556.18,
+        "inputAckTotalSamples": 15,
+        "ackPendingMeanP95": 418.95,
+        "ackPendingFrameMax": 642,
+        "roomStateGapP50Ms": 74,
+        "roomStateGapP95Ms": 396,
+        "roomStateGapMaxMs": 729
+      },
+      "lifecycle": {
+        "controlledTransportDrops": 0,
+        "drops": 0,
+        "dropsByPhase": {
+          "joining": 0,
+          "active": 0,
+          "cleanup": 0
+        },
+        "reconnects": 0,
+        "reconnectsByPhase": {
+          "joining": 0,
+          "active": 0,
+          "cleanup": 0
+        },
+        "recoveredDrops": 0,
+        "maxRecoveryMs": 0,
+        "clientLeaves": 21,
+        "sdkCohortRemovalsExpected": 20,
+        "sdkCohortRemovalsObserved": 20,
+        "remainingHumanActorsAfterSdkLeaves": 4,
+        "serverClientsAfterSdkLeaves": 0,
+        "serverBotsAfterSdkLeaves": 0,
+        "cleanupRemovalTimedOut": false,
+        "errors": 0
+      },
+      "helper": {
+        "cpuOneCorePercentMax": 6.09,
+        "eventLoopP95MsMax": 22.396927
+      },
+      "gameplay": {
+        "shotsAttempted": 21,
+        "fireEchoes": 20,
+        "confirmedHits": 0,
+        "grenadeAttempts": 8,
+        "grenadesAccepted": 1,
+        "uniqueExplosionsSeen": 9,
+        "seatAttempts": 13,
+        "vehicleApproachInputs": 33103,
+        "seatEntries": 5,
+        "vehicleInputs": 242,
+        "damageEvents": 2,
+        "killEvents": 0
+      },
+      "vehicleMovement": {
+        "vehiclesSampled": 2,
+        "vehiclesMoved": 2,
+        "totalVehiclePathMeters": 113.25
+      },
+      "authoritativeMovement": {
+        "sampledSdkPlayers": 21,
+        "playersMovedOverHalfMeter": 21,
+        "totalPathMeters": 3030.7,
+        "playersWithPositionUpdates": 21
+      }
+    },
+    {
+      "result": "duration_complete",
+      "requested": {
+        "sdkPeers": 21,
+        "nativeObserverUsername": "QA_NATIVE_APP",
+        "humansTotalTarget": 64,
+        "coordinated": true,
+        "durationSeconds": 75,
+        "steady": true,
+        "helperEndpoint": "wss://war.vaidik.blog/colyseus",
+        "publicRouteTest": true,
+        "admissionCacheUsed": true,
+        "maxWallSeconds": 480,
+        "sdk": "0.18.8",
+        "sdkWebSocketImplementation": "WebSocket",
+        "roomCreationMs": 0,
+        "sdkJoinLatencyP95Ms": 1602
+      },
+      "observed": {
+        "sdkPeersJoined": 21,
+        "nativeObserverSeen": true,
+        "nativeObserverVerifiedHuman": true,
+        "humanActorsAtPeak": 64,
+        "fullOccupancySeconds": 64.2,
+        "minHumanPlayersDuringMeasurement": 64,
+        "minLiveClientsDuringMeasurement": 64,
+        "measurementStartedAt": 1793902586735,
+        "measurementEndedAt": 1793902661906,
+        "measurementSeconds": 75.2,
+        "maxPlayersIncludingBots": 64,
+        "maxBotsObserved": 5,
+        "serverStatePatches": 637,
+        "statePlayersAtLastSample": 8,
+        "maxClients": 64
+      },
+      "input": {
+        "tickRateHz": 60,
+        "sent": 94328,
+        "ackAdvances": 90585,
+        "zeroSendResults": 151,
+        "maxPendingInputFrames": 641,
+        "ackStallIntervals": 1545,
+        "peersWithAckStalls": 21
+      },
+      "network": {
+        "sdkPingRttP50Ms": 417,
+        "sdkPingRttP95Ms": 3560,
+        "sdkClockRttP50Ms": 1505.56,
+        "sdkClockSmoothedRttP95Ms": 1555.92,
+        "inputAckTotalSamples": 15,
+        "ackPendingMeanP95": 382,
+        "ackPendingFrameMax": 594,
+        "roomStateGapP50Ms": 56,
+        "roomStateGapP95Ms": 414,
+        "roomStateGapMaxMs": 625
+      },
+      "lifecycle": {
+        "controlledTransportDrops": 0,
+        "drops": 2,
+        "dropsByPhase": {
+          "joining": 0,
+          "active": 2,
+          "cleanup": 0
+        },
+        "reconnects": 2,
+        "reconnectsByPhase": {
+          "joining": 0,
+          "active": 2,
+          "cleanup": 0
+        },
+        "recoveredDrops": 2,
+        "maxRecoveryMs": 1350,
+        "clientLeaves": 21,
+        "sdkCohortRemovalsExpected": 20,
+        "sdkCohortRemovalsObserved": 20,
+        "remainingHumanActorsAfterSdkLeaves": 4,
+        "serverClientsAfterSdkLeaves": 0,
+        "serverBotsAfterSdkLeaves": 0,
+        "cleanupRemovalTimedOut": false,
+        "errors": 0
+      },
+      "helper": {
+        "cpuOneCorePercentMax": 6.29,
+        "eventLoopP95MsMax": 22.331391
+      },
+      "gameplay": {
+        "shotsAttempted": 21,
+        "fireEchoes": 19,
+        "confirmedHits": 1,
+        "grenadeAttempts": 8,
+        "grenadesAccepted": 2,
+        "uniqueExplosionsSeen": 9,
+        "seatAttempts": 26,
+        "vehicleApproachInputs": 25620,
+        "seatEntries": 10,
+        "vehicleInputs": 505,
+        "damageEvents": 1,
+        "killEvents": 0
+      },
+      "vehicleMovement": {
+        "vehiclesSampled": 2,
+        "vehiclesMoved": 2,
+        "totalVehiclePathMeters": 113.25
+      },
+      "authoritativeMovement": {
+        "sampledSdkPlayers": 21,
+        "playersMovedOverHalfMeter": 21,
+        "totalPathMeters": 2974.12,
+        "playersWithPositionUpdates": 21
+      }
+    },
+    {
+      "result": "duration_complete",
+      "requested": {
+        "sdkPeers": 21,
+        "nativeObserverUsername": "QA_NATIVE_APP",
+        "humansTotalTarget": 64,
+        "coordinated": true,
+        "durationSeconds": 75,
+        "steady": true,
+        "helperEndpoint": "wss://war.vaidik.blog/colyseus",
+        "publicRouteTest": true,
+        "admissionCacheUsed": true,
+        "maxWallSeconds": 480,
+        "sdk": "0.18.8",
+        "sdkWebSocketImplementation": "WebSocket",
+        "roomCreationMs": 0,
+        "sdkJoinLatencyP95Ms": 1627
+      },
+      "observed": {
+        "sdkPeersJoined": 21,
+        "nativeObserverSeen": true,
+        "nativeObserverVerifiedHuman": true,
+        "humanActorsAtPeak": 64,
+        "fullOccupancySeconds": 71.9,
+        "minHumanPlayersDuringMeasurement": 64,
+        "minLiveClientsDuringMeasurement": 64,
+        "measurementStartedAt": 1793902586735,
+        "measurementEndedAt": 1793902661918,
+        "measurementSeconds": 75.2,
+        "maxPlayersIncludingBots": 64,
+        "maxBotsObserved": 5,
+        "serverStatePatches": 637,
+        "statePlayersAtLastSample": 8,
+        "maxClients": 64
+      },
+      "input": {
+        "tickRateHz": 60,
+        "sent": 94479,
+        "ackAdvances": 92386,
+        "zeroSendResults": 0,
+        "maxPendingInputFrames": 665,
+        "ackStallIntervals": 669,
+        "peersWithAckStalls": 21
+      },
+      "network": {
+        "sdkPingRttP50Ms": 422,
+        "sdkPingRttP95Ms": 3666,
+        "sdkClockRttP50Ms": 1513.97,
+        "sdkClockSmoothedRttP95Ms": 1563.52,
+        "inputAckTotalSamples": 15,
+        "ackPendingMeanP95": 380.67,
+        "ackPendingFrameMax": 617,
+        "roomStateGapP50Ms": 77,
+        "roomStateGapP95Ms": 401,
+        "roomStateGapMaxMs": 616
+      },
+      "lifecycle": {
+        "controlledTransportDrops": 0,
+        "drops": 0,
+        "dropsByPhase": {
+          "joining": 0,
+          "active": 0,
+          "cleanup": 0
+        },
+        "reconnects": 0,
+        "reconnectsByPhase": {
+          "joining": 0,
+          "active": 0,
+          "cleanup": 0
+        },
+        "recoveredDrops": 0,
+        "maxRecoveryMs": 0,
+        "clientLeaves": 21,
+        "sdkCohortRemovalsExpected": 20,
+        "sdkCohortRemovalsObserved": 20,
+        "remainingHumanActorsAfterSdkLeaves": 4,
+        "serverClientsAfterSdkLeaves": 0,
+        "serverBotsAfterSdkLeaves": 0,
+        "cleanupRemovalTimedOut": false,
+        "errors": 0
+      },
+      "helper": {
+        "cpuOneCorePercentMax": 6.14,
+        "eventLoopP95MsMax": 22.364159
+      },
+      "gameplay": {
+        "shotsAttempted": 21,
+        "fireEchoes": 21,
+        "confirmedHits": 0,
+        "grenadeAttempts": 8,
+        "grenadesAccepted": 6,
+        "uniqueExplosionsSeen": 9,
+        "seatAttempts": 11,
+        "vehicleApproachInputs": 39293,
+        "seatEntries": 3,
+        "vehicleInputs": 147,
+        "damageEvents": 3,
+        "killEvents": 0
+      },
+      "vehicleMovement": {
+        "vehiclesSampled": 2,
+        "vehiclesMoved": 2,
+        "totalVehiclePathMeters": 113.25
+      },
+      "authoritativeMovement": {
+        "sampledSdkPlayers": 21,
+        "playersMovedOverHalfMeter": 21,
+        "totalPathMeters": 3136.8,
+        "playersWithPositionUpdates": 21
+      }
+    }
+  ],
+  "acceptance": "FAIL: two recovered helper drops, conservative shared full interval under 60 seconds, frame-time budget exceeded",
+  "helperTimingNote": "Raw histogram p95 includes its 20 ms sampling period. The next runner records excess delay separately. Low measured helper CPU is independently valid.",
+  "cpuProfileScope": "Late profile captured cleanup, not full load; excluded from full-room bottleneck diagnosis."
+}

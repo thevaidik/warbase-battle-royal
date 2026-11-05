@@ -1,8 +1,12 @@
 # Colyseus gameplay and networking feature audit
 
-## Latest follow-up — controlled packaged-client measurements
+## Latest follow-up — state processing and corrected load testing
 
-The `warbase-colyseus:controlled-reconnect-20261105` release is deployed. Sustained 64-player native occupancy passed for 94.2 seconds without disconnects, but native/Web frame-time budgets and repeated-session memory stability remain open. See [the measured follow-up](controlled-performance-2026-11-05/REPORT.md). Using Colyseus features does not certify these gameplay performance gates.
+The deployed release is `warbase-colyseus:state-pass-20261105`. Redundant flat-schema copying is removed, with parity/isolation checks and a measured conversion benchmark. A coordinated multiprocess load test rules out helper CPU saturation in its completed baseline, but full-room FPS, public connection reliability and memory-retention gates remain open. See [the follow-up](state-optimization-2026-11-05/REPORT.md).
+
+## Previous follow-up — controlled packaged-client measurements
+
+The previous release was `warbase-colyseus:controlled-reconnect-20261105`. Sustained 64-player native occupancy passed for 94.2 seconds without disconnects, but native/Web frame-time budgets and repeated-session memory stability remain open. See [the measured follow-up](controlled-performance-2026-11-05/REPORT.md). Using Colyseus features does not certify these gameplay performance gates.
 
 ## Previous follow-up — Web recovery and performance diagnostics
 

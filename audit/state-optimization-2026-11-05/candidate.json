@@ -1,0 +1,343 @@
+{
+  "result": "FAIL: observer disconnected during population; no full-room measurement",
+  "native": {
+    "seconds": 41.4928493333334,
+    "frame_ms_p50": 9.264,
+    "frame_ms_p95": 17.688,
+    "frame_ms_p99": 27.816,
+    "peak_remotes": 44,
+    "disconnects": 1,
+    "drive_distance_m": 0.0,
+    "confirmed_hits": 0
+  },
+  "shards": [
+    {
+      "result": "failed: Only 20/21 SDK peers joined: SDK1w2s3vupak05",
+      "observed": {
+        "sdkPeersJoined": 20,
+        "nativeObserverSeen": true,
+        "nativeObserverVerifiedHuman": true,
+        "humanActorsAtPeak": 62,
+        "fullOccupancySeconds": 0,
+        "minHumanPlayersDuringMeasurement": 0,
+        "minLiveClientsDuringMeasurement": 0,
+        "measurementStartedAt": 0,
+        "measurementEndedAt": 0,
+        "measurementSeconds": 0,
+        "maxPlayersIncludingBots": 62,
+        "maxBotsObserved": 7,
+        "serverStatePatches": 2576,
+        "statePlayersAtLastSample": 8,
+        "maxClients": 64
+      },
+      "lifecycle": {
+        "controlledTransportDrops": 0,
+        "drops": 7,
+        "dropsByPhase": {
+          "joining": 7,
+          "active": 0,
+          "cleanup": 0
+        },
+        "reconnects": 3,
+        "reconnectsByPhase": {
+          "joining": 3,
+          "active": 0,
+          "cleanup": 0
+        },
+        "recoveredDrops": 3,
+        "maxRecoveryMs": 3058,
+        "clientLeaves": 19,
+        "sdkCohortRemovalsExpected": 19,
+        "sdkCohortRemovalsObserved": 19,
+        "remainingHumanActorsAfterSdkLeaves": 2,
+        "serverClientsAfterSdkLeaves": 0,
+        "serverBotsAfterSdkLeaves": 0,
+        "cleanupRemovalTimedOut": true,
+        "errors": 5
+      },
+      "errorSamples": [
+        {
+          "username": "SDK1w2s3vupak01",
+          "type": "drop",
+          "phase": "joining",
+          "code": 1006,
+          "reason": ""
+        },
+        {
+          "username": "SDK1w2s3vupak01",
+          "type": "room_error",
+          "phase": "joining",
+          "code": 524,
+          "message": "seat reservation expired."
+        },
+        {
+          "username": "SDK1w2s3vupak01",
+          "type": "leave",
+          "phase": "joining",
+          "code": 4003,
+          "reason": ""
+        },
+        {
+          "username": "SDK1w2s3vupak02",
+          "type": "drop",
+          "phase": "joining",
+          "code": 1006,
+          "reason": ""
+        },
+        {
+          "username": "SDK1w2s3vupak04",
+          "type": "drop",
+          "phase": "joining",
+          "code": 1006,
+          "reason": ""
+        },
+        {
+          "username": "SDK1w2s3vupak04",
+          "type": "room_error",
+          "phase": "joining",
+          "code": 524,
+          "message": "seat reservation expired."
+        },
+        {
+          "username": "SDK1w2s3vupak04",
+          "type": "leave",
+          "phase": "joining",
+          "code": 4003,
+          "reason": ""
+        },
+        {
+          "username": "SDK1w2s3vupak05",
+          "type": "join_failure",
+          "message": "fetch failed"
+        },
+        {
+          "username": "SDK1w2s3vupak10",
+          "type": "drop",
+          "phase": "joining",
+          "code": 1006,
+          "reason": ""
+        },
+        {
+          "username": "SDK1w2s3vupak10",
+          "type": "drop",
+          "phase": "joining",
+          "code": 1006,
+          "reason": ""
+        },
+        {
+          "username": "SDK1w2s3vupak11",
+          "type": "drop",
+          "phase": "joining",
+          "code": 1006,
+          "reason": ""
+        },
+        {
+          "username": "SDK1w2s3vupak11",
+          "type": "room_error",
+          "phase": "joining",
+          "code": 524,
+          "message": "seat reservation expired."
+        },
+        {
+          "username": "SDK1w2s3vupak11",
+          "type": "leave",
+          "phase": "joining",
+          "code": 4003,
+          "reason": ""
+        },
+        {
+          "username": "SDK1w2s3vupak20",
+          "type": "drop",
+          "phase": "joining",
+          "code": 1006,
+          "reason": ""
+        },
+        {
+          "username": "SDK1w2s3vupak20",
+          "type": "room_error",
+          "phase": "joining",
+          "code": 524,
+          "message": "seat reservation expired."
+        },
+        {
+          "username": "SDK1w2s3vupak20",
+          "type": "leave",
+          "phase": "joining",
+          "code": 4003,
+          "reason": ""
+        }
+      ]
+    },
+    {
+      "result": "failed: Expected 63 total SDK peers plus one native observer; server state has 53 human actors",
+      "observed": {
+        "sdkPeersJoined": 21,
+        "nativeObserverSeen": true,
+        "nativeObserverVerifiedHuman": true,
+        "humanActorsAtPeak": 62,
+        "fullOccupancySeconds": 0,
+        "minHumanPlayersDuringMeasurement": 0,
+        "minLiveClientsDuringMeasurement": 0,
+        "measurementStartedAt": 0,
+        "measurementEndedAt": 0,
+        "measurementSeconds": 0,
+        "maxPlayersIncludingBots": 62,
+        "maxBotsObserved": 6,
+        "serverStatePatches": 2433,
+        "statePlayersAtLastSample": 21,
+        "maxClients": 64
+      },
+      "lifecycle": {
+        "controlledTransportDrops": 0,
+        "drops": 5,
+        "dropsByPhase": {
+          "joining": 5,
+          "active": 0,
+          "cleanup": 0
+        },
+        "reconnects": 5,
+        "reconnectsByPhase": {
+          "joining": 5,
+          "active": 0,
+          "cleanup": 0
+        },
+        "recoveredDrops": 5,
+        "maxRecoveryMs": 1427,
+        "clientLeaves": 20,
+        "sdkCohortRemovalsExpected": 20,
+        "sdkCohortRemovalsObserved": 20,
+        "remainingHumanActorsAfterSdkLeaves": 21,
+        "serverClientsAfterSdkLeaves": 0,
+        "serverBotsAfterSdkLeaves": 0,
+        "cleanupRemovalTimedOut": true,
+        "errors": 0
+      },
+      "errorSamples": [
+        {
+          "username": "SDK1w2w3vuqhx01",
+          "type": "drop",
+          "phase": "joining",
+          "code": 1006,
+          "reason": ""
+        },
+        {
+          "username": "SDK1w2w3vuqhx09",
+          "type": "drop",
+          "phase": "joining",
+          "code": 1006,
+          "reason": ""
+        },
+        {
+          "username": "SDK1w2w3vuqhx16",
+          "type": "drop",
+          "phase": "joining",
+          "code": 1006,
+          "reason": ""
+        },
+        {
+          "username": "SDK1w2w3vuqhx18",
+          "type": "drop",
+          "phase": "joining",
+          "code": 1006,
+          "reason": ""
+        },
+        {
+          "username": "SDK1w2w3vuqhx20",
+          "type": "drop",
+          "phase": "joining",
+          "code": 1006,
+          "reason": ""
+        }
+      ]
+    },
+    {
+      "result": "failed: Only 20/21 SDK peers joined: SDK1w2x3vuqhy20",
+      "observed": {
+        "sdkPeersJoined": 20,
+        "nativeObserverSeen": true,
+        "nativeObserverVerifiedHuman": true,
+        "humanActorsAtPeak": 62,
+        "fullOccupancySeconds": 0,
+        "minHumanPlayersDuringMeasurement": 0,
+        "minLiveClientsDuringMeasurement": 0,
+        "measurementStartedAt": 0,
+        "measurementEndedAt": 0,
+        "measurementSeconds": 0,
+        "maxPlayersIncludingBots": 62,
+        "maxBotsObserved": 7,
+        "serverStatePatches": 2612,
+        "statePlayersAtLastSample": 8,
+        "maxClients": 64
+      },
+      "lifecycle": {
+        "controlledTransportDrops": 0,
+        "drops": 3,
+        "dropsByPhase": {
+          "joining": 3,
+          "active": 0,
+          "cleanup": 0
+        },
+        "reconnects": 2,
+        "reconnectsByPhase": {
+          "joining": 2,
+          "active": 0,
+          "cleanup": 0
+        },
+        "recoveredDrops": 2,
+        "maxRecoveryMs": 5356,
+        "clientLeaves": 20,
+        "sdkCohortRemovalsExpected": 19,
+        "sdkCohortRemovalsObserved": 19,
+        "remainingHumanActorsAfterSdkLeaves": 1,
+        "serverClientsAfterSdkLeaves": 0,
+        "serverBotsAfterSdkLeaves": 0,
+        "cleanupRemovalTimedOut": true,
+        "errors": 2
+      },
+      "errorSamples": [
+        {
+          "username": "SDK1w2x3vuqhy03",
+          "type": "drop",
+          "phase": "joining",
+          "code": 1006,
+          "reason": ""
+        },
+        {
+          "username": "SDK1w2x3vuqhy03",
+          "type": "room_error",
+          "phase": "joining",
+          "code": 524,
+          "message": "seat reservation expired."
+        },
+        {
+          "username": "SDK1w2x3vuqhy03",
+          "type": "leave",
+          "phase": "joining",
+          "code": 4003,
+          "reason": ""
+        },
+        {
+          "username": "SDK1w2x3vuqhy08",
+          "type": "drop",
+          "phase": "joining",
+          "code": 1006,
+          "reason": ""
+        },
+        {
+          "username": "SDK1w2x3vuqhy12",
+          "type": "drop",
+          "phase": "joining",
+          "code": 1006,
+          "reason": ""
+        },
+        {
+          "username": "SDK1w2x3vuqhy20",
+          "type": "join_failure",
+          "message": "timed out after 20000 ms"
+        }
+      ]
+    }
+  ],
+  "profileScope": "ready barrier never reached; fallback CPU capture was after cohort cleanup and is excluded from full-room diagnosis",
+  "rawCaptureLocation": "/tmp/warbase-sharded-candidate"
+}

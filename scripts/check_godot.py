@@ -11,6 +11,7 @@ import time
 root = pathlib.Path(__file__).resolve().parents[1]
 godot = os.environ.get("GODOT", "/Applications/Godot.app/Contents/MacOS/Godot")
 commands = [
+    (["res://scenes/tests/SchemaSnapshot.tscn"], "SCHEMA_SNAPSHOT parity=64"),
     (["res://scenes/tests/WorldGeometryPrecomputed.tscn"], "WORLD_GEOMETRY_PRECOMPUTED"),
     (["res://scenes/tests/RoomSignalCleanup.tscn"], "ROOM_SIGNAL_CLEANUP_OK"),
     (["res://scenes/tests/ObjectiveMarkers.tscn"], "OBJECTIVE_MARKERS_OK"),

@@ -18,14 +18,17 @@ const JOIN_TIMEOUT_MS = 20_000;
 const PLAYABLE_MAPS = new Set(['football', 'resoforge', 'industrial', 'village', 'arena', 'shipment', 'dust2', 'nuketown', 'canyon', 'desert_oasis']);
 
 function argumentsFrom(argv) {
-  const values = { url: '', map: 'industrial', mode: 'CONQUEST', peers: 63, seconds: 180, observer: 'QA_NATIVE', observerTimeout: 90, output: '/results/official-load.json', steady: false, admissionCache: '' };
+  const values = { url: '', map: 'industrial', mode: 'CONQUEST', peers: 63, seconds: 180, observer: 'QA_NATIVE', observerTimeout: 90, output: '/results/official-load.json', steady: false, admissionCache: '', roomId: '', totalPeers: null, coordinated: false };
   for (let i = 0; i < argv.length; i++) {
     const [key, inline] = argv[i].split('=', 2);
     if (key === '--help') return { help: true };
+    if (key === '--coordinated') { values.coordinated = true; continue; }
     if (key === '--steady') { values.steady = true; continue; }
     const value = inline ?? argv[++i];
     if (!value) throw new Error(`Missing value for ${key}`);
     if (key === '--url') values.url = value;
+    else if (key === '--room-id') values.roomId = value;
+    else if (key === '--total-peers') values.totalPeers = Number(value);
     else if (key === '--map') values.map = value;
     else if (key === '--mode') values.mode = value;
     else if (key === '--peers') values.peers = Number(value);
@@ -41,6 +44,10 @@ function argumentsFrom(argv) {
 
 function validate(options) {
   if (options.url !== OFFICIAL_URL) throw new Error(`Refusing endpoint. --url must be exactly ${OFFICIAL_URL}`);
+  options.totalPeers ??= options.peers;
+  if (!Number.isInteger(options.totalPeers) || options.totalPeers < options.peers || options.totalPeers > MAX_PEERS) throw new Error('--total-peers must include this cohort and be at most 63');
+  if (options.roomId && !/^[A-Za-z0-9_-]{1,64}$/.test(options.roomId)) throw new Error('Invalid room identifier');
+  if (options.coordinated && !process.send) throw new Error('--coordinated requires the multiprocess runner');
   const parsed = new URL(options.url);
   if (parsed.protocol !== 'https:' || parsed.hostname !== 'war.vaidik.blog' || parsed.pathname !== '/colyseus' || parsed.search || parsed.hash) {
     throw new Error('Refusing non-official or non-candidate endpoint');
@@ -112,6 +119,23 @@ async function writeAdmissionCache(cachePath, cache) {
   await writeFile(temporary, `${JSON.stringify(cache)}\n`, { mode: 0o600, flag: 'wx' });
   await chmod(temporary, 0o600);
   await rename(temporary, destination);
+}
+
+export async function prepareAdmissionTickets(count, minimumRemainingMs, cachePath, signal) {
+  const criteria = { endpoint: OFFICIAL_URL, count, nowMs: Date.now(), minimumRemainingMs };
+  let cache = await readAdmissionCache(cachePath, criteria);
+  if (cache) return cache;
+  const tickets = [];
+  for (let index = 0; index < count; index++) {
+    if (index > 0) await waitFor(2100, signal);
+    const issuedAt = Date.now();
+    const ticket = await fetchJson(`${OFFICIAL_URL}/api/admission`, { method: 'POST' }, 7000);
+    if (!ticket.token || !Number.isFinite(Number(ticket.expiresIn))) throw new Error('Invalid signed admission ticket');
+    tickets.push({ token: ticket.token, expiresAt: issuedAt + Number(ticket.expiresIn) * 1000 });
+  }
+  cache = { endpoint: OFFICIAL_URL, tickets };
+  await writeAdmissionCache(cachePath, cache);
+  return cache;
 }
 
 function waitFor(ms, signal) {
@@ -205,7 +229,7 @@ async function main() {
   process.once('SIGTERM', () => abort.abort(new Error('terminated')));
   const startedAt = Date.now();
   const hardStop = setTimeout(() => abort.abort(new Error(`hard wall limit ${MAX_WALL_SECONDS}s reached`)), MAX_WALL_SECONDS * 1000);
-  const loopDelay = monitorEventLoopDelay({ resolution: 20 });
+  const loopDelay = monitorEventLoopDelay({ resolution: 10 });
   loopDelay.enable();
   const cpuStart = process.cpuUsage();
   const resources = [];
@@ -236,7 +260,7 @@ async function main() {
   let finalReason = 'completed';
   let creationMs = 0;
   const runName = `Load_${Date.now().toString(36)}`;
-  const usernamePrefix = `SDK${Date.now().toString(36).slice(-8)}`;
+  const usernamePrefix = `SDK${process.pid.toString(36)}${Date.now().toString(36).slice(-6)}`;
   let sdkClient;
   let sampleTimer;
   let actionTimer;
@@ -306,24 +330,9 @@ async function main() {
     // Each simulated human needs its own signed identity. Pace issuance below
     // the production per-caller quota; never disable admission for a load run.
     const requiredCacheHorizonMs = (options.seconds + options.observerTimeout + 60) * 1000;
-    const cacheCriteria = { endpoint: OFFICIAL_URL, count: options.peers, nowMs: Date.now(), minimumRemainingMs: requiredCacheHorizonMs };
-    let admissionCache = await readAdmissionCache(options.admissionCache, cacheCriteria);
+    const admissionCache = await prepareAdmissionTickets(options.peers, requiredCacheHorizonMs, options.admissionCache, abort.signal);
     const admittedClients = [];
     const admissionTokens = [];
-    if (admissionCache) process.stdout.write(`ADMISSION_CACHE reused=${admissionCache.tickets.length} endpoint=official\n`);
-    else {
-      const tickets = [];
-      for (let index = 0; index < options.peers; index++) {
-        if (index > 0) await waitFor(2100, abort.signal);
-        const issuedAt = Date.now();
-        const ticket = await fetchJson(`${origin}/api/admission`, { method: 'POST' }, 7000);
-        if (!ticket.token || !Number.isFinite(Number(ticket.expiresIn))) throw new Error('Admission issuer returned an invalid signed ticket');
-        tickets.push({ token: ticket.token, expiresAt: issuedAt + Number(ticket.expiresIn) * 1000 });
-      }
-      admissionCache = { endpoint: OFFICIAL_URL, tickets };
-      await writeAdmissionCache(options.admissionCache, admissionCache);
-      process.stdout.write(`ADMISSION_CACHE reused=0 minted=${tickets.length} endpoint=official\n`);
-    }
     for (let index = 0; index < options.peers; index++) {
       const ticket = admissionCache.tickets[index];
       const peerClient = new Client(options.url);
@@ -332,13 +341,17 @@ async function main() {
       admissionTokens.push(ticket.token);
     }
     const createStart = Date.now();
-    const created = await fetchJson(`${origin}/api/rooms`, {
-      method: 'POST', headers: { authorization: `Bearer ${admissionTokens[0]}` }, body: JSON.stringify({ map: options.map, mode: options.mode, name: `${runName} official SDK cohort`, timeOfDay: 'noon' }),
-    }, 10_000);
+    if (options.roomId) roomId = options.roomId;
+    else {
+      const created = await fetchJson(`${origin}/api/rooms`, {
+        method: 'POST', headers: { authorization: `Bearer ${admissionTokens[0]}` }, body: JSON.stringify({ map: options.map, mode: options.mode, name: `${runName} official SDK cohort`, timeOfDay: 'noon' }),
+      }, 10_000);
+      roomId = String(created.room_id ?? '');
+    }
     creationMs = Date.now() - createStart;
-    roomId = String(created.room_id ?? '');
     if (!roomId) throw new Error('Official room creation returned no room_id');
     process.stdout.write(`PREPARED_ROOM room_id=${roomId} observer=${options.observer} endpoint=${OFFICIAL_URL}\n`);
+    process.send?.({ type: 'room', roomId });
 
     sdkClient = admittedClients[0];
     gateUsername = `${usernamePrefix}Gate`;
@@ -430,9 +443,9 @@ async function main() {
       if (abort.signal.aborted) throw abort.signal.reason;
     }
 
-    const stateDeadline = Date.now() + 15_000;
+    const stateDeadline = Date.now() + (options.coordinated ? 90_000 : 15_000);
     while (Date.now() < stateDeadline && !abort.signal.aborted) {
-      if (entries(gate.state.players).filter(([, player]) => !player.is_bot).length >= options.peers + 1) break;
+      if (entries(gate.state.players).filter(([, player]) => !player.is_bot).length >= options.totalPeers + 1) break;
       await waitFor(100, abort.signal).catch(() => {});
     }
     const actualHumanNames = entries(gate.state.players).filter(([, player]) => !player.is_bot).map(([name]) => String(name));
@@ -441,10 +454,27 @@ async function main() {
     const targetSdkCount = options.peers;
     const missingSdk = [...Array(targetSdkCount).keys()].map((index) => index === 0 ? gateUsername : `${usernamePrefix}${String(index).padStart(2, '0')}`).filter((name) => !sdkNames.has(name));
     if (missingSdk.length) throw new Error(`Only ${sdkNames.size}/${targetSdkCount} SDK peers joined: ${missingSdk.slice(0, 5).join(', ')}`);
-    if (actualHumanNames.length !== options.peers + observerCount) {
-      throw new Error(`Expected ${options.peers} SDK peers plus one native observer; server state has ${actualHumanNames.length} human actors`);
+    if (actualHumanNames.length !== options.totalPeers + observerCount) {
+      throw new Error(`Expected ${options.totalPeers} total SDK peers plus one native observer; server state has ${actualHumanNames.length} human actors`);
     }
 
+    if (options.coordinated) {
+      const go = new Promise((resolve, reject) => {
+        const receive = (message) => {
+          if (message?.type !== 'start' || !Number.isFinite(message.at)) return;
+          cleanup(); resolve(message.at);
+        };
+        const cancel = () => { cleanup(); reject(abort.signal.reason); };
+        const cleanup = () => { process.off('message', receive); abort.signal.removeEventListener('abort', cancel); };
+        process.on('message', receive);
+        abort.signal.addEventListener('abort', cancel, { once: true });
+      });
+      process.send({ type: 'ready', roomId });
+      const startAt = await go;
+      await waitFor(Math.max(0, startAt - Date.now()), abort.signal);
+    }
+    let previousResourceAt = Date.now();
+    let previousResourceCpu = process.cpuUsage();
     inputTimer = setInterval(() => {
       const now = Date.now();
       const elapsed = (now - loadStartedAt) / 1000;
@@ -573,7 +603,10 @@ async function main() {
         if (Number.isFinite(rtt)) clockRttSamples.push({ at: Date.now(), username: peer.username, rttMs: rtt, smoothedRttMs: smoothedRtt });
       }
       ackSamples.push({ at: Date.now(), totalAckedInputs: acks, pendingMean: pending.length ? pending.reduce((a, b) => a + b, 0) / pending.length : 0, pendingMax: Math.max(0, ...pending) });
-      resources.push({ at: Date.now(), rssBytes: memory.rss, heapUsedBytes: memory.heapUsed, cpuUserMs: cpu.user / 1000, cpuSystemMs: cpu.system / 1000, eventLoopP95Ms: Number(loopDelay.percentile(95) / 1e6), eventLoopMaxMs: Number(loopDelay.max / 1e6) });
+      const resourceAt = Date.now();
+      const cpuPercent = ((cpu.user - previousResourceCpu.user) + (cpu.system - previousResourceCpu.system)) / Math.max(1, resourceAt - previousResourceAt) / 10;
+      previousResourceAt = resourceAt; previousResourceCpu = cpu;
+      resources.push({ cpuOneCorePercent: Number(cpuPercent.toFixed(2)), at: resourceAt, rssBytes: memory.rss, heapUsedBytes: memory.heapUsed, cpuUserMs: cpu.user / 1000, cpuSystemMs: cpu.system / 1000, eventLoopP95Ms: Number(loopDelay.percentile(95) / 1e6), eventLoopExcessP95Ms: Math.max(0, Number(loopDelay.percentile(95) / 1e6) - 10), eventLoopMaxMs: Number(loopDelay.max / 1e6) });
       loopDelay.reset();
       try {
         const response = await fetchJson(`${origin}/api/rooms/${encodeURIComponent(roomId)}`, {}, 3000);
@@ -676,19 +709,19 @@ async function main() {
     map: options.map, mode: options.mode,
     result: finalReason,
     runSeconds: Number(((Date.now() - startedAt) / 1000).toFixed(1)),
-    requested: { sdkPeers: options.peers, nativeObserverUsername: options.observer, humansTotalTarget: options.peers + 1, durationSeconds: options.seconds, steady: options.steady, helperEndpoint: 'wss://war.vaidik.blog/colyseus', publicRouteTest: true, admissionCacheUsed: Boolean(options.admissionCache), maxWallSeconds: MAX_WALL_SECONDS, sdk: SDK_VERSION, sdkWebSocketImplementation: NodeWebSocket.name, roomCreationMs: creationMs, sdkJoinLatencyP95Ms: percentile(peerCounters.map((peer) => peer.joinMs).filter(Number.isFinite), 0.95) },
+    requested: { sdkPeers: options.peers, nativeObserverUsername: options.observer, humansTotalTarget: options.totalPeers + 1, coordinated: options.coordinated, durationSeconds: options.seconds, steady: options.steady, helperEndpoint: 'wss://war.vaidik.blog/colyseus', publicRouteTest: true, admissionCacheUsed: Boolean(options.admissionCache), maxWallSeconds: MAX_WALL_SECONDS, sdk: SDK_VERSION, sdkWebSocketImplementation: NodeWebSocket.name, roomCreationMs: creationMs, sdkJoinLatencyP95Ms: percentile(peerCounters.map((peer) => peer.joinMs).filter(Number.isFinite), 0.95) },
     helperTransport: { label: 'official-public-websocket', implementation: NodeWebSocket.name, negotiatedExtensions },
-    observed: { sdkPeersJoined: joinedPeers, nativeObserverSeen: nativeObserverJoined, nativeObserverVerifiedHuman, humanActorsAtPeak: maxHumans, fullOccupancySeconds: Number((fullOccupancyMs / 1000).toFixed(1)), minHumanPlayersDuringMeasurement: Number.isFinite(minHumanPlayersDuringMeasurement) ? minHumanPlayersDuringMeasurement : 0, minLiveClientsDuringMeasurement: Number.isFinite(minLiveClientsDuringMeasurement) ? minLiveClientsDuringMeasurement : 0, measurementSeconds: measurementStartedAt ? Number(((measurementEndedAt - measurementStartedAt) / 1000).toFixed(1)) : 0, maxPlayersIncludingBots: maxPlayers, maxBotsObserved: maxBots, serverStatePatches: roomStateCount, statePlayersAtLastSample: statePlayersCount, maxClients: 64 },
+    observed: { sdkPeersJoined: joinedPeers, nativeObserverSeen: nativeObserverJoined, nativeObserverVerifiedHuman, humanActorsAtPeak: maxHumans, fullOccupancySeconds: Number((fullOccupancyMs / 1000).toFixed(1)), minHumanPlayersDuringMeasurement: Number.isFinite(minHumanPlayersDuringMeasurement) ? minHumanPlayersDuringMeasurement : 0, minLiveClientsDuringMeasurement: Number.isFinite(minLiveClientsDuringMeasurement) ? minLiveClientsDuringMeasurement : 0, measurementStartedAt, measurementEndedAt, measurementSeconds: measurementStartedAt ? Number(((measurementEndedAt - measurementStartedAt) / 1000).toFixed(1)) : 0, maxPlayersIncludingBots: maxPlayers, maxBotsObserved: maxBots, serverStatePatches: roomStateCount, statePlayersAtLastSample: statePlayersCount, maxClients: 64 },
     input: { tickRateHz: peerCounters.find((p) => p.inputRateHz)?.inputRateHz ?? null, sent: counters.movementInputsSent, ackAdvances: counters.ackAdvances, zeroSendResults: counters.zeroSendResults, maxPendingInputFrames: counters.maxPendingInputs, ackStallIntervals: counters.ackStalls, peersWithAckStalls: peerCounters.filter((peer) => peer.hadAckStall).length },
     gameplay: { shotsAttempted: counters.shotsAttempted, fireEchoes: counters.fireEchoes, confirmedHits: counters.confirmedHits, grenadeAttempts: counters.grenadeAttempts, grenadesAccepted: counters.grenadeAccepted, uniqueExplosionsSeen: allExplosionIds.size, seatAttempts: counters.seatAttempts, vehicleApproachInputs: counters.vehicleApproachInputs, seatEntries: counters.seatEntries, vehicleInputs: counters.vehicleInputs, damageEvents: counters.damageEvents, killEvents: counters.killEvents },
     authoritativeMovement: { sampledSdkPlayers: serverPositions.size, playersMovedOverHalfMeter: [...serverPositions.values()].filter((v) => v.path >= 0.5).length, totalPathMeters: Number([...serverPositions.values()].reduce((sum, v) => sum + v.path, 0).toFixed(2)), playersWithPositionUpdates: [...serverPositions.values()].filter((v) => v.updates > 0).length },
     vehicleMovement: { vehiclesSampled: vehiclePositions.size, vehiclesMoved: [...vehiclePositions.values()].filter((v) => v.path >= 0.25).length, totalVehiclePathMeters: Number([...vehiclePositions.values()].reduce((sum, v) => sum + v.path, 0).toFixed(2)) },
     lifecycle: { controlledTransportDrops: counters.forcedDrops, drops: counters.drops, dropsByPhase: counters.dropsByPhase, reconnects: counters.reconnects, reconnectsByPhase: counters.reconnectsByPhase, recoveredDrops: recoveredDropCount, maxRecoveryMs, clientLeaves: counters.leaves, sdkCohortRemovalsExpected: Math.max(0, joinedPeers - 1), sdkCohortRemovalsObserved: removalsObserved.size, remainingHumanActorsAfterSdkLeaves: remainingHumansAfterCohort, serverClientsAfterSdkLeaves: serverClientsAfterCohort, serverBotsAfterSdkLeaves: serverBotsAfterCohort, cleanupRemovalTimedOut, errors: counters.errors },
     network: { sdkPingRttP50Ms: percentile(pingSamples.map((sample) => sample.ms), 0.5), sdkPingRttP95Ms: percentile(pingSamples.map((sample) => sample.ms), 0.95), sdkClockRttP50Ms: percentile(clockRttSamples.map((sample) => sample.rttMs), 0.5), sdkClockSmoothedRttP95Ms: percentile(clockRttSamples.map((sample) => sample.smoothedRttMs), 0.95), inputAckTotalSamples: ackSamples.length, ackPendingMeanP95: percentile(ackSamples.map((sample) => sample.pendingMean), 0.95), ackPendingFrameMax: Math.max(0, ...ackSamples.map((sample) => sample.pendingMax)), roomStateGapP50Ms: percentile(stateGaps, 0.5), roomStateGapP95Ms: percentile(stateGaps, 0.95), roomStateGapMaxMs: Math.max(0, ...stateGaps) },
-    helperResources: { rssP95Bytes: percentile(resources.map((sample) => sample.rssBytes), 0.95), heapP95Bytes: percentile(resources.map((sample) => sample.heapUsedBytes), 0.95), processCpuUserMs: Number((endCpu.user / 1000).toFixed(1)), processCpuSystemMs: Number((endCpu.system / 1000).toFixed(1)), eventLoopP95MsMax: Math.max(0, ...resources.map((sample) => sample.eventLoopP95Ms)), samples: resources },
-    serverContainerResources: 'Collected separately by scripts/run_colyseus_official_load.sh via docker stats; cohort executes on the server network/host, so its route and RTT differ from the Mac observer.',
+    helperResources: { eventLoopResolutionMs: 10, eventLoopExcessP95MsMax: Math.max(0, ...resources.map(s => s.eventLoopExcessP95Ms)), cpuOneCorePercentMax: Math.max(0, ...resources.map((s) => s.cpuOneCorePercent)), rssP95Bytes: percentile(resources.map((sample) => sample.rssBytes), 0.95), heapP95Bytes: percentile(resources.map((sample) => sample.heapUsedBytes), 0.95), processCpuUserMs: Number((endCpu.user / 1000).toFixed(1)), processCpuSystemMs: Number((endCpu.system / 1000).toFixed(1)), eventLoopP95MsMax: Math.max(0, ...resources.map((sample) => sample.eventLoopP95Ms)), samples: resources },
+    serverContainerResources: 'Collect server telemetry separately; this report measures only its SDK helper process.',
     errorSamples: counters.errorSamples,
-    limits: { officialUrlGuard: true, directTransformMutation: false, localCapacityRun: false, loadPeersIncludeBots: false, nodeContainerCpu: '2.0 cores', nodeContainerMemory: '1536 MiB', nodeContainerPids: 128 },
+    limits: { officialUrlGuard: true, directTransformMutation: false, localCapacityRun: false, loadPeersIncludeBots: false, helperPid: process.pid, helperPlacement: 'Record the runner machine separately; no container resource limit is assumed' },
     evidenceCoverage: { nativeObserverGate: nativeObserverJoined && nativeObserverVerifiedHuman, peak64HumanActors: maxHumans >= 64, sustained64HumanOccupancy: !options.steady || fullOccupancyMs >= Math.min(60, Math.max(0, options.seconds - 2)) * 1000, authoritativeMovement: [...serverPositions.values()].some((v) => v.path >= 0.5), fireEcho: counters.fireEchoes > 0, confirmedHit: counters.confirmedHits > 0, acceptedGrenade: counters.grenadeAccepted > 0, explosion: allExplosionIds.size > 0, vehicleSeatEntry: counters.seatEntries > 0, vehicleInputsSent: counters.vehicleInputs > 0, vehicleMotion: [...vehiclePositions.values()].some((v) => v.path >= 0.25), sdkCleanupObserved: removalsObserved.size >= Math.max(0, joinedPeers - 1) && !cleanupRemovalTimedOut },
   };
   report.missingEvidence = Object.entries(report.evidenceCoverage).filter(([, observed]) => !observed).map(([name]) => name);
@@ -706,8 +739,8 @@ async function main() {
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {
-  main().then((code) => { process.exitCode = code; }).catch((error) => {
+  main().then((code) => { process.exitCode = code; process.disconnect?.(); }).catch((error) => {
     process.stderr.write(`LOAD_HARNESS_FATAL ${error.message ?? error}\n`);
-    process.exitCode = 2;
+    process.exitCode = 2; process.disconnect?.();
   });
 }

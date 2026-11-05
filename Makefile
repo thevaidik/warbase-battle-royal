@@ -41,4 +41,4 @@ docker:
 .PHONY: test-performance-tools
 test-performance-tools:
 	python3 -m unittest discover -s scripts -p 'test_performance_gate.py'
-	cd warbase-colyseus && node --test scripts/official-load-harness.contract.test.mjs
+	cd warbase-colyseus && node --test scripts/official-load-harness.contract.test.mjs scripts/official-load-multiprocess.contract.test.mjs

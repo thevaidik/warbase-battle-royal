@@ -1,0 +1,20 @@
+{
+  "godotVersion": "4.7.2",
+  "colyseusGodotSdk": "0.18.9",
+  "officialSdkModified": false,
+  "boundedGodotScenes": 15,
+  "godotResult": "pass",
+  "performanceGateUnitTests": 6,
+  "harnessContracts": 7,
+  "multiprocessContracts": 6,
+  "toolTestsResult": "pass",
+  "nativeWebSourceFingerprint": "dc955da473cb2954de80658f34f9be9db0af5659116abd036ff4f83173d1d1d3",
+  "nativeWebExportAndPackage": "pass",
+  "serverExperimentSuite": {
+    "passed": 90,
+    "optionalBenchmarkSkipped": 1,
+    "experimentReverted": true
+  },
+  "inspectorCleanup": "verified closed",
+  "acceptance": "FAIL: full-room performance, public connection reliability and memory plateau are unresolved"
+}
