@@ -1,6 +1,6 @@
 # Cleanup and optimization — 2026-11-05
 
-Deployed to Umbrel as `warbase-colyseus:cleanup-20261105`. The existing gateway and persistent admin/admission volumes are preserved. Follow-up: at the owner's request, retired WarBase deployment containers and obsolete tagged images were removed. Current healthy services and all persistent volumes are preserved. Source changes are being committed and pushed to `codex/colyseus-migration`.
+Deployed to Umbrel as `warbase-colyseus:cleanup-20261105`. The existing gateway and persistent admin/admission volumes are preserved. Follow-up: at the owner's request, retired WarBase deployment containers and obsolete tagged images were removed. Current healthy services and all persistent volumes are preserved. Source release commit `d9e66cc` was pushed to `thevaidik/warbase-battle-royal`, branch `codex/colyseus-migration`.
 
 ## Changes
 
