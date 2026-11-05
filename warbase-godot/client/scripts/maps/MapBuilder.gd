@@ -330,55 +330,6 @@ func _theme_desert_oasis(inst: Node3D, _root: Node3D) -> void:
 			var foliage := _desert_piece(inst, "PalmFrond", Vector3(0.8, 0.18, 5), at + Vector3(0, 5.4, 0), Color("536c3e"))
 			foliage.rotation.y = TAU * float(leaf) / 5.0
 
-func _theme_loft(inst: Node3D, root: Node3D) -> void:
-	# 1. Solid primitive colliders for Loft (Floors, Mezzanine, Interior walls, Tactical Cover, Perimeter)
-	# Replaces 135 heavy trimesh concave polygon colliders with 12 zero-cost primitive Box colliders
-	var bounds_parent := StaticBody3D.new()
-	bounds_parent.name = "LoftColliders"
-	
-	var boxes: Array[Dictionary] = [
-		# Floors & Mezzanine
-		{"size": Vector3(16.0, 0.4, 12.0), "pos": Vector3(0.0, -0.2, 0.0)},   # Ground main floor
-		{"size": Vector3(7.4, 0.4, 8.4), "pos": Vector3(3.33, 3.8, -8.76)},   # Upper mezzanine floor
-		{"size": Vector3(7.4, 0.4, 8.4), "pos": Vector3(3.33, 7.3, -8.76)},   # Bedroom ceiling
-		# Exterior Containment Walls
-		{"size": Vector3(18.0, 1.0, 24.0), "pos": Vector3(0.0, 7.8, -4.0)},   # Overall roof barrier
-		{"size": Vector3(18.0, 8.0, 1.0), "pos": Vector3(0.0, 3.8, 5.2)},     # South balcony glass wall
-		{"size": Vector3(18.0, 8.0, 1.0), "pos": Vector3(0.0, 3.8, -13.0)},   # North exterior wall
-		{"size": Vector3(1.0, 8.0, 22.0), "pos": Vector3(-7.2, 3.8, -4.0)},   # West exterior wall
-		{"size": Vector3(1.0, 8.0, 22.0), "pos": Vector3(7.2, 3.8, -4.0)},    # East exterior wall
-		# Interior Architectural Walls & Tactical Cover
-		{"size": Vector3(14.0, 3.8, 0.2), "pos": Vector3(-0.01, 1.91, -4.96)}, # Lower interior divider wall
-		{"size": Vector3(14.0, 4.0, 0.2), "pos": Vector3(0.08, 6.64, -8.64)},  # Upper bedroom back wall
-		{"size": Vector3(4.8, 0.8, 3.0), "pos": Vector3(-3.7, 0.4, -1.5)},    # Living room sofa (tactical cover)
-		{"size": Vector3(6.3, 0.8, 4.4), "pos": Vector3(-3.8, 4.3, -6.5)},    # Upstairs bed (tactical cover)
-	]
-	for b in boxes:
-		var cs := CollisionShape3D.new()
-		var bs := BoxShape3D.new()
-		bs.size = b["size"]
-		cs.shape = bs
-		cs.position = b["pos"]
-		bounds_parent.add_child(cs)
-	root.add_child(bounds_parent)
-	
-	# Spiral staircase trimesh (the only trimesh in Loft, enabling smooth ascent to mezzanine)
-	var stairs := inst.find_child("SpiralStairs", true, false) as MeshInstance3D
-	if not stairs:
-		stairs = inst.find_child("node_0_Material_003_0", true, false) as MeshInstance3D
-	if stairs and stairs.mesh:
-		stairs.create_trimesh_collision()
-		
-	# Warm Luxury Penthouse Interior Fill Light (1 central chandelier - avoids forward multi-pass explosion)
-	var ol := OmniLight3D.new()
-	ol.position = Vector3(0.0, 4.8, 0.0)
-	ol.light_color = Color(1.0, 0.88, 0.72)
-	ol.light_energy = 0.9
-	ol.omni_range = 8.5
-	ol.omni_attenuation = 1.0
-	ol.shadow_enabled = false
-	root.add_child(ol)
-
 const MAP_GLBS := {
 	"industrial": "res://assets/maps/low_poly_industrial_zone.glb",
 	"resoforge": "res://assets/maps/resoforge_tdm.glb",
@@ -426,13 +377,10 @@ func build(map_name: String) -> Array[Vector3]:
 				_theme_village(inst)
 			elif key == "desert_oasis":
 				_theme_desert_oasis(inst, root)
-			elif key == "loft":
-				_theme_loft(inst, root)
 				
-			# Shipment & Loft use ultra-fast primitive Box & Cylinder shapes to guarantee 240+ FPS and 0ms physics spikes
-			if key != "shipment" and key != "loft":
-				_add_trimesh_collision(inst, key in ["resoforge", "football"])
+			# Shipment has authored primitive collision, so avoid replacing it with a full trimesh.
 			if key != "shipment":
+				_add_trimesh_collision(inst, key in ["resoforge", "football"])
 				_sanitize_glb_materials(inst)
 			if key == "football": _theme_football(inst)
 			
@@ -650,25 +598,6 @@ func build(map_name: String) -> Array[Vector3]:
 						Vector3(-8.0, 0.5, 10.0),
 						Vector3(8.0, 0.5, 8.0),
 					]
-				"loft":
-					extent = 14.0
-					center = Vector3(0.0, 0.0, -4.0)
-					spawn_points = [
-						# Ground Floor Living & Lounge (Y = 0.3 - 1.0)
-						Vector3(0.0, 0.3, 1.5),
-						Vector3(-3.0, 0.3, 1.5),
-						Vector3(3.0, 0.3, 1.5),
-						Vector3(0.0, 0.3, 3.2),
-						Vector3(3.2, 0.3, -2.5),
-						Vector3(-3.2, 1.0, -2.5),
-						# Upper Mezzanine, Terrace & Catwalk (Y = 4.1 - 4.9)
-						Vector3(3.0, 4.1, -8.5),
-						Vector3(-3.5, 4.9, -6.0),
-						Vector3(0.0, 4.1, -5.5),
-						Vector3(3.0, 4.1, -11.0),
-						Vector3(-3.5, 0.3, -4.0),
-						Vector3(-1.0, 0.3, -3.2),
-					]
 	_build_sky(root, key)
 	apply_time_of_day(GameState.selected_time)
 	for collider in find_children("*", "CollisionShape3D", true, false):
@@ -871,14 +800,6 @@ func _build_sky(root: Node3D, map_name: String = "industrial") -> void:
 		pm.ground_bottom_color = Color(0.10, 0.09, 0.10)
 		pm.sun_angle_max = 32.0
 		pm.sun_curve = 0.08
-	elif map_name == "loft":
-		# Luxury Penthouse Dusk: Warm golden hour skyline, deep indigo zenith, city glow
-		pm.sky_top_color = Color(0.12, 0.18, 0.44)
-		pm.sky_horizon_color = Color(0.98, 0.62, 0.35)
-		pm.ground_horizon_color = Color(0.42, 0.30, 0.25)
-		pm.ground_bottom_color = Color(0.10, 0.08, 0.10)
-		pm.sun_angle_max = 30.0
-		pm.sun_curve = 0.08
 	else:
 		# Metropolis Golden Hour (Warm golden amber avenues, long skyscraper shadows, twilight navy)
 		pm.sky_top_color = Color(0.12, 0.18, 0.40)
@@ -893,8 +814,8 @@ func _build_sky(root: Node3D, map_name: String = "industrial") -> void:
 	
 	# Warm Earth-Bounce & Twilight Sky Ambient Fill (Preserves competitive clarity with rich evening mood)
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	env.ambient_light_color = Color(0.85, 0.76, 0.68) if map_name == "loft" else (Color(0.68, 0.54, 0.48) if map_name != "arena" else Color(0.48, 0.38, 0.34))
-	env.ambient_light_energy = 0.88 if map_name == "loft" else 0.62
+	env.ambient_light_color = Color(0.48, 0.38, 0.34) if map_name == "arena" else Color(0.68, 0.54, 0.48)
+	env.ambient_light_energy = 0.62
 	
 	# Sky reflections for authentic metallic surfaces (guns, steel silos, vehicle panels)
 	env.reflected_light_source = Environment.REFLECTION_SOURCE_SKY
@@ -924,9 +845,6 @@ func _build_sky(root: Node3D, map_name: String = "industrial") -> void:
 	elif map_name == "arena":
 		env.fog_light_color = Color(0.78, 0.46, 0.28)
 		env.fog_density = 0.0012
-	elif map_name == "loft":
-		env.fog_light_color = Color(0.94, 0.62, 0.38)
-		env.fog_density = 0.0003
 	else:
 		env.fog_light_color = Color(0.92, 0.60, 0.36)
 		env.fog_density = 0.0010
@@ -951,10 +869,6 @@ func _build_sky(root: Node3D, map_name: String = "industrial") -> void:
 		sun.rotation = Vector3(deg_to_rad(-15.0), deg_to_rad(-55.0), 0)
 		sun.light_energy = 1.70
 		sun.light_color = Color(1.0, 0.76, 0.48)
-	elif map_name == "loft":
-		sun.rotation = Vector3(deg_to_rad(-16.0), deg_to_rad(-65.0), 0)
-		sun.light_energy = 1.70
-		sun.light_color = Color(1.0, 0.78, 0.52)
 	elif map_name == "dust2":
 		sun.rotation = Vector3(deg_to_rad(-15.0), deg_to_rad(-48.0), 0)
 		sun.light_energy = 1.65

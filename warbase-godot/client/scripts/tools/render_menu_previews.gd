@@ -28,7 +28,6 @@ func run() -> void:
 		"industrial": [Vector3(28, 16, 36), Vector3(0, 1, 0)],
 		"village": [Vector3(28, 22, 36), Vector3(0, 2, 0)],
 		"arena": [Vector3(-26, 2.75, -3), Vector3(-10, 2, -5)],
-		"loft": [Vector3(7, 5, 6), Vector3(0, 2, -4)],
 		"shipment": [Vector3(24, 20, 24), Vector3(0, 1, 0)],
 		"dust2": [Vector3(45, 24, 46), Vector3(8, 1, 10)],
 		"nuketown": [Vector3(-32, 20, 30), Vector3(0, 1, 0)],

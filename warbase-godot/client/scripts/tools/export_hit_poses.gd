@@ -83,7 +83,7 @@ func _bake() -> void:
 	var document := {"fps": FPS, "bones": BONES, "clips": clips_out}
 	var serialized := JSON.stringify(document, "\t", false) + "\n"
 	var client_path := "res://assets/data/soldier_hit_poses.json"
-	var server_path := ProjectSettings.globalize_path("res://../server/internal/engine/soldier_hit_poses.json")
+	var server_path := ProjectSettings.globalize_path("res://../../warbase-colyseus/src/data/soldier_hit_poses.json")
 	if not _write_text(client_path, serialized) or not _write_text(server_path, serialized):
 		quit(1)
 		return

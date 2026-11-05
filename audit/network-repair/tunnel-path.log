@@ -1,0 +1,12 @@
+2026-10-27T00:03:06Z INF Registered tunnel connection connIndex=3 connection=3abd66c5-52f9-4da6-a7fd-a66b029e9d59 event=0 ip=198.41.192.77 location=del01 protocol=quic
+2026-10-27T00:05:37Z INF Registered tunnel connection connIndex=3 connection=c2f3dcb0-477a-4287-8b2f-da939c794543 event=0 ip=198.41.192.77 location=del01 protocol=quic
+2026-10-27T03:15:50Z INF Registered tunnel connection connIndex=2 connection=680eb744-ede0-4c68-ad04-f228f535cb87 event=0 ip=198.41.200.23 location=del05 protocol=quic
+2026-10-27T03:18:55Z INF Registered tunnel connection connIndex=2 connection=0751a27a-ed9f-4a1e-81f8-3433e12b0d0e event=0 ip=198.41.200.23 location=del05 protocol=quic
+2026-10-27T03:34:47Z INF Registered tunnel connection connIndex=0 connection=5474ba5e-10c4-4473-9a41-65c35d588ad8 event=0 ip=198.41.200.33 location=del06 protocol=quic
+2026-10-27T03:36:40Z INF Registered tunnel connection connIndex=0 connection=21682f5e-ba78-4534-9868-7885289f98fd event=0 ip=198.41.200.33 location=del06 protocol=quic
+2026-10-27T09:13:55Z INF Registered tunnel connection connIndex=3 connection=cdd4b604-a904-4737-8c97-0f6bb5952bfd event=0 ip=198.41.192.47 location=maa01 protocol=quic
+2026-10-27T09:13:56Z INF Registered tunnel connection connIndex=1 connection=3a8baaac-915f-41c5-9704-670226354770 event=0 ip=198.41.192.167 location=maa01 protocol=quic
+2026-10-27T16:51:36Z ERR  error="unexpected EOF" connIndex=1 event=1 ingressRule=0 originService=http://umbrel.local:8081
+2026-10-27T16:51:36Z ERR Request failed error="unexpected EOF" connIndex=1 dest=https://war.vaidik.blog/game-4746e207186f2e20.pck event=0 ip=198.41.192.167 type=http
+2026-10-27T17:28:01Z ERR  error="unexpected EOF" connIndex=1 event=1 ingressRule=0 originService=http://umbrel.local:8081
+2026-10-27T17:28:01Z ERR Request failed error="unexpected EOF" connIndex=1 dest=https://war.vaidik.blog/game-d03131357c2d0149.pck event=0 ip=198.41.192.167 type=http

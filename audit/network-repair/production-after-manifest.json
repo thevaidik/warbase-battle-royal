@@ -1,0 +1,29 @@
+{
+  "assets": [
+    "index.html",
+    "engine-53ec26073f0ba9ba.audio.position.worklet.js",
+    "engine-53ec26073f0ba9ba.audio.worklet.js",
+    "engine-53ec26073f0ba9ba.js",
+    "engine-53ec26073f0ba9ba.wasm",
+    "game-d03131357c2d0149.pck",
+    "optional-maps.json"
+  ],
+  "optional": {
+    "football": {
+      "bytes": 49150948,
+      "file": "map-football-997a092552696fd9.pck",
+      "sha256": "997a092552696fd98ad1e26acb0402334f584f220c275c484e692227ab13ce21",
+      "uids": {
+        "uid://c3ghd30axll6u": "res://assets/maps/football.glb",
+        "uid://qw38abujx3yj": "res://assets/maps/football_0.png"
+      }
+    }
+  },
+  "engine": "engine-53ec26073f0ba9ba",
+  "pack": "game-d03131357c2d0149.pck",
+  "bytes": {
+    "identity": 67156057,
+    "gzip": 36877355,
+    "br": 34630601
+  }
+}

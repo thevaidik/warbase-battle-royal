@@ -1,19 +1,37 @@
 # WarBase
 
-Godot 4.7.2 FPS client and Go multiplayer service. The game supports FFA/TDM rooms, seven selectable weapons, custom primary/secondary/throwable slots, variable optics, online AI squads, and offline practice with bots and vehicles.
+WarBase is a Godot 4.7.2 FPS with native and browser clients and a Node.js/Colyseus multiplayer service. Default public rooms use Conquest with four capture points; custom rooms also support free-for-all and team deathmatch with human players and filling AI bots; offline practice remains available.
+
+The cleanup release is deployed on Umbrel with matching native/Web builds; see [cleanup results and remaining limits](audit/cleanup-2026-11-05/REPORT.md). The networking follow-up is documented separately; see [current verification and release status](audit/colyseus-features-2026-11-05/REPORT.md). Signed admission deployment is documented in [the paired release runbook](warbase-colyseus/deploy/ADMISSION.md), and optional Redis requirements in [scaling notes](warbase-colyseus/deploy/SCALING.md).
+
+## Build and verification commands
+
+`make run-server` and `make test-server` use Colyseus. `make test` runs server, bounded Godot and Web packaging/provenance checks. `make export-godot-mac` and `make export-godot-web` use only the SDK-enabled presets. `make export-map-data` writes temporary authoring data under `build/map-authoring` and generates the matching Godot/Colyseus collision assets. Retired code and export/load tools are documented in [legacy/README.md](legacy/README.md).
 
 ## Play locally
 
-Install Godot 4.7.2 and Go 1.23 or later. Web release packaging also requires Node.js for built-in Brotli compression. On macOS, the Makefile defaults to `/Applications/Godot.app/Contents/MacOS/Godot`; override `GODOT` for another installation.
+Install Godot 4.7.2 and Node.js 22+. Start the current multiplayer service from `warbase-colyseus`:
 
-- Start the service with `make run-server`.
-- Start the native client with `make run-godot`. Set **Settings → Server Host** to `localhost:8081` for local online play. The existing remote host remains the native default.
-- Use **Join server** for online matches with AI and human players. The optional **Offline** switch starts a local sandbox. Home, Loadout, Operator, and Settings remain in the top bar.
-- For the browser, install the matching Godot export templates, run `make export-godot-web`, start the service, and open `http://localhost:8081`.
+```sh
+cd warbase-colyseus
+npm ci
+npm run build
+npm start
+```
 
-The Web client connects to the same host and port that serves it. Online play uses protocol version 5; update the client and service together. Old exported clients are incompatible with the animation-phase and viewed-pose hit-validation protocol.
+The service listens on port 8081 by default. Development uses temporary signed gameplay tickets; a server restart invalidates those tickets. Production requires persisted admission/gateway keys as documented in the runbook. Run `make run-godot` from the repository root for the native client; the default server is the public service, or set **Settings → Server Host** to `localhost:8081` for local online play. Use **Join server** to enter an online match or **Offline** for a local sandbox. To package and serve the browser client locally, use the current Colyseus web export and packaging scripts described in [the server README](warbase-colyseus/README.md).
 
-## Controls
+## Dashboard and debugging
+
+The beta Colyseus Admin Panel is at [http://100.107.118.10:8082/admin/](http://100.107.118.10:8082/admin/) on Tailscale. On first visit, use its one-time setup form to choose the administrator email and a password of at least 12 characters. It provides live room inspection/actions, roles, audit history and database health. Operator accounts use a dedicated persistent database; gameplay remains anonymous.
+
+The [monitor](http://100.107.118.10:8082/monitor/) now requires the same admin login. It reports rooms, connected SDK clients, CPU, memory and room state. Battle-room connections count joined human SDK clients; bots are excluded. The new local realtime lobby implementation also creates a separate lobby-room connection while the menu is open. Both panels are blocked on the public domain. See [admin setup and storage](warbase-colyseus/deploy/ADMIN.md).
+
+For local development, run the server with `NODE_ENV=development HOST=127.0.0.1 ENABLE_LOCAL_MONITOR=1 npm start`; the monitor is then available at `http://127.0.0.1:8081/monitor/`. The same development-only flag also enables the private `/playground/` page for connection, message, and reconnect debugging. The playground is local development tooling and is not claimed as deployed.
+
+The public game URL [https://war.vaidik.blog/](https://war.vaidik.blog/) redirects to `/colyseus/`. The former Go production deployment has been removed. Its source and old tooling are preserved under `legacy/`, outside the active Godot project and Docker build context. The `warbase-server` container now runs the Nginx gateway on port 8081 and routes game traffic to `warbase-colyseus-candidate`. See [the Colyseus README](warbase-colyseus/README.md), [feature usage report](audit/COLYSEUS_FEATURE_USAGE_REPORT.md), and [legacy retirement record](warbase-colyseus/deploy/LEGACY_RETIREMENT.md) for architecture and operational details. The separate Colyseus Cloud paid hosted dashboard is not the dashboard used for this Umbrel deployment.
+
+## Controls and gameplay
 
 | Action | Input |
 | --- | --- |
@@ -23,60 +41,31 @@ The Web client connects to the same host and port that serves it. Online play us
 | Optic magnification | V on weapons with variable optics |
 | Steady scoped aim | Hold Shift while stationary and aimed |
 | Primary / secondary | 1 / 2; mouse wheel swaps between them |
-| Equipped throwable | G; two per life |
+| Equipped throwable | G |
 | Inspect | I |
 | Scoreboard / pause | Tab / Esc |
-| Vehicle enter / exit | E near an unoccupied car; online and offline |
+| Conquest tactical map | M; M or Esc closes it |
+| Vehicle enter / exit | E near an unoccupied car |
 | Drive / brake / camera | WASD / Space / mouse; C changes chase view |
 
-Click **Loadout** on the home screen to open the full equipment picker. Any two different guns can occupy the primary and secondary slots; choose an M67 frag or impact grenade. Choices are saved automatically and applied when you deploy.
+Choose equipment from **Loadout** on the home screen. The game includes selectable weapons, optics, grenades, vehicles, and offline bots. Current online feature coverage and known gaps are documented in the [Colyseus feature usage report](audit/COLYSEUS_FEATURE_USAGE_REPORT.md); do not assume every legacy Go feature has migrated.
 
-Automatic primaries require roughly 0.20–0.24 seconds of perfect close-range chest hits to eliminate a full-health target. Lower torso and limb hits deal less damage; online hitboxes follow the synchronized animated skeleton, with bounded validation against the exact viewed server pose. Damage falls with distance except for the one-shot M2010 sniper. Spawn protection lasts 2.5 seconds and ends when firing or throwing. Health recovers at 15 HP/second after five seconds without damage.
+## Conquest
 
-Switching preserves each magazine and cancels an unfinished reload. Firing is blocked while drawing, reloading, cycling the sniper bolt, or throwing. The scope’s angular markings are for aiming references; the game uses hitscan rather than ballistic bullet drop. Exhausted breath must recover after releasing Shift.
+While playing, floating A–D badges show objective locations, distance, ownership and capture progress. Off-screen objectives have directional arrows; amber marks contested points. M opens the full tactical map; M or Esc closes it.
 
-## Validate
+Every map's default public server uses **Conquest**. Public mode/map settings are enforced by the server, including when an older client requests FFA or TDM. Public entries are joinable presets; rooms start when someone joins. Custom matches can still select other modes. Teams capture four objectives, A–D. An uncontested on-foot presence captures a neutral point in 12 seconds; an enemy point must first be neutralized. Both teams present makes it contested and freezes progress. Dead players and vehicle occupants cannot capture. Each team starts with 500 tickets; objective advantage drains enemy tickets, and kills cost the defeated team one ticket. Zero tickets ends the match. Filling bots pursue capture objectives when not fighting.
 
-- `make test-server`: Go tests under the race detector, then `go vet`.
-- `make test-web`: validates versioned web asset URLs, unused-asset removal, and lossless gzip/Brotli round trips after export.
-- `make test-godot`: bounded handling and gameplay regressions; fails on script/physics errors or missing completion markers.
-- With a local service on port 18091, run Godot with `--headless --path warbase-godot/client --script res://scripts/tests/test_online_sync.gd` to check two-client roster and grenade consistency.
-- `make stress-test`: 60 protocol clients for ten seconds against localhost:8081. The bounded `cmd/stress` tool also accepts `-host=war.vaidik.blog`, `-room=<existing room ID>`, `-players=1..64`, `-duration=<up to 30m>`, `-combat=false`, `-drivers=0`, and `-output=<report.json>`. Drivers seek authored cars and send real seat/input events. It reports round-trip latency, snapshot gaps, confirmed seats, and observed car travel. Socket count alone does not prove a healthy match: verify `/api/rooms` occupancy and use rendered native/web observers.
+Press **M** for a top-down view of the loaded map, ownership/capture markers and your position. M or Esc closes it. The map blocks your movement, fire and throwing while open; the online match keeps running. The 3D overview is rendered once per opening and disabled while closed.
 
-Confirmed infantry hits produce small pooled blood effects and hit reactions. Tactical bots avoid visible grenades, search last-known locations, maintain squad spacing, and recover from blocked routes without changing aim accuracy.
+## Current architecture and status
 
-The security suite covers firing cadence, shot replay, server-derived damage, reloads, respawn restrictions, teleport attempts, map occlusion, grenade authority, atomic admission, concurrent joins/leaves, and AOI snapshot coalescing.
+Colyseus is the production multiplayer runtime. It simulates movement at 60 Hz from buffered numeric input frames and sends synchronized schema state at 20 Hz. The server is authoritative for movement, combat, room state, and gameplay actions. Read [warbase-colyseus/README.md](warbase-colyseus/README.md) for the current implementation details and commands.
 
-## Build and deploy
+Protocol 6 uses the official `Predict.sim` for the driver and all vehicle mirrors together. Buffered controls include seat-generation guards; entry/exit and damage remain authoritative. Death, destruction and dropped connections release seats immediately and invalidate old driving inputs. Matched native/Web clients use Godot SDK 0.18.9 and immediate grenade visuals through its official `EventChannel`; confirmation adopts the same cosmetic, and rejection/expiry removes it. The channel is initialized after the first decoded state/controller and cleared across connection changes. Inventory, explosions and damage remain server-owned. See [vehicle/grenade follow-up evidence](audit/vehicle-grenade-followup-2026-10-30/REPORT.md).
 
-1. Run `make test` and `make export-godot-web`.
-2. Run `docker compose -f warbase-godot/docker-compose.yml build`.
-3. Start the container with `docker compose -f warbase-godot/docker-compose.yml up -d`.
+The room's configured ceiling is 64 players; this is not a capacity certification. The existing native performance gate did not meet its 60 FPS and disconnect criteria, and the web full gate remains incomplete. See [the performance notes](GAME_PERFORMANCE_AND_IMPROVEMENTS.md) for measured results and limitations.
 
-The Docker build expects the matching Web export in `warbase-godot/client/dist/`. It intentionally fails when that export is absent. It builds Go from the actual source directory and runs with a non-root user, a read-only filesystem, bounded resources, and a health check. Configure TLS at your reverse proxy; forward `/connect` WebSocket upgrades. `/healthcheck` returns unavailable if the match loop stops progressing.
+Native candidate exports use `scripts/export_colyseus_native_candidate.py`. Web export and pack scripts are also maintained in this repository; use the current Colyseus workflow rather than the retired Go `make run-server`, Go test, or Go stress-test targets for production validation. See [the legacy retirement record](warbase-colyseus/deploy/LEGACY_RETIREMENT.md).
 
-For a standalone service, `--static-dir=/absolute/path/to/dist` or `DIST_DIR` chooses the Web directory. Profiling routes are disabled in production. Web assets have lossless Brotli and gzip companions. The service negotiates the encoding, including q=0 exclusions. Content-hashed engine/game URLs use immutable caching; unchanged engine files are reused across game releases, and one preceding release remains available.
-
-Native macOS export: `make export-godot-mac`. Distribution signing/notarization still requires your release credentials.
-
-## Map and protocol sources
-
-- `warbase-godot/client/scripts/maps/MapBuilder.gd` constructs client maps.
-- `make export-map-data` regenerates server collision triangles and authored spawn points from those same shapes, then compresses the result for embedding. Re-run this whenever collision geometry or spawns change.
-- `shared/proto/fps/packets.proto` is the FPS schema. Install `protoc` and a matching `protoc-gen-go`, then run `make proto` after schema changes. `shared/proto/packets.proto` is a legacy strategy schema and is not used by this game.
-
-Rooms use Dawn (06:00), Noon (12:00), Dusk (18:00), or Night (00:00). Public servers choose randomly and may change on a new round; custom servers retain the time selected at creation. The server list and HUD show the preset. Loft 17 is no longer playable or advertised.
-
-The service simulates at 60 Hz and sends world snapshots at up to 20 Hz, with distance tiers for remote entities. Clients interpolate those updates. Incoming transforms are coalesced, and unsent partial snapshots preserve rare AOI entities when replaced. See [performance and improvements](GAME_PERFORMANCE_AND_IMPROVEMENTS.md) for measurements and limitations.
-
-## Release status
-
-See [the implementation notes](audit/implementation/CHANGES.md) and [the original audit](audit/PRODUCTION_READINESS_AUDIT.md).
-
-This update improves handling, stability, combat validation, authoritative grenade damage, and release tooling. It does not certify a production release. Online cars now use server-owned seats, input-driven kinematic movement, terrain and chassis collision checks, health, destruction, roadkills, and respawning. Offline cars retain local four-wheel physics. Online transport does not implement mounted turret combat; infantry fire is blocked while driving. Movement still uses validated client transforms with map collision checks rather than a complete server input simulation with rewind. Long-duration soak tests, full network-impairment testing, cross-device browser QA, asset licensing, and release signing remain launch gates.
-
-Football Stadium is included in native builds. For web releases, use `make export-godot-web` to generate the initial game and its optional stadium pack together, and serve all generated files in `warbase-godot/client/dist`. The stadium downloads on first join and retains its full-resolution atlas. `make test-web` validates compression and optional-pack mounting. See `audit/football-map/README.md` for validation and the source-rights caveat.
-
-Current combat release and hitbox verification: [28 October combat audit](audit/combat-balance-2026-10-28/REPORT.md). Earlier capacity and distribution checks: [production follow-up](audit/production-followup-2026-10-28/REPORT.md).
-
-Audio is disabled throughout the game. Gunfire, footsteps, UI and vehicle audio methods are silent, and Settings shows **AUDIO DISABLED**.
+Audio is currently disabled throughout the game.

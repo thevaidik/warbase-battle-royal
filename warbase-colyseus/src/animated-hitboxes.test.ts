@@ -20,7 +20,7 @@ function world(local: Vec3, position: Vec3, q: readonly [number, number, number,
 }
 
 test('server pose asset is byte-identical to the legacy server source', () => {
-  const legacy = readFileSync(new URL('../../warbase-godot/server/internal/engine/soldier_hit_poses.json', import.meta.url));
+  const legacy = readFileSync(new URL('../../legacy/go-server/internal/engine/soldier_hit_poses.json', import.meta.url));
   const current = readFileSync(new URL('./data/soldier_hit_poses.json', import.meta.url));
   assert.deepEqual(current, legacy);
 });

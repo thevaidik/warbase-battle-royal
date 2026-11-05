@@ -287,13 +287,6 @@ func run() -> void:
 	remote.interpolate(0.0)
 	check(remote.get_hit_view_time_ms() == base_pose_time + 200, "stationary remote catch-up uses the latest authoritative pose timestamp")
 	remote._buf = older_buf
-	var encoded_hit := WarProto._parse_msg(WarProto.encode_hit("POSE_TARGET", 25, 41, base_pose_time + 400))
-	var hit_payload: PackedByteArray = encoded_hit.get(2, PackedByteArray())
-	var decoded_hit := WarProto._parse_msg(hit_payload)
-	check(int(decoded_hit.get(4, 0)) == base_pose_time + 400, "hit event protobuf includes the rendered view timestamp in field 4")
-	var legacy_hit := WarProto._parse_msg(WarProto.encode_hit("POSE_TARGET", 25, 41))
-	var legacy_payload: PackedByteArray = legacy_hit.get(2, PackedByteArray())
-	check(not WarProto._parse_msg(legacy_payload).has(4), "default zero hit view timestamp remains omitted for server-current fallback")
 	var saved_practice: bool = game_state.practice_mode
 	var saved_ready: bool = game_state.online_ready
 	game_state.practice_mode = false
@@ -323,8 +316,14 @@ func run() -> void:
 	var live_weapon: Node3D = (load("res://scripts/weapons/WeaponSystem.gd") as Script).new() as Node3D
 	holder.add_child(live_weapon)
 	live_weapon.call("setup", stress_player, stress_player.get_node("Head/Camera3D") as Camera3D, stress_player.get_node("Head/Camera3D/SwayRoot"), capture_net, holder)
-	var captured_packets: Array = capture_net.get("sent_packets")
-	captured_packets.clear()
+	var captured_events: Array = capture_net.get("sent_events")
+	capture_net.call("send_hit", "POSE_TARGET", 25, 41, base_pose_time + 400)
+	var timestamped_hit: Dictionary = captured_events.back()
+	check(timestamped_hit.get("target") == "POSE_TARGET" and int(timestamped_hit.get("view_time_ms", 0)) == base_pose_time + 400, "hit event carries the rendered view timestamp")
+	capture_net.call("send_hit", "POSE_TARGET", 25, 41)
+	var server_current_hit: Dictionary = captured_events.back()
+	check(int(server_current_hit.get("view_time_ms", -1)) == 0, "default zero hit view timestamp remains omitted for server-current fallback")
+	captured_events.clear()
 	live_weapon.set("spread", 0.0)
 	live_weapon.set("_last_fire", -10.0)
 	live_weapon.set("_switch_t", 1.0)
@@ -332,16 +331,11 @@ func run() -> void:
 	live_weapon.call("try_fire")
 	var saw_fire := false
 	var saw_stress_hit := false
-	for packet in captured_packets:
-		var event := WarProto._parse_msg(packet)
-		if event.has(3):
+	for event in captured_events:
+		if event.get("type") == "fire":
 			saw_fire = true
-		if event.has(2):
-			var hit_event := WarProto._parse_msg(event[2])
-			var target_bytes: PackedByteArray = hit_event.get(1, PackedByteArray())
-			var reported_time := int(hit_event.get(4, 0))
-			if target_bytes.get_string_from_utf8() == "BOT_STRESS_00" and reported_time == 2_345_678_901_234:
-				saw_stress_hit = true
+		if event.get("type") == "hit" and event.get("target") == "BOT_STRESS_00" and int(event.get("view_time_ms", 0)) == 2_345_678_901_234:
+			saw_stress_hit = true
 	check(saw_fire, "actual online weapon fire emits a fire event for a stress peer")
 	check(saw_stress_hit, "actual online weapon hit reports BOT_STRESS_00 and its rendered pose timestamp")
 	live_weapon.queue_free()

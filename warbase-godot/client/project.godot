@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="WarBase Battle Royale"
-config/description="WarBase FPS. Online FFA/TDM with seven weapons, online AI squads, and variable optics; offline practice with bots and vehicles."
+config/description="WarBase Conquest FPS with online human/AI teams, selectable weapons, optics and vehicles; offline practice available."
 run/main_scene="res://scenes/Main.tscn"
 run/max_fps=0
 config/features=PackedStringArray("4.7", "GL Compatibility")

@@ -10,6 +10,10 @@ var _qa_pose_application_timing
 var net: WarNetwork
 var world: Node3D
 var local_name := ""
+var _pending_grenades: Dictionary = {}
+var _exploded_grenade_ids: Dictionary = {}
+var _exploded_grenade_order: Array[int] = []
+const MAX_REMEMBERED_EXPLOSIONS := 256
 
 func setup(net_ref: WarNetwork, world_ref: Node3D, lname: String, qa_timing: bool = false) -> void:
 	net = net_ref
@@ -21,6 +25,8 @@ func setup(net_ref: WarNetwork, world_ref: Node3D, lname: String, qa_timing: boo
 	net.state_received.connect(_on_state)
 	net.fire_received.connect(_on_fire)
 	net.grenade_received.connect(_on_grenade)
+	net.grenade_rejected.connect(_on_grenade_rejected)
+	net.connection_changed.connect(_on_connection_changed)
 	net.explosion_received.connect(_on_explosion)
 
 func _on_state(state: Dictionary) -> void:
@@ -134,13 +140,59 @@ func _on_fire(shooter: String, origin: Vector3, hit: Vector3, normal: Vector3, w
 	if main and main.has_method("remote_shoot_fx"):
 		main.remote_shoot_fx(origin, hit, normal, wall, remotes[shooter].weapon_id if remotes.has(shooter) else "ak47")
 
-func _on_grenade(_shooter: String, pos: Vector3, vel: Vector3, grenade_id: int, kind: String) -> void:
+func register_predicted_grenade(request_id: int, grenade: WarGrenade) -> void:
+	if request_id <= 0 or not is_instance_valid(grenade): return
+	grenade.set_meta("request_id", request_id)
+	grenade.set_meta("prediction_pending", true)
+	grenade.set_meta("predicted_launch_position", grenade.global_position)
+	grenade.set_meta("predicted_launch_velocity", grenade.linear_velocity)
+	_pending_grenades[request_id] = grenade
+
+func _on_grenade(shooter: String, pos: Vector3, vel: Vector3, grenade_id: int, kind: String, request_id: int) -> void:
 	var main := get_tree().current_scene
 	if main and main.has_method("spawn_grenade"):
-		var grenade = main.spawn_grenade(pos, vel, Vector3.ZERO, kind)
+		var grenade: WarGrenade
+		var is_local := shooter == local_name or shooter == GameState.username
+		var had_pending_request := false
+		if grenade_id > 0 and _exploded_grenade_ids.has(grenade_id): return
+		if request_id > 0 and is_local and _pending_grenades.has(request_id):
+			had_pending_request = true
+			var pending_node: Variant = _pending_grenades[request_id]
+			_pending_grenades.erase(request_id)
+			if is_instance_valid(pending_node):
+				grenade = pending_node as WarGrenade
+				grenade.set_meta("prediction_pending", false)
+				# Correct the predicted launch offset without rewinding elapsed flight.
+				var predicted_origin: Vector3 = grenade.get_meta("predicted_launch_position", pos)
+				var predicted_velocity: Vector3 = grenade.get_meta("predicted_launch_velocity", vel)
+				grenade.global_position += pos - predicted_origin
+				grenade.linear_velocity += vel - predicted_velocity
+				grenade.set_meta("server_id", grenade_id)
+				return
+			# The local 6s cosmetic may have retired before a delayed acceptance.
+			# In that case materialize the confirmed server projectile below.
+		if request_id > 0 and is_local and not had_pending_request: return # Duplicate or stale confirmation.
+		grenade = main.spawn_grenade(pos, vel, Vector3.ZERO, kind)
 		grenade.set_meta("server_id", grenade_id)
 
+func _on_grenade_rejected(request_id: int) -> void:
+	if not _pending_grenades.has(request_id): return
+	var pending_node: Variant = _pending_grenades[request_id]
+	_pending_grenades.erase(request_id)
+	if is_instance_valid(pending_node): (pending_node as WarGrenade).queue_free()
+
+func _on_connection_changed(connected: bool) -> void:
+	if not connected: clear_pending_grenades()
+
+func clear_pending_grenades() -> void:
+	for pending in _pending_grenades.values():
+		if is_instance_valid(pending): (pending as WarGrenade).queue_free()
+	_pending_grenades.clear()
+
 func clear() -> void:
+	clear_pending_grenades()
+	_exploded_grenade_ids.clear()
+	_exploded_grenade_order.clear()
 	_pending_remotes.clear()
 	for r in remotes.values():
 		if is_instance_valid(r):
@@ -148,6 +200,12 @@ func clear() -> void:
 	remotes.clear()
 
 func _on_explosion(grenade_id: int, pos: Vector3, kind: String) -> void:
+	if grenade_id > 0 and _exploded_grenade_ids.has(grenade_id): return
+	if grenade_id > 0:
+		_exploded_grenade_ids[grenade_id] = true
+		_exploded_grenade_order.append(grenade_id)
+		if _exploded_grenade_order.size() > MAX_REMEMBERED_EXPLOSIONS:
+			_exploded_grenade_ids.erase(_exploded_grenade_order.pop_front())
 	var main := get_tree().current_scene
 	if not main or not main.has_method("spawn_grenade"):
 		return
@@ -158,6 +216,7 @@ func _on_explosion(grenade_id: int, pos: Vector3, kind: String) -> void:
 			break
 	if not grenade:
 		grenade = main.spawn_grenade(pos, Vector3.ZERO, Vector3.ZERO, kind)
+	if grenade._done: return
 	grenade.global_position = pos
 	grenade._done = true
 	grenade._detonate()

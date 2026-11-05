@@ -23,7 +23,6 @@ var drive_distance := 0.0
 var previous_car := Vector3.ZERO
 var was_driving := false
 var applied_corrections := 0
-var previous_watermark := 0
 var sdk_reconcile_seq_max := 0
 var sdk_ack_sequence_max := 0
 var sdk_inputs_sent_max := 0
@@ -44,7 +43,7 @@ var output_path := ""
 func _initialize() -> void: call_deferred("run")
 func run() -> void:
 	var state = root.get_node("GameState")
-	var candidate_backend := OS.get_cmdline_user_args().has("qa_colyseus")
+	var candidate_backend := true
 	state.server_host = COLYSEUS_CANDIDATE_HOST if candidate_backend else OFFICIAL_HOST
 	var allowed_host := COLYSEUS_CANDIDATE_HOST if candidate_backend else OFFICIAL_HOST
 	if state.server_host != allowed_host:
@@ -103,9 +102,6 @@ func run() -> void:
 			if input_handle != null:
 				sdk_ack_sequence_max = maxi(sdk_ack_sequence_max, int(input_handle.last_processed))
 				sdk_inputs_sent_max = maxi(sdk_inputs_sent_max, int(input_handle.sent_count))
-		if main._reconcile_after_sequence != previous_watermark:
-			if Time.get_ticks_msec()-respawn_at_ms>1000 and not player.is_driving: applied_corrections += 1
-			previous_watermark = main._reconcile_after_sequence
 		if player.is_dead: continue
 		if main.current_driven_jeep != null:
 			var car = main.current_driven_jeep

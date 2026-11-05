@@ -1,0 +1,10 @@
+{
+  "scope": "SDK-only, not full Web gameplay",
+  "godot": "4.7.2",
+  "sdk": "0.18.9",
+  "results": [
+    {"utc": "2026-11-05T03:41:40.413Z", "console": "STATEVIEW_PAIR_OK filtered=true public_peers=true private_owner=true removal_rejoin=true"},
+    {"utc": "2026-11-05T03:43:21.962Z", "console": "STATEVIEW_PAIR_OK filtered=false public_peers=true private_owner=true removal_rejoin=true"}
+  ],
+  "automatic_web_reconnect": "Unsupported in pinned SDK; removal/fresh rejoin verified"
+}

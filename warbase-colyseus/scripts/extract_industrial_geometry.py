@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Extract only Industrial's collision/spawn JSON from the Go server's map archive."""
+"""Extract only Industrial's collision/spawn JSON from the generated authoring map archive."""
 
 from __future__ import annotations
 
@@ -12,7 +12,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[2]
-DEFAULT_SOURCE = ROOT / "warbase-godot/server/internal/engine/maps.json.gz"
+DEFAULT_SOURCE = ROOT / "build/map-authoring/maps.json.gz"
 DEFAULT_TARGET = ROOT / "warbase-colyseus/src/data/industrial.json.gz"
 DEFAULT_GODOT_TARGET = ROOT / "warbase-godot/client/assets/data/industrial.json.gz"
 FIXTURE_CONTENT = {

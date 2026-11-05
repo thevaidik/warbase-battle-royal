@@ -1,0 +1,9 @@
+{
+  "url": "http://127.0.0.1:18196/",
+  "sdkVersion": "0.18.9",
+  "verifiedAtUtc": "2026-10-30T08:05:37.227Z",
+  "browserConsoleResult": "SDK_EVENT_EXPIRY_WEB_OK short/default/production TTL; confirm; duplicate; reject; clear; composite active",
+  "expiryCasesMs": [150, 0, 5000],
+  "channelOwnership": "Retained by probe node for predictor lifetime",
+  "scope": "Focused SDK probe only; no full gameplay or capacity test"
+}

@@ -35,6 +35,22 @@ func run() -> void:
 	var context := StepContext.new()
 	var command := StepCommand.new()
 	var failures := 0
+	var player = preload("res://scripts/core/Player.gd").new()
+	var original_position: Vector3 = player.position
+	player.apply_authoritative_motion(Vector3(0, 0, -6.2), true, false, true)
+	if not player.is_grounded or not player.is_sprinting:
+		push_error("Authoritative walking must restore grounded and sprint presentation")
+		failures += 1
+	player.apply_authoritative_motion(Vector3(0, 6.2, -6.2), false, false, false)
+	if player.is_grounded or player._jump_kick_dip <= 0.0:
+		push_error("Authoritative jump must trigger takeoff feedback")
+		failures += 1
+	player.apply_authoritative_motion(Vector3(0, -5, 0), false, false, false)
+	player.apply_authoritative_motion(Vector3.ZERO, true, true, true)
+	if not player.is_crouching or player.is_sprinting or player._land_dip <= 0.0 or player.position != original_position:
+		push_error("Landing/crouch feedback must update without changing the authoritative position")
+		failures += 1
+	player.free()
 	var baseline_total_usec := 0
 	for map_name in MAPS:
 		Geometry.set_map_override(map_name)
@@ -202,14 +218,16 @@ func _server_step(position: Vector3, incoming_vy: float, command: StepCommand, d
 	var vy := incoming_vy - 18.0 * dt
 	var jump_floor: Variant = Geometry.floor_height(position.x, position.z, position.y + 0.1)
 	var grounded_height := position.y if jump_floor == null else float(jump_floor)
-	if command.jump > 0.5 and absf(incoming_vy) < 0.001 and position.y <= grounded_height + 0.03:
+	if command.jump > 0.5 and jump_floor != null and absf(incoming_vy) < 0.001 and position.y >= grounded_height - 0.06 and position.y <= grounded_height + 0.3:
 		vy = 6.2 - 18.0 * dt
 	var requested := position + Vector3(vx, vy, vz) * dt
 	var resolved: Vector3 = Geometry.resolve_move(position, requested, 0.4, 1.8, use_candidate_cache)
 	vx = (resolved.x - position.x) / dt
 	vz = (resolved.z - position.z) / dt
 	var ground: Variant = Geometry.floor_height(resolved.x, resolved.z, resolved.y + 0.1)
-	if ground != null and resolved.y <= float(ground) + 0.03 and vy < 0.0:
+	if vy < 0.0 and (resolved.y > requested.y + 0.00001 or (ground != null and resolved.y <= float(ground) + 0.03)):
+		vy = 0.0
+	elif vy > 0.0 and resolved.y < requested.y - 0.00001:
 		vy = 0.0
 	return {"position": resolved, "vx": vx, "vy": vy, "vz": vz}
 

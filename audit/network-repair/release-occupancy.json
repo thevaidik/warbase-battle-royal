@@ -1,0 +1,128 @@
+[
+  {
+    "time": 1793123238.819478,
+    "generator_cpu_percent": "0.0",
+    "room": {
+      "id": "dc908ee0-a9ea-4df0-9606-a5630df1052f",
+      "name": "QA release generator 64",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 0,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "time": 1793123243.964468,
+    "generator_cpu_percent": "4.9",
+    "room": {
+      "id": "dc908ee0-a9ea-4df0-9606-a5630df1052f",
+      "name": "QA release generator 64",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "time": 1793123248.417734,
+    "generator_cpu_percent": "7.4",
+    "room": {
+      "id": "dc908ee0-a9ea-4df0-9606-a5630df1052f",
+      "name": "QA release generator 64",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "time": 1793123253.703816,
+    "generator_cpu_percent": "4.4",
+    "room": {
+      "id": "dc908ee0-a9ea-4df0-9606-a5630df1052f",
+      "name": "QA release generator 64",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "time": 1793123262.566904,
+    "generator_cpu_percent": "7.1",
+    "room": {
+      "id": "dc908ee0-a9ea-4df0-9606-a5630df1052f",
+      "name": "QA release generator 64",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 50,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "time": 1793123267.483713,
+    "generator_cpu_percent": "8.2",
+    "room": {
+      "id": "dc908ee0-a9ea-4df0-9606-a5630df1052f",
+      "name": "QA release generator 64",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 50,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "time": 1793123273.255287,
+    "generator_cpu_percent": "2.3",
+    "room": {
+      "id": "dc908ee0-a9ea-4df0-9606-a5630df1052f",
+      "name": "QA release generator 64",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 50,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "time": 1793123280.630368,
+    "generator_cpu_percent": "4.6",
+    "room": {
+      "id": "dc908ee0-a9ea-4df0-9606-a5630df1052f",
+      "name": "QA release generator 64",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 50,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "time": 1793123284.9236941,
+    "generator_cpu_percent": "9.4",
+    "room": {
+      "id": "dc908ee0-a9ea-4df0-9606-a5630df1052f",
+      "name": "QA release generator 64",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 50,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  }
+]

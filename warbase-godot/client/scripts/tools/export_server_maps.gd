@@ -20,7 +20,8 @@ func run() -> void:
 		output[map_id] = {"spawns": spawn_data, "triangles": triangles, "vehicles":vehicles, "nav_step":1.0 if map_id == "football" else 2.0}
 		print("MAP EXPORT: ", map_id, " triangles=", triangles.size() / 9)
 		builder.free()
-	var path := ProjectSettings.globalize_path("res://../server/internal/engine/maps.json")
+	var path := ProjectSettings.globalize_path("res://../../build/map-authoring/maps.json")
+	DirAccess.make_dir_recursive_absolute(path.get_base_dir())
 	var file := FileAccess.open(path, FileAccess.WRITE)
 	if file == null:
 		push_error("Cannot write map collision data")

@@ -1,0 +1,15 @@
+{
+  "output": "/Users/vaidik/Developer/WarBase /warbase-godot/client/candidate-static",
+  "release_scope": "full-client",
+  "client_source_fingerprint": "ebc1ef164c1d1457548c094d841edafcf2227d101eb2678c963d1407c202bcbd",
+  "godot_version": "4.7.2",
+  "colyseus_sdk_version": "0.18.9",
+  "pck_resources": 210,
+  "maps": 10,
+  "files": 11,
+  "bytes": {
+    "identity": 86852185,
+    "gzip": 48233886,
+    "br": 44790940
+  }
+}

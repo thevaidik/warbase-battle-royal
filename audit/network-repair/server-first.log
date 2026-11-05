@@ -1,0 +1,51 @@
+2026/10/27 22:34:42 Player probe-41 disconnected from room industrial-public
+2026/10/27 22:34:42 Player probe-33 disconnected from room industrial-public
+2026/10/27 22:34:42 Player probe-0 disconnected from room industrial-public
+2026/10/27 22:34:42 Player probe-31 disconnected from room industrial-public
+2026/10/27 22:34:42 Player probe-37 disconnected from room industrial-public
+2026/10/27 22:34:42 Player probe-24 disconnected from room industrial-public
+2026/10/27 22:34:42 Player probe-42 disconnected from room industrial-public
+2026/10/27 22:34:42 Player probe-48 disconnected from room industrial-public
+2026/10/27 22:34:42 Player probe-49 disconnected from room industrial-public
+2026/10/27 22:34:42 Player probe-7 disconnected from room industrial-public
+2026/10/27 22:34:42 Player probe-50 disconnected from room industrial-public
+2026/10/27 22:34:42 Player probe-14 disconnected from room industrial-public
+2026/10/27 22:34:42 Player probe-51 disconnected from room industrial-public
+2026/10/27 22:34:42 Player probe-8 disconnected from room industrial-public
+2026/10/27 22:34:42 Player probe-52 disconnected from room industrial-public
+2026/10/27 22:34:42 Player probe-59 disconnected from room industrial-public
+2026/10/27 22:34:42 Player probe-11 disconnected from room industrial-public
+2026/10/27 22:34:42 Player probe-54 disconnected from room industrial-public
+2026/10/27 22:34:42 Player probe-55 disconnected from room industrial-public
+2026/10/27 22:34:42 Player probe-45 disconnected from room industrial-public
+2026/10/27 22:34:42 Player probe-19 disconnected from room industrial-public
+2026/10/27 22:34:42 Player probe-9 disconnected from room industrial-public
+2026/10/27 22:34:42 Player probe-6 disconnected from room industrial-public
+2026/10/27 22:34:42 Player probe-46 disconnected from room industrial-public
+2026/10/27 22:34:42 Player probe-15 disconnected from room industrial-public
+2026/10/27 22:34:42 Player probe-58 disconnected from room industrial-public
+--- FAIL: TestVehiclePacketsAcrossWebSocket (0.00s)
+panic: httptest: failed to listen on a port: listen tcp6 [::1]:0: bind: operation not permitted [recovered, repanicked]
+
+goroutine 191 [running]:
+testing.tRunner.func1.2({0x10566bce0, 0x139a8c7a8940})
+	/opt/homebrew/Cellar/go/1.26.5/libexec/src/testing/testing.go:1974 +0x1a0
+testing.tRunner.func1()
+	/opt/homebrew/Cellar/go/1.26.5/libexec/src/testing/testing.go:1977 +0x318
+panic({0x10566bce0?, 0x139a8c7a8940?})
+	/opt/homebrew/Cellar/go/1.26.5/libexec/src/runtime/panic.go:860 +0x12c
+net/http/httptest.newLocalListener()
+	/opt/homebrew/Cellar/go/1.26.5/libexec/src/net/http/httptest/server.go:72 +0xd4
+net/http/httptest.NewUnstartedServer(...)
+	/opt/homebrew/Cellar/go/1.26.5/libexec/src/net/http/httptest/server.go:120
+net/http/httptest.NewServer({0x105749400, 0x139a8c7c6d80})
+	/opt/homebrew/Cellar/go/1.26.5/libexec/src/net/http/httptest/server.go:107 +0x28
+warbase-server/internal/engine.TestVehiclePacketsAcrossWebSocket(0x139a86e94b48)
+	/Users/vaidik/Developer/WarBase /warbase-godot/server/internal/engine/vehicles_test.go:33 +0x274
+testing.tRunner(0x139a86e94b48, 0x105742de8)
+	/opt/homebrew/Cellar/go/1.26.5/libexec/src/testing/testing.go:2036 +0xc4
+created by testing.(*T).Run in goroutine 1
+	/opt/homebrew/Cellar/go/1.26.5/libexec/src/testing/testing.go:2101 +0x3a8
+FAIL	warbase-server/internal/engine	3.685s
+ok  	warbase-server/cmd/game	1.667s
+FAIL

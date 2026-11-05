@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import { performance } from 'node:perf_hooks';
-import { INDUSTRIAL_SPAWNS, floorHeight, loadWorldGeometry, normalizeMapId, PLAYABLE_MAPS, rayBlocked, resolveIndustrialMove, type Vec3, type WorldGeometry } from './world-geometry.js';
+import { INDUSTRIAL_SPAWNS, floorHeight, loadWorldGeometry, normalizeMapId, PLAYABLE_MAPS, rayBlocked, resolveIndustrialMove, settledVerticalVelocity, type Vec3, type WorldGeometry } from './world-geometry.js';
 
 const fixtures = JSON.parse(readFileSync(new URL('./data/geometry-fixtures.json', import.meta.url), 'utf8')) as {
   rays: Array<{ name: string; from: number[]; to: number[]; blocked: boolean }>;
@@ -228,4 +228,31 @@ test('all selectable maps load independent authored geometry and match the share
   assert.equal(industrial.spawns[0][0], -22);
   assert.ok(village.spawns[0][0] !== industrial.spawns[0][0]);
   assert.equal(loadWorldGeometry(' INDUSTRIAL '), industrial);
+});
+
+test('Industrial scenery variant spawns stand above the road and settle without embedding', () => {
+  const nuketown = loadWorldGeometry('nuketown')!;
+  let settled = 0;
+  for (const map of ['industrial', 'nuketown', 'village', 'dust2', 'canyon']) {
+    const geometry = loadWorldGeometry(map)!;
+    for (const spawn of geometry.spawns) {
+      const floor = geometry.floorHeight(spawn[0], spawn[2], spawn[1] + 0.01);
+      assert.ok(floor !== undefined, `${map}: missing spawn floor`);
+      let position: Vec3 = spawn;
+      let vy = 0;
+      for (let tick = 0; tick < 120; tick++) {
+        vy -= 18 / 60;
+        const requestedY = position[1] + vy / 60;
+        position = geometry.resolveMove(position, [position[0], requestedY, position[2]]);
+        const beneath = geometry.floorHeight(position[0], position[2], position[1] + 0.1);
+        vy = settledVerticalVelocity(vy, requestedY, position[1], beneath);
+      }
+      assert.ok(position[1] >= floor - 0.03, `${map}: feet buried at ${position[1]} below road ${floor}`);
+      assert.ok(Math.abs(vy) < 0.01, `${map}: standing player accumulates falling velocity ${vy}`);
+      settled++;
+    }
+  }
+  const observed = nuketown.spawns.find((spawn) => spawn[0] === 28 && spawn[2] === 0)!;
+  assert.ok(observed && observed[1] > 0.84, 'reported x=28/z=0 spawn must clear the 0.8421m road');
+  assert.ok(settled >= 48);
 });

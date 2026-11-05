@@ -224,21 +224,34 @@ async function main() {
     const origin = options.url.replace(/\/$/, '');
     baseOrigin = origin;
     await fetchJson(`${origin}/health`, {}, 7000);
+    // Each simulated human needs its own signed identity. Pace issuance below
+    // the production per-caller quota; never disable admission for a load run.
+    const admittedClients = [];
+    const admissionTokens = [];
+    for (let index = 0; index < options.peers; index++) {
+      if (index > 0) await waitFor(2100, abort.signal);
+      const ticket = await fetchJson(`${origin}/api/admission`, { method: 'POST' }, 7000);
+      if (!ticket.token) throw new Error('Admission issuer returned no signed ticket');
+      const peerClient = new Client(options.url);
+      peerClient.auth.token = ticket.token;
+      admittedClients.push(peerClient);
+      admissionTokens.push(ticket.token);
+    }
     const createStart = Date.now();
     const created = await fetchJson(`${origin}/api/rooms`, {
-      method: 'POST', body: JSON.stringify({ map: options.map, mode: 'FFA', name: `${runName} official SDK cohort`, timeOfDay: 'noon' }),
+      method: 'POST', headers: { authorization: `Bearer ${admissionTokens[0]}` }, body: JSON.stringify({ map: options.map, mode: 'FFA', name: `${runName} official SDK cohort`, timeOfDay: 'noon' }),
     }, 10_000);
     creationMs = Date.now() - createStart;
     roomId = String(created.room_id ?? '');
     if (!roomId) throw new Error('Official room creation returned no room_id');
     process.stdout.write(`PREPARED_ROOM room_id=${roomId} observer=${options.observer} endpoint=${OFFICIAL_URL}\n`);
 
-    sdkClient = new Client(options.url);
+    sdkClient = admittedClients[0];
     gateUsername = `${usernamePrefix}Gate`;
     cohortNames.add(gateUsername);
     const gateStats = commonCounters();
     const gateStarted = Date.now();
-    const gateRoomPromise = sdkClient.joinOrCreate('battle', { room: roomId, username: gateUsername, cid: `${gateUsername}-cid`, map: options.map, mode: 'FFA', time_of_day: 'noon' });
+    const gateRoomPromise = sdkClient.joinOrCreate('battle', { room: roomId, username: gateUsername, map: options.map, mode: 'FFA', time_of_day: 'noon' });
     gate = await withTimeout(gateRoomPromise, JOIN_TIMEOUT_MS, (lateRoom) => { void lateRoom.leave(); });
     roomHandles.push(gate);
     gateStats.joinMs = Date.now() - gateStarted;
@@ -301,7 +314,7 @@ async function main() {
         cohortNames.add(username);
         const stats = commonCounters();
         const joiningAt = Date.now();
-        const pending = sdkClient.joinOrCreate('battle', { room: roomId, username, cid: `${username}-cid`, map: options.map, mode: 'FFA', time_of_day: 'noon' });
+        const pending = admittedClients[index].joinOrCreate('battle', { room: roomId, username, map: options.map, mode: 'FFA', time_of_day: 'noon' });
         batch.push(withTimeout(pending, JOIN_TIMEOUT_MS, (lateRoom) => { void lateRoom.leave(); }).then((room) => ({ room, username, index, stats, joinMs: Date.now() - joiningAt }), (error) => ({ error, username, index, stats })));
       }
       const joined = await Promise.all(batch);

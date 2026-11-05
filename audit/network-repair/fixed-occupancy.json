@@ -1,0 +1,520 @@
+[
+  {
+    "time": 1793121946.013364,
+    "room": {
+      "id": "ef592631-b857-4a5f-a26f-ec3480a2d1af",
+      "name": "QA fixed network 64",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 0,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    },
+    "online": 1
+  },
+  {
+    "time": 1793121950.379735,
+    "room": {
+      "id": "ef592631-b857-4a5f-a26f-ec3480a2d1af",
+      "name": "QA fixed network 64",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 62,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    },
+    "online": 63
+  },
+  {
+    "time": 1793121954.4191182,
+    "room": {
+      "id": "ef592631-b857-4a5f-a26f-ec3480a2d1af",
+      "name": "QA fixed network 64",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 62,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    },
+    "online": 63
+  },
+  {
+    "time": 1793121958.770238,
+    "room": {
+      "id": "ef592631-b857-4a5f-a26f-ec3480a2d1af",
+      "name": "QA fixed network 64",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 62,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    },
+    "online": 63
+  },
+  {
+    "time": 1793121962.8146791,
+    "room": {
+      "id": "ef592631-b857-4a5f-a26f-ec3480a2d1af",
+      "name": "QA fixed network 64",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 62,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    },
+    "online": 63
+  },
+  {
+    "time": 1793121967.056579,
+    "room": {
+      "id": "ef592631-b857-4a5f-a26f-ec3480a2d1af",
+      "name": "QA fixed network 64",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 62,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    },
+    "online": 63
+  },
+  {
+    "time": 1793121970.9987571,
+    "room": {
+      "id": "ef592631-b857-4a5f-a26f-ec3480a2d1af",
+      "name": "QA fixed network 64",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 62,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    },
+    "online": 63
+  },
+  {
+    "time": 1793121975.467146,
+    "room": {
+      "id": "ef592631-b857-4a5f-a26f-ec3480a2d1af",
+      "name": "QA fixed network 64",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 62,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    },
+    "online": 63
+  },
+  {
+    "time": 1793121979.50704,
+    "room": {
+      "id": "ef592631-b857-4a5f-a26f-ec3480a2d1af",
+      "name": "QA fixed network 64",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 62,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    },
+    "online": 63
+  },
+  {
+    "time": 1793121983.497408,
+    "room": {
+      "id": "ef592631-b857-4a5f-a26f-ec3480a2d1af",
+      "name": "QA fixed network 64",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 62,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    },
+    "online": 63
+  },
+  {
+    "time": 1793121987.6426759,
+    "room": {
+      "id": "ef592631-b857-4a5f-a26f-ec3480a2d1af",
+      "name": "QA fixed network 64",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 62,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    },
+    "online": 63
+  },
+  {
+    "time": 1793121991.562593,
+    "room": {
+      "id": "ef592631-b857-4a5f-a26f-ec3480a2d1af",
+      "name": "QA fixed network 64",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 62,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    },
+    "online": 63
+  },
+  {
+    "time": 1793121995.5891252,
+    "room": {
+      "id": "ef592631-b857-4a5f-a26f-ec3480a2d1af",
+      "name": "QA fixed network 64",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 62,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    },
+    "online": 63
+  },
+  {
+    "time": 1793121999.451631,
+    "room": {
+      "id": "ef592631-b857-4a5f-a26f-ec3480a2d1af",
+      "name": "QA fixed network 64",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 62,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    },
+    "online": 63
+  },
+  {
+    "time": 1793122003.683319,
+    "room": {
+      "id": "ef592631-b857-4a5f-a26f-ec3480a2d1af",
+      "name": "QA fixed network 64",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 62,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    },
+    "online": 63
+  },
+  {
+    "time": 1793122007.581494,
+    "room": {
+      "id": "ef592631-b857-4a5f-a26f-ec3480a2d1af",
+      "name": "QA fixed network 64",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 62,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    },
+    "online": 63
+  },
+  {
+    "time": 1793122011.559461,
+    "room": {
+      "id": "ef592631-b857-4a5f-a26f-ec3480a2d1af",
+      "name": "QA fixed network 64",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 62,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    },
+    "online": 63
+  },
+  {
+    "time": 1793122015.430846,
+    "room": {
+      "id": "ef592631-b857-4a5f-a26f-ec3480a2d1af",
+      "name": "QA fixed network 64",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 62,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    },
+    "online": 63
+  },
+  {
+    "time": 1793122019.307111,
+    "room": {
+      "id": "ef592631-b857-4a5f-a26f-ec3480a2d1af",
+      "name": "QA fixed network 64",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 62,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    },
+    "online": 63
+  },
+  {
+    "time": 1793122023.1449962,
+    "room": {
+      "id": "ef592631-b857-4a5f-a26f-ec3480a2d1af",
+      "name": "QA fixed network 64",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 62,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    },
+    "online": 63
+  },
+  {
+    "time": 1793122026.990377,
+    "room": {
+      "id": "ef592631-b857-4a5f-a26f-ec3480a2d1af",
+      "name": "QA fixed network 64",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 62,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    },
+    "online": 63
+  },
+  {
+    "time": 1793122031.468467,
+    "room": {
+      "id": "ef592631-b857-4a5f-a26f-ec3480a2d1af",
+      "name": "QA fixed network 64",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 62,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    },
+    "online": 63
+  },
+  {
+    "time": 1793122035.732024,
+    "room": {
+      "id": "ef592631-b857-4a5f-a26f-ec3480a2d1af",
+      "name": "QA fixed network 64",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 62,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    },
+    "online": 63
+  },
+  {
+    "time": 1793122039.8241842,
+    "room": {
+      "id": "ef592631-b857-4a5f-a26f-ec3480a2d1af",
+      "name": "QA fixed network 64",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 62,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    },
+    "online": 63
+  },
+  {
+    "time": 1793122043.806912,
+    "room": {
+      "id": "ef592631-b857-4a5f-a26f-ec3480a2d1af",
+      "name": "QA fixed network 64",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 62,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    },
+    "online": 63
+  },
+  {
+    "time": 1793122047.791871,
+    "room": {
+      "id": "ef592631-b857-4a5f-a26f-ec3480a2d1af",
+      "name": "QA fixed network 64",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 62,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    },
+    "online": 63
+  },
+  {
+    "time": 1793122051.7375941,
+    "room": {
+      "id": "ef592631-b857-4a5f-a26f-ec3480a2d1af",
+      "name": "QA fixed network 64",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 62,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    },
+    "online": 63
+  },
+  {
+    "time": 1793122056.0382762,
+    "room": {
+      "id": "ef592631-b857-4a5f-a26f-ec3480a2d1af",
+      "name": "QA fixed network 64",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 62,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    },
+    "online": 63
+  },
+  {
+    "time": 1793122059.937241,
+    "room": {
+      "id": "ef592631-b857-4a5f-a26f-ec3480a2d1af",
+      "name": "QA fixed network 64",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 62,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    },
+    "online": 63
+  },
+  {
+    "time": 1793122063.826039,
+    "room": {
+      "id": "ef592631-b857-4a5f-a26f-ec3480a2d1af",
+      "name": "QA fixed network 64",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 62,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    },
+    "online": 63
+  },
+  {
+    "time": 1793122067.68434,
+    "room": {
+      "id": "ef592631-b857-4a5f-a26f-ec3480a2d1af",
+      "name": "QA fixed network 64",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 62,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    },
+    "online": 63
+  },
+  {
+    "time": 1793122071.563555,
+    "room": {
+      "id": "ef592631-b857-4a5f-a26f-ec3480a2d1af",
+      "name": "QA fixed network 64",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 62,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    },
+    "online": 63
+  },
+  {
+    "time": 1793122075.5234828,
+    "room": {
+      "id": "ef592631-b857-4a5f-a26f-ec3480a2d1af",
+      "name": "QA fixed network 64",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 62,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    },
+    "online": 63
+  },
+  {
+    "time": 1793122079.986856,
+    "room": {
+      "id": "ef592631-b857-4a5f-a26f-ec3480a2d1af",
+      "name": "QA fixed network 64",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 62,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    },
+    "online": 63
+  },
+  {
+    "time": 1793122083.669857,
+    "room": {
+      "id": "ef592631-b857-4a5f-a26f-ec3480a2d1af",
+      "name": "QA fixed network 64",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 62,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    },
+    "online": 63
+  },
+  {
+    "time": 1793122087.897606,
+    "room": {
+      "id": "ef592631-b857-4a5f-a26f-ec3480a2d1af",
+      "name": "QA fixed network 64",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 63,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    },
+    "online": 64
+  },
+  {
+    "time": 1793122091.694262,
+    "room": {
+      "id": "ef592631-b857-4a5f-a26f-ec3480a2d1af",
+      "name": "QA fixed network 64",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 63,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    },
+    "online": 64
+  }
+]

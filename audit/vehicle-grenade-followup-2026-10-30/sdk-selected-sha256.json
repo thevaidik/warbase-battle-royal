@@ -1,0 +1,13 @@
+{
+  "LICENSE": "6b152ef88f11ca8c31f4a070d1f05806e11ee7eb38d72d438ac3101e119afc49",
+  "UPSTREAM.txt": "e65965597169d971f6b4e2ccc304bb18dff218ecf4a10975d605e8f6dc059d92",
+  "bin/libcolyseus_godot.macos.debug.dylib": "3357046c10c90a8ec57d0d4c5e64f42c825ff763fc47639a1af03de614afed9a",
+  "bin/libcolyseus_godot.macos.release.dylib": "b3fa652a52a1dbcb6132a29bb52f471fc46257cd6f00f508781d32c203390094",
+  "bin/libcolyseus_godot.web.wasm32.debug.wasm": "c747ac2f433468adfa72c68e7340578501523583e64e9a22a792d69cd1d491a1",
+  "bin/libcolyseus_godot.web.wasm32.release.wasm": "42246402c55f312105885b87e3115205c82bca0eb6c383126b6e6a04315174ef",
+  "colyseus.gd": "a4c92b238917ca012c61502f4e8f2e1acbfebfba929826f05d721bf3b70f6fb1",
+  "colyseus.gdextension": "1d73d485dbe891e197ae7876d7806ee125a225219dbf30dc2115eccec8bf49ce",
+  "plugin.cfg": "5734bfbfcf75ae4430ee4b348ca96a6c9b4ddcf512ccfe68e0af03d1b3abebb4",
+  "plugin.gd": "86b1d7e77c70945af23ea76da6a2c31dd2bb221028f884be109627bdb05c3f05",
+  "version.json": "70722592068d83c27ed827288a456d25cadf32ad0fe34783253e833162f05289"
+}

@@ -7,6 +7,14 @@ export const PLAYABLE_MAPS = Object.freeze(['football', 'resoforge', 'industrial
 export type PlayableMap = typeof PLAYABLE_MAPS[number];
 export type Vec3 = readonly [x: number, y: number, z: number];
 
+/** Stop the vertical integrator on capsule contact, including edge/ceiling
+ * contacts that a single floor ray beneath the capsule centre cannot see. */
+export function settledVerticalVelocity(vy: number, requestedY: number, resolvedY: number, floor: number | undefined): number {
+  if (vy < 0 && (resolvedY > requestedY + 0.00001 || (floor !== undefined && resolvedY <= floor + 0.03))) return 0;
+  if (vy > 0 && resolvedY < requestedY - 0.00001) return 0;
+  return vy;
+}
+
 type EncodedMap = { name?: string; nav_step?: number; spawns: number[][]; vehicles?: number[][]; triangles: number[]; nodes: number[]; order: number[] };
 type BvhNode = {
   minX: number; minY: number; minZ: number;
@@ -150,16 +158,22 @@ export class WorldGeometry {
   constructor(name: PlayableMap, encoded: EncodedMap) {
     this.name = name;
     this.navStep = Number.isFinite(encoded.nav_step) && (encoded.nav_step ?? 0) > 0 ? encoded.nav_step! : 2;
+    this.buffers = validateMap(name, encoded);
     if (!Array.isArray(encoded.spawns) || encoded.spawns.length === 0) throw new Error(`Invalid authored ${name} spawns`);
     this.spawns = Object.freeze(encoded.spawns.map((spawn) => {
       if (spawn.length !== 3 || !spawn.every(Number.isFinite)) throw new Error(`Invalid authored ${name} spawn`);
-      return Object.freeze([spawn[0], spawn[1], spawn[2]]) as Vec3;
+      // Some authored markers (notably the Industrial scenery variants) put
+      // the feet below the rendered road. A capsule starting embedded cannot
+      // escape through an ordinary sweep. Raise only to a nearby walkable
+      // surface; do not cast from the sky and accidentally choose a rooftop.
+      const nearbyFloor = this.floorHeight(spawn[0], spawn[2], spawn[1] + 0.6);
+      const y = nearbyFloor !== undefined && nearbyFloor > spawn[1] ? nearbyFloor + 0.02 : spawn[1];
+      return Object.freeze([spawn[0], y, spawn[2]]) as Vec3;
     }));
     this.vehicleSpawns = Object.freeze((encoded.vehicles ?? []).map((spawn) => {
       if (spawn.length !== 4 || !spawn.every(Number.isFinite)) throw new Error(`Invalid authored ${name} vehicle spawn`);
       return Object.freeze([spawn[0], spawn[1], spawn[2], spawn[3]]) as readonly [number, number, number, number];
     }));
-    this.buffers = validateMap(name, encoded);
   }
 
   trace(from: Vec3, to: Vec3): (RayHit & { point: Vec3 }) | null {

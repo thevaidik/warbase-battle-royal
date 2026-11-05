@@ -8,11 +8,11 @@ const WeaponSysScript := preload("res://scripts/weapons/WeaponSystem.gd")
 const MapBuilderScript := preload("res://scripts/maps/MapBuilder.gd")
 const BotMgrScript := preload("res://scripts/bots/BotManager.gd")
 const MultiplayerScript := preload("res://scripts/net/MultiplayerManager.gd")
-const NetScript := preload("res://scripts/net/NetworkManager.gd")
 const HudScript := preload("res://scripts/ui/HUD.gd")
 const MenuScript := preload("res://scripts/ui/MainMenu.gd")
 const CombatJeepScript := preload("res://scripts/vehicles/CombatJeep.gd")
 const ColyseusNetScript := preload("res://scripts/net/ColyseusNetwork.gd")
+const TacticalMapScript := preload("res://scripts/ui/TacticalMap.gd")
 
 enum Phase { MENU, PLAYING, PAUSED, DEAD }
 
@@ -25,6 +25,8 @@ var bots
 var mp
 var net: WarNetwork
 var hud: WarHUD
+var tactical_map: WarTacticalMap
+var objective_markers: WarObjectiveMarkers
 var menu: WarMenu
 var sway_root: Node3D
 var current_driven_jeep = null
@@ -41,13 +43,13 @@ var _grenade_preview_t := 0.0
 const GrenadeFlight = preload("res://scripts/weapons/GrenadeBallistics.gd")
 var _last_winner := ""
 var _last_round_finished := false
-var _network_correction_count := 0
-var _reconcile_after_sequence := 0
 var _last_damage_feedback_ms := -1000
+var _tactical_map_open := false
+var _map_previous_mouse_mode := Input.MOUSE_MODE_CAPTURED
+var _map_paused_nodes: Array[Dictionary] = []
 
 var _autotest := false
 var _qa_active := false
-var _use_colyseus := false
 var _test_t := 0.0
 var _test_stage := 0
 
@@ -81,8 +83,6 @@ func _ready() -> void:
 		ev_c.physical_keycode = KEY_C
 		InputMap.action_add_event("crouch", ev_c)
 	for a in OS.get_cmdline_user_args():
-		if a == "qa_colyseus" or a == "backend=colyseus":
-			_use_colyseus = true
 		if a == "autotest":
 			_autotest = true
 			GameState.practice_mode = true
@@ -93,19 +93,12 @@ func _ready() -> void:
 			GameState.room_id = GameState.selected_map + "-public"
 		if a.begins_with("host="):
 			GameState.server_host = a.trim_prefix("host=")
-	if OS.has_feature("web"):
-		var web_backend := String(JavaScriptBridge.eval("new URLSearchParams(window.location.search).get('backend') || ''"))
-		var web_qa_colyseus := String(JavaScriptBridge.eval("new URLSearchParams(window.location.search).get('qa_colyseus') || ''"))
-		var web_path := String(JavaScriptBridge.eval("window.location.pathname"))
-		if web_backend.to_lower() == "colyseus" or web_backend.to_lower() == "qa_colyseus" or web_qa_colyseus == "1" or web_path == "/colyseus" or web_path.begins_with("/colyseus/"):
-			_use_colyseus = true
-			
 	world = Node3D.new()
 	world.name = "World"
 	world.process_mode = Node.PROCESS_MODE_PAUSABLE
 	add_child(world)
 	
-	net = ColyseusNetScript.new() if _use_colyseus else NetScript.new()
+	net = ColyseusNetScript.new()
 	net.name = "Net"
 	net.process_mode = Node.PROCESS_MODE_ALWAYS
 	add_child(net)
@@ -186,8 +179,6 @@ func _on_deploy() -> void:
 
 func _start_match() -> void:
 	GameState.online_ready = GameState.practice_mode
-	_reconcile_after_sequence = net.input_sequence
-	_network_correction_count = 0
 	hud.set_connection_status("Synchronizing match…" if not GameState.practice_mode else "")
 	GameState.reset_match_stats()
 	
@@ -211,7 +202,7 @@ func _start_match() -> void:
 	# Instantiate player from Player.tscn
 	const PlayerScene: PackedScene = preload("res://scenes/Player.tscn")
 	player = PlayerScene.instantiate() as WarPlayer
-	player.colyseus_authoritative_sim = _use_colyseus and not GameState.practice_mode
+	player.colyseus_authoritative_sim = not GameState.practice_mode
 	world.add_child(player)
 	sway_root = player.get_node("Head/Camera3D/SwayRoot") as Node3D
 	var cam := player.get_node("Head/Camera3D") as Camera3D
@@ -254,11 +245,29 @@ func _start_match() -> void:
 	phase = Phase.PLAYING
 	hud.visible = true
 	hud.update_player_header(GameState.username, GameState.local_team, GameState.selected_mode)
+	if GameState.selected_mode == "CONQUEST":
+		objective_markers = preload("res://scripts/ui/ObjectiveMarkers.gd").new()
+		objective_markers.player = player
+		hud.add_child(objective_markers)
+		tactical_map = TacticalMapScript.new()
+		tactical_map.name = "TacticalMap"
+		tactical_map.process_mode = Node.PROCESS_MODE_ALWAYS
+		hud.add_child(tactical_map)
+		tactical_map.configure(world, map_builder, player)
 	_capture_mouse()
 	hud.feed("Deployed to %s [%s]" % [GameState.selected_map.to_upper(), GameState.selected_mode], Color(0.2, 0.9, 0.4))
 
 func _input(event: InputEvent) -> void:
 	if phase == Phase.MENU:
+		return
+	if event is InputEventKey and event.pressed and not event.echo and (event.physical_keycode == KEY_M or event.keycode == KEY_M) and GameState.selected_mode == "CONQUEST":
+		_toggle_tactical_map()
+		get_viewport().set_input_as_handled()
+		return
+	if _tactical_map_open:
+		if event.is_action_pressed("pause") or (event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_ESCAPE):
+			_toggle_tactical_map()
+			get_viewport().set_input_as_handled()
 		return
 	if phase == Phase.PLAYING and not hud.is_board_visible() and Input.mouse_mode != Input.MOUSE_MODE_CAPTURED and event is InputEventMouseButton and event.pressed:
 		_capture_mouse()
@@ -273,6 +282,7 @@ func _input(event: InputEvent) -> void:
 			_toggle_scoreboard()
 			return
 		_toggle_pause()
+
 	if event.is_action_pressed("scoreboard"):
 		_toggle_scoreboard()
 		return
@@ -320,6 +330,39 @@ func _input(event: InputEvent) -> void:
 		_grenade_aiming = false
 		_hide_grenade_preview()
 		_throw_grenade()
+
+func _toggle_tactical_map() -> void:
+	if not is_instance_valid(tactical_map): return
+	_tactical_map_open = not _tactical_map_open
+	if is_instance_valid(objective_markers):
+		objective_markers.suppressed = _tactical_map_open
+		objective_markers.refresh()
+	if _tactical_map_open:
+		_map_previous_mouse_mode = Input.mouse_mode
+		_map_paused_nodes.clear()
+		for node in [player, weapons, current_driven_jeep]:
+			if is_instance_valid(node):
+				_map_paused_nodes.append({"node":node, "process":node.is_processing(), "physics":node.is_physics_processing(), "input":node.is_processing_input(), "unhandled_input":node.is_processing_unhandled_input()})
+				node.set_process(false)
+				node.set_physics_process(false)
+				node.set_process_input(false)
+				node.set_process_unhandled_input(false)
+		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+		if net.has_method("set_gameplay_input_enabled"): net.set_gameplay_input_enabled(false)
+		tactical_map.set_open(true)
+	else:
+		tactical_map.set_open(false)
+		for saved in _map_paused_nodes:
+			var node: Node = saved["node"]
+			if is_instance_valid(node):
+				node.set_process(bool(saved["process"]))
+				node.set_physics_process(bool(saved["physics"]))
+				node.set_process_input(bool(saved["input"]))
+				node.set_process_unhandled_input(bool(saved["unhandled_input"]))
+		_map_paused_nodes.clear()
+		var gameplay_enabled := phase == Phase.PLAYING and is_instance_valid(player) and not player.is_dead
+		if net.has_method("set_gameplay_input_enabled"): net.set_gameplay_input_enabled(gameplay_enabled)
+		Input.mouse_mode = _map_previous_mouse_mode if gameplay_enabled else Input.MOUSE_MODE_VISIBLE
 
 func _toggle_scoreboard() -> void:
 	if hud.is_board_visible():
@@ -397,6 +440,14 @@ func _toggle_pause() -> void:
 		hud.set_paused(false)
 
 func _quit_to_menu() -> void:
+	if is_instance_valid(tactical_map):
+		tactical_map.set_open(false)
+		tactical_map.queue_free()
+	tactical_map = null
+	if is_instance_valid(objective_markers): objective_markers.queue_free()
+	objective_markers = null
+	_tactical_map_open = false
+	_map_paused_nodes.clear()
 	_grenade_aiming = false
 	_hide_grenade_preview()
 	_grenade_preview.clear()
@@ -490,7 +541,8 @@ func _throw_grenade() -> void:
 	if _grenade_cd > 0.0 or GameState.throwables_remaining <= 0 or player.is_dead or not GameState.online_ready:
 		return
 	_grenade_cd = 1.0
-	GameState.throwables_remaining -= 1
+	if GameState.practice_mode:
+		GameState.throwables_remaining -= 1
 	player.end_spawn_protection()
 	Audio.grenade_pin()
 	if weapons and weapons.has_method("play_grenade_throw"):
@@ -506,7 +558,14 @@ func _throw_grenade() -> void:
 	if GameState.practice_mode:
 		spawn_grenade(pos, vel, spin, GameState.selected_throwable)
 	_spawn_spoon_fly(pos, cam.global_transform.basis.x * 2.8 + Vector3.UP * 2.2 + (player.velocity * 0.3 if player else Vector3.ZERO))
-	net.send_grenade(pos, vel, GameState.selected_throwable)
+	if not GameState.practice_mode:
+		var request_id := net.send_grenade(pos, vel, GameState.selected_throwable)
+		if request_id > 0:
+			var predicted := spawn_grenade(pos, vel, spin, GameState.selected_throwable)
+			if mp and mp.has_method("register_predicted_grenade"):
+				mp.register_predicted_grenade(request_id, predicted)
+	else:
+		net.send_grenade(pos, vel, GameState.selected_throwable)
 
 func _spawn_spoon_fly(pos: Vector3, vel: Vector3) -> void:
 	if not is_instance_valid(world):
@@ -597,7 +656,7 @@ func _on_player_damaged(attacker_dir: Vector3, amount: float) -> void:
 		hud.add_damage_indicator(rel)
 
 func _on_state(state: Dictionary) -> void:
-	if not GameState.practice_mode and int(state.get("protocol_version", 0)) != 5:
+	if not GameState.practice_mode and int(state.get("protocol_version", 0)) != 6:
 		net.disconnect_from()
 		hud.feed("Game updated. Refresh the page or reopen the latest build.", Color(1, 0.4, 0.3))
 		return
@@ -625,25 +684,6 @@ func _on_state(state: Dictionary) -> void:
 		# the client, rather than leaving the death screen latched indefinitely.
 		if is_instance_valid(player) and player.is_dead and player.get_meta("respawn_requested", false) and not bool(me.get("is_dead", false)) and remote_hp > 0:
 			_on_net_respawn(Vector3(float(me.get("x", 0)), float(me.get("y", 0)), float(me.get("z", 0))) + Vector3.UP * 0.2)
-		if not _use_colyseus and not GameState.practice_mode and is_instance_valid(player) and not player.is_dead and not player.is_driving:
-			var sequence := int(me.get("ack_input_sequence",0))
-			var acknowledged = net.take_acknowledged_position(sequence)
-			if acknowledged is Vector3 and sequence > _reconcile_after_sequence:
-				var authoritative_pos := Vector3(float(me.get("x",0)),float(me.get("y",0)),float(me.get("z",0)))
-				var error: Vector3 = authoritative_pos - acknowledged
-				if error.length() > 0.35:
-					_network_correction_count += 1
-					if _network_correction_count >= 3:
-						# Rebase from the acknowledged input, retaining later valid movement.
-						var collision = player.move_and_collide(error, true)
-						if collision or error.length() > 3.0: player.global_position = authoritative_pos
-						else: player.global_position += error
-						player.velocity = Vector3.ZERO
-						player._step_active = false
-						player.reset_physics_interpolation()
-						_network_correction_count = 0
-						_reconcile_after_sequence = net.input_sequence
-				else: _network_correction_count = 0
 		if is_instance_valid(player):
 			if remote_hp < player.health and not player.is_dead:
 				if Time.get_ticks_msec() - _last_damage_feedback_ms > 150: hud.add_damage_indicator(Vector3.ZERO)
@@ -658,9 +698,23 @@ func _on_state(state: Dictionary) -> void:
 		if (bool(me.get("is_dead", false)) or (is_instance_valid(player) and player.health <= 0)) and is_instance_valid(player) and not player.is_dead:
 			player.set_meta("network_dead", true)
 			player.kill()
+	if GameState.selected_mode == "CONQUEST":
+		var points_value: Variant = state.get("objectives", {})
+		var points: Array = []
+		if points_value is Dictionary:
+			for code in ["A", "B", "C", "D"]:
+				if points_value.has(code) and points_value[code] is Dictionary: points.append(points_value[code])
+		elif points_value is Array:
+			points = points_value
+		hud.set_conquest_objectives(points)
+		if is_instance_valid(objective_markers): objective_markers.points = points
+		if is_instance_valid(tactical_map): tactical_map.set_objectives(points)
+		GameState.score_a = int(state.get("tickets_a", GameState.score_a))
+		GameState.score_b = int(state.get("tickets_b", GameState.score_b))
+	GameState.winner_id = String(state.get("winner", GameState.winner_id))
 	hud.set_score(GameState.selected_mode, GameState.score_a, GameState.score_b, GameState.local_team, GameState.winner_id)
 	hud.set_ping(net.current_ping)
-	var finished := String(state.get("room_state", "PLAYING")) == "FINISHED"
+	var finished := String(state.get("room_state", "playing")).to_lower() == "finished"
 	if _last_round_finished and not finished:
 		GameState.reset_match_stats()
 		hud.feed("New round", Color(0.4, 0.8, 0.65))
@@ -678,9 +732,12 @@ func _apply_online_vehicles(vehicles: Dictionary, me: Dictionary) -> void:
 		var vehicle = _online_vehicles[id]
 		var snapshot: Dictionary = vehicles[id]
 		var at: Vector3 = snapshot["pos"]
-		if vehicle.global_position.distance_to(at) > 8: vehicle.global_position = at
-		vehicle.network_position = at
-		vehicle.network_yaw = float(snapshot.get("yaw", 0))
+		var sdk_driven: bool = net.has_method("is_vehicle_prediction_active") and net.is_vehicle_prediction_active(String(id))
+		vehicle.set_meta("sdk_local_prediction", sdk_driven)
+		if not sdk_driven:
+			if vehicle.global_position.distance_to(at) > 8: vehicle.global_position = at
+			vehicle.network_position = at
+			vehicle.network_yaw = float(snapshot.get("yaw", 0))
 		vehicle.current_speed_kmh = absf(float(snapshot.get("speed", 0))) * 3.6
 		vehicle.is_reversing = float(snapshot.get("speed", 0)) < 0
 		vehicle.set_meta("server_driver", snapshot.get("driver", ""))
@@ -726,9 +783,8 @@ func _on_conn(connected_now: bool) -> void:
 		hud.set_connection_status("Connection interrupted. Reconnecting…")
 
 func _on_net_respawn(pos: Vector3) -> void:
-	_reconcile_after_sequence = net.input_sequence
-	_network_correction_count = 0
-	net._sent_positions.clear()
+	if mp and mp.has_method("clear_pending_grenades"):
+		mp.clear_pending_grenades()
 	_do_respawn(pos - Vector3(0, 0.2, 0))
 	if weapons:
 		net.send_switch(String(weapons.current_config()["id"]))
@@ -765,7 +821,12 @@ func _do_respawn(pos: Vector3) -> void:
 	phase = Phase.PLAYING
 	hud.set_dead(false, 0)
 	hud.set_health(100)
-	_capture_mouse()
+	if _tactical_map_open:
+		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+		if net.has_method("set_gameplay_input_enabled"): net.set_gameplay_input_enabled(false)
+	else:
+		_capture_mouse()
+		if net.has_method("set_gameplay_input_enabled"): net.set_gameplay_input_enabled(true)
 
 func _process(delta: float) -> void:
 	_grenade_cd = maxf(0.0, _grenade_cd - delta)
@@ -818,6 +879,17 @@ func _process(delta: float) -> void:
 	if optic_active:
 		hud.update_scope_steady(weapons.is_holding_breath, weapons.breath_stamina, rad_to_deg(player.yaw))
 	hud.set_ammo(weapons.ammo, int(weapons.current_config()["mag_size"]), String(weapons.current_config()["name"]), weapons.is_reloading)
+	if _tactical_map_open:
+		_send_acc += delta
+		if _send_acc >= 1.0 / 30.0:
+			_send_acc = 0.0
+			if current_driven_jeep != null:
+				if not GameState.practice_mode: net.send_vehicle_input(0.0, 0.0, false, current_driven_jeep.current_gear)
+			else:
+				var map_basis := Basis(Quaternion(Vector3.UP, player.yaw))
+				var map_weapon := GameState.weapon_id_for_index(weapons.active_index) if weapons else "ak47"
+				net.send_state(player.global_position, Quaternion(map_basis), "idle", map_weapon)
+		return
 	
 	# Vehicle driving and telemetry loop
 	if current_driven_jeep != null:
@@ -870,19 +942,13 @@ func _process(delta: float) -> void:
 
 func _autotest_tick(delta: float) -> void:
 	_test_t += delta
-	# proto roundtrip
+	# Exercise the shipped adapter; the retired protobuf codec is archived.
 	if _test_stage == -1 and _test_t > 0.5:
 		_test_stage = 1
 		_test_t = 0.0
-		var fe := WarProto._strf(1, "BOT_1")
-		for i in range(2, 11):
-			fe += WarProto._f32f(i, float(i))
-		fe += WarProto._boolf(11, true)
-		var dec := WarProto.decode_server(WarProto._len(2, WarProto._len(2, fe)))
-		print("AUTOTEST: server fire decode kind=", dec.get("kind", "?"), " shooter=", dec.get("shooter", "?"), " wall=", dec.get("wall", false))
-		var st := WarProto.encode_state(1, 2, 3, 0, 0, 0, 1, "run", 42, "ak47")
-		print("AUTOTEST: state bytes=", st.size())
-		
+		assert(net is WarColyseusNetwork)
+		print("AUTOTEST: Colyseus adapter ready")
+
 	elif _test_stage == 1 and _test_t > 0.8:
 		_test_stage = 2
 		_test_t = 0.0

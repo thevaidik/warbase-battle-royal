@@ -45,12 +45,14 @@ func _test_pose_ownership_and_per_frame_instrumentation() -> void:
 	net._username = "local"
 	net._last_normalized_state = {"players": {
 		"local": {"x": 0.0, "y": 1.0, "z": 0.0},
-		"peer": {"x": 4.0, "y": 1.0, "z": -3.0, "yaw": 0.5, "animation": "run", "animation_time": 1.25, "pose_time_ms": 1000},
+		"peer": {"x": 4.0, "y": 1.0, "z": -3.0, "yaw": 0.5, "anim": "run", "inventory_blob": "not render data", "animation_time": 1.25, "pose_time_ms": 1000},
 	}}
 	net.set_qa_timing(true)
 	var poses: Dictionary = net.get_sdk_remote_poses()
 	_check(poses.size() == 1 and poses.has("peer"), "remote pose set excludes the local player")
 	_check(is_equal_approx(float(poses.get("peer", {}).get("x", -1.0)), 4.0), "remote pose position")
+	_check(not poses["peer"].has("inventory_blob"), "per-frame render poses exclude inventory payloads")
+	_check(poses["peer"].get("anim") == "run", "render poses preserve animation state")
 	poses["peer"]["x"] = 99.0
 	_check(is_equal_approx(float(net._last_normalized_state.players.peer.x), 4.0), "pose output does not mutate the retained snapshot")
 	var prep: Dictionary = net.get_remote_pose_preparation_diagnostics()

@@ -21,7 +21,7 @@ func setup(p: Node3D, points: Array[Vector3]) -> void:
 
 func get_spawn_point() -> Vector3:
 	if not spawn_points.is_empty():
-		var jitter := 0.7 if GameState.selected_map in ["loft", "shipment"] else 2.0
+		var jitter := 0.7 if GameState.selected_map == "shipment" else 2.0
 		return spawn_points[randi() % spawn_points.size()] + Vector3(randf_range(-jitter, jitter), 0.0, randf_range(-jitter, jitter))
 	return Vector3(randf_range(-20, 20), 0.5, randf_range(-20, 20))
 

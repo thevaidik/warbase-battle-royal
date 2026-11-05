@@ -503,7 +503,6 @@ func interpolate(delta: float = 0.016) -> void:
 			global_position = _safe_pos(s)
 			quaternion = _safe_quat(s)
 			_render_animation(s, s, 0.0)
-		_sync_claimed_jeep_transform()
 		return
 	var rt: float = Time.get_ticks_msec() / 1000.0 - _render_delay
 	var i := 0
@@ -525,7 +524,6 @@ func interpolate(delta: float = 0.016) -> void:
 		var slerped := cur_q.slerp(q_latest, clampf(24.0 * delta, 0.0, 1.0))
 		if slerped.length_squared() > 0.0001:
 			quaternion = slerped.normalized()
-		_sync_claimed_jeep_transform()
 		var pose_weight := _project_snapshot_weight(_safe_pos(previous), target_pos, global_position)
 		_render_animation(previous, latest, pose_weight)
 		return
@@ -549,7 +547,6 @@ func interpolate(delta: float = 0.016) -> void:
 	var interp_q := q0.slerp(q1, k)
 	if interp_q.length_squared() > 0.0001:
 		quaternion = interp_q.normalized()
-	_sync_claimed_jeep_transform()
 	_render_animation(s0, s1, k)
 
 func apply_sdk_pose(st: Dictionary, delta: float = 0.016) -> void:
@@ -568,7 +565,6 @@ func apply_sdk_pose(st: Dictionary, delta: float = 0.016) -> void:
 	else:
 		dead = false
 		_render_animation(st, st, 0.0)
-	_sync_claimed_jeep_transform()
 
 func _render_animation(a: Dictionary, b: Dictionary, weight: float) -> void:
 	hit_view_time_ms = _lerp_pose_time_ms(a, b, weight)
@@ -581,9 +577,6 @@ func _render_animation(a: Dictionary, b: Dictionary, weight: float) -> void:
 	var phase_b := float(b.get("animation_time", phase_a))
 	var phase := lerpf(phase_a, phase_b, weight) if anim_a == anim_b else (phase_a if selected == anim_a else phase_b)
 	_sync_anim(selected, false, phase)
-
-func _sync_claimed_jeep_transform() -> void:
-	pass
 
 func _update_distance_lod() -> void:
 	var cam := get_viewport().get_camera_3d()

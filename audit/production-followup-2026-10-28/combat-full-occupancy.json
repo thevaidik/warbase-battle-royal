@@ -1,0 +1,210 @@
+[
+  {
+    "elapsed": 0.6,
+    "room": {
+      "id": "bc16eac6-29df-41de-8731-d5e8b67d6b41",
+      "name": "QA combat-full",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 0,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 11.5,
+    "room": {
+      "id": "bc16eac6-29df-41de-8731-d5e8b67d6b41",
+      "name": "QA combat-full",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 22.6,
+    "room": {
+      "id": "bc16eac6-29df-41de-8731-d5e8b67d6b41",
+      "name": "QA combat-full",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 33.5,
+    "room": {
+      "id": "bc16eac6-29df-41de-8731-d5e8b67d6b41",
+      "name": "QA combat-full",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 44.1,
+    "room": {
+      "id": "bc16eac6-29df-41de-8731-d5e8b67d6b41",
+      "name": "QA combat-full",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 54.9,
+    "room": {
+      "id": "bc16eac6-29df-41de-8731-d5e8b67d6b41",
+      "name": "QA combat-full",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 66.1,
+    "room": {
+      "id": "bc16eac6-29df-41de-8731-d5e8b67d6b41",
+      "name": "QA combat-full",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 76.9,
+    "room": {
+      "id": "bc16eac6-29df-41de-8731-d5e8b67d6b41",
+      "name": "QA combat-full",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 88.0,
+    "room": {
+      "id": "bc16eac6-29df-41de-8731-d5e8b67d6b41",
+      "name": "QA combat-full",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 99.2,
+    "room": {
+      "id": "bc16eac6-29df-41de-8731-d5e8b67d6b41",
+      "name": "QA combat-full",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 109.9,
+    "room": {
+      "id": "bc16eac6-29df-41de-8731-d5e8b67d6b41",
+      "name": "QA combat-full",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 120.5,
+    "room": {
+      "id": "bc16eac6-29df-41de-8731-d5e8b67d6b41",
+      "name": "QA combat-full",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 131.3,
+    "room": {
+      "id": "bc16eac6-29df-41de-8731-d5e8b67d6b41",
+      "name": "QA combat-full",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 63,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 142.4,
+    "room": {
+      "id": "bc16eac6-29df-41de-8731-d5e8b67d6b41",
+      "name": "QA combat-full",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 63,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 153.4,
+    "room": {
+      "id": "bc16eac6-29df-41de-8731-d5e8b67d6b41",
+      "name": "QA combat-full",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 63,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 164.3,
+    "room": {
+      "id": "bc16eac6-29df-41de-8731-d5e8b67d6b41",
+      "name": "QA combat-full",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 63,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  }
+]

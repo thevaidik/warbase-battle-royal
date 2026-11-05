@@ -498,7 +498,7 @@ func exit_vehicle() -> void:
 # REAL-TIME CAMERA PROCESS (PER-FRAME RENDER RATE FOR ABSOLUTE SMOOTHNESS)
 # ==============================================================================
 func _process(delta: float) -> void:
-	if network_controlled:
+	if network_controlled and not bool(get_meta("sdk_local_prediction", false)):
 		global_position = global_position.lerp(network_position, 1.0-exp(-18.0*delta))
 		rotation.y = lerp_angle(rotation.y, network_yaw, 1.0-exp(-18.0*delta))
 	_update_wheel_visuals(delta)

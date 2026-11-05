@@ -58,7 +58,7 @@ func _make_adapter(index: int, username: String):
 
 func _on_state(state: Dictionary, index: int) -> void:
 	if _finished: return
-	if int(state.get("protocol_version", 0)) != 5 or String(state.get("map_name", "")) != "industrial":
+	if int(state.get("protocol_version", 0)) != 6 or String(state.get("map_name", "")) != "industrial":
 		_fail("unexpected room schema/version: %s" % state)
 		return
 	var adapter = _adapter if index == 1 else _second_adapter

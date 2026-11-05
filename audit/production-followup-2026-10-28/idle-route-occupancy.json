@@ -1,0 +1,41 @@
+[
+  {
+    "elapsed": 1.0,
+    "room": {
+      "id": "80cc06f1-58eb-4269-93fc-bee4e16195df",
+      "name": "QA idle-route",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 0,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 11.7,
+    "room": {
+      "id": "80cc06f1-58eb-4269-93fc-bee4e16195df",
+      "name": "QA idle-route",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 1,
+      "botCount": 7,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 22.3,
+    "room": {
+      "id": "80cc06f1-58eb-4269-93fc-bee4e16195df",
+      "name": "QA idle-route",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 1,
+      "botCount": 7,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  }
+]

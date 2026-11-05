@@ -2,6 +2,7 @@ extends Node
 ## Deterministic lifecycle checks for timeout, explicit leave, and stale callbacks.
 
 const Adapter := preload("res://scripts/net/ColyseusNetwork.gd")
+var net: Node
 
 class FakeRoom extends RefCounted:
 	var options: Dictionary = {}
@@ -19,6 +20,9 @@ func _ready() -> void:
 
 func _run() -> void:
 	var adapter = Adapter.new()
+	net = adapter
+	add_child(adapter)
+	adapter.set_process(false)
 	var errors: Array[String] = []
 	adapter.connection_error.connect(func(reason: String) -> void: errors.append(reason))
 
@@ -29,7 +33,9 @@ func _run() -> void:
 	adapter._want_connection = true
 	adapter._drop_started_ms = maxi(Time.get_ticks_msec(), 1)
 	adapter._awaiting_fresh_state = true
-	await get_tree().create_timer(14.1).timeout
+	var deadline := Time.get_ticks_msec() + Adapter.CLIENT_RECONNECT_GRACE_MS + 1
+	while Time.get_ticks_msec() < deadline:
+		await get_tree().create_timer(0.05).timeout
 	adapter._process(0.0)
 	if not _check(adapter.room == null and not adapter._want_connection, "timeout did not end the session"): return
 	if not _check(expired_room.options.get("enabled", true) == false and expired_room.leave_count == 1, "timeout did not cancel SDK reconnect and leave once"): return

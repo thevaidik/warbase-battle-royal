@@ -1,0 +1,8 @@
+warbase-network-candidate
+warbase-server
+a8a9a48558a14fcbe7d1f5e3e0d508e9768764b8f78f37822a3ef21be2f26db7
+wget: can't connect to remote host (127.0.0.1): Connection refused
+wget: can't connect to remote host (127.0.0.1): Connection refused
+{"status":"available","system_info":{"environment":"production","version":"1.0.0"}}
+PRODUCTION_HEALTHY
+76f23b4f41fc708580e3c816bf70ac22d1221080fa35d85a5541385f18e6b82a  /app/server_bin

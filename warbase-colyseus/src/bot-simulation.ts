@@ -11,7 +11,7 @@ export type BotPlayer = {
 };
 export type BotShot = { shooter: string; target: string; weapon: string; origin: Vec3; endpoint: Vec3; shotId: number };
 export type BotRosterChange = { joined: BotPlayer[]; removed: string[] };
-export type BotUpdateCallbacks = { onShot: (shot: BotShot) => void; vehicleBlocked?: (position: Vec3) => boolean };
+export type BotUpdateCallbacks = { onShot: (shot: BotShot) => void; vehicleBlocked?: (position: Vec3) => boolean; objectiveGoal?: (bot: BotPlayer) => Vec3 | undefined };
 
 type NavNode = { position: Vec3; edges: number[] };
 type Brain = {
@@ -197,8 +197,7 @@ export class BotSimulation {
     if (!Number.isFinite(dt) || dt <= 0 || !Number.isFinite(nowMs)) return;
     const elapsed = Math.min(dt, 0.1), nodes = this.navigation();
     if (!nodes.length) return;
-    const bots = [...this.brains.entries()];
-    for (const [id, brain] of bots) {
+    for (const [id, brain] of this.brains) {
       const bot = players.get(id);
       if (!bot) continue;
       if (bot.is_dead) {
@@ -212,7 +211,7 @@ export class BotSimulation {
       } else if (brain.reloadUntil === 0 && (brain.ammo <= 0 || (!brain.visible && brain.ammo < BOT_MAGAZINES[weapon] / 2))) {
         brain.reloadUntil = nowMs + BOT_RELOAD_MS[weapon]; bot.animation = 'reload';
       }
-      if (nowMs >= brain.planAt) this.plan(bot, brain, nodes, nowMs, callbacks.vehicleBlocked);
+      if (nowMs >= brain.planAt) this.plan(bot, brain, nodes, nowMs, callbacks.vehicleBlocked, callbacks.objectiveGoal);
       this.move(bot, brain, nodes, elapsed, nowMs, callbacks.vehicleBlocked);
       if (brain.reloadUntil === 0 && brain.visible && nowMs >= brain.reactAt && nowMs >= brain.nextShotAt && nowMs >= brain.burstUntil) {
         const target = players.get(brain.target);
@@ -292,13 +291,13 @@ export class BotSimulation {
     return [];
   }
 
-  private plan(bot: BotPlayer, brain: Brain, nodes: readonly NavNode[], nowMs: number, vehicleBlocked?: (p: Vec3) => boolean): void {
+  private plan(bot: BotPlayer, brain: Brain, nodes: readonly NavNode[], nowMs: number, vehicleBlocked?: (p: Vec3) => boolean, objectiveGoal?: (bot: BotPlayer) => Vec3 | undefined): void {
     brain.planAt = nowMs + 650 + Math.floor(this.random(brain) * 300);
     const start = this.nearest(nodes, vector(bot));
     let goal: Vec3;
     if (nowMs > brain.seenUntil || !brain.visible) {
-      const patrol = this.geometry.spawns[Math.floor(this.random(brain) * this.geometry.spawns.length)];
-      goal = patrol;
+      const objective = objectiveGoal?.(bot);
+      goal = objective ?? this.geometry.spawns[Math.floor(this.random(brain) * this.geometry.spawns.length)];
     } else {
       const dx = brain.lastKnown[0] - bot.x, dz = brain.lastKnown[2] - bot.z;
       const d = Math.max(Math.hypot(dx, dz), 1);

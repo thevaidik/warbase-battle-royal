@@ -1,0 +1,108 @@
+{
+  "recoverableUntilTemporaryDirectoryIsCleared": false,
+  "items": [
+    {
+      "original": "build",
+      "quarantine": "/tmp/warbase-cleanup-20261105/generated/build",
+      "logicalBytes": 883048557
+    },
+    {
+      "original": "warbase-godot/client/build",
+      "quarantine": "/tmp/warbase-cleanup-20261105/generated/warbase-godot/client/build",
+      "logicalBytes": 2048478758
+    },
+    {
+      "original": "warbase-godot/client/dist",
+      "quarantine": "/tmp/warbase-cleanup-20261105/generated/warbase-godot/client/dist",
+      "logicalBytes": 367014658
+    },
+    {
+      "original": "warbase-godot/client/candidate-dist",
+      "quarantine": "/tmp/warbase-cleanup-20261105/generated/warbase-godot/client/candidate-dist",
+      "logicalBytes": 86634094
+    },
+    {
+      "original": "warbase-godot/client/candidate-native/vehicle-admin-20261030",
+      "quarantine": "/tmp/warbase-cleanup-20261105/generated/warbase-godot/client/candidate-native/vehicle-admin-20261030",
+      "logicalBytes": 262503360
+    },
+    {
+      "original": "warbase-godot/client/candidate-native/WarBase Battle Royale.app",
+      "quarantine": "/tmp/warbase-cleanup-20261105/generated/warbase-godot/client/candidate-native/WarBase Battle Royale.app",
+      "logicalBytes": 261209188
+    },
+    {
+      "original": "warbase-godot/client/candidate-native/production-20261030",
+      "quarantine": "/tmp/warbase-cleanup-20261105/generated/warbase-godot/client/candidate-native/production-20261030",
+      "logicalBytes": 261564852
+    },
+    {
+      "original": "warbase-godot/client/candidate-native/conquest-ground-20261030",
+      "quarantine": "/tmp/warbase-cleanup-20261105/generated/warbase-godot/client/candidate-native/conquest-ground-20261030",
+      "logicalBytes": 262875712
+    },
+    {
+      "original": "warbase-godot/client/candidate-native/objective-markers-20261030",
+      "quarantine": "/tmp/warbase-cleanup-20261105/generated/warbase-godot/client/candidate-native/objective-markers-20261030",
+      "logicalBytes": 263236444
+    },
+    {
+      "original": "warbase-godot/client/candidate-native/grounded-20261030",
+      "quarantine": "/tmp/warbase-cleanup-20261105/generated/warbase-godot/client/candidate-native/grounded-20261030",
+      "logicalBytes": 261921176
+    },
+    {
+      "original": "legacy/go-server/server_bin",
+      "quarantine": "/tmp/warbase-cleanup-20261105/generated/legacy/go-server/server_bin",
+      "logicalBytes": 9949234
+    },
+    {
+      "original": "legacy/go-server/server_bin_linux_amd64",
+      "quarantine": "/tmp/warbase-cleanup-20261105/generated/legacy/go-server/server_bin_linux_amd64",
+      "logicalBytes": 15175842
+    },
+    {
+      "original": "legacy/go-server/warbase-server",
+      "quarantine": "/tmp/warbase-cleanup-20261105/generated/legacy/go-server/warbase-server",
+      "logicalBytes": 14521394
+    },
+    {
+      "original": "legacy/go-server/game",
+      "quarantine": "/tmp/warbase-cleanup-20261105/generated/legacy/go-server/game",
+      "logicalBytes": 14521394
+    },
+    {
+      "original": "warbase-godot/client/scripts/tests/test_ui_interactions.gd.uid",
+      "quarantine": "/tmp/warbase-cleanup-20261105/generated/warbase-godot/client/scripts/tests/test_ui_interactions.gd.uid",
+      "logicalBytes": 19
+    },
+    {
+      "original": "warbase-godot/client/scripts/tests/test_physics_audit.gd.uid",
+      "quarantine": "/tmp/warbase-cleanup-20261105/generated/warbase-godot/client/scripts/tests/test_physics_audit.gd.uid",
+      "logicalBytes": 20
+    },
+    {
+      "original": "warbase-godot/client/scripts/tests/test_ui_clicks.gd.uid",
+      "quarantine": "/tmp/warbase-cleanup-20261105/generated/warbase-godot/client/scripts/tests/test_ui_clicks.gd.uid",
+      "logicalBytes": 20
+    },
+    {
+      "original": "warbase-godot/client/scripts/tests/test_run_village.gd.uid",
+      "quarantine": "/tmp/warbase-cleanup-20261105/generated/warbase-godot/client/scripts/tests/test_run_village.gd.uid",
+      "logicalBytes": 20
+    },
+    {
+      "original": "warbase-godot/client/scripts/tests/test_fps_run.gd.uid",
+      "quarantine": "/tmp/warbase-cleanup-20261105/generated/warbase-godot/client/scripts/tests/test_fps_run.gd.uid",
+      "logicalBytes": 19
+    },
+    {
+      "original": "warbase-godot/client/scripts/tests/test_fps_village.gd.uid",
+      "quarantine": "/tmp/warbase-cleanup-20261105/generated/warbase-godot/client/scripts/tests/test_fps_village.gd.uid",
+      "logicalBytes": 19
+    }
+  ],
+  "totalLogicalBytes": 5012654780,
+  "generatedArtifactsRemoved": true,
+  "note": "Only verified generated exports, retired compiled server binaries and orphan script UID sidecars were removed. Current and rollback clients, source, unique assets, .git and audit evidence are retained."
+}

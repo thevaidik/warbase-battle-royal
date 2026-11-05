@@ -1,0 +1,12 @@
+2026/10/27 17:44:33 Player BOT_STRESS_59 disconnected from room d97b1fd1-69a3-4ca3-b1fc-3522ea0e1039
+2026/10/27 17:44:33 Player BOT_STRESS_41 disconnected from room d97b1fd1-69a3-4ca3-b1fc-3522ea0e1039
+2026/10/27 17:44:33 Player BOT_STRESS_08 disconnected from room d97b1fd1-69a3-4ca3-b1fc-3522ea0e1039
+2026/10/27 17:44:35 Player BOT_STRESS_26 disconnected from room d97b1fd1-69a3-4ca3-b1fc-3522ea0e1039
+2026/10/27 17:44:36 Player BOT_STRESS_22 disconnected from room d97b1fd1-69a3-4ca3-b1fc-3522ea0e1039
+2026/10/27 17:44:36 Player BOT_STRESS_17 disconnected from room d97b1fd1-69a3-4ca3-b1fc-3522ea0e1039
+2026/10/27 17:44:41 Validation denied for BOT_STRESS_25: fire (cannot fire while dead or driving); rejected since last log=1
+2026/10/27 17:44:43 Validation denied for BOT_STRESS_25: fire (firing rate exceeds limit); rejected since last log=1
+2026/10/27 17:44:45 Validation denied for BOT_STRESS_25: fire (firing rate exceeds limit); rejected since last log=1
+2026/10/27 17:44:47 Validation denied for BOT_STRESS_25: fire (cannot fire while dead or driving); rejected since last log=2
+2026/10/27 17:44:48 Player BOT_STRESS_25 disconnected from room d97b1fd1-69a3-4ca3-b1fc-3522ea0e1039
+2026/10/27 17:45:48 Garbage collected empty room: d97b1fd1-69a3-4ca3-b1fc-3522ea0e1039

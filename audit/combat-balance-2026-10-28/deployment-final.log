@@ -1,0 +1,44 @@
+#0 building with "default" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile:
+#1 transferring dockerfile: 132B done
+#1 DONE 1.2s
+
+#2 [internal] load metadata for docker.io/library/warbase_server-warbase-server:combat-20261028
+#2 DONE 0.0s
+
+#3 [internal] load .dockerignore
+#3 transferring context:
+#3 transferring context: 2B done
+#3 DONE 1.4s
+
+#4 [1/3] FROM docker.io/library/warbase_server-warbase-server:combat-20261028
+#4 ...
+
+#5 [internal] load build context
+#5 transferring context: 96.97MB 0.5s done
+#5 DONE 2.7s
+
+#4 [1/3] FROM docker.io/library/warbase_server-warbase-server:combat-20261028
+#4 DONE 7.6s
+
+#6 [2/3] COPY server_bin /app/server_bin
+#6 DONE 5.9s
+
+#7 [3/3] COPY dist/ /app/dist/
+#7 DONE 5.1s
+
+#8 exporting to image
+#8 exporting layers
+#8 exporting layers 1.5s done
+#8 writing image sha256:a72f4dd10a051f954faf0f9097039b514b3fbd297a954c3a4c1597f31786b3fd 0.1s done
+#8 naming to docker.io/library/warbase_server-warbase-server:combat-final-20261028 0.1s done
+#8 DONE 2.0s
+warbase-server
+9ebac617e543e7ae5fe2c0d8846106632b336cb20f95aa58c5b59ee4a003898b
+wget: can't connect to remote host (127.0.0.1): Connection refused
+wget: can't connect to remote host (127.0.0.1): Connection refused
+{"status":"available","system_info":{"environment":"production","version":"1.0.0"}}
+33519d5c20dad42cf1d5f269097e66e8728d648e8e4697feca1e1fa782ead64d  /app/server_bin
+PRODUCTION_HEALTHY

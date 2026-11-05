@@ -21,7 +21,7 @@ from client_provenance import artifact_records, client_fingerprint, make_provena
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 CLIENT = ROOT / "warbase-godot/client"
 PRESET = "macOS (Colyseus Candidate)"
-PRESET_INDEX = "3"
+PRESET_INDEX = "1"
 DEFAULT_OUTPUT = CLIENT / "candidate-native" / "WarBase-Colyseus-macOS.zip"
 LC_SEGMENT_64 = 0x19
 LC_CODE_SIGNATURE = 0x1D

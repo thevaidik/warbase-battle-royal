@@ -1,0 +1,2173 @@
+[
+  {
+    "elapsed": 0.6,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 0,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 11.4,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 22.2,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 33.1,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 43.7,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 55.4,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 66.4,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 77.4,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 88.1,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 99.1,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 109.9,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 120.5,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 131.2,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 142.3,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 153.1,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 163.8,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 174.4,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 185.4,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 197.3,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 208.0,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 218.6,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 229.6,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 240.9,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 251.9,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 262.5,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 273.5,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 284.2,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 295.3,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 306.0,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 317.0,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 328.0,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 338.7,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 349.3,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 359.9,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 370.9,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 381.6,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 392.2,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 402.9,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 413.5,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 424.7,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 435.3,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 446.4,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 457.0,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 467.9,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 478.7,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 489.3,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 500.0,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 510.9,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 521.5,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 532.4,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 543.1,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 554.0,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 565.9,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 576.7,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 587.5,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 598.2,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 608.9,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 620.4,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 631.3,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 642.1,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 652.8,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 663.5,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 674.3,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 685.3,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 696.3,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 707.0,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 718.0,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 729.0,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 739.8,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 750.5,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 761.2,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 772.2,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 782.8,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 793.5,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 804.3,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 814.9,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 825.6,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 836.3,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 847.0,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 857.6,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 868.3,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 878.9,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 890.0,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 900.6,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 911.7,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 922.6,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 933.4,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 944.0,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 955.0,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 966.1,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 976.9,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 987.9,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 998.6,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 1009.2,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 1020.2,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 1031.0,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 1041.6,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 1052.3,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 1063.2,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 1073.8,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 1084.7,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 1095.4,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 1106.4,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 1117.1,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 1128.1,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 1138.7,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 1149.7,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 1160.4,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 1171.1,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 1181.8,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 1193.0,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 1203.6,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 1214.3,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 1225.5,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 1236.1,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 1247.2,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 1257.9,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 1268.6,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 1279.8,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 1290.5,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 1301.1,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 1311.8,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 1322.6,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 1333.3,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 1344.1,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 1354.7,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 1365.4,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 1376.4,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 1387.2,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 1397.8,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 1408.5,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 1419.1,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 1430.0,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 1441.0,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 1451.6,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 1462.7,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 1473.3,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 1484.0,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 1496.0,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 1506.8,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 1517.5,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 1528.6,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 1539.2,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 1549.9,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 1560.6,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 1571.3,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 1581.9,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 1592.6,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 1603.3,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 1614.0,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 1624.8,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 1635.5,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 1646.1,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 1656.7,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 1667.8,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 1678.5,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 1689.5,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 1700.5,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 1711.3,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 1722.2,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 1732.8,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 1743.9,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 1754.6,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 1765.4,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 1776.1,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 1787.2,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 1798.1,
+    "room": {
+      "id": "8d54b87f-08be-4a0a-b66f-007ca2e82d5d",
+      "name": "QA endurance-final",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  }
+]

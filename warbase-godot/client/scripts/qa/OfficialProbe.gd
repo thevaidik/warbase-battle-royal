@@ -31,7 +31,6 @@ var next_respawn_ms := 0
 var local_respawns := 0
 var next_grenade := 75.0
 var applied_corrections := 0
-var previous_watermark := 0
 var sdk_reconcile_seq_max := 0
 var sdk_ack_sequence_max := 0
 var sdk_inputs_sent_max := 0
@@ -55,13 +54,7 @@ func begin(game: Node) -> void:
 	call_deferred("run")
 func run() -> void:
 	var state = get_tree().root.get_node("GameState")
-	var candidate_backend := OS.get_cmdline_user_args().has("qa_colyseus")
-	if OS.has_feature("web"):
-		candidate_backend = candidate_backend or String(JavaScriptBridge.eval("new URLSearchParams(window.location.search).get('qa_colyseus') || ''")) == "1"
-	if main.get("_use_colyseus") != candidate_backend:
-		push_error("Official observer backend selection must match explicit qa_colyseus flag")
-		get_tree().quit(1)
-		return
+	var candidate_backend := true
 	state.server_host = COLYSEUS_CANDIDATE_HOST if candidate_backend else OFFICIAL_HOST
 	var allowed_host := COLYSEUS_CANDIDATE_HOST if candidate_backend else OFFICIAL_HOST
 	if state.server_host != allowed_host:
@@ -145,9 +138,6 @@ func run() -> void:
 			if input_handle != null:
 				sdk_ack_sequence_max = maxi(sdk_ack_sequence_max, int(input_handle.last_processed))
 				sdk_inputs_sent_max = maxi(sdk_inputs_sent_max, int(input_handle.sent_count))
-		if main._reconcile_after_sequence != previous_watermark:
-			if Time.get_ticks_msec()-respawn_at_ms>1000 and not player.is_driving: applied_corrections += 1
-			previous_watermark = main._reconcile_after_sequence
 		if main.weapons.ads_amount > 0.9: ads_frames += 1
 		if player.is_dead:
 			if Time.get_ticks_msec()>=next_respawn_ms:

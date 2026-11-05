@@ -28,7 +28,6 @@ func _start() -> void:
 	GameState.selected_map = "industrial"
 	GameState.practice_mode = false
 	_main = MainScene.instantiate()
-	_main._use_colyseus = true
 	get_tree().root.add_child(_main)
 	get_tree().current_scene = _main
 	_main.menu.visible = false
@@ -61,7 +60,7 @@ func _process(delta: float) -> void:
 	if _elapsed - _begin_elapsed < 3.0: return
 	Input.action_release("move_forward")
 	var moved: float = _start_position.distance_to(_main.player.global_position)
-	var expected := Vector3(_main.net.local_reconciler.value("x"), _main.net.local_reconciler.value("y"), _main.net.local_reconciler.value("z"))
+	var expected: Vector3 = _main.net.get_predicted_player_position()
 	var pose_matches: bool = _main.player.global_position.distance_to(expected) < 0.02
 	var remote_ready: bool = _main.mp.remotes.has(_peer_name)
 	var remote: WarRemote = _main.mp.remotes.get(_peer_name) if remote_ready else null

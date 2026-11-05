@@ -1,0 +1,119 @@
+[
+  {
+    "elapsed": 0.6,
+    "room": {
+      "id": "18288f43-3386-4a3e-ad51-3d3d287a357a",
+      "name": "QA football-final",
+      "map": "football",
+      "mode": "TDM",
+      "playerCount": 0,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 11.3,
+    "room": {
+      "id": "18288f43-3386-4a3e-ad51-3d3d287a357a",
+      "name": "QA football-final",
+      "map": "football",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 21.9,
+    "room": {
+      "id": "18288f43-3386-4a3e-ad51-3d3d287a357a",
+      "name": "QA football-final",
+      "map": "football",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 32.6,
+    "room": {
+      "id": "18288f43-3386-4a3e-ad51-3d3d287a357a",
+      "name": "QA football-final",
+      "map": "football",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 44.0,
+    "room": {
+      "id": "18288f43-3386-4a3e-ad51-3d3d287a357a",
+      "name": "QA football-final",
+      "map": "football",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 54.8,
+    "room": {
+      "id": "18288f43-3386-4a3e-ad51-3d3d287a357a",
+      "name": "QA football-final",
+      "map": "football",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 65.7,
+    "room": {
+      "id": "18288f43-3386-4a3e-ad51-3d3d287a357a",
+      "name": "QA football-final",
+      "map": "football",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 76.3,
+    "room": {
+      "id": "18288f43-3386-4a3e-ad51-3d3d287a357a",
+      "name": "QA football-final",
+      "map": "football",
+      "mode": "TDM",
+      "playerCount": 63,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 87.1,
+    "room": {
+      "id": "18288f43-3386-4a3e-ad51-3d3d287a357a",
+      "name": "QA football-final",
+      "map": "football",
+      "mode": "TDM",
+      "playerCount": 63,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  }
+]

@@ -1,0 +1,5 @@
+=== RUN   TestStreamDeliveryRetainsDictionaryAndFrameBoundaries
+    stream_delivery_test.go:50: 30 frame bytes: stream=14473 independent=20626
+--- PASS: TestStreamDeliveryRetainsDictionaryAndFrameBoundaries (0.06s)
+PASS
+ok  	warbase-server/internal/engine	1.640s

@@ -65,3 +65,19 @@ test('bots do not acquire or shoot targets through the authored warehouse wall',
   for (let now = 5000; now < 8000; now += 100) sim.step(players, 0.1, now, { onShot: (shot) => shots.push(shot) });
   assert.equal(shots.length, 0);
 });
+
+test('Conquest objective goals replace idle patrol goals when no enemy is visible', () => {
+  const sim = new BotSimulation();
+  const humans = Array.from({ length: 7 }, (_, i) => {
+    const actor = human(`idle-human-${i}`, INDUSTRIAL_SPAWNS[i], i % 2 ? 'B' : 'A');
+    actor.is_dead = true;
+    return actor;
+  });
+  const bot = sim.sync(humans, 10_000, 'TDM').joined[0];
+  const players = new Map<string, BotPlayer>([[bot.username, bot], ...humans.map((actor) => [actor.username, actor] as [string, BotPlayer])]);
+  let goals = 0;
+  const goal = INDUSTRIAL_SPAWNS[10];
+  sim.step(players, 1 / 30, 10_000, { onShot: () => {}, objectiveGoal: (current) => { assert.equal(current.username, bot.username); goals++; return goal; } });
+  assert.equal(goals, 1, 'idle bots ask the mode for their objective destination');
+  assert.ok(bot.x !== goal[0] || bot.z !== goal[2], 'the bot begins navigating toward its objective');
+});

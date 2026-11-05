@@ -1,15 +1,16 @@
 extends SceneTree
 
 const MAPS = [
-	"arena",
 	"industrial",
 	"village",
-	"city",
-	"canyon",
-	"desert_oasis",
+	"arena",
 	"shipment",
 	"dust2",
-	"loft"
+	"nuketown",
+	"canyon",
+	"desert_oasis",
+	"football",
+	"resoforge"
 ]
 
 func _process(delta: float) -> bool:

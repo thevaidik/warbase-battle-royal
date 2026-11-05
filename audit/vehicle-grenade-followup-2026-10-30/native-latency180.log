@@ -1,0 +1,10 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+MAIN_VEHICLE_SETUP username=VHC_526 host=127.0.0.1:18195
+MAIN_VEHICLE_SEAT_REQUESTED sent=0 ack=0
+MAIN_VEHICLE_DRIVE_STARTED server_driver=VHC_526 pose=(-20.0, 0.922106, 20.0)
+MAIN_VEHICLE_EXIT_REQUESTED sent=166 ack=146
+MAIN_VEHICLE_EXIT_CONFIRMED server_driver=VHC_526 player=(-18.35726, 0.922106, 25.25903)
+MAIN_VEHICLE_PREDICTION_OK drive=7.82m ack=2->146 pose_error_max=0.0000m samples=88 car_drift_after_exit=0.0013m network_pose_error=0.0000m foot_move=11.53m foot_pose_error=0.0000m server_driver='' sent=301 ack=279 latency_ms=180 max_pending=24 sdk_aggregate_correction_p95=104.0000 display_step_p95=0.7194m display_step_max=0.9586m
+WARNING: 351 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)

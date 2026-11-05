@@ -1,5 +1,6 @@
 import { existsSync } from 'node:fs';
 import { Server, Room } from 'colyseus';
+import { existsSync } from 'node:fs';
 import { StateView, schema, t } from '@colyseus/schema';
 import { WebSocketTransport } from '@colyseus/ws-transport';
 import { createRoom } from '@colyseus/core/MatchMaker';

@@ -33,6 +33,8 @@ class PlayerState extends Colyseus.Schema:
 		Colyseus.Schema.Field.new("driving_vehicle", Colyseus.Schema.STRING),
 		Colyseus.Schema.Field.new("grenades", Colyseus.Schema.NUMBER),
 		Colyseus.Schema.Field.new("throwable", Colyseus.Schema.STRING),
+		Colyseus.Schema.Field.new("vehicle_index", Colyseus.Schema.NUMBER),
+		Colyseus.Schema.Field.new("vehicle_generation", Colyseus.Schema.NUMBER),
 	]
 
 class VehicleState extends Colyseus.Schema:
@@ -45,7 +47,25 @@ class VehicleState extends Colyseus.Schema:
 		Colyseus.Schema.Field.new("health", Colyseus.Schema.NUMBER),
 		Colyseus.Schema.Field.new("driver", Colyseus.Schema.STRING),
 		Colyseus.Schema.Field.new("gear", Colyseus.Schema.NUMBER),
+		Colyseus.Schema.Field.new("x", Colyseus.Schema.NUMBER),
+		Colyseus.Schema.Field.new("y", Colyseus.Schema.NUMBER),
+		Colyseus.Schema.Field.new("z", Colyseus.Schema.NUMBER),
+		Colyseus.Schema.Field.new("driver_generation", Colyseus.Schema.NUMBER),
 	]
+
+class ObjectiveState extends Colyseus.Schema:
+	static func definition() -> Array:
+		return [
+		Colyseus.Schema.Field.new("id", Colyseus.Schema.STRING),
+		Colyseus.Schema.Field.new("x", Colyseus.Schema.NUMBER),
+		Colyseus.Schema.Field.new("y", Colyseus.Schema.NUMBER),
+		Colyseus.Schema.Field.new("z", Colyseus.Schema.NUMBER),
+		Colyseus.Schema.Field.new("owner", Colyseus.Schema.STRING),
+		Colyseus.Schema.Field.new("capturing_team", Colyseus.Schema.STRING),
+		Colyseus.Schema.Field.new("progress", Colyseus.Schema.NUMBER),
+		Colyseus.Schema.Field.new("contested", Colyseus.Schema.BOOLEAN),
+		Colyseus.Schema.Field.new("radius", Colyseus.Schema.NUMBER),
+		]
 
 class RoomState extends Colyseus.Schema:
 	static func definition() -> Array:
@@ -59,6 +79,10 @@ class RoomState extends Colyseus.Schema:
 		Colyseus.Schema.Field.new("score_b", Colyseus.Schema.NUMBER),
 		Colyseus.Schema.Field.new("winner", Colyseus.Schema.STRING),
 		Colyseus.Schema.Field.new("vehicles", Colyseus.Schema.MAP, VehicleState),
+		Colyseus.Schema.Field.new("objectives", Colyseus.Schema.MAP, ObjectiveState),
+		Colyseus.Schema.Field.new("tickets_a", Colyseus.Schema.NUMBER),
+		Colyseus.Schema.Field.new("tickets_b", Colyseus.Schema.NUMBER),
+		Colyseus.Schema.Field.new("room_state", Colyseus.Schema.STRING),
 	]
 
 static func to_dictionary(value: Variant) -> Variant:

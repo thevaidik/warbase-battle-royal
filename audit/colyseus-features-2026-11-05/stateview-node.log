@@ -1,0 +1,20 @@
+
+> warbase-colyseus@0.1.0 test:state-view
+> node --import tsx --test repro/state-view/node.test.ts
+
+ℹ️  optional .env file not found: .env.development, .env
+▶ unfiltered baseline and two-peer StateView ownership/reconnect/removal
+  ✔ unfiltered baseline exposes the owner field to both peers (63.458208ms)
+[Colyseus reconnection]: ⏳ will retry in 0.2 seconds...
+[Colyseus reconnection]: 🔄 Re-establishing sessionId 'l-_oBr-01' with roomId '_Gw2UMiOe'... (attempt 1 of 15)
+[Colyseus reconnection]: ✅ reconnection successful!
+  ✔ tagged owner field is private; reconnect keeps ownership and leave removes the peer (314.06175ms)
+✔ unfiltered baseline and two-peer StateView ownership/reconnect/removal (398.335792ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 7482.100458

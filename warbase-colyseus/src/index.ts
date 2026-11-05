@@ -1,8 +1,10 @@
-import { randomUUID } from 'node:crypto';
+import { randomBytes, randomUUID } from 'node:crypto';
 import { existsSync, readFileSync } from 'node:fs';
 import { extname, resolve } from 'node:path';
 import { monitorEventLoopDelay, performance } from 'node:perf_hooks';
 import { Server } from 'colyseus';
+import { mountOperationsTools } from './operations-tools.js';
+import { createPrivateAdmin, privateAdminOnly } from './private-admin.js';
 import { createRoom } from '@colyseus/core/MatchMaker';
 import express from 'express';
 import { WebSocketTransport } from '@colyseus/ws-transport';
@@ -11,23 +13,81 @@ import { prewarmBotNavigation } from './bot-simulation.js';
 import { loadWorldGeometry, PLAYABLE_MAPS, releaseWorldGeometry } from './world-geometry.js';
 import { processOperationsMetrics, processTimingSnapshot, roomOperationsMetrics, serviceOperationsMetrics } from './operations-metrics.js';
 import { createOperationsMetricsHandler } from './metrics-handler.js';
+import { configureBattleAdmission, loadAdmissionGatewaySecret, loadAdmissionSecret } from './admission.js';
+import { configureRealtimeLobby } from './lobby.js';
+import { createRoomInfrastructure } from './room-infrastructure.js';
+import { buildRoomDirectory, listLiveBattleRooms } from './room-directory.js';
+import { assetCacheControl } from './static-cache.js';
 
 const port = Number(process.env.PORT ?? 8081);
 const host = process.env.HOST ?? '0.0.0.0';
+const localMonitorEnabled = process.env.ENABLE_LOCAL_MONITOR === '1';
+const privateMonitorEnabled = process.env.ENABLE_PRIVATE_MONITOR === '1';
+const isLoopbackHost = host === '127.0.0.1' || host === '::1';
+if (localMonitorEnabled && (process.env.NODE_ENV === 'production' || !isLoopbackHost)) {
+  throw new Error('The Colyseus monitoring panel is local-only; use a non-production server bound to 127.0.0.1 or ::1.');
+}
+if (privateMonitorEnabled && process.env.NODE_ENV !== 'production') {
+  throw new Error('ENABLE_PRIVATE_MONITOR is reserved for the production candidate behind its Tailscale-only host binding.');
+}
+const monitorEnabled = localMonitorEnabled || privateMonitorEnabled;
+const admissionSecretPath = String(process.env.ADMISSION_JWT_SECRET_FILE ?? '').trim();
+const admissionGatewaySecretPath = String(process.env.ADMISSION_GATEWAY_SECRET_FILE ?? '').trim();
+const admissionTrustedProxyCidrs = String(process.env.ADMISSION_TRUSTED_PROXY_CIDRS ?? '').split(',').map((cidr) => cidr.trim()).filter(Boolean);
+if (process.env.NODE_ENV === 'production' && !admissionSecretPath) {
+  throw new Error('ADMISSION_JWT_SECRET_FILE is required in production for anonymous gameplay admission.');
+}
+if (process.env.NODE_ENV === 'production' && !admissionGatewaySecretPath) {
+  throw new Error('ADMISSION_GATEWAY_SECRET_FILE is required in production for trusted proxy attribution.');
+}
+if (process.env.NODE_ENV === 'production' && admissionTrustedProxyCidrs.length === 0) {
+  throw new Error('ADMISSION_TRUSTED_PROXY_CIDRS must pin the immediate gateway peer in production.');
+}
+const positiveLimit = (key: string, fallback: number): number => {
+  const raw = String(process.env[key] ?? '').trim();
+  if (!raw) return fallback;
+  const value = Number(raw);
+  if (!Number.isSafeInteger(value) || value < 1) throw new Error(`${key} must be a positive integer.`);
+  return value;
+};
+// Local clients use the same signed flow. A development restart intentionally
+// invalidates its temporary tickets; production always requires persisted keys.
+const admissionSecret = admissionSecretPath ? loadAdmissionSecret(process.env) : randomBytes(32).toString('base64url');
+const admissionGatewaySecret = admissionGatewaySecretPath ? loadAdmissionGatewaySecret(process.env) : undefined;
+// Admission uses its own JWT key. Do not assign @colyseus/auth's process-global
+// JWT.settings.secret here; that key is reserved for the separate admin panel.
+const admission = configureBattleAdmission(admissionSecret ? {
+  secret: admissionSecret,
+  gatewaySecret: admissionGatewaySecret,
+  trustedProxyCidrs: admissionTrustedProxyCidrs,
+  perCallerLimit: positiveLimit('ADMISSION_ISSUE_PER_CALLER_PER_MINUTE', 30),
+  globalLimit: positiveLimit('ADMISSION_ISSUE_GLOBAL_PER_MINUTE', 300),
+  playerJoinLimit: positiveLimit('ADMISSION_PLAYER_JOINS_PER_MINUTE', 30),
+  playerRoomCreateLimit: positiveLimit('ADMISSION_PLAYER_ROOM_CREATES_PER_MINUTE', 4),
+} : undefined);
+const privateAdmin = await createPrivateAdmin(process.env);
 const staticDirectory = String(process.env.STATIC_DIR ?? '').trim() ? resolve(String(process.env.STATIC_DIR).trim()) : '';
 const publicAddress = String(process.env.PUBLIC_ADDRESS ?? '').trim() || undefined;
 const operationsTokenFile = String(process.env.OPS_METRICS_TOKEN_FILE ?? '').trim();
 const operationsToken = (operationsTokenFile ? readFileSync(operationsTokenFile, 'utf8').trim() : '') || String(process.env.OPS_METRICS_TOKEN ?? '');
 const eventLoopDelay = monitorEventLoopDelay({ resolution: 20 });
 if (operationsToken) eventLoopDelay.enable();
-const defaultMode = (map: string): string => ['industrial', 'resoforge', 'football'].includes(map) ? 'TDM' : 'FFA';
+const defaultMode = (_map: string): string => 'CONQUEST';
+const roomInfrastructure = await createRoomInfrastructure(process.env);
 const gameServer = new Server({
+  ...roomInfrastructure,
   transport: new WebSocketTransport(),
   greet: false,
   publicAddress,
   express: (app) => {
     app.set('trust proxy', 1);
     app.use(express.json({ limit: '16kb' }));
+    if (privateAdmin) {
+      app.use(['/admin', '/admin-api'], privateAdminOnly);
+      app.use(privateAdmin.middleware);
+    }
+    mountOperationsTools(app, { monitorEnabled, localPlaygroundEnabled: localMonitorEnabled,
+      host, production: process.env.NODE_ENV === 'production', adminGuard: privateAdmin?.guard });
     const health = (_req: any, res: any) => res.json({ status: 'ok', server: 'warbase-colyseus', protocol: 'colyseus', version: '0.18.10' });
     app.get('/health', health);
     app.get('/healthcheck', health);
@@ -52,31 +112,18 @@ const gameServer = new Server({
       };
     }));
     app.get('/api/maps', (_req, res) => res.json({ maps: PLAYABLE_MAPS.map((map) => ({ id: map, mode: defaultMode(map) })) }));
-    app.get('/api/rooms', (_req, res) => {
-      const live = [...activeRooms.values()];
-      const roomNames: Record<string, string> = {
-        industrial: 'Industrial Zone (Public)', resoforge: 'ResoForge Yard (Public)', football: 'Football Stadium (Public)',
-        village: 'Village Outpost (Public)', arena: 'Game Arena (Public)', shipment: 'Shipment (Public)',
-        dust2: 'Industrial Recon (Public)', canyon: 'Canyon (Public)', desert_oasis: 'Desert Oasis (Public)', nuketown: 'Industrial Outpost (Public)',
-      };
-      const defaults = PLAYABLE_MAPS.map((map) => {
-        const logicalId = `${map}-public`;
-        const liveRoom = live.find((room) => room.room === logicalId);
-        return { id: logicalId, name: liveRoom?.name ?? roomNames[map] ?? `${map} (Public)`, map, mode: liveRoom?.mode ?? defaultMode(map),
-          playerCount: liveRoom?.clients ?? 0, botCount: liveRoom?.bots ?? 0, capacity: 64, timeOfDay: liveRoom?.timeOfDay ?? 'dusk' };
-      });
-      const custom = live.filter((room) => !room.room.endsWith('-public')).map((room) => ({ id: room.room, name: room.name, map: room.map, mode: room.mode,
-        playerCount: room.clients, botCount: room.bots, capacity: room.maxClients, timeOfDay: room.timeOfDay }));
-      const rooms = [...defaults, ...custom].sort((a, b) => b.playerCount - a.playerCount || a.name.localeCompare(b.name));
-      const onlinePlayers = live.reduce((count, room) => count + room.clients, 0);
-      return res.json({ online_players: onlinePlayers, rooms });
+    if (admission) app.post('/api/admission', admission.issueTicket);
+    app.get('/api/rooms', async (_req, res) => {
+      try { return res.json(buildRoomDirectory(await listLiveBattleRooms())); }
+      catch { return res.status(503).json({ error: 'room_directory_unavailable' }); }
     });
-    app.get('/api/rooms/:name', (req, res) => {
-      const room = activeRooms.get(req.params.name) ?? [...activeRooms.values()].find((room) => room.room === req.params.name || room.id === req.params.name);
-      if (!room) return res.status(404).json({ error: 'room_not_found' });
-      return res.json(room);
+    app.get('/api/rooms/:name', async (req, res) => {
+      try {
+        const room = (await listLiveBattleRooms()).find(room => room.room === req.params.name || room.id === req.params.name);
+        return room ? res.json(room) : res.status(404).json({ error: 'room_not_found' });
+      } catch { return res.status(503).json({ error: 'room_directory_unavailable' }); }
     });
-    app.post('/api/rooms', async (req, res) => {
+    app.post('/api/rooms', admission?.roomCreateMiddleware ?? ((_req: any, _res: any, next: any) => next()), async (req, res) => {
       if (activeRooms.size >= 128) {
         serviceOperationsMetrics.roomCreateRejected++;
         return res.status(503).json({ error: 'room_capacity_reached' });
@@ -84,7 +131,7 @@ const gameServer = new Server({
       const map = String(req.body?.map ?? '').trim().toLowerCase();
       if (!PLAYABLE_MAPS.includes(map as (typeof PLAYABLE_MAPS)[number])) { serviceOperationsMetrics.roomCreateRejected++; return res.status(400).json({ error: 'unsupported_map' }); }
       const mode = String(req.body?.mode ?? defaultMode(map)).trim().toUpperCase();
-      if (mode !== 'TDM' && mode !== 'FFA') { serviceOperationsMetrics.roomCreateRejected++; return res.status(400).json({ error: 'unsupported_mode' }); }
+      if (mode !== 'TDM' && mode !== 'FFA' && mode !== 'CONQUEST') { serviceOperationsMetrics.roomCreateRejected++; return res.status(400).json({ error: 'unsupported_mode' }); }
       const rawTime = String(req.body?.timeOfDay ?? req.body?.time_of_day ?? 'noon').trim().toLowerCase();
       const timeOfDay = rawTime === 'night' ? 'overcast' : rawTime;
       if (!['dawn', 'noon', 'dusk', 'overcast'].includes(timeOfDay)) { serviceOperationsMetrics.roomCreateRejected++; return res.status(400).json({ error: 'unsupported_time_of_day' }); }
@@ -124,7 +171,7 @@ const gameServer = new Server({
         res.setHeader('Vary', 'Accept-Encoding');
         res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
         res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp');
-        res.setHeader('Cache-Control', extname(relative) === '.html' || noCacheFiles.has(relative) ? 'no-cache' : 'public, max-age=31536000, immutable');
+        res.setHeader('Cache-Control', assetCacheControl(relative, manifestFiles, noCacheFiles)!);
         if (!sidecar) return next();
         res.type(extname(relative));
         res.setHeader('Content-Encoding', sidecar.value);
@@ -136,10 +183,8 @@ const gameServer = new Server({
           const relative = path.startsWith(`${root}/`) ? path.slice(root.length + 1).replaceAll('\\', '/') : '';
           if (path.endsWith('.wasm')) res.type('application/wasm');
           if (path.endsWith('.dlink')) res.type('application/octet-stream');
-          if (noCacheFiles.has(relative)) res.setHeader('Cache-Control', 'no-cache');
-          else if (manifestFiles.has(relative)) res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
-          else if (path.endsWith('.wasm') || path.endsWith('.pck') || path.endsWith('.dlink')) res.setHeader('Cache-Control', 'public, max-age=300');
-          else if (path.endsWith('.html') || path.endsWith('.js')) res.setHeader('Cache-Control', 'no-cache');
+          const cacheControl = assetCacheControl(relative, manifestFiles, noCacheFiles);
+          if (cacheControl) res.setHeader('Cache-Control', cacheControl);
           res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
           res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp');
         },
@@ -149,7 +194,8 @@ const gameServer = new Server({
   },
 });
 
-gameServer.define('battle', BattleRoom).filterBy(['room']);
+const battleHandler = gameServer.define('battle', BattleRoom).filterBy(['room']);
+configureRealtimeLobby(gameServer, battleHandler);
 let shuttingDown = false;
 async function shutdown(exitCode = 0): Promise<void> {
   if (shuttingDown) return;
@@ -161,6 +207,7 @@ async function shutdown(exitCode = 0): Promise<void> {
   forceExit.unref();
   try {
     await gameServer.gracefullyShutdown(false);
+    if (privateAdmin) await privateAdmin.database.shutdown();
   } catch (error) {
     console.error('Failed to shut down Colyseus cleanly', error);
     exitCode = 1;
@@ -185,6 +232,8 @@ gameServer.listen(port, host).then(() => {
   const address = (gameServer as any).transport.server?.address?.();
   const boundPort = typeof address === 'object' && address ? address.port : port;
   console.log(`WarBase Colyseus server listening on ${host}:${boundPort}`);
+  if (localMonitorEnabled) console.log(`Local Colyseus monitor: http://${host}:${boundPort}/monitor`);
+  if (privateMonitorEnabled) console.log('Private Colyseus monitor enabled; expose it only through the host Tailscale address.');
 }).catch(async (error) => {
   console.error('Failed to start Colyseus server', error);
   await shutdown(1);

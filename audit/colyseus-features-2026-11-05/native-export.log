@@ -1,0 +1,11 @@
+{
+  "status": "COLYSEUS_NATIVE_CANDIDATE_OK",
+  "artifact": "/Users/vaidik/Developer/WarBase /warbase-godot/client/candidate-native/WarBase-Colyseus-macOS.zip",
+  "provenance": "/Users/vaidik/Developer/WarBase /warbase-godot/client/candidate-native/client-provenance.json",
+  "sourceFingerprint": "f2555b7ba73ae602c10c0a4915404db5d58e6950a6fb04af6b9d305ff8729d0c",
+  "godotVersion": "4.7.2",
+  "colyseusSdkVersion": "0.18.9",
+  "artifactSha256": "0255c9ac6fdab00c6a3734c58044b21d84b1951fea095fd1664fc3ff3b72e58b",
+  "artifactBytes": 148436186,
+  "launchBackendArgument": "backend=colyseus"
+}

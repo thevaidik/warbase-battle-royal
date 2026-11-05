@@ -34,6 +34,8 @@ var equipment_label: Label
 var weapon_label: Label
 var killfeed_box: VBoxContainer
 var score_label: Label
+var objective_strip: HBoxContainer
+var objective_labels: Array[Label] = []
 var scope_overlay: Control
 var death_panel: PanelContainer
 var death_label: Label
@@ -318,6 +320,18 @@ func build() -> void:
 	score_label = _mk_label("", 19, WarUI.TEXT)
 	score_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	score_position.add_child(score_label)
+	objective_strip = HBoxContainer.new()
+	objective_strip.set_anchors_preset(Control.PRESET_TOP_WIDE)
+	objective_strip.offset_top = 54
+	objective_strip.alignment = BoxContainer.ALIGNMENT_CENTER
+	objective_strip.add_theme_constant_override("separation", 18)
+	objective_strip.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	for code in ["A", "B", "C", "D"]:
+		var item := _mk_label(code + "  ·  NEUTRAL", 12, Color("c4cdd1"))
+		objective_labels.append(item)
+		objective_strip.add_child(item)
+	objective_strip.visible = false
+	add_child(objective_strip)
 	killfeed_box = VBoxContainer.new()
 	killfeed_box.set_anchors_preset(Control.PRESET_TOP_RIGHT)
 	killfeed_box.position = Vector2(-448, 28)
@@ -802,10 +816,32 @@ func feed(text: String, color: Color = Color.WHITE) -> void:
 	)
 
 func set_score(mode: String, a: int, b: int, team: String, winner: String) -> void:
-	if mode == "TDM":
+	if mode == "CONQUEST":
+		objective_strip.visible = true
+		score_label.text = "TEAM A  %d TICKETS   •   %d TICKETS  TEAM B   [You: Team %s]%s" % [a, b, team, ("    WINNER: " + winner) if not winner.is_empty() else ""]
+	elif mode == "TDM":
+		objective_strip.visible = false
 		score_label.text = "TEAM A %d  •  %d TEAM B   [You: Team %s]%s" % [a, b, team, ("    WINNER: " + winner) if not winner.is_empty() else ""]
 	else:
+		objective_strip.visible = false
 		score_label.text = "" if winner.is_empty() else (" WINNER: " + winner)
+
+func set_conquest_objectives(points: Array) -> void:
+	if not is_instance_valid(objective_strip): return
+	for index in objective_labels.size():
+		var label := objective_labels[index]
+		if index >= points.size() or not points[index] is Dictionary:
+			label.text = "%s  ·  --" % char(65 + index)
+			label.add_theme_color_override("font_color", Color("929da3"))
+			continue
+		var point: Dictionary = points[index]
+		var code := String(point.get("id", char(65 + index))).to_upper()
+		var owner := String(point.get("owner", ""))
+		var progress := float(point.get("progress", 0.0))
+		var contested := bool(point.get("contested", false))
+		var team_color := Color("54b5ff") if owner == "A" else Color("ff6659") if owner == "B" else Color("c4cdd1")
+		label.text = "%s  ·  %s%s" % [code, "CONTESTED" if contested else ("TEAM " + owner if not owner.is_empty() else "NEUTRAL"), "  %d%%" % roundi(progress * 100.0) if progress > 0.01 else ""]
+		label.add_theme_color_override("font_color", Color("ffad61") if contested else team_color)
 
 func set_scope(on: bool, weight: float = 1.0) -> void:
 	var vis := on and weight > 0.005

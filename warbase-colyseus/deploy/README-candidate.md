@@ -1,5 +1,7 @@
 # Colyseus sidecar candidate
 
+**Production update, 2026-10-30:** the Go combat backend has been retired. The public root now redirects to Colyseus and the native client defaults to Colyseus. See [LEGACY_RETIREMENT.md](LEGACY_RETIREMENT.md) for the active gateway deployment. The isolated deployment and rollback sections below describe the earlier migration setup; do not use their Go gateway assumptions for the current deployment.
+
 This is an isolated candidate for `https://war.vaidik.blog/colyseus/`. It serves the hashed Godot Web build and Colyseus API/WebSocket on one sidecar listener. The existing game route and service are left untouched by these commands. The deployment command is intentionally separate from the build command.
 
 ## Reproducible build
@@ -47,7 +49,11 @@ docker compose -f warbase-colyseus/deploy/compose.candidate.yml ps
 
 The source snapshot needs `warbase-colyseus/{package.json,package-lock.json,tsconfig.json,scripts/,src/}` plus the packaged `warbase-godot/client/candidate-static/`. Run `scripts/archive_colyseus_candidate_snapshot.sh /tmp/warbase-colyseus-candidate.tar.gz` to create a compact transfer archive. It omits `node_modules/`, all `dist/` folders, `warbase-godot/client/candidate-dist/`, `candidate-web-dist/`, `.godot/`, and audit logs; `.dockerignore` also excludes these generated and local-only files from the Docker build context. Transfer and extract the archive, then run `scripts/build_colyseus_candidate_image.sh` from its root.
 
-The candidate binds host port `8082` to container port `8081`; it joins the external `warbase_server_default` network and uses `STATIC_DIR=/app/static`. To use a different advertised address, set `COLYSEUS_PUBLIC_ADDRESS` before starting it. The default is `war.vaidik.blog/colyseus` (host and prefix only; the SDK adds the secure WebSocket scheme).
+The candidate joins the external `warbase_server_default` network and uses `STATIC_DIR=/app/static`. Its host port `8082` binds to `127.0.0.1` by default; the legacy Go gateway reaches the candidate over the shared Docker network. To use a different advertised address, set `COLYSEUS_PUBLIC_ADDRESS` before starting it. The default is `war.vaidik.blog/colyseus` (host and prefix only; the SDK adds the secure WebSocket scheme).
+
+The container runs as a single Node 22+ process with `REDIS_URL` intentionally omitted; multi-process scaling is not needed on Umbrel because 60 Hz swept collision checks and vehicle physics simulation are CPU-bound on a single thread and cannot be accelerated across cores by Redis. Admission controls require genuine caller attribution: the Nginx gateway forwards real caller IPs via `CF-Connecting-IP` along with the internal gateway secret `X-Warbase-Gateway-Token`, preventing forged forwarded headers from bypassing per-caller admission and room-creation rate limits.
+
+To expose the Colyseus Monitoring Panel from Umbrel over Tailscale only, set `ENABLE_PRIVATE_MONITOR=1` and `COLYSEUS_HOST_BIND_IP` to Umbrel's Tailscale IPv4 address before recreating the candidate. The candidate rejects requests carrying the public gateway's `/colyseus` forwarding prefix; the Go gateway source also has an explicit denial for its next rebuild. Open `http://<umbrel-tailscale-ip>:8082/monitor/` from a tailnet device. The panel can alter live room state and disconnect clients, so treat tailnet access as administrator access. Do not bind port 8082 to all interfaces.
 
 Add the contents of `colyseus-location.nginx.conf` to the HTTPS gateway only after reviewing the candidate. Its trailing slash on `proxy_pass` strips `/colyseus/`, so `GET /colyseus/engine-<hash>.wasm`, `GET /colyseus/api/maps`, Colyseus matchmaking calls, and upgraded WebSocket requests arrive at the sidecar as root-relative paths. Keep the existing `/` route unchanged. Use `?backend=colyseus` to select the candidate client; the unqualified URL keeps the existing backend selection.
 

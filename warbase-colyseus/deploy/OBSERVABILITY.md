@@ -2,6 +2,10 @@
 
 ## Current integration
 
+For local development, `npm run dev` binds the server to `127.0.0.1` and mounts Colyseus's room/client Monitoring Panel at `http://127.0.0.1:8081/monitor`. It can inspect and modify live room state and disconnect clients, so keep this local-only. Startup rejects the local monitor flag in production or when the bind host is not loopback.
+
+The panel can also be enabled on Umbrel with `ENABLE_PRIVATE_MONITOR=1`, but only on the production candidate. Publish candidate port 8082 to the Umbrel Tailscale IPv4 address by setting `COLYSEUS_HOST_BIND_IP` to that address; do not bind it to `0.0.0.0`. The candidate rejects requests carrying the public gateway's `/colyseus` forwarding prefix, and the Go gateway source has an additional 404 guard for its next rebuild. Open `http://<umbrel-tailscale-ip>:8082/monitor/` from a device on the tailnet. This grants dashboard access to tailnet devices permitted to reach Umbrel, including its room-inspection and control actions. The ordinary Compose default binds the host port to loopback, and the production service does not enable the panel unless explicitly configured.
+
 The client-facing room browser uses `GET /api/maps` and `GET /api/rooms`. The latter deliberately includes one stable public entry for each of the ten playable maps, even when no room is active, then adds live custom rooms. That contract supports the current game menu and its map-first join flow. It is not the same as a list of currently instantiated Colyseus rooms.
 
 The candidate also exposes `/health` for the container health check and an optional `GET /internal/metrics` route. When enabled, it requires `Authorization: Bearer <OPS_METRICS_TOKEN>` and a loopback socket peer; without a token it returns 404 and non-loopback peers receive 403. It ignores forwarded-address headers. Keep the token in the deployment secret store or process environment, never in source control, a URL, or shell command arguments. The response is aggregate process and room data and does not contain player identities, IP addresses, or room IDs.

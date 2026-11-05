@@ -32,6 +32,8 @@ var _selected_room_id := "industrial-public"
 var _probe_t := 0.0
 var _server_online := false
 var _refreshing := false
+var _lobby_adapter: Node
+var _live_room_cache: Dictionary = {}
 var _hero_image: TextureRect
 var _hero_title: Label
 var _hero_description: Label
@@ -57,6 +59,12 @@ func _ready() -> void:
 	build_lobby()
 	get_viewport().size_changed.connect(_on_window_resized)
 	_probe_server()
+	if true:
+		_lobby_adapter = preload("res://scripts/net/LobbyAdapter.gd").new()
+		_lobby_adapter.listing_changed.connect(_on_lobby_listing)
+		_lobby_adapter.availability_changed.connect(_on_lobby_availability)
+		add_child(_lobby_adapter)
+		_lobby_adapter.start()
 	refresh_rooms()
 
 func _process(delta: float) -> void:
@@ -65,7 +73,12 @@ func _process(delta: float) -> void:
 	if _probe_t >= 8.0:
 		_probe_t = 0.0
 		_probe_server()
-		refresh_rooms()
+		if _lobby_adapter == null or not _lobby_adapter.available:
+			refresh_rooms()
+
+func _exit_tree() -> void:
+	if _lobby_adapter != null:
+		_lobby_adapter.stop()
 
 func _mk_label(text: String, font_size: int = 14, color: Color = WarUI.TEXT) -> Label:
 	var label := Label.new()
@@ -323,6 +336,12 @@ func _build_loadout_content() -> void:
 	note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	drawer_content.add_child(note)
 
+func _mode_label(mode: String) -> String:
+	match mode:
+		"CONQUEST": return "CONQUEST · A–D"
+		"TDM": return "TEAM DEATHMATCH"
+		_: return "FREE FOR ALL"
+
 func _cycle_map(direction: int) -> void:
 	var index := PLAYABLE_MAPS.find(GameState.selected_map)
 	_select_map(PLAYABLE_MAPS[posmod(index + direction, PLAYABLE_MAPS.size())])
@@ -362,6 +381,9 @@ func _build_settings_content() -> void:
 	host.text_submitted.connect(func(value: String) -> void:
 		if not value.strip_edges().is_empty():
 			GameState.server_host = value.strip_edges()
+			if _lobby_adapter != null:
+				_lobby_adapter.stop()
+				_lobby_adapter.start()
 			_probe_server()
 			refresh_rooms()
 	)
@@ -432,10 +454,11 @@ func _render_servers() -> void:
 		var title := _mk_label(String(room.get("name", MAP_NAMES.get(map_id, map_id))), 15)
 		title.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 		info.add_child(title)
-		info.add_child(_mk_label(("TEAM DEATHMATCH" if room.get("mode", "FFA") == "TDM" else "FREE FOR ALL") + "  •  " + GameState.time_label(String(room.get("timeOfDay", "noon"))), 12, WarUI.MUTED))
+		info.add_child(_mk_label(_mode_label(String(room.get("mode", "FFA"))) + "  •  " + GameState.time_label(String(room.get("timeOfDay", "noon"))), 12, WarUI.MUTED))
 		var count := int(room.get("playerCount", 0))
 		var bot_count := int(room.get("botCount", 0))
-		var occupancy := _mk_label(("%d PLAYERS / %d AI" % [count, bot_count] if count > 0 else "AI FILL READY") if _server_online else "PRACTICE", 13, WarUI.ACCENT if selected else WarUI.MUTED)
+		var service_online: bool = _server_online or (_lobby_adapter != null and _lobby_adapter.available)
+		var occupancy := _mk_label(("%d PLAYERS / %d AI" % [count, bot_count] if count > 0 else "AI FILL READY") if service_online else "PRACTICE", 13, WarUI.ACCENT if selected else WarUI.MUTED)
 		occupancy.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		row.add_child(occupancy)
 		_make_interactive(card)
@@ -462,13 +485,13 @@ func _update_footer_selection() -> void:
 	_hero_title.text = String(MAP_NAMES.get(map_id, map_id)).to_upper()
 	_hero_description.text = String(MAP_DESCRIPTIONS.get(map_id, "Find your angle. Control the encounter."))
 	_hero_image.texture = _map_texture(map_id)
-	_hero_mode.text = ("TEAM DEATHMATCH" if GameState.selected_mode == "TDM" else "FREE FOR ALL") + "  •  " + GameState.time_label(GameState.selected_time)
+	_hero_mode.text = _mode_label(GameState.selected_mode) + "  •  " + GameState.time_label(GameState.selected_time)
 	selected_server_label.text = String(MAP_NAMES.get(map_id, map_id)) + "  /  " + GameState.selected_mode
-	join_btn.disabled = not _server_online and not _practice.button_pressed
+	join_btn.disabled = not _server_online and not (_lobby_adapter != null and _lobby_adapter.available) and not _practice.button_pressed
 	join_btn.text = "START OFFLINE" if _practice.button_pressed else "JOIN SERVER"
 	join_btn.tooltip_text = "Connect to an available service, or choose offline practice." if not _server_online else "Join the selected match"
 
-func _api_request(path: String, callback: Callable, method: int = HTTPClient.METHOD_GET, payload: String = "") -> void:
+func _api_request(path: String, callback: Callable, method: int = HTTPClient.METHOD_GET, payload: String = "", auth_token: String = "") -> void:
 	var request := HTTPRequest.new()
 	request.timeout = 4.0
 	add_child(request)
@@ -480,49 +503,53 @@ func _api_request(path: String, callback: Callable, method: int = HTTPClient.MET
 			if json.parse(body.get_string_from_utf8()) == OK: data = json.data
 		callback.call(code if result == HTTPRequest.RESULT_SUCCESS else 0, data)
 	)
-	var candidate_backend := _uses_colyseus_candidate()
+	var candidate_backend := true
 	var host := GameState.server_host.trim_prefix("https://").trim_prefix("http://").trim_prefix("wss://").trim_prefix("ws://").trim_suffix("/")
 	if candidate_backend and host.ends_with("/colyseus"):
 		host = host.trim_suffix("/colyseus")
 	var scheme := "http" if host.begins_with("localhost") or host.begins_with("127.") else "https"
-	if OS.has_feature("web"): scheme = String(JavaScriptBridge.eval("window.location.protocol")).trim_suffix(":")
-	var api_path := ("/colyseus" if candidate_backend else "") + path
-	var error := request.request(scheme + "://" + host + api_path, PackedStringArray(["Content-Type: application/json"]), method, payload)
+	var use_web_colyseus_path := false
+	if OS.has_feature("web"):
+		scheme = String(JavaScriptBridge.eval("window.location.protocol")).trim_suffix(":")
+		var web_path := String(JavaScriptBridge.eval("window.location.pathname"))
+		var web_backend := String(JavaScriptBridge.eval("new URLSearchParams(window.location.search).get('backend') || ''")).to_lower()
+		var web_qa_colyseus := String(JavaScriptBridge.eval("new URLSearchParams(window.location.search).get('qa_colyseus') || ''"))
+		use_web_colyseus_path = web_path.begins_with("/colyseus") or web_backend in ["colyseus", "qa_colyseus"] or web_qa_colyseus == "1"
+	var local_host := host.begins_with("localhost") or host.begins_with("127.")
+	var api_path := ("/colyseus" if candidate_backend and (not local_host or use_web_colyseus_path) else "") + path
+	var headers := PackedStringArray(["Content-Type: application/json"])
+	if not auth_token.is_empty():
+		headers.append("Authorization: Bearer " + auth_token)
+	var error := request.request(scheme + "://" + host + api_path, headers, method, payload)
 	if error != OK:
 		request.queue_free()
 		callback.call(0, null)
 
-func _uses_colyseus_candidate() -> bool:
-	var app := get_parent()
-	if app != null and "_use_colyseus" in app and app.get("_use_colyseus") == true:
-		return true
-	if OS.has_feature("web"):
-		var web_backend := String(JavaScriptBridge.eval("new URLSearchParams(window.location.search).get('backend') || ''")).to_lower()
-		var web_qa_colyseus := String(JavaScriptBridge.eval("new URLSearchParams(window.location.search).get('qa_colyseus') || ''"))
-		var web_path := String(JavaScriptBridge.eval("window.location.pathname"))
-		return web_backend == "colyseus" or web_backend == "qa_colyseus" or web_qa_colyseus == "1" or web_path == "/colyseus" or web_path.begins_with("/colyseus/")
-	return false
-
 func _probe_server() -> void:
 	_api_request("/healthcheck", func(code: int, _data: Variant) -> void:
 		_server_online = code == 200
-		status_pill.text = "SERVICE ONLINE" if _server_online else "OFFLINE / PRACTICE READY"
+		status_pill.text = "LIVE LOBBY" if _lobby_adapter != null and _lobby_adapter.available else ("SERVICE ONLINE" if _server_online else "OFFLINE / PRACTICE READY")
 		status_pill.tooltip_text = GameState.server_host
-		status_pill.add_theme_color_override("font_color", WarUI.SUCCESS if _server_online else WarUI.MUTED)
+		status_pill.add_theme_color_override("font_color", WarUI.SUCCESS if _server_online or (_lobby_adapter != null and _lobby_adapter.available) else WarUI.MUTED)
 		_update_footer_selection()
 		_render_servers()
 	)
 
 func refresh_rooms() -> void:
+	if _lobby_adapter != null and _lobby_adapter.available:
+		_lobby_adapter.request_refresh()
+		return
 	if _refreshing: return
 	_refreshing = true
 	_api_request("/api/rooms", func(code: int, data: Variant) -> void:
 		_refreshing = false
+		if _lobby_adapter != null and _lobby_adapter.available:
+			return
 		_server_list = data.get("rooms", []) if code == 200 and data is Dictionary else []
 		_server_list = _server_list.filter(func(room: Dictionary) -> bool: return room.get("map", "") in PLAYABLE_MAPS)
 		if _server_list.is_empty():
 			for id in PLAYABLE_MAPS:
-				_server_list.append({"id":id + "-public", "name":MAP_NAMES[id], "map":id, "mode":"TDM" if id == "industrial" else "FFA"})
+				_server_list.append({"id":id + "-public", "name":MAP_NAMES[id], "map":id, "mode":"CONQUEST", "timeOfDay":"dusk", "playerCount":0, "botCount":0, "capacity":64})
 		for room in _server_list:
 			if String(room.get("id", "")) == GameState.room_id:
 				GameState.selected_mode = String(room.get("mode", "FFA"))
@@ -531,10 +558,116 @@ func refresh_rooms() -> void:
 		_render_servers()
 	)
 
+func _on_lobby_availability(is_available: bool) -> void:
+	if is_available:
+		status_pill.text = "LIVE LOBBY"
+		status_pill.add_theme_color_override("font_color", WarUI.SUCCESS)
+		_probe_t = 0.0
+	else:
+		_live_room_cache.clear()
+		_server_list.clear()
+		status_pill.text = "SERVICE ONLINE" if _server_online else "OFFLINE / PRACTICE READY"
+		refresh_rooms()
+		_render_http_fallback()
+	_update_footer_selection()
+
+func _on_lobby_listing(payload: Variant) -> void:
+	if not payload is Array:
+		return
+	if payload.size() == 3 and payload[0] == "+":
+		var item: Dictionary = payload[2] if payload[2] is Dictionary else {}
+		var metadata: Dictionary = item.get("metadata", {}) if item.get("metadata", {}) is Dictionary else {}
+		_live_room_cache[String(metadata.get("room", item.get("roomId", payload[1])))] = item
+	elif payload.size() == 2 and payload[0] == "-":
+		for key in _live_room_cache.keys():
+			var cached: Dictionary = _live_room_cache[key]
+			if String(cached.get("roomId", "")) == String(payload[1]):
+				_live_room_cache.erase(key)
+	else:
+		_live_room_cache.clear()
+		for item in payload:
+			if not item is Dictionary:
+				continue
+			var metadata: Dictionary = item.get("metadata", {}) if item.get("metadata", {}) is Dictionary else {}
+			var logical_id: String = String(metadata.get("room", item.get("roomId", "")))
+			if not logical_id.is_empty():
+				_live_room_cache[logical_id] = item
+	_server_list = _compose_live_rooms()
+	_sync_selected_room()
+	_update_footer_selection()
+	_render_servers()
+
+func _compose_live_rooms() -> Array:
+	var rooms: Array = []
+	var listed := {}
+	for map_id in PLAYABLE_MAPS:
+		var logical_id: String = String(map_id) + "-public"
+		var live_entry: Dictionary = _live_room_cache.get(logical_id, {})
+		var metadata: Dictionary = live_entry.get("metadata", {}) if live_entry.get("metadata", {}) is Dictionary else {}
+		var preset := {"id": logical_id, "name": MAP_NAMES[map_id], "map": map_id, "mode": "CONQUEST", "timeOfDay": "dusk", "playerCount": 0, "botCount": 0, "capacity": 64}
+		if not live_entry.is_empty():
+			preset.merge(_listing_entry(live_entry, metadata, logical_id), true)
+		rooms.append(preset)
+		listed[logical_id] = true
+	for logical_id in _live_room_cache:
+		if listed.has(logical_id):
+			continue
+		var live_entry: Dictionary = _live_room_cache[logical_id]
+		var metadata: Dictionary = live_entry.get("metadata", {}) if live_entry.get("metadata", {}) is Dictionary else {}
+		var entry := _listing_entry(live_entry, metadata, String(logical_id))
+		if String(entry.get("map", "")) in PLAYABLE_MAPS:
+			rooms.append(entry)
+	return rooms
+
+func _listing_entry(listing: Dictionary, metadata: Dictionary, logical_id: String) -> Dictionary:
+	return {"id": logical_id, "name": String(metadata.get("name", listing.get("name", logical_id))),
+		"map": String(metadata.get("map", "industrial")), "mode": String(metadata.get("mode", "FFA")),
+		"timeOfDay": String(metadata.get("timeOfDay", "dusk")), "playerCount": int(metadata.get("playerCount", listing.get("clients", 0))),
+		"botCount": int(metadata.get("botCount", 0)), "capacity": int(metadata.get("capacity", listing.get("maxClients", 64)))}
+
+func _sync_selected_room() -> void:
+	for room in _server_list:
+		if String(room.get("id", "")) == GameState.room_id:
+			GameState.selected_mode = String(room.get("mode", "FFA"))
+			GameState.selected_time = String(room.get("timeOfDay", "dusk"))
+			return
+
+func _render_http_fallback() -> void:
+	if _lobby_adapter != null and _lobby_adapter.available:
+		return
+	if _server_list.is_empty():
+		for id in PLAYABLE_MAPS:
+			_server_list.append({"id":id + "-public", "name":MAP_NAMES[id], "map":id, "mode":"CONQUEST", "timeOfDay":"dusk"})
+	_update_footer_selection()
+	_render_servers()
+
 func _execute_create_server() -> void:
 	var match_name := create_name_edit.text.strip_edges()
 	if match_name.is_empty(): match_name = GameState.username + "'s Match"
 	create_modal.visible = false
+	if true:
+		if _lobby_adapter == null:
+			_show_toast("Could not verify your session. Check the service and try again.", false)
+			return
+		_lobby_adapter.ensure_admission(func(token: String, error: Variant) -> void:
+			if error != null or token.is_empty():
+				if _is_local_editor_fixture() and error is Dictionary and int(error.get("code", 0)) == 404:
+					_post_create_server(match_name)
+					return
+				_show_toast("Could not verify your session. Check the service and try again.", false)
+				return
+			_post_create_server(match_name, token)
+		)
+	else:
+		_post_create_server(match_name)
+
+func _is_local_editor_fixture() -> bool:
+	if not Engine.is_editor_hint():
+		return false
+	var host := GameState.server_host.trim_prefix("https://").trim_prefix("http://").trim_prefix("wss://").trim_prefix("ws://")
+	return host.begins_with("localhost") or host.begins_with("127.") or host.begins_with("[::1]") or host.begins_with("::1")
+
+func _post_create_server(match_name: String, auth_token: String = "") -> void:
 	_api_request("/api/rooms", func(code: int, data: Variant) -> void:
 		if code != 201 or not data is Dictionary or not data.has("room_id"):
 			_show_toast("Match could not be created. Check the service and try again.", false)
@@ -547,7 +680,7 @@ func _execute_create_server() -> void:
 		_update_footer_selection()
 		refresh_rooms()
 		_show_toast("Match created. Ready to deploy.")
-	, HTTPClient.METHOD_POST, JSON.stringify({"name":match_name, "map":create_map_id, "mode":create_mode_id, "timeOfDay":create_time_id}))
+	, HTTPClient.METHOD_POST, JSON.stringify({"name":match_name, "map":create_map_id, "mode":create_mode_id, "timeOfDay":create_time_id}), auth_token)
 
 func _build_create_server_modal() -> void:
 	create_modal = PanelContainer.new()
@@ -620,7 +753,7 @@ func _build_create_server_modal() -> void:
 	mv.add_child(_mk_label("OPERATION MODE", 10, Color(0.60, 0.68, 0.78)))
 	var mode_row := HBoxContainer.new()
 	mode_row.add_theme_constant_override("separation", 8)
-	for md in [{"id": "FFA", "name": "FREE FOR ALL"}, {"id": "TDM", "name": "TEAM DEATHMATCH"}]:
+	for md in [{"id": "FFA", "name": "FREE FOR ALL"}, {"id": "TDM", "name": "TEAM DEATHMATCH"}, {"id": "CONQUEST", "name": "CONQUEST · A–D"}]:
 		var mid: String = md["id"]
 		var btn := Button.new()
 		btn.text = md["name"]

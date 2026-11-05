@@ -96,6 +96,11 @@ static func get_loaded_map() -> String:
 	_ensure_data()
 	return _loaded_map
 
+static func settled_vertical_velocity(vy: float, requested_y: float, resolved_y: float, floor_value: Variant) -> float:
+	if vy < 0.0 and (resolved_y > requested_y + 0.00001 or (floor_value != null and resolved_y <= float(floor_value) + 0.03)): return 0.0
+	if vy > 0.0 and resolved_y < requested_y - 0.00001: return 0.0
+	return vy
+
 
 static func _finite_vector(value: Vector3) -> bool:
 	return is_finite(value.x) and is_finite(value.y) and is_finite(value.z)

@@ -1,0 +1,420 @@
+{
+  "sourceAssetsPreserved": true,
+  "items": [
+    {
+      "original": "warbase-godot/client/assets/maps/loft_17_Material_16.png",
+      "archived": "asset_backups/cleanup-unused-assets-20261105/assets/maps/loft_17_Material_16.png",
+      "bytes": 840503,
+      "sha256": "0e598b7b2ecc93842a23fd57136132f79fa27624a31eb6791284d7d89ae5f5de"
+    },
+    {
+      "original": "warbase-godot/client/assets/maps/loft_17_Material_7.png.import",
+      "archived": "asset_backups/cleanup-unused-assets-20261105/assets/maps/loft_17_Material_7.png.import",
+      "bytes": 1035,
+      "sha256": "7ef611d27fff1b89d0f2c31061ee3da468b99504a8b6215e044a8ed1f1122504"
+    },
+    {
+      "original": "warbase-godot/client/assets/maps/loft_17_Material_13.jpg.import",
+      "archived": "asset_backups/cleanup-unused-assets-20261105/assets/maps/loft_17_Material_13.jpg.import",
+      "bytes": 1039,
+      "sha256": "8079dd09a09a4af84a0c26a9b301c3b7dec9d2158a0dbdf35c6c32f920d3da1a"
+    },
+    {
+      "original": "warbase-godot/client/assets/maps/loft_17_Material_17.png.import",
+      "archived": "asset_backups/cleanup-unused-assets-20261105/assets/maps/loft_17_Material_17.png.import",
+      "bytes": 1039,
+      "sha256": "180ab7e156f56bf1c7c5dc1a80fe0224fe1731305a0b1a96c52c6da5d8f12eb9"
+    },
+    {
+      "original": "warbase-godot/client/assets/maps/loft_17_Material_3.jpg.import",
+      "archived": "asset_backups/cleanup-unused-assets-20261105/assets/maps/loft_17_Material_3.jpg.import",
+      "bytes": 1036,
+      "sha256": "dd1c605ca2fd9d5b0cde30ab40c66a941ccdcc6a8ef036988bffd9c80c24b5f8"
+    },
+    {
+      "original": "warbase-godot/client/assets/maps/loft_17_Material_17.png",
+      "archived": "asset_backups/cleanup-unused-assets-20261105/assets/maps/loft_17_Material_17.png",
+      "bytes": 828318,
+      "sha256": "c7be6e40d259bf20c8f13a57cd03876282f0c74ee30e0ddb3160ab79780a13fb"
+    },
+    {
+      "original": "warbase-godot/client/assets/maps/loft_17_Material_15.jpg",
+      "archived": "asset_backups/cleanup-unused-assets-20261105/assets/maps/loft_17_Material_15.jpg",
+      "bytes": 503216,
+      "sha256": "36beb6e5f524a505f7cd90215985c8bc327ee1696c111ef7a5c1c0bf4bda3881"
+    },
+    {
+      "original": "warbase-godot/client/assets/maps/loft_17_Material_14.jpg",
+      "archived": "asset_backups/cleanup-unused-assets-20261105/assets/maps/loft_17_Material_14.jpg",
+      "bytes": 335483,
+      "sha256": "90256ae70ae7ba6b330d6d489ba265432395d269c81c765c8d8d1df5d1dc56a3"
+    },
+    {
+      "original": "warbase-godot/client/assets/maps/loft_17_Material_10.png",
+      "archived": "asset_backups/cleanup-unused-assets-20261105/assets/maps/loft_17_Material_10.png",
+      "bytes": 261764,
+      "sha256": "604c4c7f0446e729682d1842772fd0530ed628f845df5fa1cab869b42f460293"
+    },
+    {
+      "original": "warbase-godot/client/assets/maps/loft_17_Material_8.jpg",
+      "archived": "asset_backups/cleanup-unused-assets-20261105/assets/maps/loft_17_Material_8.jpg",
+      "bytes": 281615,
+      "sha256": "0d17ac3cbe20d23f1c0f0cb7799aba5892e54390e26c044de1c41ae40349ce0c"
+    },
+    {
+      "original": "warbase-godot/client/assets/maps/loft_17_Material_9.jpg",
+      "archived": "asset_backups/cleanup-unused-assets-20261105/assets/maps/loft_17_Material_9.jpg",
+      "bytes": 390835,
+      "sha256": "ca942ab9c5eb7f55dafd6eb901ae94187357761af68f6f9adcc1b975e192d07a"
+    },
+    {
+      "original": "warbase-godot/client/assets/maps/loft_17_Material_11.jpg",
+      "archived": "asset_backups/cleanup-unused-assets-20261105/assets/maps/loft_17_Material_11.jpg",
+      "bytes": 289266,
+      "sha256": "b1d4b4bee469fda1c44d305e95c40b414e7b516da98bab0e0c635022a493727c"
+    },
+    {
+      "original": "warbase-godot/client/assets/maps/loft_17_Material_21.jpg.import",
+      "archived": "asset_backups/cleanup-unused-assets-20261105/assets/maps/loft_17_Material_21.jpg.import",
+      "bytes": 1039,
+      "sha256": "8c41e01c4a30019867d1bd8fb19979e8f0dde2af30a567f7560c86e4f8d0721e"
+    },
+    {
+      "original": "warbase-godot/client/assets/maps/loft_17_Material_13.jpg",
+      "archived": "asset_backups/cleanup-unused-assets-20261105/assets/maps/loft_17_Material_13.jpg",
+      "bytes": 182303,
+      "sha256": "b940e3fe7c0ea8eef5dadca97eb4873582cc5fdcdfd71da2173ac2bd6ed876fd"
+    },
+    {
+      "original": "warbase-godot/client/assets/maps/loft_17_Material_12.png.import",
+      "archived": "asset_backups/cleanup-unused-assets-20261105/assets/maps/loft_17_Material_12.png.import",
+      "bytes": 1038,
+      "sha256": "bd543e252d4f2c2d85752df588d1174860fc7cd6e821042ef92d8183ad86d1f6"
+    },
+    {
+      "original": "warbase-godot/client/assets/maps/loft_17_Material_12.png",
+      "archived": "asset_backups/cleanup-unused-assets-20261105/assets/maps/loft_17_Material_12.png",
+      "bytes": 3333,
+      "sha256": "de6e4de3775eb154c656984db033042ef5cdcec9f6bf8e6ff9cfd5168f553a05"
+    },
+    {
+      "original": "warbase-godot/client/assets/maps/loft_17_Material_1.jpg.import",
+      "archived": "asset_backups/cleanup-unused-assets-20261105/assets/maps/loft_17_Material_1.jpg.import",
+      "bytes": 1036,
+      "sha256": "3f4b82a0f403c3dc37943a9f6cd28bbeed369e6de46ac586ef1f9ca935a8f28b"
+    },
+    {
+      "original": "warbase-godot/client/assets/maps/loft_17_Material_11.jpg.import",
+      "archived": "asset_backups/cleanup-unused-assets-20261105/assets/maps/loft_17_Material_11.jpg.import",
+      "bytes": 1038,
+      "sha256": "8da47e0fc5b13de76c4bfbb73c23e749da9073fd27eca6c6cc000b8bad8c8f6c"
+    },
+    {
+      "original": "warbase-godot/client/assets/maps/loft_17_Material_18.png.import",
+      "archived": "asset_backups/cleanup-unused-assets-20261105/assets/maps/loft_17_Material_18.png.import",
+      "bytes": 1039,
+      "sha256": "b42b75924c3daa4fd10364e2044c50d20709da6a737f764be4c6596d3037efdb"
+    },
+    {
+      "original": "warbase-godot/client/assets/maps/loft_17_Material_9.jpg.import",
+      "archived": "asset_backups/cleanup-unused-assets-20261105/assets/maps/loft_17_Material_9.jpg.import",
+      "bytes": 1036,
+      "sha256": "b3d62009964cbf9aa6e25f8469a11d746a27162ce2981e00a5e7a772db3165ac"
+    },
+    {
+      "original": "warbase-godot/client/assets/maps/loft_17_Material_10.png.import",
+      "archived": "asset_backups/cleanup-unused-assets-20261105/assets/maps/loft_17_Material_10.png.import",
+      "bytes": 1039,
+      "sha256": "4c17adc95a960438417f310ae7249659789349d561479075aa7068a4e60c522b"
+    },
+    {
+      "original": "warbase-godot/client/assets/maps/loft_17_Material_14.jpg.import",
+      "archived": "asset_backups/cleanup-unused-assets-20261105/assets/maps/loft_17_Material_14.jpg.import",
+      "bytes": 1039,
+      "sha256": "45f6eb20e31420a1d82188b83f1c0efda85fdf4bb4c09550ce40695e52947214"
+    },
+    {
+      "original": "warbase-godot/client/assets/maps/loft_17_Material_20.jpg.import",
+      "archived": "asset_backups/cleanup-unused-assets-20261105/assets/maps/loft_17_Material_20.jpg.import",
+      "bytes": 1039,
+      "sha256": "c4da29dea225271817589a03dfca4961a100b539ae9c97bd98b400343120a6ef"
+    },
+    {
+      "original": "warbase-godot/client/assets/maps/loft_17_Material.png.import",
+      "archived": "asset_backups/cleanup-unused-assets-20261105/assets/maps/loft_17_Material.png.import",
+      "bytes": 1030,
+      "sha256": "9e4054ffb509b66b13cdc78cba6c520f8d0c63f03a1e676022afe5622f82941c"
+    },
+    {
+      "original": "warbase-godot/client/assets/maps/loft_17_Material_6.png.import",
+      "archived": "asset_backups/cleanup-unused-assets-20261105/assets/maps/loft_17_Material_6.png.import",
+      "bytes": 1036,
+      "sha256": "ea41ca9c2805e783bb4ec87762bca37b26279b154e010acab1eb1ff315e0f670"
+    },
+    {
+      "original": "warbase-godot/client/assets/maps/loft_17_Material_2.jpg.import",
+      "archived": "asset_backups/cleanup-unused-assets-20261105/assets/maps/loft_17_Material_2.jpg.import",
+      "bytes": 1035,
+      "sha256": "aff3a133414eaef68bd9dadd74ccf60bf989bd765c8ad74b033c2958e6f58e1f"
+    },
+    {
+      "original": "warbase-godot/client/assets/maps/loft_17_Material_16.png.import",
+      "archived": "asset_backups/cleanup-unused-assets-20261105/assets/maps/loft_17_Material_16.png.import",
+      "bytes": 1038,
+      "sha256": "004e542adcdd2b42beda50fcb03c37e527885422c81c4feff64fa02953753604"
+    },
+    {
+      "original": "warbase-godot/client/assets/maps/loft_17_Material_23.png",
+      "archived": "asset_backups/cleanup-unused-assets-20261105/assets/maps/loft_17_Material_23.png",
+      "bytes": 259822,
+      "sha256": "a3867848c44617fc1c413a1a176290fbfb6cfa3b71d4f62b234b8863ce5163af"
+    },
+    {
+      "original": "warbase-godot/client/assets/maps/loft_17_Material_8.jpg.import",
+      "archived": "asset_backups/cleanup-unused-assets-20261105/assets/maps/loft_17_Material_8.jpg.import",
+      "bytes": 1036,
+      "sha256": "03810e6ae921d5931757e9395e9bf8d00a97bbb199e48cb1acb2a4d70aeadafb"
+    },
+    {
+      "original": "warbase-godot/client/assets/maps/loft_17_Material_7.png",
+      "archived": "asset_backups/cleanup-unused-assets-20261105/assets/maps/loft_17_Material_7.png",
+      "bytes": 3735,
+      "sha256": "a5678f29809fc4c77905e2a0f98f523dbbfcbb3d175a8c93a53e979915d7f2b5"
+    },
+    {
+      "original": "warbase-godot/client/assets/maps/loft_17_Material_6.png",
+      "archived": "asset_backups/cleanup-unused-assets-20261105/assets/maps/loft_17_Material_6.png",
+      "bytes": 2358620,
+      "sha256": "dc4e2d4d91bb81851f2e8c606761b072410a5f2fea097e177c494cfafca74b2b"
+    },
+    {
+      "original": "warbase-godot/client/assets/maps/loft_17_Material_22.jpg",
+      "archived": "asset_backups/cleanup-unused-assets-20261105/assets/maps/loft_17_Material_22.jpg",
+      "bytes": 154988,
+      "sha256": "a274730a255a247b3d9792fd8b1b42c8170f5e6b62a4c20b067ef7afc4f8ab1b"
+    },
+    {
+      "original": "warbase-godot/client/assets/maps/loft_17_Material_20.jpg",
+      "archived": "asset_backups/cleanup-unused-assets-20261105/assets/maps/loft_17_Material_20.jpg",
+      "bytes": 263312,
+      "sha256": "b62a2bb63c9b89a188f6bf96b2dd0aefb6b543edf6ee18f656435b750381b241"
+    },
+    {
+      "original": "warbase-godot/client/assets/maps/loft_17_Material_5.jpg.import",
+      "archived": "asset_backups/cleanup-unused-assets-20261105/assets/maps/loft_17_Material_5.jpg.import",
+      "bytes": 1035,
+      "sha256": "1d42b14be86853d53e4d73748a9b9b6376948c8c09c349bdc649b0dd48998f89"
+    },
+    {
+      "original": "warbase-godot/client/assets/maps/loft_17_Material_4.png",
+      "archived": "asset_backups/cleanup-unused-assets-20261105/assets/maps/loft_17_Material_4.png",
+      "bytes": 119486,
+      "sha256": "60bb971607c6d3e3995d06280ef76cc85717c3ebded11de6ea2293187c7363d3"
+    },
+    {
+      "original": "warbase-godot/client/assets/maps/loft_17_Material_5.jpg",
+      "archived": "asset_backups/cleanup-unused-assets-20261105/assets/maps/loft_17_Material_5.jpg",
+      "bytes": 625777,
+      "sha256": "269dce03fa72407b830a10e0cb4794421a65018c52f046cc0e304cfbb0fe45db"
+    },
+    {
+      "original": "warbase-godot/client/assets/maps/loft_17_optimized.tscn",
+      "archived": "asset_backups/cleanup-unused-assets-20261105/assets/maps/loft_17_optimized.tscn",
+      "bytes": 2477197,
+      "sha256": "5222ccbe6ab48e9313c8ff464f936b1a0090a3698afbd6b2d19e7476133e8901"
+    },
+    {
+      "original": "warbase-godot/client/assets/maps/loft_17_Material_21.jpg",
+      "archived": "asset_backups/cleanup-unused-assets-20261105/assets/maps/loft_17_Material_21.jpg",
+      "bytes": 200318,
+      "sha256": "67dffb0f0aace990eabc276d63e1024112e7caee7e7726e9e29272bac8018f4d"
+    },
+    {
+      "original": "warbase-godot/client/assets/maps/loft_17_Material_15.jpg.import",
+      "archived": "asset_backups/cleanup-unused-assets-20261105/assets/maps/loft_17_Material_15.jpg.import",
+      "bytes": 1039,
+      "sha256": "e097da0fc57321a63ab88e21bb0fa9a38b98a8b6a678d020260e3efd120bf996"
+    },
+    {
+      "original": "warbase-godot/client/assets/maps/loft_17_Material_22.jpg.import",
+      "archived": "asset_backups/cleanup-unused-assets-20261105/assets/maps/loft_17_Material_22.jpg.import",
+      "bytes": 1039,
+      "sha256": "cabed11011aa32dc1a97160ddbc40dc69794c77a4cdc08624491ef57fa5e2f0b"
+    },
+    {
+      "original": "warbase-godot/client/assets/maps/loft_17_Material_19.png",
+      "archived": "asset_backups/cleanup-unused-assets-20261105/assets/maps/loft_17_Material_19.png",
+      "bytes": 795703,
+      "sha256": "9e0997a90e621c820f0e683091dacacf0f7eeca2d8db8dbbfcf4e350cf12e658"
+    },
+    {
+      "original": "warbase-godot/client/assets/maps/loft_17_Material_23.png.import",
+      "archived": "asset_backups/cleanup-unused-assets-20261105/assets/maps/loft_17_Material_23.png.import",
+      "bytes": 1039,
+      "sha256": "ee6ca72714563c59c9e26f078bf8674439182209f5f98387d39983fe37743913"
+    },
+    {
+      "original": "warbase-godot/client/assets/maps/loft_17_Material_1.jpg",
+      "archived": "asset_backups/cleanup-unused-assets-20261105/assets/maps/loft_17_Material_1.jpg",
+      "bytes": 87030,
+      "sha256": "e7f6c1ee222cd257d2ce3819a3c4ad18dbd73cd18ef16511a20af022119406f9"
+    },
+    {
+      "original": "warbase-godot/client/assets/maps/loft_17_Material_4.png.import",
+      "archived": "asset_backups/cleanup-unused-assets-20261105/assets/maps/loft_17_Material_4.png.import",
+      "bytes": 1036,
+      "sha256": "5154e744a4d9f5ca77f6f2052fc834cdeaf718a86fe0a6bf6233fe8a114a069e"
+    },
+    {
+      "original": "warbase-godot/client/assets/maps/loft_17_Material_18.png",
+      "archived": "asset_backups/cleanup-unused-assets-20261105/assets/maps/loft_17_Material_18.png",
+      "bytes": 842581,
+      "sha256": "d2904c4c77780773436157893866245b907d45b74b1644e2b04b2b1d1087be6b"
+    },
+    {
+      "original": "warbase-godot/client/assets/maps/loft_17_Material.png",
+      "archived": "asset_backups/cleanup-unused-assets-20261105/assets/maps/loft_17_Material.png",
+      "bytes": 157295,
+      "sha256": "202a98502c491165ca69d159ae70f65ade3e7611cf622a5e790663af1e238d73"
+    },
+    {
+      "original": "warbase-godot/client/assets/maps/loft_17_Material_19.png.import",
+      "archived": "asset_backups/cleanup-unused-assets-20261105/assets/maps/loft_17_Material_19.png.import",
+      "bytes": 1039,
+      "sha256": "159d539b1d216a833d7291a3da91d8f24673fabc1896ae17d918809e3803a84f"
+    },
+    {
+      "original": "warbase-godot/client/assets/maps/loft_17_Material_2.jpg",
+      "archived": "asset_backups/cleanup-unused-assets-20261105/assets/maps/loft_17_Material_2.jpg",
+      "bytes": 441939,
+      "sha256": "a41bc95bf4f4d5984f422e480d1641549d4ba81e4b99acfd697d97146c6e6469"
+    },
+    {
+      "original": "warbase-godot/client/assets/maps/loft_17_Material_3.jpg",
+      "archived": "asset_backups/cleanup-unused-assets-20261105/assets/maps/loft_17_Material_3.jpg",
+      "bytes": 182328,
+      "sha256": "807893acf0abbf1da14cce7f88cd461a3c4fe6fc58c195fc011e351b8a7fc083"
+    },
+    {
+      "original": "warbase-godot/client/assets/models/combat_technical_2.png.import",
+      "archived": "asset_backups/cleanup-unused-assets-20261105/assets/models/combat_technical_2.png.import",
+      "bytes": 1038,
+      "sha256": "78f6ec4586ecc03578b3d1be730b97e4742f075a25e9892acd2add06d087a005"
+    },
+    {
+      "original": "warbase-godot/client/assets/models/combat_technical.glb.import",
+      "archived": "asset_backups/cleanup-unused-assets-20261105/assets/models/combat_technical.glb.import",
+      "bytes": 1177,
+      "sha256": "93f8e3e2a1ec44477d26b879910e4fefb01f6741e671fc47b2494b9671a86d63"
+    },
+    {
+      "original": "warbase-godot/client/assets/models/combat_technical_0.png.import",
+      "archived": "asset_backups/cleanup-unused-assets-20261105/assets/models/combat_technical_0.png.import",
+      "bytes": 1038,
+      "sha256": "5e0eb1f1fb985187bfe56533685b99cb5db8c16f07912ad1f521b6983fbf416d"
+    },
+    {
+      "original": "warbase-godot/client/assets/models/combat_technical_5.png.import",
+      "archived": "asset_backups/cleanup-unused-assets-20261105/assets/models/combat_technical_5.png.import",
+      "bytes": 1038,
+      "sha256": "f1898d4b750b068f7c3ed2a3a58dc967653568664d50eca829fc047960f2d70e"
+    },
+    {
+      "original": "warbase-godot/client/assets/models/combat_technical_5.png",
+      "archived": "asset_backups/cleanup-unused-assets-20261105/assets/models/combat_technical_5.png",
+      "bytes": 175729,
+      "sha256": "0a1d0fc36309921260ea3060fa6985cd34c94c63f4b574b7625a0e6a09905e59"
+    },
+    {
+      "original": "warbase-godot/client/assets/models/combat_technical_4.png",
+      "archived": "asset_backups/cleanup-unused-assets-20261105/assets/models/combat_technical_4.png",
+      "bytes": 149287,
+      "sha256": "1288d735236d893e0a5e030408685e181d8a814d7203f35a53193955bdd98a9c"
+    },
+    {
+      "original": "warbase-godot/client/assets/models/combat_technical_3.png",
+      "archived": "asset_backups/cleanup-unused-assets-20261105/assets/models/combat_technical_3.png",
+      "bytes": 190983,
+      "sha256": "3f8d808745cba71fe7b2af51b35aef4854f897f55eea47fae1692403ae3beb6e"
+    },
+    {
+      "original": "warbase-godot/client/assets/models/combat_technical_2.png",
+      "archived": "asset_backups/cleanup-unused-assets-20261105/assets/models/combat_technical_2.png",
+      "bytes": 546846,
+      "sha256": "4bc24840840f53695f412c5cdf1585c77425b71f4e981826a9e912e5ce06dfda"
+    },
+    {
+      "original": "warbase-godot/client/assets/models/combat_technical_3.png.import",
+      "archived": "asset_backups/cleanup-unused-assets-20261105/assets/models/combat_technical_3.png.import",
+      "bytes": 1037,
+      "sha256": "575f2876485559c85eb040f11fbcd47992f5ac3c4197b62f1e4736e26d9615cf"
+    },
+    {
+      "original": "warbase-godot/client/assets/models/combat_technical_0.png",
+      "archived": "asset_backups/cleanup-unused-assets-20261105/assets/models/combat_technical_0.png",
+      "bytes": 454910,
+      "sha256": "d455dec7c591c19f1a08dad95ff03b01fc6dec4cabe14276541141895cb37cdc"
+    },
+    {
+      "original": "warbase-godot/client/assets/models/combat_technical_1.png",
+      "archived": "asset_backups/cleanup-unused-assets-20261105/assets/models/combat_technical_1.png",
+      "bytes": 415655,
+      "sha256": "8b60d8e1816c4a1e6cf962c452890679f919037265a6627208f374621f3d443d"
+    },
+    {
+      "original": "warbase-godot/client/assets/models/combat_technical_4.png.import",
+      "archived": "asset_backups/cleanup-unused-assets-20261105/assets/models/combat_technical_4.png.import",
+      "bytes": 1038,
+      "sha256": "715ada6e6a43ccf48cd76f6b020658b99a6574f396b7ab0694feac6363c3102f"
+    },
+    {
+      "original": "warbase-godot/client/assets/models/combat_technical.glb",
+      "archived": "asset_backups/cleanup-unused-assets-20261105/assets/models/combat_technical.glb",
+      "bytes": 6917356,
+      "sha256": "8a1937e629eebda29603c4ff562d9bff188c9fcccc39fb5d4dd458ff70ca61a8"
+    },
+    {
+      "original": "warbase-godot/client/assets/models/combat_technical_1.png.import",
+      "archived": "asset_backups/cleanup-unused-assets-20261105/assets/models/combat_technical_1.png.import",
+      "bytes": 1037,
+      "sha256": "4149c5a1c2175bcf541bf6391e09cecf7636a1ac20ee635749137b08f6e248bd"
+    },
+    {
+      "original": "warbase-godot/client/assets/models/Soldier_vanguard_vanguard_diffuse_tga.jpg",
+      "archived": "asset_backups/cleanup-unused-assets-20261105/assets/models/Soldier_vanguard_vanguard_diffuse_tga.jpg",
+      "bytes": 96944,
+      "sha256": "44a2363eb45e0ee85b4bb4526edfc0db9c645f943e1975a970b3cf88a7d736e0"
+    },
+    {
+      "original": "warbase-godot/client/assets/models/Soldier_file2.jpg.import",
+      "archived": "asset_backups/cleanup-unused-assets-20261105/assets/models/Soldier_file2.jpg.import",
+      "bytes": 1023,
+      "sha256": "0642800c2c31d9edecbb93b4f7cc3d5b9bedcc046b016f5fe56dbe04a1cf709a"
+    },
+    {
+      "original": "warbase-godot/client/assets/models/Soldier_file2.jpg",
+      "archived": "asset_backups/cleanup-unused-assets-20261105/assets/models/Soldier_file2.jpg",
+      "bytes": 96748,
+      "sha256": "14da034853300934dbfce65534fd30c60d569a5c5a028c48ae6ca726857298fd"
+    },
+    {
+      "original": "warbase-godot/client/assets/models/Soldier_vanguard_vanguard_diffuse_tga.jpg.import",
+      "archived": "asset_backups/cleanup-unused-assets-20261105/assets/models/Soldier_vanguard_vanguard_diffuse_tga.jpg.import",
+      "bytes": 1095,
+      "sha256": "bc5e4b2742b0de5e8e78ce99df851627748bbd64239c8ed205172efb35bfac3c"
+    },
+    {
+      "original": "warbase-godot/client/assets/models/Soldier.glb.import",
+      "archived": "asset_backups/cleanup-unused-assets-20261105/assets/models/Soldier.glb.import",
+      "bytes": 1150,
+      "sha256": "7ab04aa9b9af45038b6fa67aed3bb115b1d6d961dfafbb1adbbe635a888e88b2"
+    },
+    {
+      "original": "warbase-godot/client/assets/models/Soldier.glb",
+      "archived": "asset_backups/cleanup-unused-assets-20261105/assets/models/Soldier.glb",
+      "bytes": 1691296,
+      "sha256": "288c07453a24734b371a438ad0982707e41ecb82d9e5fd909c5ded47d921b782"
+    }
+  ],
+  "bytes": 23658086
+}

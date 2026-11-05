@@ -34,8 +34,20 @@ test('invalid and over-capacity room creates do not spend the shared valid-creat
   }
   assert.throws(() => consumeRoomCreationAllowance({ map: 'industrial' }, 128, limiter, 100), /capacity reached/);
   assert.deepEqual(consumeRoomCreationAllowance({ map: 'industrial' }, 0, limiter, 100), {
-    requested: 'industrial-public', map: 'industrial', requestedMode: 'TDM', timeOfDay: 'noon',
+    requested: 'industrial-public', map: 'industrial', requestedMode: 'CONQUEST', timeOfDay: 'noon',
   });
+  assert.equal(consumeRoomCreationAllowance({ map: 'arena', mode: 'CONQUEST' }, 0, new FixedWindowLimiter(), 100).requestedMode, 'CONQUEST');
   for (let i = 1; i < 60; i++) consumeRoomCreationAllowance({ map: 'industrial' }, 0, limiter, 100);
   assert.throws(() => consumeRoomCreationAllowance({ map: 'industrial' }, 0, limiter, 100), /rate limited/);
+});
+
+test('all public presets force Conquest even for older client mode/map options', () => {
+  for (const map of ['industrial', 'resoforge', 'football', 'village', 'arena', 'shipment', 'dust2', 'nuketown', 'canyon', 'desert_oasis']) {
+    for (const mode of ['TDM', 'FFA', 'CONQUEST']) {
+      const settings = consumeRoomCreationAllowance({ room: `${map}-public`, map: 'industrial', mode }, 0, new FixedWindowLimiter());
+      assert.equal(settings.map, map);
+      assert.equal(settings.requestedMode, 'CONQUEST');
+    }
+  }
+  assert.equal(consumeRoomCreationAllowance({ room: 'custom-duel', map: 'industrial', mode: 'TDM' }, 0, new FixedWindowLimiter()).requestedMode, 'TDM');
 });

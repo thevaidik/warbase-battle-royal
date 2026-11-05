@@ -191,6 +191,21 @@ func _process(delta: float) -> void:
 	current_fov = lerpf(current_fov, target_fov, clampf(24.0 * delta, 0.0, 1.0))
 	camera.fov = current_fov
 
+func apply_authoritative_motion(next_velocity: Vector3, grounded: bool, crouching: bool, sprinting: bool) -> void:
+	var was_grounded := is_grounded
+	var previous_vy := velocity.y
+	velocity = next_velocity
+	is_grounded = grounded
+	is_crouching = crouching
+	is_sprinting = sprinting and not crouching
+	if not was_grounded and grounded and previous_vy <= -2.0:
+		var impact := absf(previous_vy)
+		_land_dip = clampf(impact * 0.016, 0.035, 0.12)
+		_land_pitch = clampf(impact * 0.007, 0.025, 0.075)
+		_air_roll = clampf(-velocity.x * 0.004, -0.025, 0.025)
+	elif was_grounded and not grounded and next_velocity.y > 0.0:
+		_on_jump_takeoff()
+
 func _physics_process(delta: float) -> void:
 	if is_dead or is_driving or not GameState.online_ready:
 		velocity = Vector3.ZERO

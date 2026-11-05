@@ -94,8 +94,8 @@ def main() -> int:
     godot = pathlib.Path(godot_command).resolve()
 
     presets = (CLIENT / "export_presets.cfg").read_text()
-    candidate_block = re.search(r"\[preset\.2\](.*?)(?=\n\[preset\.)", presets, re.S)
-    options_block = re.search(r"\[preset\.2\.options\](.*?)(?=\n\[preset\.|\Z)", presets, re.S)
+    candidate_block = re.search(r"\[preset\.0\](.*?)(?=\n\[preset\.)", presets, re.S)
+    options_block = re.search(r"\[preset\.0\.options\](.*?)(?=\n\[preset\.|\Z)", presets, re.S)
     if not candidate_block or 'name="Web (Colyseus Candidate)"' not in candidate_block.group(1):
         raise SystemExit("Candidate Web preset is missing")
     if 'export_path="candidate-web-dist/index.html"' not in candidate_block.group(1):

@@ -1,0 +1,119 @@
+[
+  {
+    "elapsed": 1.0,
+    "room": {
+      "id": "921f38eb-5cc9-458a-851c-3d594991de72",
+      "name": "QA profile",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 0,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 11.9,
+    "room": {
+      "id": "921f38eb-5cc9-458a-851c-3d594991de72",
+      "name": "QA profile",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 23.1,
+    "room": {
+      "id": "921f38eb-5cc9-458a-851c-3d594991de72",
+      "name": "QA profile",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 34.2,
+    "room": {
+      "id": "921f38eb-5cc9-458a-851c-3d594991de72",
+      "name": "QA profile",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 44.9,
+    "room": {
+      "id": "921f38eb-5cc9-458a-851c-3d594991de72",
+      "name": "QA profile",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 55.6,
+    "room": {
+      "id": "921f38eb-5cc9-458a-851c-3d594991de72",
+      "name": "QA profile",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 66.3,
+    "room": {
+      "id": "921f38eb-5cc9-458a-851c-3d594991de72",
+      "name": "QA profile",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 77.0,
+    "room": {
+      "id": "921f38eb-5cc9-458a-851c-3d594991de72",
+      "name": "QA profile",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 88.1,
+    "room": {
+      "id": "921f38eb-5cc9-458a-851c-3d594991de72",
+      "name": "QA profile",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  }
+]

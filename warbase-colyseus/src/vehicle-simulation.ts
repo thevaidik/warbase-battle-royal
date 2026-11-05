@@ -8,13 +8,15 @@ export type VehicleState = {
   health: number;
   driver: string;
   gear: 1 | 2;
+  driverGeneration: number;
 };
-export type VehicleInput = { throttle: number; steer: number; brake: boolean; gear: number };
+export type VehicleInput = { throttle: number; steer: number; brake: boolean; gear: number; vehicleIndex: number; vehicleGeneration: number };
 export type VehiclePlayer = {
   username: string;
   x: number; y: number; z: number;
   health: number; deaths: number; team: string; is_dead: boolean;
   driving_vehicle: string;
+  vehicle_index: number; vehicle_generation: number;
 };
 export type Roadkill = { driver: string; target: string; vehicle: string };
 type RuntimeVehicle = {
@@ -26,9 +28,13 @@ type RuntimeVehicle = {
   inputAt: number;
   destroyedAt: number;
   roadkillAt: Map<string, number>;
+  driverGeneration: number;
 };
 
 const clamp = (n: number, min: number, max: number): number => Math.max(min, Math.min(max, n));
+export function inputIsFromStaleVehicleSeat(inputIndex: number, inputGeneration: number, playerIndex: number, playerGeneration: number): boolean {
+  return inputIndex >= 0 && (inputIndex !== playerIndex || inputGeneration !== playerGeneration);
+}
 const distance = (a: Vec3, b: Vec3): number => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
 function groundAt(geometry: WorldGeometry, p: Vec3): number | undefined {
   const from: Vec3 = [p[0], p[1] + 2.5, p[2]], to: Vec3 = [p[0], p[1] - 5, p[2]];
@@ -69,6 +75,17 @@ function movementBlocked(geometry: WorldGeometry, from: Vec3, to: Vec3): boolean
   return false;
 }
 
+/** Deterministic controller integration, separated from map collision queries. */
+export function stepVehicleMotion(state: Pick<VehicleState, 'pos' | 'yaw' | 'speed' | 'gear'>, input: Pick<VehicleInput, 'throttle' | 'steer' | 'brake' | 'gear'>, dt: number): { pos: Vec3; yaw: number; speed: number; candidate: Vec3 } {
+  const elapsed = Math.min(Math.max(dt, 0), 0.1);
+  const speedCap = state.gear === 2 ? 22 : 14.4;
+  let speed = clamp(state.speed + (input.throttle * 9 - state.speed * 0.24 - (input.brake ? state.speed * 6 : 0)) * elapsed, -6, speedCap);
+  if (Math.abs(speed) < 0.05 && input.throttle === 0) speed = 0;
+  const yaw = state.yaw - input.steer * speed / 5 * elapsed;
+  const candidate: Vec3 = [state.pos[0] - Math.sin(yaw) * speed * elapsed, state.pos[1], state.pos[2] - Math.cos(yaw) * speed * elapsed];
+  return { pos: state.pos, yaw, speed, candidate };
+}
+
 /**
  * Authoritative port of the Go Industrial vehicle controller. The module only
  * mutates its own vehicle state and the minimal occupant pose/seat fields;
@@ -84,9 +101,9 @@ export class VehicleSimulation {
       if (spawn.length !== 4 || !spawn.every(Number.isFinite)) throw new Error(`Invalid authored vehicle spawn ${i}`);
       const ground = groundAt(geometry, [spawn[0], spawn[1], spawn[2]]);
       const position: [number, number, number] = [spawn[0], ground === undefined ? spawn[1] : ground, spawn[2]];
-      const state: VehicleState = { id: `CAR_${i}`, pos: position, yaw: spawn[3], speed: 0, health: 1200, driver: '', gear: 1 };
+      const state: VehicleState = { id: `CAR_${i}`, pos: position, yaw: spawn[3], speed: 0, health: 1200, driver: '', gear: 1, driverGeneration: 0 };
       const safeSpawn = [position[0], position[1], position[2], spawn[3]] as const;
-      this.runtime.set(state.id, { state, spawn: safeSpawn, throttle: 0, steer: 0, brake: false, inputAt: 0, destroyedAt: 0, roadkillAt: new Map() });
+      this.runtime.set(state.id, { state, spawn: safeSpawn, throttle: 0, steer: 0, brake: false, inputAt: 0, destroyedAt: 0, roadkillAt: new Map(), driverGeneration: 0 });
     }
   }
 
@@ -120,8 +137,11 @@ export class VehicleSimulation {
     if (distance([player.x, player.y, player.z], vehicle.state.pos) > 4.8) return false;
     if (this.geometry.rayBlocked([player.x, player.y + 1.35, player.z], [vehicle.state.pos[0], vehicle.state.pos[1] + 1.3, vehicle.state.pos[2]])) return false;
     vehicle.state.driver = player.username;
+    vehicle.driverGeneration++;
+    vehicle.state.driverGeneration = vehicle.driverGeneration;
     vehicle.throttle = 0; vehicle.steer = 0; vehicle.state.speed = 0; vehicle.inputAt = nowMs;
     player.driving_vehicle = vehicleId;
+    player.vehicle_index = Number(vehicleId.replace('CAR_', '')); player.vehicle_generation = vehicle.state.driverGeneration;
     player.x = vehicle.state.pos[0]; player.y = vehicle.state.pos[1]; player.z = vehicle.state.pos[2];
     return true;
   }
@@ -136,16 +156,38 @@ export class VehicleSimulation {
       const ground = groundAt(this.geometry, at);
       if (ground === undefined || movementBlocked(this.geometry, vehicle.state.pos, at)) continue;
       player.x = at[0]; player.y = ground; player.z = at[2];
-      vehicle.state.driver = ''; vehicle.throttle = 0; vehicle.steer = 0; vehicle.state.speed = 0;
+      vehicle.state.driver = ''; vehicle.driverGeneration++; vehicle.state.driverGeneration = vehicle.driverGeneration;
+      vehicle.throttle = 0; vehicle.steer = 0; vehicle.brake = true; vehicle.state.speed = 0;
       player.driving_vehicle = '';
+      player.vehicle_index = -1; player.vehicle_generation = vehicle.state.driverGeneration;
       return true;
     }
     return false;
   }
 
+  /** Forced lifecycle cleanup for death, disconnect, or destruction. */
+  forceExit(player: VehiclePlayer): boolean {
+    const vehicle = this.runtime.get(player.driving_vehicle);
+    if (vehicle?.state.driver === player.username) {
+      this.releaseDriver(vehicle, player);
+      return true;
+    }
+    // Repair an orphaned player-side seat reference without touching another
+    // driver's vehicle if the two authoritative sides have diverged.
+    player.driving_vehicle = '';
+    player.vehicle_index = -1;
+    player.vehicle_generation++;
+    return true;
+  }
+
   input(player: VehiclePlayer, input: VehicleInput, nowMs: number): boolean {
     const vehicle = this.runtime.get(player.driving_vehicle);
     if (!vehicle || vehicle.state.driver !== player.username || !Number.isFinite(nowMs) || ![input.throttle, input.steer].every(Number.isFinite) || typeof input.brake !== 'boolean') return false;
+    const expectedIndex = Number(vehicle.state.id.replace('CAR_', ''));
+    if (input.vehicleIndex !== expectedIndex || input.vehicleGeneration !== vehicle.state.driverGeneration || player.vehicle_index !== expectedIndex || player.vehicle_generation !== vehicle.state.driverGeneration) {
+      vehicle.throttle = 0; vehicle.steer = 0; vehicle.brake = true; vehicle.inputAt = nowMs;
+      return false;
+    }
     vehicle.throttle = clamp(input.throttle, -1, 1);
     vehicle.steer = clamp(input.steer, -1, 1);
     vehicle.brake = input.brake;
@@ -162,25 +204,27 @@ export class VehicleSimulation {
     for (const vehicle of this.runtime.values()) {
       const state = vehicle.state;
       if (state.health <= 0) {
+        // Destruction is an authoritative seat release. Keep the generation
+        // advancing so buffered controls from before destruction cannot apply
+        // if the same driver later enters this vehicle again.
+        const formerDriver = players.get(state.driver);
+        if (state.driver) this.releaseDriver(vehicle, formerDriver);
         if (vehicle.destroyedAt > 0 && nowMs - vehicle.destroyedAt > 20_000) {
           state.health = 1200; state.pos = [vehicle.spawn[0], vehicle.spawn[1], vehicle.spawn[2]]; state.yaw = vehicle.spawn[3];
-          vehicle.destroyedAt = 0; state.driver = '';
+          vehicle.destroyedAt = 0;
         }
         continue;
       }
       const player = players.get(state.driver);
       if (!player || player.is_dead || player.driving_vehicle !== state.id) {
-        state.driver = ''; state.speed = 0; continue;
+        this.releaseDriver(vehicle, player); continue;
       }
       if (nowMs - vehicle.inputAt > 300) { vehicle.throttle = 0; vehicle.steer = 0; vehicle.brake = true; }
-      const speedCap = state.gear === 2 ? 22 : 14.4;
-      let acceleration = vehicle.throttle * 9 - state.speed * 0.24;
-      if (vehicle.brake) acceleration -= state.speed * 6;
-      state.speed = clamp(state.speed + acceleration * elapsed, -6, speedCap);
-      if (Math.abs(state.speed) < 0.05 && vehicle.throttle === 0) state.speed = 0;
-      const yaw = state.yaw - vehicle.steer * state.speed / 5 * elapsed;
       const from = state.pos;
-      const to: Vec3 = [from[0] - Math.sin(yaw) * state.speed * elapsed, from[1], from[2] - Math.cos(yaw) * state.speed * elapsed];
+      const motion = stepVehicleMotion(state, { throttle: vehicle.throttle, steer: vehicle.steer, brake: vehicle.brake, gear: state.gear }, elapsed);
+      state.speed = motion.speed;
+      const yaw = motion.yaw;
+      const to = motion.candidate;
       let blocked = false;
       for (const offset of [[0, 0, 0], [-1.1, 0, -2.4], [1.1, 0, -2.4], [-1.1, 0, 2.4], [1.1, 0, 2.4]] as const) {
         const rot: Vec3 = [Math.cos(yaw) * offset[0] + Math.sin(yaw) * offset[2], 0, -Math.sin(yaw) * offset[0] + Math.cos(yaw) * offset[2]];
@@ -206,6 +250,23 @@ export class VehicleSimulation {
       }
     }
     return roadkills;
+  }
+
+  private releaseDriver(vehicle: RuntimeVehicle, player?: VehiclePlayer): void {
+    const state = vehicle.state;
+    const hadDriver = state.driver !== '';
+    state.driver = '';
+    state.speed = 0;
+    if (hadDriver) {
+      vehicle.driverGeneration++;
+      state.driverGeneration = vehicle.driverGeneration;
+    }
+    vehicle.throttle = 0; vehicle.steer = 0; vehicle.brake = true;
+    if (player?.driving_vehicle === state.id) {
+      player.driving_vehicle = '';
+      player.vehicle_index = -1;
+      player.vehicle_generation = vehicle.driverGeneration;
+    }
   }
 
   damage(vehicleId: string, amount: number, nowMs: number): { destroyed: boolean; driver: string } | null {

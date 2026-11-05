@@ -3,9 +3,9 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 CLIENT="$ROOT/warbase-godot/client"
-VERSION="0.18.7"
+VERSION="0.18.9"
 URL="https://github.com/colyseus/native-sdk/releases/download/godot-v${VERSION}/colyseus-godot-${VERSION}.zip"
-SHA256="e7a0ecab03084c98033de55dfd03abb8336e02d0284af32025e53e6946f9510d"
+SHA256="1a2ddc90ba825231945f61a941b5ef7319d44b94c2b5a5f9c3a4393d7b67a81a"
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
 
