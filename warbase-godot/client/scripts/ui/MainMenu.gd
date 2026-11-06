@@ -34,6 +34,8 @@ var _server_online := false
 var _refreshing := false
 var _lobby_adapter: Node
 var _live_room_cache: Dictionary = {}
+var _hero_panel: PanelContainer
+var _hero_art: Control
 var _hero_image: TextureRect
 var _hero_title: Label
 var _hero_description: Label
@@ -84,6 +86,7 @@ func _mk_label(text: String, font_size: int = 14, color: Color = WarUI.TEXT) -> 
 	var label := Label.new()
 	label.text = text
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	if font_size >= 20: WarUI.heading(label)
 	label.add_theme_font_size_override("font_size", maxi(font_size, 12))
 	label.add_theme_color_override("font_color", color)
 	return label
@@ -127,7 +130,8 @@ func build_lobby() -> void:
 	background.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	root.add_child(background)
 	background.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	var outer := _margin(root, 24)
+	WarUI.decorate(root, WarUI.CYAN, true)
+	var outer := _margin(root, 28)
 	outer.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	main_layout = VBoxContainer.new()
 	main_layout.name = "MainLayout"
@@ -164,25 +168,25 @@ func build_lobby() -> void:
 
 func _build_header(parent: VBoxContainer) -> void:
 	var header := HBoxContainer.new()
-	header.custom_minimum_size.y = 62
+	header.custom_minimum_size.y = 72
 	header.add_theme_constant_override("separation", 28)
 	parent.add_child(header)
 	var brand := VBoxContainer.new()
 	brand.add_theme_constant_override("separation", 2)
-	brand.add_child(_mk_label("W A R B A S E", 25, WarUI.TEXT))
-	brand.add_child(_mk_label("TACTICAL MULTIPLAYER", 12, WarUI.MUTED))
+	brand.add_child(_mk_label("WARBASE", 34, WarUI.TEXT))
+	brand.add_child(_mk_label("WB / TACTICAL OPERATIONS", 11, WarUI.CYAN))
 	header.add_child(brand)
 	var separator := VSeparator.new()
 	header.add_child(separator)
 	var navigation := HBoxContainer.new()
 	navigation.add_theme_constant_override("separation", 6)
 	header.add_child(navigation)
-	for item in [[FeatureTab.HOME,"Home"], [FeatureTab.LOADOUT,"Loadout"], [FeatureTab.OPERATOR,"Operator"], [FeatureTab.SETTINGS,"Settings"]]:
+	for item in [[FeatureTab.HOME,"HOME"], [FeatureTab.LOADOUT,"LOADOUT"], [FeatureTab.OPERATOR,"OPERATOR"], [FeatureTab.SETTINGS,"SETTINGS"]]:
 		var tab: int = item[0]
 		var button := _button(item[1], func() -> void:
 			_switch_tab(tab)
 		)
-		button.custom_minimum_size = Vector2(84, 40)
+		button.custom_minimum_size = Vector2(98, 44)
 		navigation.add_child(button)
 		tab_buttons[tab] = button
 	header.add_spacer(false)
@@ -206,13 +210,15 @@ func _build_center_servers(parent: HBoxContainer) -> void:
 	column.add_theme_constant_override("separation", 14)
 	parent.add_child(column)
 	var hero := PanelContainer.new()
+	_hero_panel = hero
 	hero.name = "SelectedMap"
-	hero.custom_minimum_size.y = 228
+	hero.custom_minimum_size.y = 266
 	hero.clip_contents = true
 	hero.add_theme_stylebox_override("panel", WarUI.panel(WarUI.PANEL, WarUI.LINE))
 	column.add_child(hero)
 	var art := Control.new()
-	art.custom_minimum_size.y = 228
+	_hero_art = art
+	art.custom_minimum_size.y = 266
 	hero.add_child(art)
 	_hero_image = TextureRect.new()
 	_hero_image.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
@@ -221,20 +227,21 @@ func _build_center_servers(parent: HBoxContainer) -> void:
 	_hero_image.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	var shade := ColorRect.new()
 	var shader := Shader.new()
-	shader.code = "shader_type canvas_item; void fragment(){ float a=mix(0.12,0.94,smoothstep(0.15,1.0,UV.y)); COLOR=vec4(0.025,0.04,0.05,a); }"
+	shader.code = "shader_type canvas_item; void fragment(){ float a=clamp(0.12+0.76*pow(UV.y,1.5)+0.18*(1.0-UV.x),0.0,0.96); COLOR=vec4(0.025,0.04,0.045,a); }"
 	var material := ShaderMaterial.new()
 	material.shader = shader
 	shade.material = material
 	shade.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	art.add_child(shade)
 	shade.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	WarUI.decorate(art, WarUI.CYAN)
 	var content := _margin(art, 24)
 	content.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	var info := VBoxContainer.new()
 	info.add_theme_constant_override("separation", 6)
 	content.add_child(info)
 	var browse := HBoxContainer.new()
-	browse.add_child(_mk_label("SELECTED OPERATION", 12, WarUI.ACCENT))
+	browse.add_child(_mk_label("LIVE THEATRE  /  SELECT OPERATION", 12, WarUI.CYAN))
 	browse.add_spacer(false)
 	browse.add_child(_button("‹", func() -> void: _cycle_map(-1)))
 	browse.add_child(_mk_label("CHANGE MAP", 12, WarUI.MUTED))
@@ -243,7 +250,7 @@ func _build_center_servers(parent: HBoxContainer) -> void:
 	info.add_spacer(false)
 	_hero_mode = _mk_label("TEAM DEATHMATCH", 12, WarUI.ACCENT)
 	info.add_child(_hero_mode)
-	_hero_title = _mk_label("INDUSTRIAL ZONE", 34, WarUI.TEXT)
+	_hero_title = _mk_label("INDUSTRIAL ZONE", 46, WarUI.TEXT)
 	info.add_child(_hero_title)
 	_hero_description = _mk_label("Warehouses. Long sightlines. Close encounters.", 14, Color("bac6c8"))
 	_hero_description.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -274,7 +281,8 @@ func _build_feature_drawer(parent: HBoxContainer) -> void:
 	var column := VBoxContainer.new()
 	column.add_theme_constant_override("separation", 16)
 	drawer_panel.add_child(column)
-	drawer_title = _mk_label("YOUR LOADOUT", 13, WarUI.ACCENT)
+	WarUI.decorate(drawer_panel, WarUI.CYAN)
+	drawer_title = _mk_label("YOUR LOADOUT", 12, WarUI.CYAN)
 	column.add_child(drawer_title)
 	var scroll := ScrollContainer.new()
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -294,6 +302,7 @@ func _switch_tab(tab: int) -> void:
 	for key in tab_buttons:
 		var button: Button = tab_buttons[key]
 		button.add_theme_stylebox_override("normal", WarUI.panel(WarUI.RAISED if key == tab else WarUI.BACKGROUND, WarUI.ACCENT if key == tab else WarUI.BACKGROUND, 12))
+		button.add_theme_color_override("font_color", WarUI.ACCENT if key == tab else WarUI.MUTED)
 	if tab == FeatureTab.LOADOUT: loadout_menu.open()
 	if tab == FeatureTab.OPERATOR: _operator_page.refresh()
 	if tab == FeatureTab.SETTINGS:
@@ -315,11 +324,11 @@ func _populate_drawer() -> void:
 	for child in drawer_content.get_children():
 		drawer_content.remove_child(child)
 		child.queue_free()
-	drawer_title.text = "EQUIPPED LOADOUT"
+	drawer_title.text = "FIELD KIT  /  EQUIPPED"
 	_build_loadout_content()
 
 func _build_loadout_content() -> void:
-	drawer_content.add_child(_mk_label("Built your way.", 24))
+	drawer_content.add_child(_mk_label("READY FOR CONTACT", 28))
 	for entry in [["PRIMARY", GameState.selected_primary], ["SECONDARY", GameState.selected_secondary]]:
 		drawer_content.add_child(_mk_label(entry[0], 12, WarUI.ACCENT))
 		var config: Dictionary = GameState.WEAPONS[GameState.weapon_index_for_id(entry[1])]
@@ -328,7 +337,7 @@ func _build_loadout_content() -> void:
 		drawer_content.add_child(HSeparator.new())
 	drawer_content.add_child(_mk_label("THROWABLE", 12, WarUI.ACCENT))
 	drawer_content.add_child(_mk_label(GameState.THROWABLES[GameState.selected_throwable]["name"], 18))
-	var customize := _button("Customize loadout  ›", func() -> void: _switch_tab(FeatureTab.LOADOUT))
+	var customize := _button("CONFIGURE LOADOUT  ›", func() -> void: _switch_tab(FeatureTab.LOADOUT))
 	WarUI.primary(customize)
 	drawer_content.add_child(customize)
 	var note := _mk_label("Any weapon in either slot.
@@ -353,7 +362,7 @@ func _select_map(id: String) -> void:
 			_select_server(room)
 			return
 	GameState.selected_map = id
-	GameState.selected_mode = "TDM" if id == "industrial" else "FFA"
+	GameState.selected_mode = "CONQUEST"
 	GameState.room_id = id + "-public"
 	_update_footer_selection()
 	_render_servers()
@@ -398,7 +407,7 @@ func _build_bottom_bar(parent: VBoxContainer) -> void:
 	footer.custom_minimum_size.y = 62
 	footer.add_theme_constant_override("separation", 12)
 	parent.add_child(footer)
-	footer.add_child(_button("Create match", _open_create_server_modal))
+	footer.add_child(_button("+ CREATE MATCH", _open_create_server_modal))
 	var selection := VBoxContainer.new()
 	selection.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	selection.alignment = BoxContainer.ALIGNMENT_CENTER
@@ -411,17 +420,20 @@ func _build_bottom_bar(parent: VBoxContainer) -> void:
 	_practice.tooltip_text = "Optional offline sandbox. Online servers already include AI."
 	_practice.toggled.connect(func(_on: bool) -> void: _update_footer_selection())
 	footer.add_child(_practice)
-	join_btn = _button("JOIN SERVER", func() -> void:
+	join_btn = _button("DEPLOY  ›", func() -> void:
 		GameState.practice_mode = _practice.button_pressed
 		deploy_requested.emit()
 	)
-	join_btn.custom_minimum_size = Vector2(186, 52)
+	join_btn.custom_minimum_size = Vector2(206, 56)
 	WarUI.primary(join_btn)
 	footer.add_child(join_btn)
 
 func _on_window_resized() -> void:
 	if not is_instance_valid(root): return
-	drawer_panel.custom_minimum_size.x = 290 if root.get_viewport_rect().size.x < 1150 else 330
+	var compact := root.get_viewport_rect().size.x < 1150
+	drawer_panel.custom_minimum_size.x = 290 if compact else 330
+	_hero_panel.custom_minimum_size.y = 220 if compact else 266
+	_hero_art.custom_minimum_size.y = 220 if compact else 266
 	if is_instance_valid(create_modal) and create_modal.visible:
 		create_modal.position = (root.size - create_modal.size) * 0.5
 
@@ -435,8 +447,9 @@ func _render_servers() -> void:
 		var map_id := String(room.get("map", "industrial"))
 		var selected := id == GameState.room_id
 		var card := _button("", func() -> void: _select_server(room))
-		card.custom_minimum_size.y = 66
+		card.custom_minimum_size.y = 74
 		card.add_theme_stylebox_override("normal", WarUI.panel(WarUI.RAISED if selected else WarUI.PANEL, WarUI.ACCENT if selected else WarUI.LINE))
+		if selected: WarUI.decorate(card, WarUI.ACCENT)
 		var content := _margin(card, 12)
 		content.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 		var row := HBoxContainer.new()
@@ -488,7 +501,7 @@ func _update_footer_selection() -> void:
 	_hero_mode.text = _mode_label(GameState.selected_mode) + "  •  " + GameState.time_label(GameState.selected_time)
 	selected_server_label.text = String(MAP_NAMES.get(map_id, map_id)) + "  /  " + GameState.selected_mode
 	join_btn.disabled = not _server_online and not (_lobby_adapter != null and _lobby_adapter.available) and not _practice.button_pressed
-	join_btn.text = "START OFFLINE" if _practice.button_pressed else "JOIN SERVER"
+	join_btn.text = "DEPLOY OFFLINE  ›" if _practice.button_pressed else "DEPLOY  ›"
 	join_btn.tooltip_text = "Connect to an available service, or choose offline practice." if not _server_online else "Join the selected match"
 
 func _api_request(path: String, callback: Callable, method: int = HTTPClient.METHOD_GET, payload: String = "", auth_token: String = "") -> void:

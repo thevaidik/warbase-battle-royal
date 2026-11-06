@@ -180,6 +180,8 @@ func _ready() -> void:
 func _mk_label(text: String, size: int, color: Color) -> Label:
 	var l := Label.new()
 	l.text = text
+	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	if size >= 19: WarUI.heading(l)
 	l.add_theme_font_size_override("font_size", size)
 	l.add_theme_color_override("font_color", color)
 	return l
@@ -242,37 +244,43 @@ func build() -> void:
 
 	var health_card := PanelContainer.new()
 	health_card.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
-	health_card.position = Vector2(28, -122)
-	health_card.custom_minimum_size = Vector2(210, 94)
+	health_card.position = Vector2(28, -150)
+	health_card.custom_minimum_size = Vector2(226, 122)
 	health_card.z_index = 2
-	health_card.add_theme_stylebox_override("panel", WarUI.panel(Color(0.035, 0.055, 0.065, 0.88), WarUI.LINE, 14))
+	health_card.add_theme_stylebox_override("panel", WarUI.panel(Color(0.035, 0.055, 0.06, 0.92), WarUI.LINE, 16))
 	add_child(health_card)
+	WarUI.decorate(health_card, WarUI.CYAN)
 	var hb := VBoxContainer.new()
 	hb.z_index = 2
 	hb.add_theme_constant_override("separation", 4)
 	hb.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	health_card.add_child(hb)
-	hb.add_child(_mk_label("VITALS / HEALTH", 11, WarUI.MUTED))
+	hb.add_child(_mk_label("+  VITAL STATUS", 12, WarUI.CYAN))
 	
-	health_label = _mk_label("100", 30, Color.WHITE)
+	health_label = _mk_label("100", 46, Color.WHITE)
 	hb.add_child(health_label)
 	
 	health_bar = ProgressBar.new()
 	health_bar.min_value = 0
 	health_bar.max_value = 100
 	health_bar.value = 100
-	health_bar.custom_minimum_size = Vector2(180, 4)
+	health_bar.custom_minimum_size = Vector2(190, 5)
 	health_bar.show_percentage = false
 	hb.add_child(health_bar)
 	
 	# Tactical Bottom-Right HUD: Weapon & Ammo
 	var ammo_card := PanelContainer.new()
 	ammo_card.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
-	ammo_card.position = Vector2(-284, -150)
-	ammo_card.custom_minimum_size = Vector2(256, 122)
+	ammo_card.offset_left = -302
+	ammo_card.offset_right = -28
+	ammo_card.offset_top = -224
+	ammo_card.offset_bottom = -28
+	ammo_card.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	ammo_card.custom_minimum_size = Vector2(274, 152)
 	ammo_card.z_index = 2
-	ammo_card.add_theme_stylebox_override("panel", WarUI.panel(Color(0.035, 0.055, 0.065, 0.88), WarUI.LINE, 14))
+	ammo_card.add_theme_stylebox_override("panel", WarUI.panel(Color(0.035, 0.055, 0.06, 0.92), WarUI.LINE, 16))
 	add_child(ammo_card)
+	WarUI.decorate(ammo_card, WarUI.ACCENT)
 	var ab := VBoxContainer.new()
 	ab.z_index = 2
 	ab.add_theme_constant_override("separation", 2)
@@ -282,13 +290,13 @@ func build() -> void:
 	
 	equipment_label = _mk_label("", 11, WarUI.ACCENT)
 	ab.add_child(equipment_label)
-	weapon_label = _mk_label("AK-47", 15, WarUI.MUTED)
+	weapon_label = _mk_label("AK-47", 20, WarUI.TEXT)
 	ab.add_child(weapon_label)
 	
-	ammo_label = _mk_label("30 / 30", 34, Color.WHITE)
+	ammo_label = _mk_label("30 / 30", 46, Color.WHITE)
 	ab.add_child(ammo_label)
 	
-	reload_label = _mk_label("RELOADING...", 14, Color.YELLOW)
+	reload_label = _mk_label("RELOADING  /  STAND BY", 13, WarUI.ACCENT)
 	reload_label.visible = false
 	ab.add_child(reload_label)
 	
@@ -304,8 +312,9 @@ func build() -> void:
 	
 	var identity := PanelContainer.new()
 	identity.position = Vector2(28, 24)
-	identity.add_theme_stylebox_override("panel", WarUI.panel(Color(0.035, 0.055, 0.065, 0.82), WarUI.LINE, 12))
+	identity.add_theme_stylebox_override("panel", WarUI.panel(Color(0.035, 0.055, 0.06, 0.9), WarUI.LINE, 12))
 	add_child(identity)
+	WarUI.decorate(identity, WarUI.CYAN)
 	var identity_column := VBoxContainer.new()
 	identity_column.add_theme_constant_override("separation", 4)
 	identity.add_child(identity_column)
@@ -315,34 +324,38 @@ func build() -> void:
 	identity_column.add_child(match_info_label)
 	var score_position := CenterContainer.new()
 	score_position.set_anchors_preset(Control.PRESET_TOP_WIDE)
-	score_position.offset_top = 24
+	score_position.offset_top = 20
 	add_child(score_position)
-	score_label = _mk_label("", 19, WarUI.TEXT)
+	score_label = _mk_label("", 24, WarUI.TEXT)
+	score_label.add_theme_stylebox_override("normal", WarUI.panel(Color(0.035, 0.055, 0.06, 0.9), WarUI.LINE, 6))
 	score_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	score_position.add_child(score_label)
 	objective_strip = HBoxContainer.new()
 	objective_strip.set_anchors_preset(Control.PRESET_TOP_WIDE)
-	objective_strip.offset_top = 54
+	objective_strip.offset_top = 66
 	objective_strip.alignment = BoxContainer.ALIGNMENT_CENTER
-	objective_strip.add_theme_constant_override("separation", 18)
+	objective_strip.add_theme_constant_override("separation", 8)
 	objective_strip.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	for code in ["A", "B", "C", "D"]:
-		var item := _mk_label(code + "  ·  NEUTRAL", 12, Color("c4cdd1"))
+		var item := _mk_label(code + "  ·  NEUTRAL", 12, WarUI.MUTED)
+		item.add_theme_stylebox_override("normal", WarUI.panel(Color(0.035, 0.055, 0.06, 0.9), WarUI.LINE, 8))
+		item.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		item.custom_minimum_size.x = 94
 		objective_labels.append(item)
 		objective_strip.add_child(item)
 	objective_strip.visible = false
 	add_child(objective_strip)
 	killfeed_box = VBoxContainer.new()
 	killfeed_box.set_anchors_preset(Control.PRESET_TOP_RIGHT)
-	killfeed_box.position = Vector2(-448, 28)
-	killfeed_box.custom_minimum_size = Vector2(420, 110)
+	killfeed_box.position = Vector2(-328, 134)
+	killfeed_box.custom_minimum_size = Vector2(300, 110)
 	killfeed_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	killfeed_box.add_theme_constant_override("separation", 6)
 	add_child(killfeed_box)
-	_controls_hint = _mk_label("WASD  MOVE    RMB  AIM    R  RELOAD    WHEEL / 1–2  WEAPONS    TAB  SCORE", 11, Color(0.8, 0.85, 0.83, 0.65))
+	_controls_hint = _mk_label("M  MAP     TAB  SCOREBOARD     ESC  MENU", 11, Color(0.8, 0.85, 0.83, 0.65))
 	_controls_hint.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
-	_controls_hint.position = Vector2(-250, -34)
-	_controls_hint.custom_minimum_size.x = 500
+	_controls_hint.position = Vector2(-190, -34)
+	_controls_hint.custom_minimum_size.x = 380
 	_controls_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_controls_hint.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_controls_hint)
@@ -357,13 +370,14 @@ func build() -> void:
 	death_panel.set_anchors_preset(Control.PRESET_FULL_RECT)
 	death_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	death_panel.visible = false
+	death_panel.add_theme_stylebox_override("panel", WarUI.panel(Color(0.03, 0.035, 0.04, 0.72), Color.TRANSPARENT))
 	add_child(death_panel)
 	
 	var dv := VBoxContainer.new()
 	dv.alignment = BoxContainer.ALIGNMENT_CENTER
 	death_panel.add_child(dv)
 	
-	death_label = _mk_label("OPERATOR DOWN", 48, Color(0.95, 0.2, 0.2))
+	death_label = _mk_label("OPERATOR DOWN", 58, WarUI.DANGER)
 	death_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	dv.add_child(death_label)
 	
@@ -390,13 +404,14 @@ func build() -> void:
 	pause_panel.add_theme_stylebox_override("panel", WarUI.panel(WarUI.PANEL, WarUI.LINE, 28))
 	pause_panel.visible = false
 	pause_overlay.add_child(pause_panel)
+	WarUI.decorate(pause_panel, WarUI.CYAN)
 	
 	var pv := VBoxContainer.new()
 	pv.alignment = BoxContainer.ALIGNMENT_CENTER
 	pv.add_theme_constant_override("separation", 10)
 	pause_panel.add_child(pv)
 	
-	var pt := _mk_label("PAUSED", 26, Color.WHITE)
+	var pt := _mk_label("TACTICAL PAUSE", 34, Color.WHITE)
 	pt.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	pv.add_child(pt)
 	
@@ -818,10 +833,10 @@ func feed(text: String, color: Color = Color.WHITE) -> void:
 func set_score(mode: String, a: int, b: int, team: String, winner: String) -> void:
 	if mode == "CONQUEST":
 		objective_strip.visible = true
-		score_label.text = "TEAM A  %d TICKETS   •   %d TICKETS  TEAM B   [You: Team %s]%s" % [a, b, team, ("    WINNER: " + winner) if not winner.is_empty() else ""]
+		score_label.text = "A  %03d     /     CONQUEST     /     %03d  B%s" % [a, b, ("    WINNER: " + winner) if not winner.is_empty() else ""]
 	elif mode == "TDM":
 		objective_strip.visible = false
-		score_label.text = "TEAM A %d  •  %d TEAM B   [You: Team %s]%s" % [a, b, team, ("    WINNER: " + winner) if not winner.is_empty() else ""]
+		score_label.text = "A  %03d     /     TEAM DEATHMATCH     /     %03d  B%s" % [a, b, ("    WINNER: " + winner) if not winner.is_empty() else ""]
 	else:
 		objective_strip.visible = false
 		score_label.text = "" if winner.is_empty() else (" WINNER: " + winner)

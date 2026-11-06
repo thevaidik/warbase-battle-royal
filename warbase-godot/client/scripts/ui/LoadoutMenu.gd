@@ -54,6 +54,7 @@ func _ready() -> void:
 	panel.size_flags_stretch_ratio = 0.7
 	panel.add_theme_stylebox_override("panel", WarUI.panel(WarUI.PANEL, WarUI.LINE, 16))
 	body.add_child(panel)
+	WarUI.decorate(panel, WarUI.CYAN)
 	var info := VBoxContainer.new()
 	info.add_theme_constant_override("separation", 12)
 	panel.add_child(info)
@@ -98,6 +99,7 @@ func _ready() -> void:
 func _label(text: String, font_size: int, color: Color = WarUI.TEXT) -> Label:
 	var label := Label.new()
 	label.text = text
+	if font_size >= 20: WarUI.heading(label)
 	label.add_theme_font_size_override("font_size", font_size)
 	label.add_theme_color_override("font_color", color)
 	return label

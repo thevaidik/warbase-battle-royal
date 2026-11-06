@@ -41,6 +41,7 @@ func _ready() -> void:
 	panel.custom_minimum_size.x = 320
 	panel.add_theme_stylebox_override("panel", WarUI.panel(WarUI.PANEL, WarUI.LINE, 24))
 	add_child(panel)
+	WarUI.decorate(panel, WarUI.CYAN)
 	var info := VBoxContainer.new()
 	info.add_theme_constant_override("separation", 20)
 	panel.add_child(info)
@@ -49,7 +50,8 @@ func _ready() -> void:
 	heading.add_theme_color_override("font_color", WarUI.ACCENT)
 	info.add_child(heading)
 	_name = Label.new()
-	_name.add_theme_font_size_override("font_size", 25)
+	_name.add_theme_font_size_override("font_size", 34)
+	WarUI.heading(_name)
 	info.add_child(_name)
 	_stats = Label.new()
 	_stats.add_theme_font_size_override("font_size", 18)
