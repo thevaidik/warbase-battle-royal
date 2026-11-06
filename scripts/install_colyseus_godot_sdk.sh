@@ -48,6 +48,17 @@ with zipfile.ZipFile(archive) as sdk:
         destination.write_bytes(sdk.read(files[prefix + name]))
 PY
 
+# Pinned source compatibility fix; native libraries/WASM remain the checked archive.
+git -C "$ROOT" apply --check "$ROOT/patches/colyseus-godot-0.18.9-room-lifetime.patch"
+git -C "$ROOT" apply "$ROOT/patches/colyseus-godot-0.18.9-room-lifetime.patch"
+python3 - "$CLIENT/addons/colyseus" <<'PATCH_MANIFEST'
+import hashlib, json, pathlib, sys
+sdk = pathlib.Path(sys.argv[1])
+data = {"sdkVersion":"0.18.9", "patchId":"room-lifetime-v1", "sourceSha256":hashlib.sha256((sdk / "colyseus.gd").read_bytes()).hexdigest(), "upstreamSourceSha256":"a4c92b238917ca012c61502f4e8f2e1acbfebfba929826f05d721bf3b70f6fb1", "nativeBinariesModified":False}
+(sdk / "LOCAL_PATCH.json").write_text(json.dumps(data, indent=2) + "\n")
+PATCH_MANIFEST
+
+
 cat > "$CLIENT/addons/colyseus/LICENSE" <<'LICENSE'
 Copyright (c) 2025 Bharat Sharma, Endel Dreyer
 
@@ -78,6 +89,8 @@ Asset: ${URL}
 SHA-256: ${SHA256}
 Extracted runtime targets: macOS arm64, Web wasm32
 License: MIT (LICENSE; upstream LICENSE at the tag above)
+Local GDScript patch: patches/colyseus-godot-0.18.9-room-lifetime.patch
+Native libraries and WASM: unmodified upstream binaries
 MANIFEST
 
 echo "Installed Colyseus Godot SDK ${VERSION} (macOS arm64 + Web wasm32)."

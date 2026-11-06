@@ -73,6 +73,11 @@ function vec3(value) {
   return result.every(Number.isFinite) ? result : null;
 }
 
+export function vehiclePosition(vehicle) {
+  const scalar = [vehicle?.x, vehicle?.y, vehicle?.z];
+  return scalar.every(Number.isFinite) ? scalar : vec3(vehicle?.pos);
+}
+
 function entries(map) {
   return map ? Array.from(map.entries()) : [];
 }
@@ -358,7 +363,7 @@ async function main() {
     cohortNames.add(gateUsername);
     const gateStats = commonCounters();
     const gateStarted = Date.now();
-    const gateRoomPromise = sdkClient.joinOrCreate('battle', { room: roomId, username: gateUsername, map: options.map, mode: options.mode, time_of_day: 'noon' });
+    const gateRoomPromise = sdkClient.joinOrCreate('battle', { protocol_version: 7, room: roomId, username: gateUsername, map: options.map, mode: options.mode, time_of_day: 'noon' });
     gate = await withTimeout(gateRoomPromise, JOIN_TIMEOUT_MS, (lateRoom) => { void lateRoom.leave(); });
     roomHandles.push(gate);
     gateStats.joinMs = Date.now() - gateStarted;
@@ -393,7 +398,7 @@ async function main() {
         } else if (position.every(Number.isFinite)) serverPositions.set(String(name), { last: position, path: 0, updates: 0 });
       }
       for (const [id, vehicle] of entries(state.vehicles)) {
-        const position = vec3(vehicle.pos);
+        const position = vehiclePosition(vehicle);
         if (!position) continue;
         const previous = vehiclePositions.get(String(id));
         if (previous) {
@@ -422,7 +427,7 @@ async function main() {
         cohortNames.add(username);
         const stats = commonCounters();
         const joiningAt = Date.now();
-        const pending = admittedClients[index].joinOrCreate('battle', { room: roomId, username, map: options.map, mode: options.mode, time_of_day: 'noon' });
+        const pending = admittedClients[index].joinOrCreate('battle', { protocol_version: 7, room: roomId, username, map: options.map, mode: options.mode, time_of_day: 'noon' });
         batch.push(withTimeout(pending, JOIN_TIMEOUT_MS, (lateRoom) => { void lateRoom.leave(); }).then((room) => ({ room, username, index, stats, joinMs: Date.now() - joiningAt }), (error) => ({ error, username, index, stats })));
       }
       const joined = await Promise.all(batch);
@@ -490,7 +495,7 @@ async function main() {
           const nearest = entries(room.state.vehicles)
             .filter(([, vehicle]) => Number(vehicle.health) > 0 && !String(vehicle.driver ?? ''))
             .map(([id, vehicle]) => {
-              const position = vec3(vehicle.pos);
+              const position = vehiclePosition(vehicle);
               return { id: String(id), position, distance: position ? Math.hypot(Number(player.x) - position[0], Number(player.y) - position[1], Number(player.z) - position[2]) : Infinity };
             }).sort((a, b) => a.distance - b.distance)[0];
           if (nearest?.position && nearest.distance > 2.5 && nearest.distance < 60) {
@@ -557,7 +562,7 @@ async function main() {
         } else if (index < 20 && !peer.vehicleExitSent && now - (peer.lastVehicleTryAt ?? 0) > 2500) {
           const vehicles = entries(room.state.vehicles).filter(([, v]) => Number(v.health) > 0 && !String(v.driver ?? ''));
           const nearest = vehicles.map(([id, vehicle]) => {
-            const pos = vec3(vehicle.pos);
+            const pos = vehiclePosition(vehicle);
             return { id: String(id), distance: pos ? Math.hypot(Number(player.x) - pos[0], Number(player.y) - pos[1], Number(player.z) - pos[2]) : Infinity };
           }).sort((a, b) => a.distance - b.distance)[0];
           if (nearest && nearest.distance <= 4.8) {

@@ -1,5 +1,8 @@
 extends Node
 const Types := preload("res://scripts/net/ColyseusSchema.gd")
+class NestedState extends Colyseus.Schema:
+	static func definition() -> Array:
+		return [Colyseus.Schema.Field.new("pos", Colyseus.Schema.ARRAY, Colyseus.Schema.NUMBER)]
 var failures := 0
 
 func check(condition: bool, message: String) -> void:
@@ -20,6 +23,9 @@ func old_snapshot(value: Variant) -> Variant:
 	return value
 
 func _ready() -> void:
+	for schema_type in [Types.PlayerState, Types.VehicleState, Types.ObjectiveState, Types.RoomState]:
+		check(is_same(schema_type.definition(), schema_type.definition()), "schema field metadata is shared per class")
+		check(schema_type.definition().is_read_only(), "shared field metadata is immutable")
 	for schema_type in [Types.PlayerState, Types.ObjectiveState]:
 		for field in schema_type.definition():
 			check(field.type not in [Colyseus.Schema.REF, Colyseus.Schema.MAP, Colyseus.Schema.ARRAY], "fast-path schema must stay flat")
@@ -37,7 +43,7 @@ func _ready() -> void:
 	check(snapshot.x != 99.0, "decoded mutation cannot change emitted snapshot")
 	snapshot.health = 4.0
 	check(players[0].get("health") == 73.25, "consumer mutation cannot change authoritative schema")
-	var vehicle = Types.VehicleState.new()
+	var vehicle = NestedState.new()
 	var raw_pos := [1.25, 2.5, -3.75]
 	vehicle.set("pos", raw_pos)
 	var nested := {"players": {"one": players[0]}, "vehicles": {"car": vehicle}}

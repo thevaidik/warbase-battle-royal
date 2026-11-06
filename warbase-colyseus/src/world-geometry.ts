@@ -233,9 +233,9 @@ export class WorldGeometry {
     const minZ = Math.min(from[2], to[2]) - radius - pad, maxZ = Math.max(from[2], to[2]) + radius + pad;
     const { nodes, order, vertices } = this.buffers;
     // Reuse moderately dense local triangle sets instead of falling back to a
-    // full BVH traversal for every capsule spoke. A 32-triangle cap preserves
+    // full BVH traversal for every capsule spoke. A 128-triangle cap preserves
     // the exact collision result while avoiding that fallback on busy maps.
-    const maximumReusableTriangles = 32;
+    const maximumReusableTriangles = 128;
     while (stack.length) {
       const node = nodes[stack.pop()!];
       if (!node || node.maxX < minX || node.minX > maxX || node.maxY < minY || node.minY > maxY || node.maxZ < minZ || node.minZ > maxZ) continue;
@@ -301,8 +301,13 @@ export class WorldGeometry {
     radius = Math.min(radius, 1.5); height = Math.min(height, 4);
     let x = from[0], y = from[1], z = from[2];
     const stepHeight = 0.45;
-    const candidates = this.capsuleCandidates(from, to, radius, height, stepHeight);
     const targetFloor = this.floorHeight(to[0], to[2], y + stepHeight);
+    // Exact static fixed point: horizontal sweeps and the clamped vertical
+    // sweep all have zero length. Keep requested X/Z (including signed zero).
+    if (to[0] === x && to[2] === z && to[1] <= y && targetFloor === y) {
+      return [to[0], targetFloor, to[2]];
+    }
+    const candidates = this.capsuleCandidates(from, to, radius, height, stepHeight);
     if (targetFloor !== undefined && targetFloor > y + 0.03 && targetFloor <= y + stepHeight) {
       const steppedFrom: Vec3 = [x, targetFloor, z], steppedTarget: Vec3 = [to[0], targetFloor, to[2]];
       if (!this.capsuleBlocked(from, steppedFrom, radius, height, false, candidates) && !this.capsuleBlocked(steppedFrom, steppedTarget, radius, height, true, candidates)) { x = to[0]; y = targetFloor; z = to[2]; }
@@ -319,7 +324,10 @@ export class WorldGeometry {
       return axis === 0 ? x + (target - x) * safe : z + (target - z) * safe;
     };
     x = moveAxis(0, to[0]); z = moveAxis(2, to[2]);
-    const floor = this.floorHeight(x, z, Math.max(y, to[1]) + stepHeight);
+    // Axis sliding can change X/Z; reuse only when both the location and
+    // ray origin are exactly the same as the target-floor query above.
+    const floor = x === to[0] && z === to[2] && y === from[1] && to[1] <= y
+      ? targetFloor : this.floorHeight(x, z, Math.max(y, to[1]) + stepHeight);
     let targetY = to[1];
     if (floor !== undefined && targetY <= floor && y >= floor - stepHeight) targetY = floor;
     const verticalFrom: Vec3 = [x, y, z], verticalTo: Vec3 = [x, targetY, z];

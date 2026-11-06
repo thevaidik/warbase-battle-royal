@@ -34,11 +34,19 @@ def client_fingerprint(client: pathlib.Path) -> str:
 
 
 def make_provenance(client: pathlib.Path, godot_version: str, sdk_version: str) -> dict[str, str]:
-    return {
+    value = {
         "sourceFingerprint": client_fingerprint(client),
         "godotVersion": godot_version,
         "colyseusSdkVersion": sdk_version,
     }
+    patch_path = client / "addons/colyseus/LOCAL_PATCH.json"
+    if patch_path.exists():
+        patch = json.loads(patch_path.read_text())
+        actual = hashlib.sha256((patch_path.parent / "colyseus.gd").read_bytes()).hexdigest()
+        if patch.get("sdkVersion") != sdk_version or patch.get("sourceSha256") != actual:
+            raise RuntimeError("SDK source patch manifest does not match the pinned SDK/script")
+        value["colyseusSdkSourcePatch"] = patch["patchId"] + ":" + actual
+    return value
 
 
 def artifact_records(directory: pathlib.Path, names: list[str]) -> dict[str, dict[str, int | str]]:
@@ -81,7 +89,7 @@ def read_provenance(path: pathlib.Path) -> dict[str, str]:
         raise RuntimeError("Client export provenance must include sourceFingerprint, godotVersion, and colyseusSdkVersion")
     if not isinstance(value.get("artifacts"), dict):
         raise RuntimeError("Client export provenance must include artifact hashes; re-export the client")
-    return {**{key: value[key] for key in required}, "artifacts": value["artifacts"]}
+    return {**{key: value[key] for key in required}, **({"colyseusSdkSourcePatch": value["colyseusSdkSourcePatch"]} if isinstance(value.get("colyseusSdkSourcePatch"), str) else {}), "artifacts": value["artifacts"]}
 
 
 def verify_current_export(provenance: dict[str, str], client: pathlib.Path) -> None:

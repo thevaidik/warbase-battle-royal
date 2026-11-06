@@ -256,3 +256,37 @@ test('Industrial scenery variant spawns stand above the road and settle without 
   assert.ok(observed && observed[1] > 0.84, 'reported x=28/z=0 spawn must clear the 0.8421m road');
   assert.ok(settled >= 48);
 });
+
+
+test('grounded stationary downward sweeps match the original solver on all maps', () => {
+  for (const map of PLAYABLE_MAPS) {
+    const geometry = loadWorldGeometry(map)!;
+    for (const spawn of geometry.spawns.slice(0, 16)) {
+      const floor = geometry.floorHeight(spawn[0], spawn[2], spawn[1] + 0.45);
+      if (floor === undefined) continue;
+      for (const offset of [0, -1e-12, 1e-12]) {
+        const from: Vec3 = [spawn[0], floor + offset, spawn[2]];
+        for (const dy of [0, -0.005, -0.3, 0.01]) {
+          const to: Vec3 = [from[0], from[1] + dy, from[2]];
+          assert.deepEqual(geometry.resolveMove(from, to), referenceMove(geometry, from, to), `${map} stationary offset=${offset} dy=${dy}`);
+        }
+      }
+    }
+  }
+});
+
+
+test('omitting an unread settlement floor preserves falling and ceiling-contact results', () => {
+  for (const vy of [-18, -0.3, -1e-12, 0, 1e-12, 6.2]) {
+    for (const requested of [-2, 0, 1, 100]) {
+      for (const offset of [-0.2, -0.00001, 0, 0.000009, 0.00001, 0.000011, 0.2]) {
+        const resolved = requested + offset;
+        for (const floor of [undefined, requested - 1, requested, requested + 1]) {
+          const needed = vy < 0 && !(resolved > requested + 0.00001);
+          assert.equal(settledVerticalVelocity(vy, requested, resolved, needed ? floor : undefined),
+            settledVerticalVelocity(vy, requested, resolved, floor));
+        }
+      }
+    }
+  }
+});

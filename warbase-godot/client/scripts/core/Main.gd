@@ -656,7 +656,7 @@ func _on_player_damaged(attacker_dir: Vector3, amount: float) -> void:
 		hud.add_damage_indicator(rel)
 
 func _on_state(state: Dictionary) -> void:
-	if not GameState.practice_mode and int(state.get("protocol_version", 0)) != 6:
+	if not GameState.practice_mode and int(state.get("protocol_version", 0)) != 7:
 		net.disconnect_from()
 		hud.feed("Game updated. Refresh the page or reopen the latest build.", Color(1, 0.4, 0.3))
 		return

@@ -1,0 +1,92 @@
+[
+  {
+    "bytes": 36280166,
+    "client_retained": true,
+    "cycle": 0,
+    "native_room_retained": true,
+    "objects": 1629,
+    "room_retained": false,
+    "root_retained": false
+  },
+  {
+    "bytes": 36298926,
+    "client_retained": false,
+    "cycle": 1,
+    "native_room_retained": true,
+    "objects": 1634,
+    "room_retained": false,
+    "root_retained": false
+  },
+  {
+    "bytes": 36316386,
+    "client_retained": false,
+    "cycle": 2,
+    "native_room_retained": true,
+    "objects": 1639,
+    "room_retained": false,
+    "root_retained": false
+  },
+  {
+    "bytes": 36333866,
+    "client_retained": false,
+    "cycle": 3,
+    "native_room_retained": true,
+    "objects": 1644,
+    "room_retained": false,
+    "root_retained": false
+  },
+  {
+    "bytes": 36351370,
+    "client_retained": false,
+    "cycle": 4,
+    "native_room_retained": true,
+    "objects": 1649,
+    "room_retained": false,
+    "root_retained": false
+  },
+  {
+    "bytes": 36368826,
+    "client_retained": false,
+    "cycle": 5,
+    "native_room_retained": true,
+    "objects": 1654,
+    "room_retained": false,
+    "root_retained": false
+  },
+  {
+    "bytes": 36386354,
+    "client_retained": false,
+    "cycle": 6,
+    "native_room_retained": true,
+    "objects": 1659,
+    "room_retained": false,
+    "root_retained": false
+  },
+  {
+    "bytes": 36403810,
+    "client_retained": false,
+    "cycle": 7,
+    "native_room_retained": true,
+    "objects": 1664,
+    "room_retained": false,
+    "root_retained": false
+  },
+  {
+    "bytes": 36421266,
+    "client_retained": false,
+    "cycle": 8,
+    "native_room_retained": true,
+    "objects": 1669,
+    "room_retained": false,
+    "root_retained": false
+  },
+  {
+    "bytes": 36438818,
+    "client_retained": false,
+    "cycle": 9,
+    "native_room_retained": true,
+    "objects": 1674,
+    "room_retained": false,
+    "root_retained": false
+  }
+]

@@ -1,9 +1,9 @@
 import { Room, Client } from 'colyseus';
-import { definePlugins } from '@colyseus/core';
+import { definePlugins, ServerError } from '@colyseus/core';
 import type { AuthContext } from '@colyseus/core';
 import { findOneRoomAvailable } from '@colyseus/core/MatchMaker';
 import { UniqueSessionPlugin } from 'colyseus/plugins/unique-session';
-import { BattleState, ObjectiveState, PlayerState, VehicleState } from './schema.js';
+import { BattleState, ObjectiveState, PlayerState, VehicleState, GAME_PROTOCOL_VERSION, PRIVATE_VIEW_TAG } from './schema.js';
 import { Schema, StateView, defineTypes } from '@colyseus/schema';
 import { loadWorldGeometry, PLAYABLE_MAPS, settledVerticalVelocity, type Vec3, type WorldGeometry } from './world-geometry.js';
 import { animationCodeForClip, clipForAnimationCode, REWIND_ANIMATION_CLIPS, traceAnimatedHit, type HitZone } from './animated-hitboxes.js';
@@ -11,6 +11,7 @@ import { BotSimulation, type BotPlayer, type BotShot } from './bot-simulation.js
 import { grenadeDamageAt, grenadeVehicleDamageAt, GrenadeSimulation, validateGrenadeLaunch, type ThrowableKind } from './grenade-simulation.js';
 import { inputIsFromStaleVehicleSeat, VehicleSimulation, type VehiclePlayer } from './vehicle-simulation.js';
 import { RewindView } from '@colyseus/core/Rewind';
+import { updatePresentationView } from './presentation-relevance.js';
 import { performance } from 'node:perf_hooks';
 import { anonymousJoinLimiter, canonicalizeUsername, gameMessageLimiter, roomCreationLimiter } from './abuse-protection.js';
 import { incrementProcessOperation, newRoomOperationsMetrics, recordProcessTick, roomOperationsMetrics, serviceOperationsMetrics, type RoomOperationsMetrics } from './operations-metrics.js';
@@ -24,7 +25,7 @@ class MoveInput extends Schema {
 defineTypes(MoveInput, { move_x: 'number', move_z: 'number', yaw: 'number', pitch: 'number', jump: 'number', sprint: 'number', crouch: 'number', vehicle_throttle: 'number', vehicle_steer: 'number', vehicle_brake: 'number', vehicle_gear: 'number', vehicle_index: 'number', vehicle_generation: 'number' });
 
 export const activeRooms = new Map<string, { id: string; room: string; name: string; map: string; mode: string; timeOfDay: string; clients: number; bots: number; maxClients: number }>();
-type JoinOptions = { username?: string; room?: string; cid?: string; map?: string; map_name?: string; mode?: string; time_of_day?: string; timeOfDay?: string; name?: string };
+type JoinOptions = { protocol_version?: number; username?: string; room?: string; cid?: string; map?: string; map_name?: string; mode?: string; time_of_day?: string; timeOfDay?: string; name?: string };
 type RoomCreationAllowance = { allow(key: string, limit: number, windowMs: number, now?: number): boolean };
 type ValidRoomSettings = { requested: string; map: string; requestedMode: string; timeOfDay: string };
 type PlayerRuntime = { username: string; map: string; lastShot: number; pendingHit: boolean; reloadUntil: number; spawnAt: number; vy: number;
@@ -41,6 +42,7 @@ const WEAPONS: Record<string, Weapon> = {
   m2010: { damage: 100, rpm: 45, magazine: 5, reloadMs: 3200, range: 150, headshot: 1.8, falloffStart: 0, falloffEnd: 150, minFraction: 1, bodyFraction: 1 },
   hmg: { damage: 34, rpm: 520, magazine: 60, reloadMs: 3400, range: 90, headshot: 1.8, falloffStart: 20, falloffEnd: 90, minFraction: 0.6, bodyFraction: 0.84 },
 };
+export const MAX_WEAPON_RANGE = Math.max(...Object.values(WEAPONS).map(weapon => weapon.range));
 const getWeapon = (weaponId: string): Weapon | undefined => Object.hasOwn(WEAPONS, weaponId) ? WEAPONS[weaponId] : undefined;
 const clamp = (n: unknown, lo: number, hi: number): number => Number.isFinite(Number(n)) ? Math.max(lo, Math.min(hi, Number(n))) : 0;
 
@@ -108,6 +110,8 @@ export class BattleRoom extends Room<{ state: BattleState; input: MoveInput }> {
   private vehicleWeaponBeforeDrive = new Map<string, string>();
   private operations!: RoomOperationsMetrics;
   private conquest?: ConquestState;
+  private presentationViews = new Map<string, Set<PlayerState>>();
+  private presentationRefreshAt = 0;
 
   /**
    * Matchmaker admission runs before find-or-create, so a missing/forged ticket
@@ -122,6 +126,10 @@ export class BattleRoom extends Room<{ state: BattleState; input: MoveInput }> {
     if (!player) { incrementProcessOperation('rejectedAdmissions'); return false; }
     const username = canonicalizeUsername(options?.username);
     if (!username) { incrementProcessOperation('rejectedAdmissions'); return false; }
+
+    if (options?.protocol_version !== GAME_PROTOCOL_VERSION) {
+      throw new ServerError(409, 'Game update required. Reload the browser or update the native client.');
+    }
 
     let existingRoom;
     try {
@@ -225,7 +233,11 @@ export class BattleRoom extends Room<{ state: BattleState; input: MoveInput }> {
         const resolved = this.geometry.resolveMove(from, requested);
         p.x = resolved[0]; p.y = resolved[1]; p.z = resolved[2];
         p.vx = (p.x - from[0]) / ctx.dt; p.vz = (p.z - from[2]) / ctx.dt;
-        internal.vy = settledVerticalVelocity(internal.vy, requested[1], resolved[1], this.geometry.floorHeight(p.x, p.z, p.y + 0.1));
+        // The settlement helper already stops a clamped downward sweep, and
+        // upward motion never reads the floor. Query only for its remaining case.
+        const settlementFloor = internal.vy < 0 && !(resolved[1] > requested[1] + 0.00001)
+          ? this.geometry.floorHeight(p.x, p.z, p.y + 0.1) : undefined;
+        internal.vy = settledVerticalVelocity(internal.vy, requested[1], resolved[1], settlementFloor);
         p.vy = internal.vy;
         p.yaw = movementYaw; p.pitch = movementInput?.pitch ?? p.pitch;
         p.qx = 0; p.qy = Math.sin(movementYaw * 0.5); p.qz = 0; p.qw = Math.cos(movementYaw * 0.5);
@@ -295,12 +307,14 @@ export class BattleRoom extends Room<{ state: BattleState; input: MoveInput }> {
     p.username = username;
     this.state.players.set(username, p);
     client.view = new StateView();
-    client.view.add(p);
+    client.view.add(p, PRIVATE_VIEW_TAG);
     const listing = activeRooms.get(this.roomId); if (listing) listing.clients = this.clients.length;
     this.internal.set(client.sessionId, { username, map: String(this.metadata?.map ?? 'industrial'), lastShot: 0, pendingHit: false, reloadUntil: 0, reloadToken: 0, spawnAt: 0, vy: 0, ammoByWeapon: Object.fromEntries(Object.entries(WEAPONS).map(([id, weapon]) => [id, weapon.magazine])), animationStartedAt: Date.now(), pendingWeaponId: 'ak47', lastShotId: 0, pendingShotId: 0, protectedUntil: Date.now() + 2500, grenadeLastThrow: 0, grenadeLastRequestId: 0 });
     this.sessionByUsername.set(username, client.sessionId);
     client.send('identity', { username, map: this.metadata?.map, session_id: client.sessionId });
     this.syncBots();
+    this.presentationRefreshAt = 0;
+    this.refreshPresentationViews();
   }
 
   async onDrop(client: Client) {
@@ -309,9 +323,9 @@ export class BattleRoom extends Room<{ state: BattleState; input: MoveInput }> {
     try { await this.allowReconnection(client, 15); } catch { /* Colyseus invokes onLeave after the reconnect window expires. */ }
   }
   onReconnect(client: Client) { const meta = this.internal.get(client.sessionId); if (meta) client.send('identity', { username: meta.username, map: this.metadata?.map, session_id: client.sessionId }); }
-  onLeave(client: Client) { const meta = this.internal.get(client.sessionId); if (meta) { this.operations.left++; incrementProcessOperation('left'); this.cancelReload(meta); this.sessionByUsername.delete(meta.username); const player = this.state.players.get(meta.username); if (player?.driving_vehicle) this.exitVehicle(player, true); if (player) for (const peer of this.clients) peer.view?.remove(player); this.state.players.delete(meta.username); } this.internal.delete(client.sessionId); const listing = activeRooms.get(this.roomId); if (listing) listing.clients = this.clients.length; this.syncBots(); if (this.clients.length === 0) activeRooms.delete(this.roomId); }
+  onLeave(client: Client) { client.view?.dispose(); client.view = undefined; this.presentationViews.delete(client.sessionId); const meta = this.internal.get(client.sessionId); if (meta) { this.operations.left++; incrementProcessOperation('left'); this.cancelReload(meta); this.sessionByUsername.delete(meta.username); const player = this.state.players.get(meta.username); if (player?.driving_vehicle) this.exitVehicle(player, true); if (player) for (const peer of this.clients) peer.view?.remove(player); this.state.players.delete(meta.username); } this.internal.delete(client.sessionId); const listing = activeRooms.get(this.roomId); if (listing) listing.clients = this.clients.length; this.syncBots(); if (this.clients.length === 0) activeRooms.delete(this.roomId); }
 
-  onDispose() { for (const internal of this.internal.values()) this.cancelReload(internal); activeRooms.delete(this.roomId); roomOperationsMetrics.delete(this.roomId); }
+  onDispose() { for (const client of this.clients) { client.view?.dispose(); client.view = undefined; } this.presentationViews.clear(); for (const internal of this.internal.values()) this.cancelReload(internal); activeRooms.delete(this.roomId); roomOperationsMetrics.delete(this.roomId); }
 
   private allowMessage(client: Client, message: string, limitPerSecond: number): boolean {
     if (gameMessageLimiter.allow(`${this.roomId}:${client.sessionId}:${message}`, limitPerSecond, 1000)) return true;
@@ -319,6 +333,21 @@ export class BattleRoom extends Room<{ state: BattleState; input: MoveInput }> {
     this.operations.rejectedMessages++;
     incrementProcessOperation('rateLimitedMessages'); incrementProcessOperation('rejectedMessages');
     return false;
+  }
+
+  onBeforePatch() { this.refreshPresentationViews(); }
+
+  private refreshPresentationViews() {
+    const now = performance.now();
+    if (now < this.presentationRefreshAt) return;
+    this.presentationRefreshAt = now + 250;
+    for (const client of this.clients) {
+      const observer = this.state.players.get(this.internal.get(client.sessionId)?.username ?? '');
+      if (!observer || !client.view) continue;
+      let visible = this.presentationViews.get(client.sessionId);
+      if (!visible) { visible = new Set(); this.presentationViews.set(client.sessionId, visible); }
+      updatePresentationView(client.view, observer, this.state.players.values(), visible);
+    }
   }
 
   private rejectMessage(): void { this.operations.rejectedPayloads++; this.operations.rejectedMessages++; incrementProcessOperation('rejectedPayloads'); incrementProcessOperation('rejectedMessages'); }

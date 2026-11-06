@@ -9,16 +9,17 @@ var _username := ""
 var _second_username := ""
 var _finished := false
 var _patch_sent := false
-var _vehicle_array_patch_sent := false
-var _vehicle_array_verified := false
-var _vehicle_array_started_ms := 0
-var _counts_before_vehicle_array: Dictionary = {}
+var _vehicle_scalars_patch_sent := false
+var _vehicle_scalars_verified := false
+var _vehicle_scalars_started_ms := 0
+var _counts_before_vehicle_scalars: Dictionary = {}
 var _root_patch_sent := false
 var _remote_pose_wait_started := false
 var _remote_pose_verified := false
 var _second_removed := false
 var _reconnect_started := false
 var _reconnect_verified := false
+var _prediction_mode_stage := 0
 var _baseline_entity_counts: Dictionary = {}
 var _counts_before_root_patch: Dictionary = {}
 
@@ -44,7 +45,7 @@ func _make_adapter(index: int):
 func _on_state(state: Dictionary, index: int) -> void:
 	if _finished: return
 	if index != 1: return
-	if int(state.get("protocol_version", 0)) != 6 or String(state.get("map_name", "")) != "industrial":
+	if int(state.get("protocol_version", 0)) != 7 or String(state.get("map_name", "")) != "industrial":
 		_fail("unexpected fixture state header: %s" % state)
 		return
 	var players: Dictionary = state.get("players", {})
@@ -61,7 +62,7 @@ func _on_state(state: Dictionary, index: int) -> void:
 			_fail("initial root values were not decoded: %s" % state)
 			return
 		if not vehicles.has("CAR_TEST") or vehicles.CAR_TEST.get("pos") != Vector3(1, 2, 3):
-			_fail("initial vehicle array was not normalized: %s" % vehicles)
+			_fail("initial vehicle coordinate was not normalized: %s" % vehicles)
 			return
 		if not objectives.has("A") or not is_equal_approx(float(objectives.A.get("progress", -1)), 0.125):
 			_fail("initial objective missing or stale: %s" % objectives)
@@ -77,7 +78,7 @@ func _on_state(state: Dictionary, index: int) -> void:
 		_adapter.room.send_message("qa_patch", {"target": _second_username})
 		_patch_sent = true
 		return
-	if _patch_sent and not _vehicle_array_patch_sent and not _root_patch_sent and int(state.get("score_a", 0)) == 1:
+	if _patch_sent and not _vehicle_scalars_patch_sent and not _root_patch_sent and int(state.get("score_a", 0)) == 1:
 		if int(state.get("tickets_a", 0)) != 499:
 			_fail("root ticket change was lost: %s" % state)
 			return
@@ -100,32 +101,31 @@ func _on_state(state: Dictionary, index: int) -> void:
 		if int(changed_counts.get("player:" + _second_username, 0)) != 2 or int(changed_counts.get("vehicle:CAR_TEST", 0)) != 1 or int(changed_counts.get("objective:A", 0)) != 2:
 			_fail("player/objective patch converted an unrelated vehicle or missed a changed entity: %s" % changed_counts)
 			return
-		if not _vehicle_array_patch_sent:
-			_vehicle_array_patch_sent = true
-			_vehicle_array_started_ms = Time.get_ticks_msec()
-			_counts_before_vehicle_array = changed_counts.duplicate(true)
-			_adapter.room.send_message("qa_vehicle_array", {})
-			_wait_for_vehicle_array_patch()
+		if not _vehicle_scalars_patch_sent:
+			_vehicle_scalars_patch_sent = true
+			_vehicle_scalars_started_ms = Time.get_ticks_msec()
+			_counts_before_vehicle_scalars = changed_counts.duplicate(true)
+			_adapter.room.send_message("qa_vehicle_scalars", {})
+			_wait_for_vehicle_scalars_patch()
 		return
-	if _vehicle_array_patch_sent and not _vehicle_array_verified and not _root_patch_sent and int(state.get("score_a", 0)) == 1:
+	if _vehicle_scalars_patch_sent and not _vehicle_scalars_verified and not _root_patch_sent and int(state.get("score_a", 0)) == 1:
 		var vehicle: Dictionary = state.get("vehicles", {}).get("CAR_TEST", {})
 		if vehicle.get("pos") != Vector3(12, 2, 34):
-			if Time.get_ticks_msec() - _vehicle_array_started_ms < 2000: return
-			_fail("in-place vehicle ArraySchema-only patches did not converge: %s" % vehicle)
+			if Time.get_ticks_msec() - _vehicle_scalars_started_ms < 2000: return
+			_fail("in-place vehicle scalar-only patches did not converge: %s" % vehicle)
 			return
-		if int(vehicle.get("x", -1)) != 0 or int(vehicle.get("y", -1)) != 0 or int(vehicle.get("z", -1)) != 0:
-			_fail("vehicle position array update incorrectly changed parent coordinate fields: %s" % vehicle)
+		if Vector3(float(vehicle.get("x", 0)), float(vehicle.get("y", 0)), float(vehicle.get("z", 0))) != Vector3(12, 2, 34):
+			_fail("normalized vehicle position differs from decoded scalar coordinates: %s" % vehicle)
 			return
 		var raw_vehicle: Dictionary = _adapter._vehicle_state_cache.get("CAR_TEST", {})
-		var raw_pos: Array = raw_vehicle.get("pos", [])
-		if raw_pos.size() < 3 or int(raw_pos[0]) != 12 or int(raw_pos[1]) != 2 or int(raw_pos[2]) != 34:
-			_fail("raw vehicle cache missed the child array update: %s" % raw_vehicle)
+		if raw_vehicle.has("pos") or Vector3(float(raw_vehicle.get("x", 0)), float(raw_vehicle.get("y", 0)), float(raw_vehicle.get("z", 0))) != Vector3(12, 2, 34):
+			_fail("raw scalar cache was missed or polluted by presentation aliases: %s" % raw_vehicle)
 			return
 		var array_counts: Dictionary = _adapter.get_state_conversion_diagnostics().get("entity_conversion_counts", {})
-		if int(array_counts.get("vehicle:CAR_TEST", 0)) <= int(_counts_before_vehicle_array.get("vehicle:CAR_TEST", 0)) or int(array_counts.get("player:" + _username, 0)) != int(_counts_before_vehicle_array.get("player:" + _username, 0)) or int(array_counts.get("player:" + _second_username, 0)) != int(_counts_before_vehicle_array.get("player:" + _second_username, 0)) or int(array_counts.get("objective:A", 0)) != int(_counts_before_vehicle_array.get("objective:A", 0)):
+		if int(array_counts.get("vehicle:CAR_TEST", 0)) <= int(_counts_before_vehicle_scalars.get("vehicle:CAR_TEST", 0)) or int(array_counts.get("player:" + _username, 0)) != int(_counts_before_vehicle_scalars.get("player:" + _username, 0)) or int(array_counts.get("player:" + _second_username, 0)) != int(_counts_before_vehicle_scalars.get("player:" + _second_username, 0)) or int(array_counts.get("objective:A", 0)) != int(_counts_before_vehicle_scalars.get("objective:A", 0)):
 			_fail("array-only update did not target only the changed vehicle: %s" % array_counts)
 			return
-		_vehicle_array_verified = true
+		_vehicle_scalars_verified = true
 		_root_patch_sent = true
 		_counts_before_root_patch = array_counts.duplicate(true)
 		_adapter.room.send_message("qa_root_patch", {})
@@ -156,7 +156,7 @@ func _on_state(state: Dictionary, index: int) -> void:
 			_fail("removed player remained in normalized players: %s" % players.keys())
 			return
 		var removed_diagnostics: Dictionary = _adapter.get_state_conversion_diagnostics()
-		if int(removed_diagnostics.get("cache_sizes", {}).get("players", -1)) != 1 or int(removed_diagnostics.get("object_callback_count", -1)) != 4 or removed_diagnostics.get("entity_conversion_counts", {}).has("player:" + _second_username):
+		if int(removed_diagnostics.get("cache_sizes", {}).get("players", -1)) != 1 or int(removed_diagnostics.get("object_callback_count", -1)) != 3 or removed_diagnostics.get("entity_conversion_counts", {}).has("player:" + _second_username):
 			_fail("removed player's callback/cache was retained: %s" % removed_diagnostics)
 		if not _reconnect_started:
 			_reconnect_started = true
@@ -175,6 +175,24 @@ func _on_state(state: Dictionary, index: int) -> void:
 		if int(diagnostics.get("cache_sizes", {}).get("players", 0)) != 1:
 			_fail("reconnected cache did not rebuild from the new room: %s" % diagnostics)
 		_reconnect_verified = true
+		if _adapter.local_reconciler == null or _adapter._composite_prediction:
+			_fail("on-foot state did not bind the SDK entity reconciler")
+			return
+		_prediction_mode_stage = 1
+		_adapter.room.send_message("qa_prediction_mode", {"driving":true})
+		return
+	if _reconnect_verified and _prediction_mode_stage == 1 and not String(players.get(_username, {}).get("driving_vehicle", "")).is_empty():
+		if not _adapter._composite_prediction or _adapter.local_reconciler == null or _adapter.local_reconciler.world == null:
+			_fail("vehicle entry did not bind the SDK composite reconciler")
+			return
+		_prediction_mode_stage = 2
+		_adapter.room.send_message("qa_prediction_mode", {"driving":false})
+		return
+	if _reconnect_verified and _prediction_mode_stage == 2 and String(players.get(_username, {}).get("driving_vehicle", "")).is_empty():
+		if _adapter._composite_prediction or _adapter.local_reconciler == null or _adapter.local_reconciler.world != null:
+			_fail("vehicle exit did not restore the SDK entity reconciler")
+			return
+		_prediction_mode_stage = 3
 		_finish_success()
 
 func _wait_for_remote_pose_without_state_patch() -> void:
@@ -189,9 +207,9 @@ func _wait_for_remote_pose_without_state_patch() -> void:
 		await get_tree().process_frame
 	if not _finished: _fail("SDK remote pose did not converge to cached x=11 without another state patch")
 
-func _wait_for_vehicle_array_patch() -> void:
+func _wait_for_vehicle_scalars_patch() -> void:
 	await get_tree().create_timer(2.0).timeout
-	if not _finished and not _vehicle_array_verified:
+	if not _finished and not _vehicle_scalars_verified:
 		_fail("in-place vehicle ArraySchema callback did not produce the final position")
 
 func _reconnect_after_leave() -> void:
@@ -204,7 +222,7 @@ func _finish_success() -> void:
 		_fail("SDK remote pose convergence was not verified")
 		return
 	_finished = true
-	print("INCREMENTAL_COLYSEUS_STATE_OK callbacks=true root_scalars=true player_add_change_remove=true vehicle_array=true objective_change=true cleanup_reconnect=true")
+	print("INCREMENTAL_COLYSEUS_STATE_OK callbacks=true root_scalars=true player_add_change_remove=true vehicle_scalars=true objective_change=true cleanup_reconnect=true flat_composite_handoff=true")
 	_adapter.disconnect_from()
 	if _second_adapter != null: _second_adapter.disconnect_from()
 	get_tree().quit(0)

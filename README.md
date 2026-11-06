@@ -70,6 +70,8 @@ Native candidate exports use `scripts/export_colyseus_native_candidate.py`. Web 
 
 Audio is currently disabled throughout the game.
 
-The latest [controlled packaged-client performance report](audit/controlled-performance-2026-11-05/REPORT.md) records sustained occupancy, frame-time limits and remaining memory/reliability gates.
+The previous [controlled packaged-client performance report](audit/controlled-performance-2026-11-05/REPORT.md) records sustained occupancy, frame-time limits and remaining memory/reliability gates.
 
-The [state-processing and coordinated-load follow-up](audit/state-optimization-2026-11-05/REPORT.md) records the latest deployed optimization, rejected experiment and failed reliability/capacity gates.
+The [state-processing and coordinated-load follow-up](audit/state-optimization-2026-11-05/REPORT.md) records the previous deployed optimization, rejected experiment and reliability/capacity gates.
+
+The latest [five-track optimization report](audit/protocol7-optimization-2026-11-06/REPORT.md) covers deployed protocol 7, smaller steady-state patches, StateView presentation relevance, collision/prediction work, SDK room ownership fixes and measured full-room limits. Native SDK binaries and WASM remain official; the pinned GDScript wrapper compatibility patch is documented in [patches](patches/README.md).

@@ -1,0 +1,14 @@
+{
+  "seconds": 40.0071483333333,
+  "injectedDrop": true,
+  "dropCount": 1,
+  "reconnectCount": 1,
+  "reconnectGapMs": 466,
+  "connectedFinal": true,
+  "freshStateFinal": true,
+  "inputEpoch": 1,
+  "inputAck": 1748,
+  "inputPending": 12,
+  "frameP95Ms": 30.215,
+  "scope": "one Web observer with server bots; integration/reconnect verification, not full-room or 60 FPS acceptance"
+}

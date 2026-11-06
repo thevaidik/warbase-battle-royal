@@ -1,8 +1,12 @@
 # Colyseus gameplay and networking feature audit
 
-## Latest follow-up — state processing and corrected load testing
+## Latest follow-up — protocol 7 and five optimization tracks
 
-The deployed release is `warbase-colyseus:state-pass-20261105`. Redundant flat-schema copying is removed, with parity/isolation checks and a measured conversion benchmark. A coordinated multiprocess load test rules out helper CPU saturation in its completed baseline, but full-room FPS, public connection reliability and memory-retention gates remain open. See [the follow-up](state-optimization-2026-11-05/REPORT.md).
+The deployed release is `warbase-colyseus:wire7c-20261106`, with paired native/Web protocol-7 artifacts. Distributed load measurement, compact schema, presentation relevance, prediction/collision CPU work and reproduced room-ownership leak fixes are implemented. Full-room performance acceptance remains separate. See [measurements, tradeoffs and remaining gates](protocol7-optimization-2026-11-06/REPORT.md).
+
+## Previous follow-up — state processing and corrected load testing
+
+The previous release was `warbase-colyseus:state-pass-20261105`. Redundant flat-schema copying is removed, with parity/isolation checks and a measured conversion benchmark. A coordinated multiprocess load test rules out helper CPU saturation in its completed baseline, but full-room FPS, public connection reliability and memory-retention gates remain open. See [the follow-up](state-optimization-2026-11-05/REPORT.md).
 
 ## Previous follow-up — controlled packaged-client measurements
 
@@ -32,7 +36,7 @@ The cleanup release `warbase-colyseus:cleanup-20261105` is deployed and verified
 | Redis multi-worker presence/driver | Configuration exists, disabled; live routing and distributed admission limits unfinished |
 | Alternate transports and streaming collections | Unused; no measured need or established cross-platform fit |
 
-Remaining acceptance work: full-room native/Web frame-time and disconnect gates, interactive current Web gameplay, movement-feel comparison, and native shutdown ObjectDB ownership/long-duration memory checks. The pinned SDK’s built-in browser reconnect has now passed an intentional-drop packaged Web probe (1,084 ms recovery, fresh state and input ACKs); sustained Web load still needs to pass. More optional APIs do not replace these acceptance checks.
+Remaining acceptance work: strict full-room native/Web frame-time gates, multi-map load coverage, movement-feel comparison and longer memory endurance. Public Web intentional-drop recovery and the reproduced SDK room ownership leak now have focused passing checks; see the latest report. The pinned SDK’s built-in browser reconnect has now passed an intentional-drop packaged Web probe (1,084 ms recovery, fresh state and input ACKs); sustained Web load still needs to pass. More optional APIs do not replace these acceptance checks.
 
 Historical sections below describe older releases and are superseded by this table and the linked dated evidence.
 
@@ -120,13 +124,13 @@ These capabilities follow the official [netcode model](https://docs.colyseus.io/
 
 | Capability | Current situation | Benefit and tradeoff for this game | Priority |
 |---|---|---|---|
-| Composite/physics prediction: `or Predict.sim` | Unused. Local player uses scalar reconciler; cars use server state plus custom Godot smoothing. | Evaluate a shared vehicle+driver prediction model, including entering/exiting seats. Requires replay-safe vehicle state and parity tests; it is not a switch that fixes car physics. | High: investigate |
-| Predicted event settlement: `define_event` | Unused, although the pinned Godot wrapper exposes it. | Could settle/deduplicate speculative effects when authority confirms/rejects them. Keep damage server-authoritative and prevent replayed sounds/particles. | Medium |
+| Composite/physics prediction: `Predict.sim` | In use while driving; entity reconciler while on foot. | Shared vehicle/driver simulation and seat-generation controls; handoff and callback parity verified. Handling and collision remain game logic. | Implemented |
+| Predicted event settlement: `define_event` | In use for grenade prediction. | Framework settlement/expiry reconciles local speculative effects; damage stays server-authoritative. | Implemented |
 | Predicted spawns: `spawns` | Unused; grenade messages and local effects are custom. | Could improve immediate grenade/projectile presentation and reconcile optimistic objects with authoritative ones. Does not supply grenade physics. | Medium |
 | Prediction diagnostics | Implemented for QA, not always-on gameplay: adapter exposes sent/ack/pending/epoch, correction/drift and reconnect data; observer samples walking, respawn and vehicle phases and marks seat, reconnect and frame-stall events. | Use bounded observer reports to attribute position errors and frame stalls before changing prediction behavior. | Highest; continue measuring |
 | Per-client `StateView` | Implemented and verified: `src/state-visibility.test.ts` verifies selective visibility (`ammo`, `grenades`, `throwable`, `ack_input_sequence` remain private to owner; positions, yaw and combat states remain public to peers). Peer view state survives disconnects and reconnects. | Shields sensitive inventory and input sequence acknowledgement from unprivileged peer broadcasts while preserving public combat observation. | Implemented |
-| Fine-grained schema callbacks | Implemented and verified: `ColyseusNetwork.gd` implements cached incremental entity updates using GDExtension `on_add`, `on_remove`, `on_change`, and collection-level item callbacks for nested `ArraySchema` (`pos`). | Eliminates full-state dictionary conversions on every tick; verified through `IncrementalColyseusState.tscn` passing all incremental conversion checks. | Implemented |
-| Schema encoding optimization | Partial: correct delta sync, but broad `number`/string fields, overlapping yaw/quaternion data and public per-player fields remain. | Measure encoded bytes/patch cost before choosing smaller numeric encodings or restructuring. Precision changes must preserve aim and movement. | Medium |
+| Fine-grained schema callbacks | Implemented and verified: `ColyseusNetwork.gd` implements cached incremental entity updates using GDExtension `on_add`, `on_remove`, `on_change`, and collection-level callbacks where required. Protocol 7 uses scalar vehicle x/y/z instead of a duplicate `pos` ArraySchema. | Eliminates full-state dictionary conversions on every tick; verified through `IncrementalColyseusState.tscn` passing all incremental conversion checks. | Implemented |
+| Schema encoding optimization | Protocol 7: float32 transforms, full-state-only quaternions, scalar vehicle position and selective presentation. | Moving-state fixture patches are 28.4% smaller; initial joins are larger and filtering adds CPU. Server rewind precision and timestamp precision preserved. | Implemented; measured tradeoffs |
 | Built-in lobby / queue rooms | Implemented: `AuthenticatedLobbyRoom` with `enableRealtimeListing()` (`src/lobby.ts`) and client `LobbyAdapter.gd` real-time subscriptions replacing HTTP polling. | Real-time push updates for room card listings with graceful backoff and reconnect handling. | Implemented |
 | Framework admission hook | Implemented: server-signed anonymous JWT admission tickets (`src/admission.ts`, `AdmissionSession.gd`). | Tickets carry cryptographic signatures, expiry TTLs, and are required before room matchmaking. Verified in `src/admission.test.ts`. | Implemented |
 | Abuse controls / room plugins | Implemented: trusted proxy attribution (`CF-Connecting-IP`, `X-Warbase-Gateway-Token`), preventing direct clients from forging forwarded headers; per-caller rate limiting for ticket issuance and room creation. | Enforces fair admission limits per genuine caller IP and denies unauthorized or forged requests. | Implemented |
@@ -136,7 +140,7 @@ These capabilities follow the official [netcode model](https://docs.colyseus.io/
 | WebTransport/datagrams | Unused. | Current official prediction docs describe unreliable input as experimental and JavaScript/TypeScript-SDK-only; it is not a drop-in option for our pinned Godot native client. | Not currently a cross-platform option |
 | Streaming collections | No integration. | Potentially useful for very large datasets/worlds, but unnecessary to enable blindly for a 64-player match; verify SDK support and actual data size first. | Low now |
 
-The official [prediction documentation](https://docs.colyseus.io/netcode/client-prediction) distinguishes scalar prediction, composite simulation, events and predicted spawns. The pinned Godot wrapper exposes `sim`, `define_event`, `spawns`, pending input counts and drift values; this audit found no game-adapter calls to those optional prediction primitives.
+The official [prediction documentation](https://docs.colyseus.io/netcode/client-prediction) distinguishes scalar prediction, composite simulation, events and predicted spawns. The pinned Godot wrapper exposes `sim`, `define_event`, `spawns`, pending input counts and drift values; the current adapter uses composite simulation while driving and event prediction for grenades. Predicted spawn collection integration remains optional and unused.
 
 [StateView documentation](https://docs.colyseus.io/state/view) describes visibility filtering, its extra serialization work and its dataset limitations. It is not automatic interest management: we must decide what each player should receive. [Scaling documentation](https://docs.colyseus.io/scalability) distributes rooms across processes; one room remains owned by one process. [State optimization](https://docs.colyseus.io/state/optimization) is relevant to encoding costs, not a substitute for profiling the simulation.
 

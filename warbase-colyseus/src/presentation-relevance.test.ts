@@ -1,0 +1,20 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { MAX_WEAPON_RANGE } from './battle-room.js';
+import { PlayerState } from './schema.js';
+import { PRESENTATION_ENTER_METERS, PRESENTATION_EXIT_METERS, presentationRelevant } from './presentation-relevance.js';
+test('presentation relevance covers every weapon plus fast approach between refreshes', () => {
+  assert.ok(PRESENTATION_ENTER_METERS >= MAX_WEAPON_RANGE + 50);
+  assert.ok(PRESENTATION_EXIT_METERS > PRESENTATION_ENTER_METERS);
+  const observer = new PlayerState(), target = new PlayerState();
+  observer.x = 0; observer.y = 0; observer.z = 0;
+  target.y = 0; target.z = 0;
+  target.x = PRESENTATION_ENTER_METERS;
+  assert.equal(presentationRelevant(observer, target, false), true);
+  target.x = PRESENTATION_ENTER_METERS + 1;
+  assert.equal(presentationRelevant(observer, target, false), false);
+  assert.equal(presentationRelevant(observer, target, true), true);
+  target.x = PRESENTATION_EXIT_METERS + 1;
+  assert.equal(presentationRelevant(observer, target, true), false);
+  assert.equal(presentationRelevant(observer, observer, false), true);
+});

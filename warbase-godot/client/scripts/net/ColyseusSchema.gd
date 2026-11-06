@@ -2,24 +2,26 @@ class_name WBColyseusSchema
 extends RefCounted
 
 class PlayerState extends Colyseus.Schema:
+	static var _definition: Array = []
 	static func definition() -> Array:
-		return [
-		Colyseus.Schema.Field.new("x", Colyseus.Schema.NUMBER),
-		Colyseus.Schema.Field.new("y", Colyseus.Schema.NUMBER),
-		Colyseus.Schema.Field.new("z", Colyseus.Schema.NUMBER),
-		Colyseus.Schema.Field.new("vx", Colyseus.Schema.NUMBER),
-		Colyseus.Schema.Field.new("vy", Colyseus.Schema.NUMBER),
-		Colyseus.Schema.Field.new("vz", Colyseus.Schema.NUMBER),
-		Colyseus.Schema.Field.new("qx", Colyseus.Schema.NUMBER),
-		Colyseus.Schema.Field.new("qy", Colyseus.Schema.NUMBER),
-		Colyseus.Schema.Field.new("qz", Colyseus.Schema.NUMBER),
-		Colyseus.Schema.Field.new("qw", Colyseus.Schema.NUMBER),
-		Colyseus.Schema.Field.new("yaw", Colyseus.Schema.NUMBER),
-		Colyseus.Schema.Field.new("pitch", Colyseus.Schema.NUMBER),
+		if not _definition.is_empty(): return _definition
+		_definition = [
+		Colyseus.Schema.Field.new("x", Colyseus.Schema.FLOAT32),
+		Colyseus.Schema.Field.new("y", Colyseus.Schema.FLOAT32),
+		Colyseus.Schema.Field.new("z", Colyseus.Schema.FLOAT32),
+		Colyseus.Schema.Field.new("vx", Colyseus.Schema.FLOAT32),
+		Colyseus.Schema.Field.new("vy", Colyseus.Schema.FLOAT32),
+		Colyseus.Schema.Field.new("vz", Colyseus.Schema.FLOAT32),
+		Colyseus.Schema.Field.new("qx", Colyseus.Schema.FLOAT32),
+		Colyseus.Schema.Field.new("qy", Colyseus.Schema.FLOAT32),
+		Colyseus.Schema.Field.new("qz", Colyseus.Schema.FLOAT32),
+		Colyseus.Schema.Field.new("qw", Colyseus.Schema.FLOAT32),
+		Colyseus.Schema.Field.new("yaw", Colyseus.Schema.FLOAT32),
+		Colyseus.Schema.Field.new("pitch", Colyseus.Schema.FLOAT32),
 		Colyseus.Schema.Field.new("username", Colyseus.Schema.STRING),
 		Colyseus.Schema.Field.new("animation", Colyseus.Schema.STRING),
 		Colyseus.Schema.Field.new("animation_code", Colyseus.Schema.NUMBER),
-		Colyseus.Schema.Field.new("animation_time", Colyseus.Schema.NUMBER),
+		Colyseus.Schema.Field.new("animation_time", Colyseus.Schema.FLOAT32),
 		Colyseus.Schema.Field.new("pose_time_ms", Colyseus.Schema.NUMBER),
 		Colyseus.Schema.Field.new("weapon_id", Colyseus.Schema.STRING),
 		Colyseus.Schema.Field.new("health", Colyseus.Schema.NUMBER),
@@ -36,40 +38,51 @@ class PlayerState extends Colyseus.Schema:
 		Colyseus.Schema.Field.new("vehicle_index", Colyseus.Schema.NUMBER),
 		Colyseus.Schema.Field.new("vehicle_generation", Colyseus.Schema.NUMBER),
 	]
+		_definition.make_read_only()
+		return _definition
 
 class VehicleState extends Colyseus.Schema:
+	static var _definition: Array = []
 	static func definition() -> Array:
-		return [
+		if not _definition.is_empty(): return _definition
+		_definition = [
 		Colyseus.Schema.Field.new("id", Colyseus.Schema.STRING),
-		Colyseus.Schema.Field.new("pos", Colyseus.Schema.ARRAY, Colyseus.Schema.NUMBER),
-		Colyseus.Schema.Field.new("yaw", Colyseus.Schema.NUMBER),
-		Colyseus.Schema.Field.new("speed", Colyseus.Schema.NUMBER),
+		Colyseus.Schema.Field.new("yaw", Colyseus.Schema.FLOAT32),
+		Colyseus.Schema.Field.new("speed", Colyseus.Schema.FLOAT32),
 		Colyseus.Schema.Field.new("health", Colyseus.Schema.NUMBER),
 		Colyseus.Schema.Field.new("driver", Colyseus.Schema.STRING),
 		Colyseus.Schema.Field.new("gear", Colyseus.Schema.NUMBER),
-		Colyseus.Schema.Field.new("x", Colyseus.Schema.NUMBER),
-		Colyseus.Schema.Field.new("y", Colyseus.Schema.NUMBER),
-		Colyseus.Schema.Field.new("z", Colyseus.Schema.NUMBER),
+		Colyseus.Schema.Field.new("x", Colyseus.Schema.FLOAT32),
+		Colyseus.Schema.Field.new("y", Colyseus.Schema.FLOAT32),
+		Colyseus.Schema.Field.new("z", Colyseus.Schema.FLOAT32),
 		Colyseus.Schema.Field.new("driver_generation", Colyseus.Schema.NUMBER),
 	]
+		_definition.make_read_only()
+		return _definition
 
 class ObjectiveState extends Colyseus.Schema:
+	static var _definition: Array = []
 	static func definition() -> Array:
-		return [
+		if not _definition.is_empty(): return _definition
+		_definition = [
 		Colyseus.Schema.Field.new("id", Colyseus.Schema.STRING),
-		Colyseus.Schema.Field.new("x", Colyseus.Schema.NUMBER),
-		Colyseus.Schema.Field.new("y", Colyseus.Schema.NUMBER),
-		Colyseus.Schema.Field.new("z", Colyseus.Schema.NUMBER),
+		Colyseus.Schema.Field.new("x", Colyseus.Schema.FLOAT32),
+		Colyseus.Schema.Field.new("y", Colyseus.Schema.FLOAT32),
+		Colyseus.Schema.Field.new("z", Colyseus.Schema.FLOAT32),
 		Colyseus.Schema.Field.new("owner", Colyseus.Schema.STRING),
 		Colyseus.Schema.Field.new("capturing_team", Colyseus.Schema.STRING),
-		Colyseus.Schema.Field.new("progress", Colyseus.Schema.NUMBER),
+		Colyseus.Schema.Field.new("progress", Colyseus.Schema.FLOAT32),
 		Colyseus.Schema.Field.new("contested", Colyseus.Schema.BOOLEAN),
-		Colyseus.Schema.Field.new("radius", Colyseus.Schema.NUMBER),
+		Colyseus.Schema.Field.new("radius", Colyseus.Schema.FLOAT32),
 		]
+		_definition.make_read_only()
+		return _definition
 
 class RoomState extends Colyseus.Schema:
+	static var _definition: Array = []
 	static func definition() -> Array:
-		return [
+		if not _definition.is_empty(): return _definition
+		_definition = [
 		Colyseus.Schema.Field.new("players", Colyseus.Schema.MAP, PlayerState),
 		Colyseus.Schema.Field.new("protocol_version", Colyseus.Schema.NUMBER),
 		Colyseus.Schema.Field.new("map_name", Colyseus.Schema.STRING),
@@ -84,6 +97,8 @@ class RoomState extends Colyseus.Schema:
 		Colyseus.Schema.Field.new("tickets_b", Colyseus.Schema.NUMBER),
 		Colyseus.Schema.Field.new("room_state", Colyseus.Schema.STRING),
 	]
+		_definition.make_read_only()
+		return _definition
 
 static func to_dictionary(value: Variant) -> Variant:
 	# These schemas contain primitives only. The SDK already returns a fresh

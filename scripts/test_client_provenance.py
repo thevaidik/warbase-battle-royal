@@ -1,3 +1,4 @@
+import hashlib
 import json
 import pathlib
 import tempfile
@@ -48,6 +49,22 @@ class ClientProvenanceTests(unittest.TestCase):
         pck.write_bytes(b"swapped older export")
         with self.assertRaisesRegex(RuntimeError, "does not match its provenance: index.pck"):
             verify_artifacts(provenance, self.client, ["index.pck"])
+
+    def test_source_patch_identity_is_preserved_in_export_provenance(self):
+        sdk = self.client / "addons/colyseus"
+        sdk.mkdir(parents=True)
+        script = b"verified wrapper patch"
+        (sdk / "colyseus.gd").write_bytes(script)
+        (sdk / "LOCAL_PATCH.json").write_text(json.dumps({"sdkVersion":"0.18.9", "patchId":"room-lifetime-v1", "sourceSha256":hashlib.sha256(script).hexdigest()}))
+        provenance = make_provenance(self.client, "4.7.2", "0.18.9")
+        self.assertTrue(provenance["colyseusSdkSourcePatch"].startswith("room-lifetime-v1:"))
+        provenance["artifacts"] = {}
+        path = self.client / "provenance.json"
+        path.write_text(json.dumps(provenance))
+        self.assertEqual(provenance, read_provenance(path))
+        (sdk / "colyseus.gd").write_bytes(b"unexpected wrapper change")
+        with self.assertRaisesRegex(RuntimeError, "patch manifest does not match"):
+            make_provenance(self.client, "4.7.2", "0.18.9")
 
 
 if __name__ == "__main__":

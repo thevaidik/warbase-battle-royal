@@ -43,6 +43,8 @@ var _state_cache_conversion_counts := {"player": 0, "vehicle": 0, "objective": 0
 var _state_cache_entity_conversions: Dictionary = {}
 var _has_initial_state := false
 var _last_meta_ms := 0
+var _sent_animation := ""
+var _sent_weapon := ""
 var _local_driving_vehicle := false
 var _pose_clock_raw_delta_ms := 0.0
 var _pose_clock_server_offset_ms := 0.0
@@ -92,6 +94,8 @@ var _admission_token := ""
 func connect_to(username: String, room_name: String, host: String) -> void:
 	disconnect_from()
 	_gameplay_input_enabled = true
+	_sent_animation = ""
+	_sent_weapon = ""
 	grenade_events = null
 	_qa_timing = _qa_timing or "qa_official" in OS.get_cmdline_user_args()
 	_qa_step_us = 0
@@ -160,6 +164,7 @@ func _on_admission_ready(token: String, error: Variant, username: String, room_n
 	_admission_token = token
 	room = client.join_or_create("battle", {
 		"username": username,
+		"protocol_version": 7,
 		"room": room_name,
 		"map": GameState.selected_map,
 		"mode": GameState.selected_mode,
@@ -203,6 +208,7 @@ func _on_room_error(code: int, message: String, source_room: Variant, generation
 	_fail_current_room(message if not message.is_empty() else "Colyseus room error %d" % code, source_room, generation, "error")
 
 func _on_room_left(_code: int, reason: String, source_room: Variant, generation: int) -> void:
+	if _qa_timing: print("QA_ROOM_LEFT code=%d reason=%s" % [_code, reason])
 	if not _is_current_room(source_room, generation): return
 	_fail_current_room("Colyseus room closed: " + reason, source_room, generation, "left", false)
 
@@ -254,6 +260,8 @@ func _fail_current_room(reason: String, source_room: Variant, generation: int, e
 
 func _on_joined(source_room: Variant, generation: int) -> void:
 	if not _is_current_room(source_room, generation): return
+	_sent_animation = ""
+	_sent_weapon = ""
 	if _drop_started_ms > 0 and Time.get_ticks_msec() - _drop_started_ms >= CLIENT_RECONNECT_GRACE_MS:
 		_fail_current_room("Colyseus reconnection timed out", source_room, generation, "timeout")
 		return
@@ -331,13 +339,6 @@ func _watch_schema_object(schema: Variant, kind: String, key: String) -> void:
 	var handle: int = _state_callbacks.on_change(schema, mark_dirty)
 	if handle < 0: _state_callback_failed = true
 	_object_callback_handles[kind + ":" + key] = handle
-	if kind == "vehicle":
-		var nested_cb := func(_val = null, _idx = null):
-			if is_instance_valid(self) and _state_callbacks != null:
-				_mark_schema_object_dirty(kind, key, schema)
-		var nested_handle: int = _state_callbacks.on_change(schema, "pos", nested_cb)
-		if nested_handle < 0: _state_callback_failed = true
-		_nested_callback_handles[kind + ":" + key + ":pos"] = nested_handle
 
 func _mark_schema_object_dirty(kind: String, key: String, schema: Variant) -> void:
 	if _schema_instances.get(kind, {}).get(key) == schema:
@@ -463,7 +464,7 @@ func _on_state_changed(source_room: Variant, generation: int) -> void:
 	if state is Dictionary:
 		if not _has_initial_state:
 			var players: Dictionary = state.get("players", {})
-			if int(state.get("protocol_version", 0)) != 6:
+			if int(state.get("protocol_version", 0)) != 7:
 				_fail_current_room("Server and client versions differ. Update the game and server together.", source_room, generation, "version")
 				return
 			if not players.has(_username): return
@@ -484,30 +485,31 @@ func _on_state_changed(source_room: Variant, generation: int) -> void:
 			var player_state: Dictionary = _player_state_cache.get(String(player_id), {}).duplicate(true)
 			if player_state.is_empty(): continue
 			var public_id := String(player_state.get("username", player_id))
-			player_state["rx"] = player_state.get("qx", 0.0)
-			player_state["ry"] = player_state.get("qy", 0.0)
-			player_state["rz"] = player_state.get("qz", 0.0)
-			player_state["rw"] = player_state.get("qw", 1.0)
+			var pose_rotation := Quaternion(Vector3.UP, float(player_state.get("yaw", 0.0)))
+			player_state["rx"] = pose_rotation.x
+			player_state["ry"] = pose_rotation.y
+			player_state["rz"] = pose_rotation.z
+			player_state["rw"] = pose_rotation.w
 			player_state["anim"] = player_state.get("animation", "idle")
 			player_state["weapon"] = player_state.get("weapon_id", "ak47")
 			if predictor != null and instances.has(player_id):
 				var instance = instances[player_id]
-				if public_id == _username and input_handle != null and instance != _reconciled_instance:
+				if public_id == _username and input_handle != null and (instance != _reconciled_instance or _composite_prediction != (int(player_state.get("vehicle_index", -1)) >= 0)):
 					_reconciled_instance = instance
-					var composite_world := {"player": instance}
+					# Use the SDK's smaller entity reconciler on foot. The multi-part
+					# world is needed only while driving and colliding with vehicles.
+					local_reconciler = null
 					_prediction_car_names.clear()
-					var vehicle_instances: Dictionary = decoded.get("vehicles")
-					for car_id in vehicle_instances:
-						_prediction_car_names.append(String(car_id))
-						composite_world[String(car_id)] = vehicle_instances[car_id]
-					_composite_prediction = true
-					local_reconciler = predictor.sim({
-						"input": input_handle,
-						"world": composite_world,
-						"step": Callable(self, "_predict_composite_step"),
-						"smooth_ms": 80.0,
-						"snap": 1.5,
-					})
+					_composite_prediction = int(player_state.get("vehicle_index", -1)) >= 0
+					if _composite_prediction:
+						var composite_world := {"player": instance}
+						var vehicle_instances: Dictionary = decoded.get("vehicles")
+						for car_id in vehicle_instances:
+							_prediction_car_names.append(String(car_id))
+							composite_world[String(car_id)] = vehicle_instances[car_id]
+						local_reconciler = predictor.sim({"input": input_handle, "world": composite_world, "step": Callable(self, "_predict_composite_step"), "smooth_ms": 80.0, "snap": 1.5})
+					else:
+						local_reconciler = predictor.reconciler(instance, {"input": input_handle, "fields": ["x", "y", "z", "vx", "vy", "vz", "health"], "step": Callable(self, "_predict_infantry_step"), "smooth_ms": 80.0, "snap": 1.5})
 					# A room may report joined before its first state/controller is
 					# available. Bind event lifetime to the initialized prediction epoch.
 					if _grenade_prediction_enabled() and local_reconciler != null and grenade_events == null:
@@ -518,6 +520,9 @@ func _on_state_changed(source_room: Variant, generation: int) -> void:
 						if is_finite(predicted): player_state[field] = predicted
 			normalized_players[public_id] = player_state
 		var local_player_state: Dictionary = normalized_players.get(_username, {})
+		if bool(_last_normalized_state.get("players", {}).get(_username, {}).get("is_dead", false)) and not bool(local_player_state.get("is_dead", false)):
+			_sent_animation = ""
+			_sent_weapon = ""
 		_local_driving_vehicle = not String(local_player_state.get("driving_vehicle", "")).is_empty()
 		var removed_players: Array[String] = []
 		for previous_id in _last_normalized_state.get("players", {}).keys():
@@ -527,7 +532,7 @@ func _on_state_changed(source_room: Variant, generation: int) -> void:
 		var normalized_vehicles: Dictionary = state.get("vehicles", {})
 		for vehicle_id in normalized_vehicles.keys():
 			var vehicle_state: Dictionary = normalized_vehicles[vehicle_id]
-			vehicle_state["pos"] = _vec(vehicle_state.get("pos", []))
+			vehicle_state["pos"] = Vector3(float(vehicle_state.get("x", 0.0)), float(vehicle_state.get("y", 0.0)), float(vehicle_state.get("z", 0.0)))
 		state["vehicles"] = normalized_vehicles
 		_last_normalized_state = state
 		if ready_after_state: _set_connected(true)
@@ -744,11 +749,14 @@ func _predict_composite_step(ctx: Variant, world: Variant, command: Variant) -> 
 			_qa_vehicle_count += 1
 			_qa_vehicle_max_us = maxi(_qa_vehicle_max_us, elapsed)
 	else:
-		var infantry_command: Variant = command
-		if int(command.vehicle_index) >= 0:
-			infantry_command = {"move_x": 0.0, "move_z": 0.0, "jump": 0.0, "sprint": 0.0, "crouch": 0.0, "yaw": float(command.yaw)}
-		if _qa_timing: _profiled_predict_server_step(ctx, state, infantry_command)
-		else: _predict_server_step(ctx, state, infantry_command)
+		_predict_infantry_step(ctx, state, command)
+
+func _predict_infantry_step(ctx: Variant, state: Variant, command: Variant) -> void:
+	var infantry_command: Variant = command
+	if int(command.vehicle_index) >= 0:
+		infantry_command = {"move_x": 0.0, "move_z": 0.0, "jump": 0.0, "sprint": 0.0, "crouch": 0.0, "yaw": float(command.yaw)}
+	if _qa_timing: _profiled_predict_server_step(ctx, state, infantry_command)
+	else: _predict_server_step(ctx, state, infantry_command)
 
 func get_predicted_player_position() -> Vector3:
 	if local_reconciler == null: return Vector3.ZERO
@@ -905,10 +913,15 @@ func _send_input_step() -> void:
 	if sequence > 0:
 		input_sequence = sequence
 		_jump_pending = false
-	var now := Time.get_ticks_msec()
-	if now - _last_meta_ms >= 100:
-		room.send_message("state_meta", {"animation": _desired_animation, "weapon": _desired_weapon})
-		_last_meta_ms = now
+	_send_metadata_if_needed(Time.get_ticks_msec())
+
+func _send_metadata_if_needed(now: int) -> void:
+	if room == null or now - _last_meta_ms < 100: return
+	if _sent_animation == _desired_animation and _sent_weapon == _desired_weapon: return
+	room.send_message("state_meta", {"animation": _desired_animation, "weapon": _desired_weapon})
+	_sent_animation = _desired_animation
+	_sent_weapon = _desired_weapon
+	_last_meta_ms = now
 
 func set_gameplay_input_enabled(enabled: bool) -> void:
 	_gameplay_input_enabled = enabled

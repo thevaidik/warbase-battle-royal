@@ -1,3 +1,4 @@
+import { GAME_PROTOCOL_VERSION } from './schema.js';
 import { randomBytes, randomUUID } from 'node:crypto';
 import { existsSync, readFileSync } from 'node:fs';
 import { extname, resolve } from 'node:path';
@@ -88,7 +89,7 @@ const gameServer = new Server({
     }
     mountOperationsTools(app, { monitorEnabled, localPlaygroundEnabled: localMonitorEnabled,
       host, production: process.env.NODE_ENV === 'production', adminGuard: privateAdmin?.guard });
-    const health = (_req: any, res: any) => res.json({ status: 'ok', server: 'warbase-colyseus', protocol: 'colyseus', version: '0.18.10' });
+    const health = (_req: any, res: any) => res.json({ status: 'ok', server: 'warbase-colyseus', protocol: 'colyseus', game_protocol: GAME_PROTOCOL_VERSION, version: '0.18.10' });
     app.get('/health', health);
     app.get('/healthcheck', health);
     app.get('/internal/metrics', createOperationsMetricsHandler(operationsToken, () => {

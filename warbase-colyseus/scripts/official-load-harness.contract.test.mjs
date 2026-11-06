@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { admissionCacheReusable, evaluateSteadySample, peerDropExpired, stageVehicleControls } from './official-load-harness.mjs';
+import { admissionCacheReusable, evaluateSteadySample, peerDropExpired, stageVehicleControls, vehiclePosition } from './official-load-harness.mjs';
 
 const fullLiveSample = {
   gateOpen: true,
@@ -70,4 +70,10 @@ test('admission cache requires matching endpoint, ticket count, and full remaini
   assert.equal(admissionCacheReusable(cache, { ...criteria, endpoint: 'https://example.test' }), false);
   assert.equal(admissionCacheReusable(cache, { ...criteria, count: 63 }), false);
   assert.equal(admissionCacheReusable({ ...cache, tickets: [{ ...cache.tickets[0], expiresAt: 3999 }, cache.tickets[1]] }, criteria), false);
+});
+
+test('vehicle position prefers protocol-7 scalars with legacy array fallback', () => {
+  assert.deepEqual(vehiclePosition({x:1,y:2,z:3,pos:[9,9,9]}),[1,2,3]);
+  assert.deepEqual(vehiclePosition({pos:[4,5,6]}),[4,5,6]);
+  assert.equal(vehiclePosition({x:NaN,y:0,z:0}),null);
 });

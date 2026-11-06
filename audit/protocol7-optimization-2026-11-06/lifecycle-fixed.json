@@ -1,0 +1,104 @@
+[
+  {
+    "bytes": 36361474,
+    "client_retained": true,
+    "cycle": 0,
+    "native_room_retained": false,
+    "objects": 1624,
+    "room_retained": false,
+    "root_retained": false
+  },
+  {
+    "bytes": 36363918,
+    "client_retained": false,
+    "cycle": 1,
+    "native_room_retained": false,
+    "objects": 1624,
+    "room_retained": false,
+    "root_retained": false
+  },
+  {
+    "bytes": 36364202,
+    "client_retained": false,
+    "cycle": 2,
+    "native_room_retained": false,
+    "objects": 1624,
+    "room_retained": false,
+    "root_retained": false
+  },
+  {
+    "bytes": 36364202,
+    "client_retained": false,
+    "cycle": 3,
+    "native_room_retained": false,
+    "objects": 1624,
+    "room_retained": false,
+    "root_retained": false
+  },
+  {
+    "bytes": 36364202,
+    "client_retained": false,
+    "cycle": 4,
+    "native_room_retained": false,
+    "objects": 1624,
+    "room_retained": false,
+    "root_retained": false
+  },
+  {
+    "bytes": 36364202,
+    "client_retained": false,
+    "cycle": 5,
+    "native_room_retained": false,
+    "objects": 1624,
+    "room_retained": false,
+    "root_retained": false
+  },
+  {
+    "bytes": 36364202,
+    "client_retained": false,
+    "cycle": 6,
+    "native_room_retained": false,
+    "objects": 1624,
+    "room_retained": false,
+    "root_retained": false
+  },
+  {
+    "bytes": 36364202,
+    "client_retained": false,
+    "cycle": 7,
+    "native_room_retained": false,
+    "objects": 1624,
+    "room_retained": false,
+    "root_retained": false
+  },
+  {
+    "bytes": 36364202,
+    "client_retained": false,
+    "cycle": 8,
+    "native_room_retained": false,
+    "objects": 1624,
+    "room_retained": false,
+    "root_retained": false
+  },
+  {
+    "bytes": 36364202,
+    "client_retained": false,
+    "cycle": 9,
+    "native_room_retained": false,
+    "objects": 1624,
+    "room_retained": false,
+    "root_retained": false
+  },
+  {
+    "case": "reject",
+    "error_seen": true,
+    "native_room_retained": false,
+    "room_retained": false
+  },
+  {
+    "case": "cancel",
+    "error_seen": false,
+    "native_room_retained": false,
+    "room_retained": false
+  }
+]

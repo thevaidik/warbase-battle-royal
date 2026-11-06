@@ -7,3 +7,6 @@ release asset and each ZIP member CRC verified; whole archive was not downloaded
 The reproducible installer verifies the full published archive SHA-256.
 Extracted runtime targets: macOS arm64, Web wasm32
 License: MIT (LICENSE; upstream LICENSE at the tag above)
+
+Local GDScript patch: patches/colyseus-godot-0.18.9-room-lifetime.patch
+Native libraries and WASM: unmodified upstream binaries

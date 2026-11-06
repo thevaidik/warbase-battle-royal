@@ -1,0 +1,135 @@
+{
+  "valid": true,
+  "reason": "full live roster verified independently by every shard",
+  "sdkPeersJoined": 63,
+  "roomId": "1f31ee76-de77-4f02-b42d-a4b98cbebbbe",
+  "sharedFullSecondsLowerBound": 92.03,
+  "maxHelperCpuPercent": 7.27,
+  "maxHelperLoopExcessP95Ms": 2.3371510000000004,
+  "helperSaturationSuspected": false,
+  "capacityEvidenceQualified": true,
+  "shardCount": 3,
+  "peerDistribution": [
+    21,
+    21,
+    21
+  ],
+  "exitCodes": [
+    0,
+    0,
+    0
+  ],
+  "observerFinishedEarly": false,
+  "endpoint": "https://war.vaidik.blog/colyseus",
+  "observer": "packaged-native",
+  "limits": "Latency percentiles stay per-shard; percentiles are not averaged. Helper qualification is not a client FPS or server tick pass.",
+  "release": "wire7-20261106",
+  "clientSourceFingerprint": "cd341407d751bbe8c8f0ae152c2460325467a211b47c99f28cdd06a726fd81aa",
+  "native": {
+    "seconds": 140.019132333333,
+    "frame_ms_p50": 12.912,
+    "frame_ms_p95": 61.86,
+    "frame_ms_p99": 117.046,
+    "disconnects": 0,
+    "peak_remotes": 63,
+    "drive_distance_m": 0.0,
+    "driving_seconds": 0.0,
+    "sdk_inputs_sent_max": 7944,
+    "sdk_ack_sequence_max": 7889
+  },
+  "effectiveServerHz": 49.4815,
+  "worstRollingTickP95Ms": 29.675,
+  "strict60HzAnd60FpsPass": false,
+  "gameplayByShard": [
+    {
+      "gameplay": {
+        "shotsAttempted": 21,
+        "fireEchoes": 21,
+        "confirmedHits": 0,
+        "grenadeAttempts": 8,
+        "grenadesAccepted": 4,
+        "uniqueExplosionsSeen": 9,
+        "seatAttempts": 74,
+        "vehicleApproachInputs": 55068,
+        "seatEntries": 6,
+        "vehicleInputs": 269,
+        "damageEvents": 3,
+        "killEvents": 0
+      },
+      "coverage": {
+        "nativeObserverGate": true,
+        "peak64HumanActors": true,
+        "sustained64HumanOccupancy": true,
+        "authoritativeMovement": true,
+        "fireEcho": true,
+        "confirmedHit": false,
+        "acceptedGrenade": true,
+        "explosion": true,
+        "vehicleSeatEntry": true,
+        "vehicleInputsSent": true,
+        "vehicleMotion": true,
+        "sdkCleanupObserved": true
+      }
+    },
+    {
+      "gameplay": {
+        "shotsAttempted": 21,
+        "fireEchoes": 19,
+        "confirmedHits": 0,
+        "grenadeAttempts": 8,
+        "grenadesAccepted": 3,
+        "uniqueExplosionsSeen": 9,
+        "seatAttempts": 85,
+        "vehicleApproachInputs": 55027,
+        "seatEntries": 7,
+        "vehicleInputs": 324,
+        "damageEvents": 3,
+        "killEvents": 0
+      },
+      "coverage": {
+        "nativeObserverGate": true,
+        "peak64HumanActors": true,
+        "sustained64HumanOccupancy": true,
+        "authoritativeMovement": true,
+        "fireEcho": true,
+        "confirmedHit": false,
+        "acceptedGrenade": true,
+        "explosion": true,
+        "vehicleSeatEntry": true,
+        "vehicleInputsSent": true,
+        "vehicleMotion": true,
+        "sdkCleanupObserved": true
+      }
+    },
+    {
+      "gameplay": {
+        "shotsAttempted": 21,
+        "fireEchoes": 21,
+        "confirmedHits": 2,
+        "grenadeAttempts": 8,
+        "grenadesAccepted": 1,
+        "uniqueExplosionsSeen": 9,
+        "seatAttempts": 57,
+        "vehicleApproachInputs": 42564,
+        "seatEntries": 11,
+        "vehicleInputs": 463,
+        "damageEvents": 7,
+        "killEvents": 0
+      },
+      "coverage": {
+        "nativeObserverGate": true,
+        "peak64HumanActors": true,
+        "sustained64HumanOccupancy": true,
+        "authoritativeMovement": true,
+        "fireEcho": true,
+        "confirmedHit": true,
+        "acceptedGrenade": true,
+        "explosion": true,
+        "vehicleSeatEntry": true,
+        "vehicleInputsSent": true,
+        "vehicleMotion": true,
+        "sdkCleanupObserved": true
+      }
+    }
+  ]
+}
