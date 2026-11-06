@@ -656,7 +656,7 @@ func _on_player_damaged(attacker_dir: Vector3, amount: float) -> void:
 		hud.add_damage_indicator(rel)
 
 func _on_state(state: Dictionary) -> void:
-	if not GameState.practice_mode and int(state.get("protocol_version", 0)) != 9:
+	if not GameState.practice_mode and int(state.get("protocol_version", 0)) != 10:
 		net.disconnect_from()
 		hud.feed("Game updated. Refresh the page or reopen the latest build.", Color(1, 0.4, 0.3))
 		return
@@ -738,8 +738,8 @@ func _apply_online_vehicles(vehicles: Dictionary, me: Dictionary) -> void:
 			if vehicle.global_position.distance_to(at) > 8: vehicle.global_position = at
 			vehicle.network_position = at
 			vehicle.network_yaw = float(snapshot.get("yaw", 0))
-		vehicle.current_speed_kmh = absf(float(snapshot.get("speed", 0))) * 3.6
-		vehicle.is_reversing = float(snapshot.get("speed", 0)) < 0
+			vehicle.current_speed_kmh = absf(float(snapshot.get("speed", 0))) * 3.6
+			vehicle.is_reversing = float(snapshot.get("speed", 0)) < 0
 		vehicle.set_meta("server_driver", snapshot.get("driver", ""))
 		vehicle.health = float(snapshot.get("health", 1200))
 		vehicle.is_destroyed = vehicle.health <= 0

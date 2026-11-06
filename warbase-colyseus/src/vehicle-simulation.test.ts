@@ -195,3 +195,16 @@ test('vehicle chassis stops at the authored Industrial warehouse and speeding ro
   }
   assert.ok(events.some((event) => event.driver === roadDriver.username && event.target === target.username && event.vehicle === roadCar.id));
 });
+
+test('high-speed steering stays within lateral acceleration limits and reverse steering stays signed', () => {
+  for (const initialSpeed of [4, 14.4, 22, -6]) {
+    const state = { pos: [0, 0, 0] as [number, number, number], yaw: 0, speed: initialSpeed, gear: 2 as const };
+    const motion = stepVehicleMotion(state, { throttle: 0, steer: 1, brake: false, gear: 2 }, 1 / 60);
+    const rate = Math.abs(motion.yaw) * 60;
+    assert.ok(rate <= 0.900001, 'parking turn rate is bounded');
+    assert.ok(rate * Math.abs(motion.speed) <= 7.500001, 'steering cannot spin the jeep at highway speed');
+    assert.equal(Math.sign(motion.yaw), -Math.sign(initialSpeed));
+    const opposite = stepVehicleMotion(state, { throttle: 0, steer: -1, brake: false, gear: 2 }, 1 / 60);
+    assert.equal(opposite.yaw, -motion.yaw, 'left and right remain symmetric');
+  }
+});

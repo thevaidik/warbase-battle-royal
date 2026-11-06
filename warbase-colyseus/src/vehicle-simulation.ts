@@ -81,7 +81,9 @@ export function stepVehicleMotion(state: Pick<VehicleState, 'pos' | 'yaw' | 'spe
   const speedCap = state.gear === 2 ? 22 : 14.4;
   let speed = clamp(state.speed + (input.throttle * 9 - state.speed * 0.24 - (input.brake ? state.speed * 6 : 0)) * elapsed, -6, speedCap);
   if (Math.abs(speed) < 0.05 && input.throttle === 0) speed = 0;
-  const yaw = state.yaw - input.steer * speed / 5 * elapsed;
+  const requestedYawRate = speed * Math.tan(clamp(input.steer, -1, 1) * 0.48) / 3.99;
+  const maxYawRate = Math.min(0.9, 7.5 / Math.max(Math.abs(speed), 1));
+  const yaw = state.yaw - clamp(requestedYawRate, -maxYawRate, maxYawRate) * elapsed;
   const candidate: Vec3 = [state.pos[0] - Math.sin(yaw) * speed * elapsed, state.pos[1], state.pos[2] - Math.cos(yaw) * speed * elapsed];
   return { pos: state.pos, yaw, speed, candidate };
 }

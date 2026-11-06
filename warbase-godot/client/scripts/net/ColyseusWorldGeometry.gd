@@ -30,6 +30,7 @@ static var _spawns: Array[Vector3] = []
 static var _ray_stack: Array[int] = []
 static var _move_candidate_stack: Array[int] = []
 static var _move_candidate_triangles: Array[int] = []
+static var _capsule_offsets_cache: Dictionary = {}
 
 
 static func _ensure_data() -> void:
@@ -156,30 +157,36 @@ static func _box_intersects(node_index: int, origin: Vector3, delta: Vector3, li
 	return true
 
 
-static func _triangle_hit(triangle_index: int, origin: Vector3, delta: Vector3) -> Dictionary:
+static func _triangle_fraction(triangle_index: int, origin: Vector3, delta: Vector3) -> float:
 	var a := _triangle_a[triangle_index]
 	var edge_1 := _triangle_edge_1[triangle_index]
 	var edge_2 := _triangle_edge_2[triangle_index]
 	var h := delta.cross(edge_2)
 	var determinant := edge_1.dot(h)
 	if absf(determinant) < 0.000000001:
-		return {}
+		return -1.0
 	var inverse := 1.0 / determinant
 	var from_a := origin - a
 	var u := inverse * from_a.dot(h)
 	if u < 0.0 or u > 1.0:
-		return {}
+		return -1.0
 	var q := from_a.cross(edge_1)
 	var v := inverse * delta.dot(q)
 	if v < 0.0 or u + v > 1.0:
-		return {}
+		return -1.0
 	var fraction := inverse * edge_2.dot(q)
 	if fraction < 0.0 or fraction > 1.0:
-		return {}
+		return -1.0
 	var normal := _triangle_unit_normal[triangle_index]
 	if normal == Vector3.ZERO:
-		return {}
-	return {"fraction": fraction, "normal": normal}
+		return -1.0
+	return fraction
+
+
+# Compatibility helper for triangle parity diagnostics; hot paths use a scalar.
+static func _triangle_hit(triangle_index: int, origin: Vector3, delta: Vector3) -> Dictionary:
+	var fraction := _triangle_fraction(triangle_index, origin, delta)
+	return {} if fraction < 0.0 else {"fraction": fraction, "normal": _triangle_unit_normal[triangle_index]}
 
 
 static func _raycast(from: Vector3, to: Vector3) -> Dictionary:
@@ -188,7 +195,7 @@ static func _raycast(from: Vector3, to: Vector3) -> Dictionary:
 		return {}
 	var delta := to - from
 	var nearest := 2.0
-	var best := {}
+	var best_index := -1
 	# Collision/prediction calls run synchronously on the main thread. Keep the
 	# traversal scratch capacity between rays instead of allocating 91 stacks
 	# for every capsule sweep.
@@ -205,16 +212,17 @@ static func _raycast(from: Vector3, to: Vector3) -> Dictionary:
 		var count := int(_nodes[offset + 9])
 		if count > 0:
 			for index in range(start, start + count):
-				var candidate := _triangle_hit(_order[index], from, delta)
-				if not candidate.is_empty() and float(candidate["fraction"]) < nearest:
-					nearest = float(candidate["fraction"])
-					best = candidate
+				var triangle_index := _order[index]
+				var fraction := _triangle_fraction(triangle_index, from, delta)
+				if fraction >= 0.0 and fraction < nearest:
+					nearest = fraction
+					best_index = triangle_index
 		else:
 			if left >= 0:
 				_ray_stack.append(left)
 			if right >= 0:
 				_ray_stack.append(right)
-	return best
+	return {} if best_index < 0 else {"fraction": nearest, "normal": _triangle_unit_normal[best_index]}
 
 
 static func _triangle_bounds_overlap(triangle_index: int, minimum: Vector3, maximum: Vector3) -> bool:
@@ -278,13 +286,13 @@ static func _raycast_move_candidates(from: Vector3, to: Vector3) -> Dictionary:
 		return {}
 	var delta := to - from
 	var nearest := 2.0
-	var best := {}
+	var best_index := -1
 	for triangle_index in _move_candidate_triangles:
-		var candidate := _triangle_hit(triangle_index, from, delta)
-		if not candidate.is_empty() and float(candidate["fraction"]) < nearest:
-			nearest = float(candidate["fraction"])
-			best = candidate
-	return best
+		var fraction := _triangle_fraction(triangle_index, from, delta)
+		if fraction >= 0.0 and fraction < nearest:
+			nearest = fraction
+			best_index = triangle_index
+	return {} if best_index < 0 else {"fraction": nearest, "normal": _triangle_unit_normal[best_index]}
 
 
 static func ray_blocked(from: Vector3, to: Vector3) -> bool:
@@ -310,13 +318,10 @@ static func floor_height(x: float, z: float, from_y: float = 100.0) -> Variant:
 	return from_y + (-100.0 - from_y) * float(hit["fraction"])
 
 
-static func _capsule_blocked(from: Vector3, to: Vector3, radius: float, height: float, horizontal_only: bool = false, use_move_candidates: bool = false) -> bool:
-	# A zero-length sweep cannot hit a triangle: the ray/triangle determinant is
-	# zero for every sample. Avoid constructing 7 x 13 degenerate rays on axes
-	# that did not move; this preserves the exact collision result.
-	if from == to:
-		return false
-	var delta_y := to.y - from.y
+static func _capsule_offsets(radius: float, height: float) -> PackedVector3Array:
+	var key := [radius, height]
+	if _capsule_offsets_cache.has(key): return _capsule_offsets_cache[key]
+	var offsets := PackedVector3Array()
 	for y_offset in CAPSULE_LEVELS:
 		if y_offset > height:
 			continue
@@ -330,14 +335,28 @@ static func _capsule_blocked(from: Vector3, to: Vector3, radius: float, height: 
 			var offset_x := 0.0 if spoke == SPOKES else cos(angle) * ring_radius
 			var offset_z := 0.0 if spoke == SPOKES else sin(angle) * ring_radius
 			var offset := Vector3(offset_x, y_offset, offset_z)
-			var sample_from := from + offset
-			var sample_to := to + offset
-			var hit := _raycast_move_candidates(sample_from, sample_to) if use_move_candidates else _raycast(sample_from, sample_to)
-			if hit.is_empty() or float(hit["fraction"]) <= 0.0001:
-				continue
-			if horizontal_only and absf(delta_y) < 0.000001 and absf(hit["normal"].y) >= 0.5:
-				continue
-			return true
+			offsets.append(offset)
+	if _capsule_offsets_cache.size() >= 16: _capsule_offsets_cache.clear()
+	_capsule_offsets_cache[key] = offsets
+	return offsets
+
+
+static func _capsule_blocked(from: Vector3, to: Vector3, radius: float, height: float, horizontal_only: bool = false, use_move_candidates: bool = false) -> bool:
+	# A zero-length sweep cannot hit a triangle: the ray/triangle determinant is
+	# zero for every sample. Avoid constructing 7 x 13 degenerate rays on axes
+	# that did not move; this preserves the exact collision result.
+	if from == to:
+		return false
+	var delta_y := to.y - from.y
+	for offset in _capsule_offsets(radius, height):
+		var sample_from := from + offset
+		var sample_to := to + offset
+		var hit := _raycast_move_candidates(sample_from, sample_to) if use_move_candidates else _raycast(sample_from, sample_to)
+		if hit.is_empty() or float(hit["fraction"]) <= 0.0001:
+			continue
+		if horizontal_only and absf(delta_y) < 0.000001 and absf(hit["normal"].y) >= 0.5:
+			continue
+		return true
 	return false
 
 

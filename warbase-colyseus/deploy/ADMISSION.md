@@ -4,7 +4,7 @@ This implementation is deployed on Umbrel; verify the dated feature report for e
 
 Run `prepare-admission.sh` against the engine owning the game. On Umbrel this is Portainer's nested Docker engine, not an unrelated outer Docker stack. The script preserves existing volume secrets and prints no values. Keep admin storage/secrets and metrics mounts when replacing containers.
 
-The public root redirects to `/colyseus/?release=admission-v1` to refresh browsers that cached the previous HTML incorrectly. HTML revalidates; hashed engine assets remain immutable.
+The public root redirects to `/colyseus/` to refresh browsers that cached the previous HTML incorrectly. HTML revalidates; hashed engine assets remain immutable.
 
 The client obtains a 15-minute anonymous signed ticket from `POST /api/admission`, caches it per endpoint with a refresh margin, and uses the official SDK bearer-token transport for lobby and battle matchmaking. HTTP room creation requires the same bearer token. This provides a signed session identity, not account ownership or protection against a distributed anonymous attacker. Defaults: 30 ticket issues/caller/minute, 300/process/minute, 30 matchmaking authorizations/identity/minute, 4 room creations/identity/minute. Fixed-window counters are process-local.
 

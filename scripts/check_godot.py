@@ -13,6 +13,7 @@ root = pathlib.Path(__file__).resolve().parents[1]
 godot = os.environ.get("GODOT", "/Applications/Godot.app/Contents/MacOS/Godot")
 ensure_map_integrity(root, pathlib.Path(godot))
 commands = [
+    (["--script", "res://scripts/tests/test_input_focus.gd"], "INPUT_FOCUS_TEST failures=0"),
     (["--script", "res://scripts/tests/test_desert_canyon_collision.gd", "--fixed-fps", "60"], "DESERT CANYON COLLISION TEST: 0 failures"),
     (["res://scenes/tests/SDKRoomOwnership.tscn"], "SDK_ROOM_OWNERSHIP_OK failures=0"),
     (["res://scenes/tests/SchemaSnapshot.tscn"], "SCHEMA_SNAPSHOT parity=64"),

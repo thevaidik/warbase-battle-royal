@@ -27,6 +27,7 @@ var _composite_prediction := false
 var _prediction_car_names: Array[String] = []
 var _vehicle_gear := 1
 var _gameplay_input_enabled := true
+var _window_focused := true
 var _last_normalized_state: Dictionary = {}
 var _state_callbacks
 var _room_signal_bindings: Array[Dictionary] = []
@@ -164,7 +165,7 @@ func _on_admission_ready(token: String, error: Variant, username: String, room_n
 	_admission_token = token
 	room = client.join_or_create("battle", {
 		"username": username,
-		"protocol_version": 9,
+		"protocol_version": 10,
 		"room": room_name,
 		"map": GameState.selected_map,
 		"mode": GameState.selected_mode,
@@ -464,7 +465,7 @@ func _on_state_changed(source_room: Variant, generation: int) -> void:
 	if state is Dictionary:
 		if not _has_initial_state:
 			var players: Dictionary = state.get("players", {})
-			if int(state.get("protocol_version", 0)) != 9:
+			if int(state.get("protocol_version", 0)) != 10:
 				_fail_current_room("Server and client versions differ. Update the game and server together.", source_room, generation, "version")
 				return
 			if not players.has(_username): return
@@ -734,7 +735,8 @@ func _predict_server_step(ctx: Variant, state: Variant, command: Variant) -> voi
 	state.z = resolved.z
 	state.vx = (state.x - from.x) / ctx.dt
 	state.vz = (state.z - from.z) / ctx.dt
-	var resolved_floor: Variant = WorldGeometry.floor_height(state.x, state.z, state.y + 0.1)
+	# Only the unclamped downward branch of settlement reads the floor.
+	var resolved_floor: Variant = WorldGeometry.floor_height(state.x, state.z, state.y + 0.1) if state.vy < 0.0 and resolved.y <= requested.y + 0.00001 else null
 	state.vy = WorldGeometry.settled_vertical_velocity(float(state.vy), requested.y, resolved.y, resolved_floor)
 
 func _predict_composite_step(ctx: Variant, world: Variant, command: Variant) -> void:
@@ -877,6 +879,19 @@ func disconnect_from() -> void:
 		old_room.set_reconnection_options({"enabled": false})
 		old_room.leave()
 
+func _ready() -> void:
+	get_window().focus_exited.connect(_on_focus_exited)
+	get_window().focus_entered.connect(func() -> void: _window_focused = true)
+
+func _clear_held_input() -> void:
+	_jump_pending = false
+	for action in ["move_forward", "move_back", "move_left", "move_right", "jump", "sprint", "crouch", "fire", "ads"]:
+		if InputMap.has_action(action): Input.action_release(action)
+
+func _on_focus_exited() -> void:
+	_window_focused = false
+	_clear_held_input()
+
 func _process(delta: float) -> void:
 	if room == null: return
 	if not connected:
@@ -894,20 +909,21 @@ func _process(delta: float) -> void:
 	_apply_local_reconciler()
 
 func _send_input_step() -> void:
+	var enabled := _gameplay_input_enabled and _window_focused
 	var data = input_handle.data
-	data.move_x = Input.get_axis("move_left", "move_right") if _gameplay_input_enabled else 0.0
-	data.move_z = Input.get_axis("move_back", "move_forward") if _gameplay_input_enabled else 0.0
+	data.move_x = Input.get_axis("move_left", "move_right") if enabled else 0.0
+	data.move_z = Input.get_axis("move_back", "move_forward") if enabled else 0.0
 	data.yaw = _desired_quat.get_euler().y
 	data.pitch = _desired_pitch
-	data.jump = 1.0 if _jump_pending and _gameplay_input_enabled else 0.0
-	data.sprint = 1.0 if Input.is_action_pressed("sprint") and _gameplay_input_enabled else 0.0
-	data.crouch = 1.0 if Input.is_action_pressed("crouch") and _gameplay_input_enabled else 0.0
+	data.jump = 1.0 if _jump_pending and enabled else 0.0
+	data.sprint = 1.0 if Input.is_action_pressed("sprint") and enabled else 0.0
+	data.crouch = 1.0 if Input.is_action_pressed("crouch") and enabled else 0.0
 	var me: Dictionary = _last_normalized_state.get("players", {}).get(_username, {})
 	data.vehicle_index = float(me.get("vehicle_index", -1))
 	data.vehicle_generation = float(me.get("vehicle_generation", 0))
-	data.vehicle_throttle = Input.get_axis("move_back", "move_forward") if _local_driving_vehicle and _gameplay_input_enabled else 0.0
-	data.vehicle_steer = Input.get_axis("move_left", "move_right") if _local_driving_vehicle and _gameplay_input_enabled else 0.0
-	data.vehicle_brake = 1.0 if Input.is_action_pressed("jump") or not _local_driving_vehicle or not _gameplay_input_enabled else 0.0
+	data.vehicle_throttle = Input.get_axis("move_back", "move_forward") if _local_driving_vehicle and enabled else 0.0
+	data.vehicle_steer = Input.get_axis("move_left", "move_right") if _local_driving_vehicle and enabled else 0.0
+	data.vehicle_brake = 1.0 if Input.is_action_pressed("jump") or not _local_driving_vehicle or not enabled else 0.0
 	data.vehicle_gear = float(_vehicle_gear)
 	var sequence: int = input_handle.send()
 	if sequence > 0:
@@ -925,7 +941,7 @@ func _send_metadata_if_needed(now: int) -> void:
 
 func set_gameplay_input_enabled(enabled: bool) -> void:
 	_gameplay_input_enabled = enabled
-	if not enabled: _jump_pending = false
+	if not enabled: _clear_held_input()
 
 func send_state(pos: Vector3, quat: Quaternion, anim: String, weapon: String) -> void:
 	if not _valid(pos): return

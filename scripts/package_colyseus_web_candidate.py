@@ -14,6 +14,7 @@ import struct
 import subprocess
 import tempfile
 
+from optional_map_assets import optional_map_assets
 from client_provenance import WEB_EXPORT_ASSETS, read_provenance, verify_artifacts, verify_current_export
 
 
@@ -159,7 +160,8 @@ def main() -> int:
         raise RuntimeError("Candidate HTML does not reference the expected SDK-enabled Godot Web export")
 
     provenance = read_provenance(source / "client-provenance.json")
-    verify_artifacts(provenance, source, ["index.html", *ASSETS])
+    map_assets = optional_map_assets(source)
+    verify_artifacts(provenance, source, ["index.html", *ASSETS, *map_assets])
     if not args.server_only:
         verify_current_export(provenance, CLIENT)
 
@@ -202,7 +204,9 @@ def main() -> int:
     packaged_html = render_packaged_html(html, config, config_match, renames)
     (output / "index.html").write_text(packaged_html)
 
-    names = ["index.html", *renames.values()]
+    for name in map_assets:
+        shutil.copyfile(source / name, output / name)
+    names = ["index.html", *renames.values(), *map_assets]
     compress_assets(output, names)
     node = shutil.which("node")
     assert node
@@ -230,9 +234,9 @@ def main() -> int:
         "compression": {"contentNegotiated": ["br", "gzip"], "sidecarSuffixes": [".br", ".gz"]},
         "cachePolicy": {
             "index.html": "no-cache",
-            "hashedAssetPattern": r"^(engine|game|colyseus|icon|icon-app|icon-touch)-[0-9a-f]{16}\.",
+            "hashedAssetPattern": r"^(engine|game|colyseus|icon|icon-app|icon-touch|map-football)-[0-9a-f]{16}\.",
             "hashedAssets": "public, max-age=31536000, immutable",
-            "noCacheAssets": [SDK_WASM_RUNTIME_PATH],
+            "noCacheAssets": [SDK_WASM_RUNTIME_PATH, "optional-maps.json"],
         },
         "headers": {
             "index.html": {"Cache-Control": "no-cache"},

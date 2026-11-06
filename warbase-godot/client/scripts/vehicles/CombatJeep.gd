@@ -102,6 +102,8 @@ var network_yaw := 0.0
 var _parked_settle_timer := 1.0
 
 func _ready() -> void:
+	# Follow the SDK render pose after the network reconciler has updated it.
+	process_priority = 10
 	mass = 2800.0
 	center_of_mass_mode = RigidBody3D.CENTER_OF_MASS_MODE_CUSTOM
 	center_of_mass = Vector3(0.0, 0.35, 0.0)
@@ -512,10 +514,8 @@ func _process(delta: float) -> void:
 		
 		# Align camera yaw behind travel direction if user hasn't touched the mouse recently
 		_mouse_idle_time += delta
-		if _mouse_idle_time > 0.8 and current_speed_kmh > 4.0:
+		if _mouse_idle_time > 0.8 and current_speed_kmh > 4.0 and not is_reversing:
 			var target_heading := rotation.y
-			if is_reversing:
-				target_heading += PI
 			_cam_yaw = lerp_angle(_cam_yaw, target_heading, clampf(2.2 * delta, 0.0, 1.0))
 			
 		chase_camera_pivot.rotation = Vector3(_cam_pitch, _cam_yaw, 0.0)

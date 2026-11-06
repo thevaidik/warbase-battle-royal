@@ -95,7 +95,9 @@ static func step(world: Variant, command: Variant, dt: float, car_names: Array[S
 	if brake: acceleration -= speed * 6.0
 	speed = clampf(speed + acceleration * elapsed, -6.0, 22.0 if int(car.gear) == 2 else 14.4)
 	if absf(speed) < 0.05 and throttle == 0.0: speed = 0.0
-	var yaw := float(car.yaw) - steer * speed / 5.0 * elapsed
+	var requested_yaw_rate := speed * tan(steer * 0.48) / 3.99
+	var max_yaw_rate := minf(0.9, 7.5 / maxf(absf(speed), 1.0))
+	var yaw := float(car.yaw) - clampf(requested_yaw_rate, -max_yaw_rate, max_yaw_rate) * elapsed
 	var from := Vector3(car.x, car.y, car.z)
 	var to := from + Vector3(-sin(yaw), 0, -cos(yaw)) * speed * elapsed
 	var blocked := false

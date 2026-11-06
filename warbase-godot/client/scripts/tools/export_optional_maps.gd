@@ -2,9 +2,13 @@ extends SceneTree
 ## Preserve the full stadium atlas without putting it in the initial web pack.
 func _initialize() -> void: call_deferred("run")
 func run() -> void:
+	var directory := ProjectSettings.globalize_path("res://candidate-web-dist")
+	for argument in OS.get_cmdline_user_args():
+		if argument.begins_with("output="): directory = argument.trim_prefix("output=")
+	if DirAccess.make_dir_recursive_absolute(directory) != OK: quit(1); return
 	var packer := PCKPacker.new()
 	var uids := {}
-	var temporary := ProjectSettings.globalize_path("res://dist/football.pck")
+	var temporary := directory.path_join("football.pck")
 	if packer.pck_start(temporary) != OK: quit(1); return
 	for source in ["res://assets/maps/football.glb", "res://assets/maps/football_0.png"]:
 		var config := ConfigFile.new()
@@ -18,12 +22,12 @@ func run() -> void:
 	if packer.flush() != OK: quit(1); return
 	var hash := FileAccess.get_sha256(temporary)
 	var filename := "map-football-" + hash.left(16) + ".pck"
-	var destination := ProjectSettings.globalize_path("res://dist/" + filename)
+	var destination := directory.path_join(filename)
 	if FileAccess.file_exists(destination): DirAccess.remove_absolute(temporary)
 	else: DirAccess.rename_absolute(temporary, destination)
 	var file := FileAccess.open(destination, FileAccess.READ)
 	var manifest := {"football":{"file":filename, "sha256":hash, "bytes":file.get_length(), "uids":uids}}
-	var output := FileAccess.open("res://dist/optional-maps.json", FileAccess.WRITE)
+	var output := FileAccess.open(directory.path_join("optional-maps.json"), FileAccess.WRITE)
 	output.store_string(JSON.stringify(manifest))
 	print("OPTIONAL MAP PACK: ", filename, " bytes=",file.get_length())
 	quit()

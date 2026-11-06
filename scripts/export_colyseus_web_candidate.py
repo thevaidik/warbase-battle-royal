@@ -15,6 +15,7 @@ import subprocess
 import sys
 import tempfile
 
+from optional_map_assets import optional_map_assets
 from map_integrity_gate import ensure_map_integrity, verify_map_pack
 from client_provenance import parse_pack_paths, WEB_EXPORT_ASSETS, artifact_records, client_fingerprint, make_provenance
 
@@ -160,11 +161,17 @@ def main() -> int:
             raise SystemExit("Candidate export omitted the external Colyseus Web extension library")
         if exported_library.read_bytes() != SDK_WASM.read_bytes():
             raise SystemExit("Candidate extension library does not match the pinned SDK wasm")
+        optional = subprocess.run([str(godot), "--headless", "--path", str(CLIENT),
+            "--log-file", str(log_path), "--script", "res://scripts/tools/export_optional_maps.gd", "--", "output=" + str(output)],
+            capture_output=True, text=True, timeout=args.timeout)
+        if optional.returncode or "SCRIPT ERROR" in optional.stdout + optional.stderr:
+            raise SystemExit("Stadium pack export failed: " + optional.stdout + optional.stderr)
+        map_assets = optional_map_assets(output)
         if client_fingerprint(CLIENT) != export_fingerprint:
             raise SystemExit("Client source changed while the export was running; discard it and export again")
         sdk_version = json.loads((CLIENT / "addons/colyseus/version.json").read_text())["version"]
         provenance = make_provenance(CLIENT, version_match.group(1), str(sdk_version))
-        provenance["artifacts"] = artifact_records(output, ["index.html", *WEB_EXPORT_ASSETS])
+        provenance["artifacts"] = artifact_records(output, ["index.html", *WEB_EXPORT_ASSETS, *map_assets])
         (output / "client-provenance.json").write_text(json.dumps(provenance, indent=2) + "\n")
         print(f"COLYSEUS_WEB_CANDIDATE_OK: Godot {version_match.group(1)}, dlink template, {len(paths)} PCK resources; exact SDK wasm ({exported_library.stat().st_size} bytes), side module ({side_wasm_path.stat().st_size} bytes)")
         print(f"Candidate: {output}")
