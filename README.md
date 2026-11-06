@@ -77,3 +77,5 @@ The [state-processing and coordinated-load follow-up](audit/state-optimization-2
 The latest [five-track optimization report](audit/protocol7-optimization-2026-11-06/REPORT.md) covers deployed protocol 7, smaller steady-state patches, StateView presentation relevance, collision/prediction work, SDK room ownership fixes and measured full-room limits. Native SDK binaries and WASM remain official; the pinned GDScript wrapper compatibility patch is documented in [patches](patches/README.md).
 
 The [rugged cyberpunk UI update](audit/cyber-ui-2026-11-06/README.md) documents the shared lobby/HUD visual system, desktop and compact previews, and UI verification.
+
+The [map collision and lobby correction](audit/map-lobby-repair-2026-11-06/REPORT.md) removes Desert Oasis hidden boundaries and embedded spawns, replaces Canyon’s Industrial alias, and simplifies the online lobby with left navigation and separate match/map labels. Matched map-data clients use protocol 8.

@@ -7,7 +7,7 @@ func check(ok: bool, message: String) -> void:
 	if not ok: failures += 1
 	print("PASS: " if ok else "FAIL: ", message)
 func run() -> void:
-	for map_id in ["industrial", "dust2", "nuketown", "canyon"]:
+	for map_id in ["industrial", "dust2", "nuketown"]:
 		var builder = load("res://scripts/maps/MapBuilder.gd").new()
 		root.add_child(builder)
 		builder.build(map_id)

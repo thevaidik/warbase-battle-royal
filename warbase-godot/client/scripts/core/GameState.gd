@@ -86,7 +86,7 @@ var server_host := "war.vaidik.blog"
 var selected_map := "industrial"
 var selected_mode := "FFA"
 var selected_time := "noon"
-const TIMES := {"dawn":"DAWN · 06:00", "noon":"NOON · 12:00", "dusk":"DUSK · 18:00", "overcast":"OVERCAST · 14:00"}
+const TIMES := {"dawn":"DAWN", "noon":"NOON", "dusk":"DUSK", "overcast":"OVERCAST"}
 
 func time_label(id: String) -> String:
 	return String(TIMES.get("overcast" if id == "night" else id, TIMES["noon"]))

@@ -5,7 +5,12 @@ func _initialize() -> void:
 	call_deferred("run")
 func run() -> void:
 	var output := {}
-	for map_id in MAPS:
+	var selected: Array = Array(MAPS)
+	for arg in OS.get_cmdline_user_args():
+		if arg.begins_with("maps="): selected = Array(arg.trim_prefix("maps=").split(","))
+	for id in selected:
+		if not MAPS.has(id): push_error("Unsupported map: " + str(id)); quit(1); return
+	for map_id in selected:
 		var builder = load("res://scripts/maps/MapBuilder.gd").new()
 		root.add_child(builder)
 		var spawns: Array[Vector3] = builder.build(map_id)

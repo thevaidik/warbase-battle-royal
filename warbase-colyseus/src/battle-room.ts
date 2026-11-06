@@ -171,7 +171,7 @@ export class BattleRoom extends Room<{ state: BattleState; input: MoveInput }> {
     this.grenadeSimulation = new GrenadeSimulation(geometry);
     this.vehicleSimulation = new VehicleSimulation(geometry);
     this.botSimulation = new BotSimulation(geometry);
-    this.setMetadata({ id: this.roomId, room: requested, name: String(options.name ?? `${map} ${requestedMode}`), map, mode: requestedMode, timeOfDay, playerCount: 0, botCount: 0, capacity: this.maxClients });
+    this.setMetadata({ id: this.roomId, room: requested, name: (requested === `${map}-public` ? "Public Conquest" : String(options.name ?? "Custom Match")), map, mode: requestedMode, timeOfDay, playerCount: 0, botCount: 0, capacity: this.maxClients });
     this.rewind = this.allowRewindState({ maxRewindMs: 400 });
     this.state.room_mode = requestedMode;
     if (requestedMode === 'CONQUEST') {
@@ -181,7 +181,7 @@ export class BattleRoom extends Room<{ state: BattleState; input: MoveInput }> {
     this.state.map_name = map;
     this.state.time_of_day = timeOfDay;
     this.syncVehiclesToSchema();
-    activeRooms.set(this.roomId, { id: this.roomId, room: requested, name: String(options.name ?? `${map} ${requestedMode}`), map, mode: requestedMode, timeOfDay, clients: 0, bots: 0, maxClients: this.maxClients });
+    activeRooms.set(this.roomId, { id: this.roomId, room: requested, name: (requested === `${map}-public` ? "Public Conquest" : String(options.name ?? "Custom Match")), map, mode: requestedMode, timeOfDay, clients: 0, bots: 0, maxClients: this.maxClients });
     this.patchRate = 50;
     this.rewind.attachAll(this.state.players, { fields: ['x', 'y', 'z', 'qx', 'qy', 'qz', 'qw'], mode: 'snapshot', interpolate: 'linear' });
     this.rewind.attachAll(this.state.players, { fields: ['animation_code', 'animation_time', 'health'], mode: 'snapshot', interpolate: 'step' });

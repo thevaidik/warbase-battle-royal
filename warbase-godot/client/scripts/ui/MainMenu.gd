@@ -13,8 +13,6 @@ var rooms_box: VBoxContainer
 var refresh_btn: Button
 var selected_server_label: Label
 var join_btn: Button
-var drawer_panel: PanelContainer
-var drawer_title: Label
 var drawer_content: VBoxContainer
 var tab_buttons: Dictionary = {}
 var loadout_menu: Control
@@ -46,11 +44,10 @@ var _pages: Control
 var _home_page: VBoxContainer
 var _operator_page: Control
 var _settings_page: PanelContainer
-var _practice: CheckButton
 var create_time_id := "noon"
 const PLAYABLE_MAPS := ["football", "resoforge", "industrial", "village", "arena", "shipment", "dust2", "nuketown", "canyon", "desert_oasis"]
-const MAP_NAMES := {"football":"Football Stadium", "resoforge":"ResoForge Yard", "industrial":"Industrial zone", "village":"Village outpost", "arena":"Combat arena", "shipment":"Shipment", "dust2":"Industrial recon", "canyon":"Canyon", "desert_oasis":"Desert oasis", "nuketown":"Industrial outpost"}
-const MAP_DESCRIPTIONS := {"football":"Pitch, entrances and wide concourses. Source: kyrox.", "resoforge":"Layered cover. Flanking lanes. Map by ResoForge · CC BY 4.0.", "industrial":"Warehouses. Long sightlines. Close encounters.", "village":"Rural lanes and open ground. Choose your approach.", "arena":"Fast rotations through a compact combat arena.", "shipment":"Tight container lanes. Every corner counts."}
+const MAP_NAMES := {"football":"Football Stadium", "resoforge":"ResoForge Yard", "industrial":"Industrial Zone", "village":"Village Outpost", "arena":"Combat Arena", "shipment":"Shipment", "dust2":"Industrial Recon", "canyon":"Canyon", "desert_oasis":"Desert Oasis", "nuketown":"Industrial Outpost"}
+const MAP_DESCRIPTIONS := {"football":"Pitch, entrances and wide concourses. Source: kyrox.", "resoforge":"Layered cover. Flanking lanes. Map by ResoForge · CC BY 4.0.", "industrial":"Warehouses. Long sightlines. Close encounters.", "village":"Rural lanes and open ground. Choose your approach.", "arena":"Fast rotations through a compact combat arena.", "shipment":"Tight container lanes. Every corner counts.", "canyon":"Sandstone cliffs. Open routes. Natural rock cover.", "desert_oasis":"Sunlit ruins. Palm groves. Open desert approaches."}
 
 func _ready() -> void:
 	_selected_room_id = GameState.room_id
@@ -138,9 +135,15 @@ func build_lobby() -> void:
 	main_layout.add_theme_constant_override("separation", 18)
 	outer.add_child(main_layout)
 	_build_header(main_layout)
+	var shell := HBoxContainer.new()
+	shell.add_theme_constant_override("separation", 24)
+	shell.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	main_layout.add_child(shell)
+	_build_navigation(shell)
 	_pages = Control.new()
+	_pages.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_pages.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	main_layout.add_child(_pages)
+	shell.add_child(_pages)
 	_home_page = VBoxContainer.new()
 	_home_page.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_home_page.add_theme_constant_override("separation", 18)
@@ -150,7 +153,6 @@ func build_lobby() -> void:
 	_workspace.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_home_page.add_child(_workspace)
 	_build_center_servers(_workspace)
-	_build_feature_drawer(_workspace)
 	_build_bottom_bar(_home_page)
 	loadout_menu = preload("res://scripts/ui/LoadoutMenu.gd").new()
 	_pages.add_child(loadout_menu)
@@ -176,19 +178,6 @@ func _build_header(parent: VBoxContainer) -> void:
 	brand.add_child(_mk_label("WARBASE", 34, WarUI.TEXT))
 	brand.add_child(_mk_label("WB / TACTICAL OPERATIONS", 11, WarUI.CYAN))
 	header.add_child(brand)
-	var separator := VSeparator.new()
-	header.add_child(separator)
-	var navigation := HBoxContainer.new()
-	navigation.add_theme_constant_override("separation", 6)
-	header.add_child(navigation)
-	for item in [[FeatureTab.HOME,"HOME"], [FeatureTab.LOADOUT,"LOADOUT"], [FeatureTab.OPERATOR,"OPERATOR"], [FeatureTab.SETTINGS,"SETTINGS"]]:
-		var tab: int = item[0]
-		var button := _button(item[1], func() -> void:
-			_switch_tab(tab)
-		)
-		button.custom_minimum_size = Vector2(98, 44)
-		navigation.add_child(button)
-		tab_buttons[tab] = button
 	header.add_spacer(false)
 	var identity := VBoxContainer.new()
 	identity.add_theme_constant_override("separation", 4)
@@ -203,6 +192,22 @@ func _build_header(parent: VBoxContainer) -> void:
 	name_edit.text_changed.connect(func(text: String) -> void: GameState.username = text.to_upper())
 	identity.add_child(name_edit)
 	header.add_child(identity)
+
+func _build_navigation(parent: HBoxContainer) -> void:
+	var rail := VBoxContainer.new()
+	rail.custom_minimum_size.x = 162
+	rail.add_theme_constant_override("separation", 8)
+	parent.add_child(rail)
+	rail.add_child(_mk_label("OPERATIONS", 11, WarUI.CYAN))
+	for item in [[FeatureTab.HOME,"HOME"], [FeatureTab.LOADOUT,"LOADOUT"], [FeatureTab.OPERATOR,"OPERATOR"], [FeatureTab.SETTINGS,"SETTINGS"]]:
+		var tab: int = item[0]
+		var button := _button(item[1], func() -> void: _switch_tab(tab))
+		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		button.custom_minimum_size = Vector2(162, 52)
+		rail.add_child(button)
+		tab_buttons[tab] = button
+	rail.add_spacer(false)
+	rail.add_child(_mk_label("WARBASE / ONLINE", 11, WarUI.MUTED))
 
 func _build_center_servers(parent: HBoxContainer) -> void:
 	var column := VBoxContainer.new()
@@ -273,26 +278,6 @@ func _build_center_servers(parent: HBoxContainer) -> void:
 	rooms_box.add_theme_constant_override("separation", 8)
 	scroll.add_child(rooms_box)
 
-func _build_feature_drawer(parent: HBoxContainer) -> void:
-	drawer_panel = PanelContainer.new()
-	drawer_panel.custom_minimum_size.x = 330
-	drawer_panel.add_theme_stylebox_override("panel", WarUI.panel(WarUI.PANEL, WarUI.LINE, 20))
-	parent.add_child(drawer_panel)
-	var column := VBoxContainer.new()
-	column.add_theme_constant_override("separation", 16)
-	drawer_panel.add_child(column)
-	WarUI.decorate(drawer_panel, WarUI.CYAN)
-	drawer_title = _mk_label("YOUR LOADOUT", 12, WarUI.CYAN)
-	column.add_child(drawer_title)
-	var scroll := ScrollContainer.new()
-	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	column.add_child(scroll)
-	drawer_content = VBoxContainer.new()
-	drawer_content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	drawer_content.add_theme_constant_override("separation", 12)
-	scroll.add_child(drawer_content)
-
 func _switch_tab(tab: int) -> void:
 	current_tab = tab
 	_home_page.visible = tab == FeatureTab.HOME
@@ -314,36 +299,8 @@ func _switch_tab(tab: int) -> void:
 		_settings_page.add_child(scroll)
 		settings.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		scroll.add_child(settings)
-		var home_drawer := drawer_content
 		drawer_content = settings
 		_build_settings_content()
-		drawer_content = home_drawer
-	_populate_drawer()
-
-func _populate_drawer() -> void:
-	for child in drawer_content.get_children():
-		drawer_content.remove_child(child)
-		child.queue_free()
-	drawer_title.text = "FIELD KIT  /  EQUIPPED"
-	_build_loadout_content()
-
-func _build_loadout_content() -> void:
-	drawer_content.add_child(_mk_label("READY FOR CONTACT", 28))
-	for entry in [["PRIMARY", GameState.selected_primary], ["SECONDARY", GameState.selected_secondary]]:
-		drawer_content.add_child(_mk_label(entry[0], 12, WarUI.ACCENT))
-		var config: Dictionary = GameState.WEAPONS[GameState.weapon_index_for_id(entry[1])]
-		drawer_content.add_child(_mk_label(config["name"], 21))
-		drawer_content.add_child(_mk_label("%d RPM  /  %d ROUNDS" % [config["fire_rate"], config["mag_size"]], 12, WarUI.MUTED))
-		drawer_content.add_child(HSeparator.new())
-	drawer_content.add_child(_mk_label("THROWABLE", 12, WarUI.ACCENT))
-	drawer_content.add_child(_mk_label(GameState.THROWABLES[GameState.selected_throwable]["name"], 18))
-	var customize := _button("CONFIGURE LOADOUT  ›", func() -> void: _switch_tab(FeatureTab.LOADOUT))
-	WarUI.primary(customize)
-	drawer_content.add_child(customize)
-	var note := _mk_label("Any weapon in either slot.
-[1] Primary  [2] Secondary  [G] Throwable", 13, WarUI.MUTED)
-	note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	drawer_content.add_child(note)
 
 func _mode_label(mode: String) -> String:
 	match mode:
@@ -415,13 +372,8 @@ func _build_bottom_bar(parent: VBoxContainer) -> void:
 	selection.add_child(selected_server_label)
 	selection.add_child(_mk_label("Online servers include AI and human players", 12, WarUI.MUTED))
 	footer.add_child(selection)
-	_practice = CheckButton.new()
-	_practice.text = "Offline"
-	_practice.tooltip_text = "Optional offline sandbox. Online servers already include AI."
-	_practice.toggled.connect(func(_on: bool) -> void: _update_footer_selection())
-	footer.add_child(_practice)
 	join_btn = _button("DEPLOY  ›", func() -> void:
-		GameState.practice_mode = _practice.button_pressed
+		GameState.practice_mode = false
 		deploy_requested.emit()
 	)
 	join_btn.custom_minimum_size = Vector2(206, 56)
@@ -431,7 +383,6 @@ func _build_bottom_bar(parent: VBoxContainer) -> void:
 func _on_window_resized() -> void:
 	if not is_instance_valid(root): return
 	var compact := root.get_viewport_rect().size.x < 1150
-	drawer_panel.custom_minimum_size.x = 290 if compact else 330
 	_hero_panel.custom_minimum_size.y = 220 if compact else 266
 	_hero_art.custom_minimum_size.y = 220 if compact else 266
 	if is_instance_valid(create_modal) and create_modal.visible:
@@ -464,14 +415,12 @@ func _render_servers() -> void:
 		var info := VBoxContainer.new()
 		info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		row.add_child(info)
-		var title := _mk_label(String(room.get("name", MAP_NAMES.get(map_id, map_id))), 15)
+		var title := _mk_label(String(room.get("name", "Public Conquest")), 15)
 		title.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 		info.add_child(title)
-		info.add_child(_mk_label(_mode_label(String(room.get("mode", "FFA"))) + "  •  " + GameState.time_label(String(room.get("timeOfDay", "noon"))), 12, WarUI.MUTED))
+		info.add_child(_mk_label(String(MAP_NAMES.get(map_id, map_id)), 13, WarUI.MUTED))
 		var count := int(room.get("playerCount", 0))
-		var bot_count := int(room.get("botCount", 0))
-		var service_online: bool = _server_online or (_lobby_adapter != null and _lobby_adapter.available)
-		var occupancy := _mk_label(("%d PLAYERS / %d AI" % [count, bot_count] if count > 0 else "AI FILL READY") if service_online else "PRACTICE", 13, WarUI.ACCENT if selected else WarUI.MUTED)
+		var occupancy := _mk_label("%d / %d" % [count, int(room.get("capacity", 64))], 13, WarUI.ACCENT if selected else WarUI.MUTED)
 		occupancy.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		row.add_child(occupancy)
 		_make_interactive(card)
@@ -498,11 +447,11 @@ func _update_footer_selection() -> void:
 	_hero_title.text = String(MAP_NAMES.get(map_id, map_id)).to_upper()
 	_hero_description.text = String(MAP_DESCRIPTIONS.get(map_id, "Find your angle. Control the encounter."))
 	_hero_image.texture = _map_texture(map_id)
-	_hero_mode.text = _mode_label(GameState.selected_mode) + "  •  " + GameState.time_label(GameState.selected_time)
+	_hero_mode.text = _mode_label(GameState.selected_mode)
 	selected_server_label.text = String(MAP_NAMES.get(map_id, map_id)) + "  /  " + GameState.selected_mode
-	join_btn.disabled = not _server_online and not (_lobby_adapter != null and _lobby_adapter.available) and not _practice.button_pressed
-	join_btn.text = "DEPLOY OFFLINE  ›" if _practice.button_pressed else "DEPLOY  ›"
-	join_btn.tooltip_text = "Connect to an available service, or choose offline practice." if not _server_online else "Join the selected match"
+	join_btn.disabled = not _server_online and not (_lobby_adapter != null and _lobby_adapter.available)
+	join_btn.text = "DEPLOY  ›"
+	join_btn.tooltip_text = "Waiting for the online service." if not _server_online else "Join the selected match"
 
 func _api_request(path: String, callback: Callable, method: int = HTTPClient.METHOD_GET, payload: String = "", auth_token: String = "") -> void:
 	var request := HTTPRequest.new()
@@ -541,7 +490,7 @@ func _api_request(path: String, callback: Callable, method: int = HTTPClient.MET
 func _probe_server() -> void:
 	_api_request("/healthcheck", func(code: int, _data: Variant) -> void:
 		_server_online = code == 200
-		status_pill.text = "LIVE LOBBY" if _lobby_adapter != null and _lobby_adapter.available else ("SERVICE ONLINE" if _server_online else "OFFLINE / PRACTICE READY")
+		status_pill.text = "LIVE LOBBY" if _lobby_adapter != null and _lobby_adapter.available else ("SERVICE ONLINE" if _server_online else "SERVICE UNAVAILABLE")
 		status_pill.tooltip_text = GameState.server_host
 		status_pill.add_theme_color_override("font_color", WarUI.SUCCESS if _server_online or (_lobby_adapter != null and _lobby_adapter.available) else WarUI.MUTED)
 		_update_footer_selection()
@@ -562,7 +511,7 @@ func refresh_rooms() -> void:
 		_server_list = _server_list.filter(func(room: Dictionary) -> bool: return room.get("map", "") in PLAYABLE_MAPS)
 		if _server_list.is_empty():
 			for id in PLAYABLE_MAPS:
-				_server_list.append({"id":id + "-public", "name":MAP_NAMES[id], "map":id, "mode":"CONQUEST", "timeOfDay":"dusk", "playerCount":0, "botCount":0, "capacity":64})
+				_server_list.append({"id":id + "-public", "name":"Public Conquest", "map":id, "mode":"CONQUEST", "timeOfDay":"dusk", "playerCount":0, "botCount":0, "capacity":64})
 		for room in _server_list:
 			if String(room.get("id", "")) == GameState.room_id:
 				GameState.selected_mode = String(room.get("mode", "FFA"))
@@ -579,7 +528,7 @@ func _on_lobby_availability(is_available: bool) -> void:
 	else:
 		_live_room_cache.clear()
 		_server_list.clear()
-		status_pill.text = "SERVICE ONLINE" if _server_online else "OFFLINE / PRACTICE READY"
+		status_pill.text = "SERVICE ONLINE" if _server_online else "SERVICE UNAVAILABLE"
 		refresh_rooms()
 		_render_http_fallback()
 	_update_footer_selection()
@@ -617,7 +566,7 @@ func _compose_live_rooms() -> Array:
 		var logical_id: String = String(map_id) + "-public"
 		var live_entry: Dictionary = _live_room_cache.get(logical_id, {})
 		var metadata: Dictionary = live_entry.get("metadata", {}) if live_entry.get("metadata", {}) is Dictionary else {}
-		var preset := {"id": logical_id, "name": MAP_NAMES[map_id], "map": map_id, "mode": "CONQUEST", "timeOfDay": "dusk", "playerCount": 0, "botCount": 0, "capacity": 64}
+		var preset := {"id": logical_id, "name": "Public Conquest", "map": map_id, "mode": "CONQUEST", "timeOfDay": "dusk", "playerCount": 0, "botCount": 0, "capacity": 64}
 		if not live_entry.is_empty():
 			preset.merge(_listing_entry(live_entry, metadata, logical_id), true)
 		rooms.append(preset)
@@ -650,7 +599,7 @@ func _render_http_fallback() -> void:
 		return
 	if _server_list.is_empty():
 		for id in PLAYABLE_MAPS:
-			_server_list.append({"id":id + "-public", "name":MAP_NAMES[id], "map":id, "mode":"CONQUEST", "timeOfDay":"dusk"})
+			_server_list.append({"id":id + "-public", "name":"Public Conquest", "map":id, "mode":"CONQUEST", "timeOfDay":"dusk"})
 	_update_footer_selection()
 	_render_servers()
 
@@ -741,7 +690,7 @@ func _build_create_server_modal() -> void:
 	# Map Selection
 	mv.add_child(_mk_label("CHOOSE YOUR MAP", 10, Color(0.60, 0.68, 0.78)))
 	var maps := []
-	for id in PLAYABLE_MAPS: maps.append({"id":id,"name":MAP_NAMES[id].to_upper()})
+	for id in PLAYABLE_MAPS: maps.append({"id":id,"name":"Public Conquest".to_upper()})
 	var map_grid := GridContainer.new()
 	map_grid.columns = 2
 	map_grid.add_theme_constant_override("separation", 5)

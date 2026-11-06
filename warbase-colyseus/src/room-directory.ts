@@ -1,10 +1,10 @@
 import { query } from '@colyseus/core/MatchMaker';
 import { PLAYABLE_MAPS } from './world-geometry.js';
 
-const names: Record<string, string> = {
-  industrial: 'Industrial Zone (Public)', resoforge: 'ResoForge Yard (Public)', football: 'Football Stadium (Public)',
-  village: 'Village Outpost (Public)', arena: 'Game Arena (Public)', shipment: 'Shipment (Public)',
-  dust2: 'Industrial Recon (Public)', canyon: 'Canyon (Public)', desert_oasis: 'Desert Oasis (Public)', nuketown: 'Industrial Outpost (Public)',
+export const OFFICIAL_MAP_NAMES: Record<string, string> = {
+  industrial: 'Industrial Zone', resoforge: 'ResoForge Yard', football: 'Football Stadium',
+  village: 'Village Outpost', arena: 'Combat Arena', shipment: 'Shipment',
+  dust2: 'Industrial Recon', canyon: 'Canyon', desert_oasis: 'Desert Oasis', nuketown: 'Industrial Outpost',
 };
 
 /** Read the framework driver, so HTTP fallback and realtime lobby agree even
@@ -23,11 +23,11 @@ export function buildRoomDirectory(live: Awaited<ReturnType<typeof listLiveBattl
   const defaults = PLAYABLE_MAPS.map(map => {
     const id = `${map}-public`;
     const room = live.find(item => item.room === id);
-    return { id, name: room?.name ?? names[map], map, mode: 'CONQUEST', playerCount: room?.clients ?? 0,
+    return { id, name: room?.name ?? 'Public Conquest', map, mapName: OFFICIAL_MAP_NAMES[map], mode: 'CONQUEST', playerCount: room?.clients ?? 0,
       botCount: room?.bots ?? 0, capacity: 64, timeOfDay: room?.timeOfDay ?? 'dusk' };
   });
   const custom = live.filter(room => !PLAYABLE_MAPS.some(map => room.room === `${map}-public`)).map(room => ({
-    id: room.room, name: room.name, map: room.map, mode: room.mode, playerCount: room.clients,
+    id: room.room, name: room.name, map: room.map, mapName: OFFICIAL_MAP_NAMES[room.map], mode: room.mode, playerCount: room.clients,
     botCount: room.bots, capacity: room.maxClients, timeOfDay: room.timeOfDay,
   }));
   const rooms = [...defaults, ...custom].sort((a, b) => b.playerCount - a.playerCount || a.name.localeCompare(b.name));

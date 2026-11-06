@@ -363,7 +363,7 @@ async function main() {
     cohortNames.add(gateUsername);
     const gateStats = commonCounters();
     const gateStarted = Date.now();
-    const gateRoomPromise = sdkClient.joinOrCreate('battle', { protocol_version: 7, room: roomId, username: gateUsername, map: options.map, mode: options.mode, time_of_day: 'noon' });
+    const gateRoomPromise = sdkClient.joinOrCreate('battle', { protocol_version: 8, room: roomId, username: gateUsername, map: options.map, mode: options.mode, time_of_day: 'noon' });
     gate = await withTimeout(gateRoomPromise, JOIN_TIMEOUT_MS, (lateRoom) => { void lateRoom.leave(); });
     roomHandles.push(gate);
     gateStats.joinMs = Date.now() - gateStarted;
@@ -427,7 +427,7 @@ async function main() {
         cohortNames.add(username);
         const stats = commonCounters();
         const joiningAt = Date.now();
-        const pending = admittedClients[index].joinOrCreate('battle', { protocol_version: 7, room: roomId, username, map: options.map, mode: options.mode, time_of_day: 'noon' });
+        const pending = admittedClients[index].joinOrCreate('battle', { protocol_version: 8, room: roomId, username, map: options.map, mode: options.mode, time_of_day: 'noon' });
         batch.push(withTimeout(pending, JOIN_TIMEOUT_MS, (lateRoom) => { void lateRoom.leave(); }).then((room) => ({ room, username, index, stats, joinMs: Date.now() - joiningAt }), (error) => ({ error, username, index, stats })));
       }
       const joined = await Promise.all(batch);

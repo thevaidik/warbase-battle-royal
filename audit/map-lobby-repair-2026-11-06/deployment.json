@@ -1,0 +1,7 @@
+{
+  "image": "warbase-colyseus:map-lobby-fix-20261106",
+  "gameProtocol": 8,
+  "sourceFingerprint": "b9444043abbdb293ae82836df4409eea41b3f5808f3ed8a8cdafafef03d1f461",
+  "publicManifestVerified": true,
+  "matchedNativeWeb": true
+}

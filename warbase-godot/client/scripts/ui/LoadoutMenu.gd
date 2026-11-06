@@ -10,6 +10,7 @@ var _details: Label
 var _preview: SubViewport
 var _model_root: Node3D
 var _preview_model: Node3D
+var _preview_panel: PanelContainer
 
 func _ready() -> void:
 	theme = WarUI.theme()
@@ -49,6 +50,7 @@ func _ready() -> void:
 	_catalog.add_theme_constant_override("v_separation", 12)
 	scroll.add_child(_catalog)
 	var panel := PanelContainer.new()
+	_preview_panel = panel
 	panel.custom_minimum_size.x = 300
 	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	panel.size_flags_stretch_ratio = 0.7
@@ -93,6 +95,8 @@ func _ready() -> void:
 	_details = _label("", 14, WarUI.MUTED)
 	_details.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	info.add_child(_details)
+	resized.connect(_fit_layout)
+	_fit_layout()
 	_refresh()
 	visible = false
 
@@ -198,3 +202,8 @@ func _update_preview(id: String) -> void:
 		_title.text = config["name"]
 		_details.text = "%d rounds • %.1fs reload\n%d RPM • %s" % [config["mag_size"], config["reload_time"], config["fire_rate"], "Automatic" if config["is_auto"] else "Semi-automatic"]
 	_model_root.add_child(_preview_model)
+
+func _fit_layout() -> void:
+	if not is_instance_valid(_catalog): return
+	_catalog.columns = 1 if size.x < 880 else 2
+	_preview_panel.custom_minimum_size.x = 240 if size.x < 880 else 300

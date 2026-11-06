@@ -11,6 +11,7 @@ import time
 root = pathlib.Path(__file__).resolve().parents[1]
 godot = os.environ.get("GODOT", "/Applications/Godot.app/Contents/MacOS/Godot")
 commands = [
+    (["--script", "res://scripts/tests/test_desert_canyon_collision.gd", "--fixed-fps", "60"], "DESERT CANYON COLLISION TEST: 0 failures"),
     (["res://scenes/tests/SDKRoomOwnership.tscn"], "SDK_ROOM_OWNERSHIP_OK failures=0"),
     (["res://scenes/tests/SchemaSnapshot.tscn"], "SCHEMA_SNAPSHOT parity=64"),
     (["res://scenes/tests/WorldGeometryPrecomputed.tscn"], "WORLD_GEOMETRY_PRECOMPUTED"),

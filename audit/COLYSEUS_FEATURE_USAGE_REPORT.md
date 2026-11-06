@@ -1,6 +1,10 @@
 # Colyseus gameplay and networking feature audit
 
-## Latest follow-up — protocol 7 and five optimization tracks
+## Latest follow-up — map correctness and lobby layout
+
+The deployed `warbase-colyseus:map-lobby-fix-20261106` matched protocol-8 release repairs Desert Oasis hidden boundaries/embedded spawns and Canyon’s Industrial asset alias. It also simplifies the online lobby with left navigation and separate match/map names. The protocol change prevents stale map-data clients from joining. See [verification and release evidence](map-lobby-repair-2026-11-06/REPORT.md). These fixes do not close the separately documented full-room performance gates.
+
+## Previous follow-up — protocol 7 and five optimization tracks
 
 The deployed release is `warbase-colyseus:wire7c-20261106`, with paired native/Web protocol-7 artifacts. Distributed load measurement, compact schema, presentation relevance, prediction/collision CPU work and reproduced room-ownership leak fixes are implemented. Full-room performance acceptance remains separate. See [measurements, tradeoffs and remaining gates](protocol7-optimization-2026-11-06/REPORT.md).
 

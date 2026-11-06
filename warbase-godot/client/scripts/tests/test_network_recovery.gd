@@ -24,7 +24,7 @@ func run() -> void:
 	var current := baseline + Vector3(0,0,-5)
 	main.player.global_position = current
 	var me := {"x":baseline.x,"y":baseline.y,"z":baseline.z,"health":100,"ammo":30,"weapon":"ak47","team":"A"}
-	var snapshot := {"protocol_version":7,"map_name":"industrial","players":{state.username:me},"vehicles":{},"time_of_day":"noon"}
+	var snapshot := {"protocol_version":8,"map_name":"industrial","players":{state.username:me},"vehicles":{},"time_of_day":"noon"}
 	main.player.is_dead = true
 	main.player.health = 0
 	main.phase = main.Phase.DEAD

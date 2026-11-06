@@ -307,6 +307,9 @@ func _theme_desert_oasis(inst: Node3D, _root: Node3D) -> void:
 	var sand := Color("c7a16c")
 	var stone := Color("a17e53")
 	_desert_piece(inst, "SandTerrain", Vector3(80, 1, 80), Vector3(0, -0.5, 0), sand)
+	for side in [-1.0, 1.0]:
+		_desert_piece(inst, "BoundaryRock", Vector3(80, 7, 2), Vector3(0, 3.5, side * 39), stone.darkened(0.1))
+		_desert_piece(inst, "BoundaryRock", Vector3(2, 7, 80), Vector3(side * 39, 3.5, 0), stone.darkened(0.1))
 	# Broken ruins make three routes through the centre, with gaps for flanking.
 	for side in [-1.0, 1.0]:
 		for z in [-10.0, 10.0]:
@@ -320,7 +323,7 @@ func _theme_desert_oasis(inst: Node3D, _root: Node3D) -> void:
 	for i in 12:
 		var angle := TAU * float(i) / 12.0
 		var at := Vector3(cos(angle) * 26, 1.8, sin(angle) * 26)
-		var rock := _desert_piece(inst, "SandstoneOutcrop", Vector3(4.5, 3.6, 3.8), at, stone.darkened(0.12))
+		var rock := _rock_piece(inst, "SandstoneOutcrop", Vector3(4.5, 3.6, 3.8), at, stone.darkened(0.12))
 		rock.rotation.y = angle
 	for at in [Vector3(-19, 0.6, -8), Vector3(19, 0.6, 8), Vector3(-3, 0.6, 16), Vector3(3, 0.6, -16)]:
 		_desert_piece(inst, "LowCover", Vector3(3.5, 1.2, 1.4), at, stone)
@@ -329,6 +332,62 @@ func _theme_desert_oasis(inst: Node3D, _root: Node3D) -> void:
 		for leaf in 5:
 			var foliage := _desert_piece(inst, "PalmFrond", Vector3(0.8, 0.18, 5), at + Vector3(0, 5.4, 0), Color("536c3e"))
 			foliage.rotation.y = TAU * float(leaf) / 5.0
+
+func _rock_piece(parent: Node3D, piece_name: String, dimensions: Vector3, at: Vector3, color: Color) -> MeshInstance3D:
+	# Low-poly faceted rock, authored with Godot's standard primitive/mesh APIs.
+	var source := SphereMesh.new()
+	source.radius = 1.0
+	source.height = 2.0
+	source.radial_segments = 9
+	source.rings = 4
+	var faces := source.get_faces()
+	var surface := SurfaceTool.new()
+	surface.begin(Mesh.PRIMITIVE_TRIANGLES)
+	for i in range(0, faces.size(), 3):
+		var triangle: Array[Vector3] = []
+		for j in 3:
+			var point: Vector3 = faces[i + j]
+			var roughness := 1.0 + 0.10 * sin(point.x * 13.0 + point.y * 7.0 + point.z * 11.0)
+			triangle.append(point * dimensions * 0.5 * roughness)
+		var normal := (triangle[1] - triangle[0]).cross(triangle[2] - triangle[0]).normalized()
+		if normal.dot((triangle[0] + triangle[1] + triangle[2]) / 3.0) < 0: normal = -normal
+		for point in triangle:
+			surface.set_normal(normal)
+			surface.add_vertex(point)
+	var rock := MeshInstance3D.new()
+	rock.name = piece_name
+	rock.mesh = surface.commit()
+	rock.position = at
+	var material := StandardMaterial3D.new()
+	material.albedo_color = color
+	material.roughness = 0.98
+	material.cull_mode = BaseMaterial3D.CULL_DISABLED
+	rock.material_override = material
+	parent.add_child(rock)
+	return rock
+
+func _theme_canyon(inst: Node3D) -> void:
+	var sand := Color("be9468")
+	var rock := Color("98674b")
+	_desert_piece(inst, "CanyonFloor", Vector3(96, 1, 96), Vector3(0, -0.5, 0), sand)
+	# Solid visible cliffs enclose the floor; no hidden perimeter bodies.
+	for side in [-1.0, 1.0]:
+		_desert_piece(inst, "VisibleRidgeBase", Vector3(96, 2, 4), Vector3(0, 1, side * 46), rock)
+		_desert_piece(inst, "VisibleRidgeBase", Vector3(4, 2, 96), Vector3(side * 46, 1, 0), rock)
+		for i in range(-4, 5):
+			var height := 10.0 + float(posmod(i * 7 + int(side), 5)) * 1.4
+			var tint := rock.lightened(float(posmod(i, 3)) * 0.055)
+			_rock_piece(inst, "CanyonCliff", Vector3(18, height, 14), Vector3(i * 10, height * 0.5, side * 44), tint)
+			_rock_piece(inst, "CanyonCliff", Vector3(14, height, 18), Vector3(side * 44, height * 0.5, i * 10), tint)
+	# A natural arch and irregular outcrops break up the central sightline.
+	for side in [-1.0, 1.0]:
+		_rock_piece(inst, "ArchSupport", Vector3(5, 6, 6), Vector3(side * 7, 3, 0), rock.lightened(0.12))
+	_rock_piece(inst, "NaturalArch", Vector3(19, 3, 5), Vector3(0, 6.2, 0), rock)
+	for at in [Vector3(-13, 2.5, -10), Vector3(13, 2.5, 10), Vector3(-16, 2.5, 16), Vector3(16, 2.5, -16)]:
+		var outcrop := _rock_piece(inst, "CanyonOutcrop", Vector3(5, 5, 7), at, rock.darkened(0.06))
+		outcrop.rotation.y = at.x * 0.08
+	for at in [Vector3(-5, 0.7, -22), Vector3(5, 0.7, 22), Vector3(-22, 0.7, -4), Vector3(22, 0.7, 4)]:
+		_desert_piece(inst, "CanyonLowCover", Vector3(3, 1.4, 2), at, rock.lightened(0.1))
 
 const MAP_GLBS := {
 	"industrial": "res://assets/maps/low_poly_industrial_zone.glb",
@@ -341,7 +400,7 @@ const MAP_GLBS := {
 	"nuketown": "res://assets/maps/low_poly_industrial_zone.glb",
 	"warzone": "res://assets/maps/low_poly_industrial_zone.glb",
 	"desert_road": "res://assets/maps/low_poly_industrial_zone.glb",
-	"canyon": "res://assets/maps/low_poly_industrial_zone.glb",
+	"canyon": "",
 	"desert_oasis": "", # Procedural desert arena, authored in metres.
 }
 
@@ -362,10 +421,10 @@ func build(map_name: String) -> Array[Vector3]:
 	
 	if MAP_GLBS.has(key):
 		var glb_path: String = MAP_GLBS[key]
-		var glb: PackedScene = null if key == "desert_oasis" else load(glb_path) as PackedScene
-		if glb or key == "desert_oasis":
-			var inst := Node3D.new() if key == "desert_oasis" else glb.instantiate() as Node3D
-			inst.name = "DesertOasis" if key == "desert_oasis" else "GLBMap"
+		var glb: PackedScene = null if key in ["desert_oasis", "canyon"] else load(glb_path) as PackedScene
+		if glb or key in ["desert_oasis", "canyon"]:
+			var inst := Node3D.new() if key in ["desert_oasis", "canyon"] else glb.instantiate() as Node3D
+			inst.name = "DesertOasis" if key == "desert_oasis" else "Canyon" if key == "canyon" else "GLBMap"
 			root.add_child(inst)
 			if key == "resoforge": inst.scale = Vector3.ONE * 3.0
 			
@@ -377,6 +436,8 @@ func build(map_name: String) -> Array[Vector3]:
 				_theme_village(inst)
 			elif key == "desert_oasis":
 				_theme_desert_oasis(inst, root)
+			elif key == "canyon":
+				_theme_canyon(inst)
 				
 			# Shipment has authored primitive collision, so avoid replacing it with a full trimesh.
 			if key != "shipment":
@@ -558,30 +619,21 @@ func build(map_name: String) -> Array[Vector3]:
 						Vector3(-22.0, 1.1, -5.0),
 					]
 				"canyon":
-					extent = 70.0
+					extent = 40.0
 					center = Vector3.ZERO
-					# The industrial asset has a visible perimeter fence with mesh collision.
-					# Extra square barriers cut across its playable roads and buildings.
-					_spawn_jeep(Vector3(-20.0, 0.5, 20.0), 0.0, root)
-					_spawn_jeep(Vector3(20.0, 0.5, 20.0), deg_to_rad(90.0), root)
+					_spawn_jeep(Vector3(-24.0, 0.5, 0.0), 0.0, root)
+					_spawn_jeep(Vector3(24.0, 0.5, 0.0), PI, root)
 					spawn_points = [
-						Vector3(-22.0, 1.3, -22.0),
-						Vector3(-22.0, 1.3, 0.0),
-						Vector3(-22.0, 1.3, 22.0),
-						Vector3(0.0, 1.3, -22.0),
-						Vector3(0.0, 1.3, 22.0),
-						Vector3(22.0, 1.3, -22.0),
-						Vector3(22.0, 1.3, 0.0),
-						Vector3(22.0, 1.3, 22.0),
-						Vector3(-12.0, 1.3, -12.0),
-						Vector3(12.0, 1.3, -12.0),
-						Vector3(-12.0, 1.3, 12.0),
-						Vector3(12.0, 1.3, 12.0),
+						Vector3(-28, 0.5, -28), Vector3(28, 0.5, 28),
+						Vector3(-28, 0.5, 28), Vector3(28, 0.5, -28),
+						Vector3(-28, 0.5, -14), Vector3(28, 0.5, 14),
+						Vector3(-28, 0.5, 14), Vector3(28, 0.5, -14),
+						Vector3(-14, 0.5, -28), Vector3(14, 0.5, 28),
+						Vector3(14, 0.5, -28), Vector3(-14, 0.5, 28),
 					]
 				"desert_oasis":
 					extent = 32.0
 					center = Vector3.ZERO
-					_add_perimeter_barriers(root, center, extent)
 					_spawn_jeep(Vector3(0.0, 0.5, -12.0), 0.0, root)
 					_spawn_jeep(Vector3(0.0, 0.5, 12.0), PI, root)
 					spawn_points = [
@@ -593,10 +645,10 @@ func build(map_name: String) -> Array[Vector3]:
 						Vector3(0.0, 0.5, -18.0),
 						Vector3(18.0, 0.5, 0.0),
 						Vector3(-20.0, 0.5, 0.0),
-						Vector3(-8.0, 0.5, -10.0),
-						Vector3(8.0, 0.5, -8.0),
-						Vector3(-8.0, 0.5, 10.0),
-						Vector3(8.0, 0.5, 8.0),
+						Vector3(-12.0, 0.5, -18.0),
+						Vector3(12.0, 0.5, -18.0),
+						Vector3(-12.0, 0.5, 18.0),
+						Vector3(12.0, 0.5, 18.0),
 					]
 	_build_sky(root, key)
 	apply_time_of_day(GameState.selected_time)
