@@ -1,6 +1,10 @@
 # Colyseus gameplay and networking feature audit
 
-## Latest follow-up — map correctness and lobby layout
+## Latest follow-up — all-map integrity release gate
+
+The deployed `warbase-colyseus:all-map-guard-20261106` protocol-9 all-map repair removes remaining synthetic boundaries, corrects authored spawn markers, replaces misplaced Village prop proxies with visible scene geometry, and adds server-authoritative void recovery. Native/Web exports require the new physics/data/content gate. See [all-map verification and costs](all-map-integrity-2026-11-06/REPORT.md). Full-room FPS/network acceptance remains a separate open gate.
+
+## Previous follow-up — map correctness and lobby layout
 
 The deployed `warbase-colyseus:map-lobby-fix-20261106` matched protocol-8 release repairs Desert Oasis hidden boundaries/embedded spawns and Canyon’s Industrial asset alias. It also simplifies the online lobby with left navigation and separate match/map names. The protocol change prevents stale map-data clients from joining. See [verification and release evidence](map-lobby-repair-2026-11-06/REPORT.md). These fixes do not close the separately documented full-room performance gates.
 

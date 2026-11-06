@@ -185,6 +185,7 @@ export class BattleRoom extends Room<{ state: BattleState; input: MoveInput }> {
     this.patchRate = 50;
     this.rewind.attachAll(this.state.players, { fields: ['x', 'y', 'z', 'qx', 'qy', 'qz', 'qw'], mode: 'snapshot', interpolate: 'linear' });
     this.rewind.attachAll(this.state.players, { fields: ['animation_code', 'animation_time', 'health'], mode: 'snapshot', interpolate: 'step' });
+    const voidLimit = geometry.name === "canyon" ? -119 : -14;
     let fixedTick = 0;
     let lastTickStartedAt = 0;
     this.setFixedTimestep((ctx) => {
@@ -245,6 +246,11 @@ export class BattleRoom extends Room<{ state: BattleState; input: MoveInput }> {
       }
       if (this.vehicleSimulation.needsStep) this.stepVehicles(ctx.dt);
       if (this.botSimulation.hasBots) this.stepBots(ctx.dt);
+      // The native safety floor is below the playable world. Authority must
+      // finish the fall through the existing death/respawn lifecycle.
+      for (const actor of this.state.players.values()) {
+        if (!actor.is_dead && actor.y < voidLimit) this.killPlayer(undefined, actor);
+      }
       if (this.grenadeSimulation.hasGrenades) this.stepGrenades(ctx.dt);
       if (this.state.room_mode === 'CONQUEST' && this.state.room_state === 'active') this.stepConquestMode(ctx.dt);
       // Simulation remains 60 Hz; replicated schema patches are capped at 20 Hz.

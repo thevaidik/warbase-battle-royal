@@ -1,8 +1,12 @@
 class_name WarMapDownload
 extends RefCounted
+const BUILDER = preload("res://scripts/maps/MapBuilder.gd")
 ## Optional content is fetched only before joining its map; native builds include it.
 static func ensure_loaded(parent: Node, map_id: String, progress: Callable) -> bool:
-	if not OS.has_feature("web") or map_id != "football": return true
+	if not BUILDER.MAP_GLBS.has(map_id): return false
+	if not OS.has_feature("web") or map_id != "football":
+		var asset: String = BUILDER.MAP_GLBS[map_id]
+		return asset.is_empty() or ResourceLoader.exists(asset)
 	if ResourceLoader.exists("res://assets/maps/football.glb"): return true
 	var base := str(JavaScriptBridge.eval("window.location.href.split('#')[0].split('?')[0].replace(/[^/]*$/, '')"))
 	progress.call("Checking Stadium download…")

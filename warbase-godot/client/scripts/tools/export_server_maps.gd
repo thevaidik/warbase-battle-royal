@@ -34,7 +34,7 @@ func run() -> void:
 		return
 	file.store_string(JSON.stringify(output))
 	quit()
-func collect(node: Node, triangles: Array) -> void:
+static func collect(node: Node, triangles: Array) -> void:
 	if node is CollisionShape3D and not node.disabled and node.get_parent() is StaticBody3D:
 		var shape: Shape3D = node.shape
 		var faces := PackedVector3Array()

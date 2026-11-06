@@ -15,7 +15,8 @@ import tempfile
 import zipfile
 import struct
 
-from client_provenance import artifact_records, client_fingerprint, make_provenance
+from map_integrity_gate import ensure_map_integrity, verify_map_pack
+from client_provenance import parse_pack_paths_bytes, artifact_records, client_fingerprint, make_provenance
 
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
@@ -145,6 +146,7 @@ def main() -> int:
     output = choose_output(args.output)
     output.parent.mkdir(parents=True, exist_ok=True)
     provenance_path = output.with_name("client-provenance.json")
+    ensure_map_integrity(ROOT, godot)
     export_fingerprint = client_fingerprint(CLIENT)
     command = [str(godot), "--headless", "--path", str(CLIENT), "--export-release", PRESET, str(output)]
     process: subprocess.Popen[str] | None = None
@@ -163,6 +165,10 @@ def main() -> int:
         if not output.is_file() or output.stat().st_size == 0:
             raise SystemExit(f"Candidate export is missing or empty: {output}")
         with zipfile.ZipFile(output) as archive:
+            packs = [name for name in archive.namelist() if name.endswith(".pck")]
+            if len(packs) != 1:
+                raise SystemExit("Native archive must contain one game pack")
+            verify_map_pack(parse_pack_paths_bytes(archive.read(packs[0])), include_football=True)
             sdk_members = [name for name in archive.namelist() if name.endswith("libcolyseus_godot.macos.release.dylib")]
             if not sdk_members:
                 raise SystemExit("Candidate macOS archive omitted the Colyseus release library")

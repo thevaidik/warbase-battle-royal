@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import json
 import pathlib
+import struct
 
 
 GENERATED_DIRS = {".godot", "candidate-static", "candidate-web-dist", "candidate-native", "candidate-dist", "dist", "build"}
@@ -99,3 +100,31 @@ def verify_current_export(provenance: dict[str, str], client: pathlib.Path) -> N
             "Stale client export: client source changed after export "
             f"(export={provenance['sourceFingerprint']}, current={current}); re-export before full-client packaging"
         )
+
+
+def parse_pack_paths_bytes(pack: bytes) -> set[str]:
+    if pack[:4] != b"GDPC" or len(pack) < 44:
+        raise RuntimeError("Godot PCK has an invalid header")
+    version = struct.unpack_from("<I", pack, 4)[0]
+    if version != 4:
+        raise RuntimeError(f"Unsupported PCK version {version}")
+    offset = struct.unpack_from("<Q", pack, 32)[0]
+    if offset + 4 > len(pack):
+        raise RuntimeError("PCK directory offset is invalid")
+    count = struct.unpack_from("<I", pack, offset)[0]
+    offset += 4
+    names: set[str] = set()
+    for _ in range(count):
+        if offset + 4 > len(pack):
+            raise RuntimeError("PCK directory is truncated")
+        length = struct.unpack_from("<I", pack, offset)[0]
+        offset += 4
+        if length > len(pack) - offset:
+            raise RuntimeError("PCK path record is truncated")
+        names.add(pack[offset : offset + length].rstrip(b"\0").decode("utf-8"))
+        offset += length + 16 + 16 + 4
+    return names
+
+
+def parse_pack_paths(path: pathlib.Path) -> set[str]:
+    return parse_pack_paths_bytes(path.read_bytes())

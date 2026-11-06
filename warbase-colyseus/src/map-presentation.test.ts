@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { readFileSync } from 'node:fs';
 import { buildRoomDirectory, OFFICIAL_MAP_NAMES } from './room-directory.js';
-import { loadWorldGeometry, type Vec3 } from './world-geometry.js';
+import { loadWorldGeometry, PLAYABLE_MAPS, type Vec3 } from './world-geometry.js';
 
 test('match names are independent of canonical map names in both public and custom listings', () => {
   const directory = buildRoomDirectory([{id:'id', room:'custom', name:'Industrial Outpost', map:'canyon',mode:'CONQUEST',timeOfDay:'noon',clients:1,bots:0,maxClients:64}]);
@@ -34,4 +34,22 @@ test('all repaired desert and canyon spawns allow movement in all four direction
   assert.ok(Math.abs(canyon.floorHeight(-28,-28,2)!)<1e-6);
   assert.equal(canyon.rayBlocked([35,1,0],[46,1,0]),true,'visible canyon cliff');
   assert.ok(canyon.spawns.every(p=>Math.abs(p[0])<=28&&Math.abs(p[2])<=28));
+});
+
+
+test('every shipped authoritative spawn has at least two clear walking exits', () => {
+  let checked = 0;
+  for (const map of PLAYABLE_MAPS) {
+    const geometry = loadWorldGeometry(map)!;
+    for (const from of geometry.spawns) {
+      let exits = 0;
+      for (const [dx,dz] of [[0.5,0],[-0.5,0],[0,0.5],[0,-0.5]]) {
+        const moved = geometry.resolveMove(from,[from[0]+dx,from[1],from[2]+dz]);
+        if (Math.hypot(moved[0]-from[0],moved[2]-from[2]) >= 0.49) exits++;
+      }
+      assert.ok(exits >= 2, `${map}: trapped authoritative spawn ${from}`);
+      checked++;
+    }
+  }
+  assert.equal(checked,120);
 });

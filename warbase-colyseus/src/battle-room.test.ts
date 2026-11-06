@@ -112,6 +112,7 @@ test('BattleRoom admission, combat authority, ammo and lifecycle', async (t) => 
     assert.equal(metrics.rateLimitedMessages, 1);
     assert.equal((room as any).sessionByUsername.get('alice'), alice.sessionId);
     await waitFor(() => [...room.state.players.values()].filter((player) => player.is_bot).length === 7);
+    await waitFor(() => processTimingSnapshot().ticks_total > processTicksBefore);
     assert.ok(processTimingSnapshot().ticks_total > processTicksBefore, 'active match ticks reach process metrics');
     t.diagnostic(`first Industrial player+bot admission: ${(performance.now() - joinStarted).toFixed(1)} ms`);
     assert.equal(room.state.map_name, 'industrial');
@@ -129,6 +130,25 @@ test('BattleRoom admission, combat authority, ammo and lifecycle', async (t) => 
     room.onDispose();
     assert.equal(roomOperationsMetrics.has(room.roomId), false, 'room-local metrics are removed on disposal');
     assert.equal(processOperationsMetrics.joined, processJoinsBefore + 1, 'process totals survive room disposal');
+  });
+
+  await t.test('authority recovers fallen actors through death and respawn on normal and deep Canyon floors', async () => {
+    for (const map of ['industrial', 'canyon']) {
+      const room = await testing.createRoom<BattleRoom>('battle', { room: map + '-public' });
+      const client = await testing.connectTo(room, { username: 'void-check-' + map });
+      const player = room.state.players.get('void-check-' + map)!;
+      player.y = map === 'canyon' ? -121 : -16;
+      await waitFor(() => player.is_dead);
+      assert.equal(player.health, 0);
+      assert.equal(player.deaths, 1);
+      const runtime = (room as any).internal.get(client.sessionId);
+      assert.ok(runtime.spawnAt > 0, 'uses scheduled authoritative respawn');
+      runtime.spawnAt = Date.now() - 1;
+      await waitFor(() => !player.is_dead);
+      assert.ok(player.y > -1, 'returns to authored ground');
+      assert.equal(player.health, 100);
+      await room.disconnect();
+    }
   });
 
   await t.test('times actual Football geometry and bot admission', async (t) => {

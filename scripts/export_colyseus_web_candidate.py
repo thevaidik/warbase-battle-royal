@@ -15,7 +15,8 @@ import subprocess
 import sys
 import tempfile
 
-from client_provenance import WEB_EXPORT_ASSETS, artifact_records, client_fingerprint, make_provenance
+from map_integrity_gate import ensure_map_integrity, verify_map_pack
+from client_provenance import parse_pack_paths, WEB_EXPORT_ASSETS, artifact_records, client_fingerprint, make_provenance
 
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
@@ -23,31 +24,6 @@ CLIENT = ROOT / "warbase-godot/client"
 PRESET = "Web (Colyseus Candidate)"
 SDK_WASM = CLIENT / "addons/colyseus/bin/libcolyseus_godot.web.wasm32.release.wasm"
 SDK_EXTENSION = CLIENT / "addons/colyseus/colyseus.gdextension"
-
-
-def parse_pack_paths(path: pathlib.Path) -> set[str]:
-    pack = path.read_bytes()
-    if pack[:4] != b"GDPC" or len(pack) < 44:
-        raise RuntimeError("Godot Web PCK has an invalid header")
-    version = struct.unpack_from("<I", pack, 4)[0]
-    if version != 4:
-        raise RuntimeError(f"Unsupported PCK version {version}")
-    offset = struct.unpack_from("<Q", pack, 32)[0]
-    if offset + 4 > len(pack):
-        raise RuntimeError("PCK directory offset is invalid")
-    count = struct.unpack_from("<I", pack, offset)[0]
-    offset += 4
-    names: set[str] = set()
-    for _ in range(count):
-        if offset + 4 > len(pack):
-            raise RuntimeError("PCK directory is truncated")
-        length = struct.unpack_from("<I", pack, offset)[0]
-        offset += 4
-        if length > len(pack) - offset:
-            raise RuntimeError("PCK path record is truncated")
-        names.add(pack[offset : offset + length].rstrip(b"\0").decode("utf-8"))
-        offset += length + 16 + 16 + 4
-    return names
 
 
 def template_path(godot: pathlib.Path, version: str) -> pathlib.Path:
@@ -122,6 +98,7 @@ def main() -> int:
     if output.exists():
         shutil.rmtree(output)
     output.mkdir(parents=True)
+    ensure_map_integrity(ROOT, godot)
     export_fingerprint = client_fingerprint(CLIENT)
     log_file = tempfile.NamedTemporaryFile(prefix="godot-colyseus-web-export-", suffix=".log", delete=False)
     log_path = pathlib.Path(log_file.name)
@@ -165,6 +142,7 @@ def main() -> int:
             raise SystemExit(f"Candidate HTML does not register the Colyseus GDExtension wasm: {config.get('gdextensionLibs')}")
 
         paths = parse_pack_paths(pack_path)
+        verify_map_pack(paths, include_football=False)
         required_paths = {
             "addons/colyseus/colyseus.gdextension",
             "assets/data/industrial.json.gz",

@@ -1,0 +1,77 @@
+{
+  "endpoint": "https://war.vaidik.blog/colyseus",
+  "maps": [
+    {
+      "map": "football",
+      "protocol": 9,
+      "movedMetres": 1.5500001907348633,
+      "ack": 15,
+      "feetY": 3.592099905014038
+    },
+    {
+      "map": "resoforge",
+      "protocol": 9,
+      "movedMetres": 2.066666603088379,
+      "ack": 20,
+      "feetY": 5.551115123125783e-17
+    },
+    {
+      "map": "industrial",
+      "protocol": 9,
+      "movedMetres": 2.0666675567626953,
+      "ack": 20,
+      "feetY": 0.8420979976654053
+    },
+    {
+      "map": "village",
+      "protocol": 9,
+      "movedMetres": 2.066666603088379,
+      "ack": 20,
+      "feetY": -5.551115123125783e-17
+    },
+    {
+      "map": "arena",
+      "protocol": 9,
+      "movedMetres": 2.0666675567626953,
+      "ack": 20,
+      "feetY": 1
+    },
+    {
+      "map": "shipment",
+      "protocol": 9,
+      "movedMetres": 2.0666675567626953,
+      "ack": 20,
+      "feetY": 0
+    },
+    {
+      "map": "dust2",
+      "protocol": 9,
+      "movedMetres": 2.066666603088379,
+      "ack": 20,
+      "feetY": 0.8421022891998291
+    },
+    {
+      "map": "nuketown",
+      "protocol": 9,
+      "movedMetres": 2.0666675567626953,
+      "ack": 20,
+      "feetY": 0.8420994877815247
+    },
+    {
+      "map": "canyon",
+      "protocol": 9,
+      "movedMetres": 2.0666675567626953,
+      "ack": 20,
+      "feetY": 5.551115123125783e-17
+    },
+    {
+      "map": "desert_oasis",
+      "protocol": 9,
+      "movedMetres": 2.066666603088379,
+      "ack": 20,
+      "feetY": -5.551115123125783e-17
+    }
+  ],
+  "previousClientRejected": true,
+  "canonicalDirectoryVerified": true
+}

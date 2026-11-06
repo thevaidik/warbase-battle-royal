@@ -1,0 +1,56 @@
+{
+  "failures": [],
+  "maps": [
+    {
+      "failures": 0,
+      "map": "football",
+      "spawns": 12
+    },
+    {
+      "failures": 0,
+      "map": "resoforge",
+      "spawns": 12
+    },
+    {
+      "failures": 0,
+      "map": "industrial",
+      "spawns": 12
+    },
+    {
+      "failures": 0,
+      "map": "village",
+      "spawns": 12
+    },
+    {
+      "failures": 0,
+      "map": "arena",
+      "spawns": 12
+    },
+    {
+      "failures": 0,
+      "map": "shipment",
+      "spawns": 12
+    },
+    {
+      "failures": 0,
+      "map": "dust2",
+      "spawns": 12
+    },
+    {
+      "failures": 0,
+      "map": "nuketown",
+      "spawns": 12
+    },
+    {
+      "failures": 0,
+      "map": "canyon",
+      "spawns": 12
+    },
+    {
+      "failures": 0,
+      "map": "desert_oasis",
+      "spawns": 12
+    }
+  ],
+  "spawn_count": 120
+}

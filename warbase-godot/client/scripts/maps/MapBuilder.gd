@@ -137,6 +137,7 @@ func _get_shipment_materials() -> void:
 		_shipment_barrel_steel.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC
 
 func _theme_shipment(inst: Node3D) -> void:
+	for body in inst.find_children("*", "StaticBody3D", true, false): body.free()
 	_get_shipment_materials()
 	var ground_asphalt := asphalt_mat()
 	var wall_concrete := concrete_mat()
@@ -190,103 +191,6 @@ func _theme_shipment(inst: Node3D) -> void:
 			mi.set_surface_override_material(0, wall_concrete)
 			mi.create_trimesh_collision()
 
-
-func _theme_village(inst: Node3D) -> void:
-	# Fast primitive colliders for village decorative props (benches, street lamps, trees)
-	# Replaces 161,000+ heavy concave polygon collision faces with 55 zero-cost primitive shapes
-	var b_static := StaticBody3D.new()
-	b_static.name = "VillagePropsCollision"
-	inst.add_child(b_static)
-	
-	# 12 Benches (BoxShape3D)
-	var bench_coords: Array[Vector3] = [
-		Vector3(-20.05, 0.4, -3.75),
-		Vector3(-20.11, 0.4, -6.76),
-		Vector3(-20.08, 0.4, -5.26),
-		Vector3(-19.97, 0.4, 2.96),
-		Vector3(-20.02, 0.4, -0.05),
-		Vector3(-20.00, 0.4, 1.45),
-		Vector3(20.15, 0.4, -1.19),
-		Vector3(20.21, 0.4, 1.82),
-		Vector3(20.18, 0.4, 0.31),
-		Vector3(20.01, 0.4, -7.90),
-		Vector3(20.07, 0.4, -4.89),
-		Vector3(20.04, 0.4, -6.40),
-	]
-	var bench_box := BoxShape3D.new()
-	bench_box.size = Vector3(1.0, 0.8, 1.6)
-	for b_pos in bench_coords:
-		var c := CollisionShape3D.new()
-		c.shape = bench_box
-		c.position = b_pos
-		b_static.add_child(c)
-		
-	# 15 Lamp Posts (CylinderShape3D)
-	var lamp_coords: Array[Vector3] = [
-		Vector3(78.56, 1.5, 26.77),
-		Vector3(78.56, 1.5, -34.19),
-		Vector3(-76.84, 1.5, 26.77),
-		Vector3(-76.84, 1.5, -34.19),
-		Vector3(47.66, 1.5, -92.30),
-		Vector3(-50.60, 1.5, -92.30),
-		Vector3(47.66, 1.5, 89.71),
-		Vector3(-38.98, 1.5, 38.00),
-		Vector3(1.43, 1.5, -2.64),
-		Vector3(-1.48, 1.5, -2.77),
-		Vector3(0.03, 1.5, -3.88),
-		Vector3(-0.16, 1.5, -1.42),
-		Vector3(-39.09, 1.5, -46.01),
-		Vector3(44.13, 1.5, 38.00),
-		Vector3(44.13, 1.5, -46.01),
-	]
-	var lamp_cyl := CylinderShape3D.new()
-	lamp_cyl.radius = 0.25
-	lamp_cyl.height = 3.0
-	for l_pos in lamp_coords:
-		var c := CollisionShape3D.new()
-		c.shape = lamp_cyl
-		c.position = l_pos
-		b_static.add_child(c)
-		
-	# 28 Tree Trunks (CylinderShape3D)
-	var tree_coords: Array[Vector3] = [
-		Vector3(-0.33, 2.0, 0.12),
-		Vector3(3.08, 2.0, -33.61),
-		Vector3(4.78, 2.0, 65.17),
-		Vector3(40.24, 2.0, 61.89),
-		Vector3(40.24, 2.0, 15.15),
-		Vector3(40.24, 2.0, -33.97),
-		Vector3(-102.19, 2.0, 61.89),
-		Vector3(-97.39, 2.0, 15.15),
-		Vector3(-110.12, 2.0, -33.97),
-		Vector3(-110.12, 2.0, 107.79),
-		Vector3(-56.09, 2.0, 97.47),
-		Vector3(-9.20, 2.0, 91.46),
-		Vector3(34.25, 2.0, 97.47),
-		Vector3(-9.20, 2.0, 118.49),
-		Vector3(-73.26, 2.0, 120.01),
-		Vector3(-124.48, 2.0, 85.39),
-		Vector3(-124.48, 2.0, 40.88),
-		Vector3(-124.48, 2.0, -13.23),
-		Vector3(-124.48, 2.0, -49.56),
-		Vector3(-68.53, 2.0, -42.81),
-		Vector3(-8.70, 2.0, -62.71),
-		Vector3(23.01, 2.0, -84.78),
-		Vector3(64.64, 2.0, -52.27),
-		Vector3(64.64, 2.0, -16.33),
-		Vector3(64.64, 2.0, 43.45),
-		Vector3(64.64, 2.0, 79.39),
-		Vector3(-60.94, 2.0, -75.07),
-		Vector3(-65.40, 2.0, 35.43),
-	]
-	var tree_cyl := CylinderShape3D.new()
-	tree_cyl.radius = 0.45
-	tree_cyl.height = 4.0
-	for t_pos in tree_coords:
-		var c := CollisionShape3D.new()
-		c.shape = tree_cyl
-		c.position = t_pos
-		b_static.add_child(c)
 
 func _desert_piece(parent: Node3D, piece_name: String, dimensions: Vector3, at: Vector3, color: Color) -> MeshInstance3D:
 	var mesh := MeshInstance3D.new()
@@ -412,7 +316,10 @@ func build(map_name: String) -> Array[Vector3]:
 	var root := Node3D.new()
 	root.name = "MapRoot"
 	add_child(root)
-	var key := map_name if MAP_GLBS.has(map_name) else "industrial"
+	if not MAP_GLBS.has(map_name):
+		push_error("Unsupported map: " + map_name)
+		return []
+	var key := map_name
 	if key == "warzone" or key == "desert_road":
 		key = "canyon"
 	
@@ -432,8 +339,6 @@ func build(map_name: String) -> Array[Vector3]:
 				_theme_dust2(inst)
 			elif key == "shipment":
 				_theme_shipment(inst)
-			elif key == "village":
-				_theme_village(inst)
 			elif key == "desert_oasis":
 				_theme_desert_oasis(inst, root)
 			elif key == "canyon":
@@ -441,7 +346,7 @@ func build(map_name: String) -> Array[Vector3]:
 				
 			# Shipment has authored primitive collision, so avoid replacing it with a full trimesh.
 			if key != "shipment":
-				_add_trimesh_collision(inst, key in ["resoforge", "football"])
+				_add_trimesh_collision(inst, key in ["resoforge", "football", "village"])
 				_sanitize_glb_materials(inst)
 			if key == "football": _theme_football(inst)
 			
@@ -457,44 +362,22 @@ func build(map_name: String) -> Array[Vector3]:
 			root.add_child(safety)
 			
 			match key:
-				"city":
-					extent = 100.0
-					center = Vector3(-10.0, 0.0, 18.0)
-					_add_perimeter_barriers(root, center, extent)
-					_spawn_jeep(Vector3(12.0, 0.5, 8.0), 0.0, root)
-					_spawn_jeep(Vector3(-30.0, 0.5, 25.0), deg_to_rad(90), root)
-					_spawn_jeep(Vector3(35.0, 0.5, -15.0), deg_to_rad(-45), root)
-					spawn_points = [
-						Vector3(-10.0, 0.5, 4.0),
-						Vector3(10.0, 0.5, 4.0),
-						Vector3(25.0, 0.5, 6.0),
-						Vector3(45.0, 0.5, 4.0),
-						Vector3(60.0, 0.5, 8.0),
-						Vector3(-5.0, 0.5, 18.0),
-						Vector3(20.0, 0.5, 20.0),
-						Vector3(35.0, 0.5, 16.0),
-						Vector3(50.0, 0.5, 24.0),
-						Vector3(-15.0, 0.5, 28.0),
-						Vector3(15.0, 0.5, 36.0),
-						Vector3(30.0, 0.5, 40.0),
-					]
 				"shipment":
 					extent = 24.0
 					center = Vector3.ZERO
-					_add_perimeter_barriers(root, center, extent)
 					spawn_points = [
-						Vector3(-20.0, 0.4, -20.0),
-						Vector3(-18.0, 0.4, -2.0),
-						Vector3(-16.0, 0.4, 18.0),
-						Vector3(-12.0, 0.4, 4.0),
-						Vector3(-8.0, 0.4, -20.0),
-						Vector3(-6.0, 0.4, 14.0),
-						Vector3(-2.0, 0.4, 16.0),
-						Vector3(4.0, 0.4, -18.0),
-						Vector3(8.0, 0.4, -10.0),
-						Vector3(10.0, 0.4, 8.0),
-						Vector3(14.0, 0.4, -16.0),
-						Vector3(18.0, 0.4, -20.0),
+						Vector3(-19.2929, 0.08, -19.2929),
+						Vector3(-17.5, 0.1296, -2.0),
+						Vector3(-16.0, 0.08, 18.0),
+						Vector3(-12.0, 0.08, 4.0),
+						Vector3(-7.8087, 0.08, -19.5381),
+						Vector3(-6.0, 0.08, 14.0),
+						Vector3(-2.0, 0.1302, 16.0),
+						Vector3(4.0, 0.08, -18.0),
+						Vector3(8.0, 0.08, -10.0),
+						Vector3(10.0, 0.08, 8.0),
+						Vector3(14.0, 0.08, -16.0),
+						Vector3(18.1913, 0.08, -19.5381),
 					]
 				"dust2":
 					extent = 65.0
@@ -503,18 +386,18 @@ func build(map_name: String) -> Array[Vector3]:
 					# Extra square barriers cut across its playable roads and buildings.
 					_spawn_jeep(Vector3(-10.0, 1.2, 4.0), 0.0, root)
 					spawn_points = [
-						Vector3(-10.0, 1.2, 4.0),
-						Vector3(10.0, 1.2, 4.0),
-						Vector3(25.0, 1.2, 6.0),
-						Vector3(45.0, 1.2, 4.0),
-						Vector3(60.0, 1.2, 8.0),
-						Vector3(-5.0, 1.2, 18.0),
-						Vector3(20.0, 1.2, 20.0),
-						Vector3(35.0, 1.2, 16.0),
-						Vector3(50.0, 1.2, 24.0),
-						Vector3(-15.0, 1.2, 28.0),
-						Vector3(15.0, 1.2, 36.0),
-						Vector3(30.0, 1.2, 40.0),
+						Vector3(-8.0, 0.9221, 4.0),
+						Vector3(10.0, 0.9221, 4.0),
+						Vector3(25.0, 0.9221, 6.0),
+						Vector3(45.0, 0.9221, 4.0),
+						Vector3(60.0, 0.9221, 8.0),
+						Vector3(-5.0, 0.9221, 18.0),
+						Vector3(20.0, 0.9221, 20.0),
+						Vector3(35.0, 0.9221, 16.0),
+						Vector3(50.0, 0.9221, 24.0),
+						Vector3(-15.0, 0.9221, 28.0),
+						Vector3(13.2322, 1.7088, 37.7678),
+						Vector3(30.0, 0.9927, 40.0),
 					]
 				"nuketown":
 					extent = 35.0
@@ -522,18 +405,18 @@ func build(map_name: String) -> Array[Vector3]:
 					# The industrial asset has a visible perimeter fence with mesh collision.
 					# Extra square barriers cut across its playable roads and buildings.
 					spawn_points = [
-						Vector3(-24.0, 0.4, -14.0),
-						Vector3(24.0, 0.4, 14.0),
-						Vector3(-25.0, 0.4, 13.0),
-						Vector3(25.0, 0.4, -13.0),
-						Vector3(-19.0, 0.4, 9.0),
-						Vector3(19.0, 0.4, -9.0),
-						Vector3(-28.0, 0.4, 0.0),
-						Vector3(28.0, 0.4, 0.0),
-						Vector3(-8.0, 0.4, 12.0),
-						Vector3(8.0, 0.4, -12.0),
-						Vector3(-10.0, 0.4, -12.0),
-						Vector3(10.0, 0.4, 12.0),
+						Vector3(-24.0, 0.9221, -14.0),
+						Vector3(24.0, 0.9221, 14.0),
+						Vector3(-25.0, 0.9221, 13.0),
+						Vector3(25.0, 1.2357, -13.0),
+						Vector3(-19.0, 0.9221, 9.0),
+						Vector3(19.0, 1.2721, -9.0),
+						Vector3(-28.0, 0.9221, 0.0),
+						Vector3(28.0, 0.9221, 0.0),
+						Vector3(-8.0, 0.9221, 12.0),
+						Vector3(8.0, 1.233, -12.0),
+						Vector3(-10.3536, 1.2933, -11.6464),
+						Vector3(10.0, 0.9221, 12.0),
 					]
 				"football":
 					extent = 110.0
@@ -582,41 +465,39 @@ func build(map_name: String) -> Array[Vector3]:
 				"village":
 					extent = 130.0
 					center = Vector3(0.0, 0.0, -20.0)
-					_add_perimeter_barriers(root, center, extent)
 					# Spawn jeeps in wide open road lanes with >10m clearance away from props & buildings
 					_spawn_jeep(Vector3(35.0, 0.5, -20.0), 0.0, root)
 					_spawn_jeep(Vector3(-35.0, 0.5, -20.0), PI, root)
 					spawn_points = [
-						Vector3(-14.0, 0.5, -8.0),
-						Vector3(18.0, 0.5, 8.0),
-						Vector3(-8.0, 0.5, -14.0),
-						Vector3(8.0, 0.5, 18.0),
-						Vector3(-25.0, 0.5, 10.0),
-						Vector3(25.0, 0.5, -10.0),
-						Vector3(0.0, 0.5, -12.0),
-						Vector3(0.0, 0.5, 12.0),
-						Vector3(-14.0, 0.5, 16.0),
-						Vector3(14.0, 0.5, -16.0),
-						Vector3(-6.0, 0.5, 2.0),
-						Vector3(6.0, 0.5, -2.0),
+						Vector3(-14.0, 0.08, -8.0),
+						Vector3(18.0, 0.08, 8.0),
+						Vector3(-8.0, 0.08, -14.0),
+						Vector3(8.0, 0.3506, 18.0),
+						Vector3(-25.0, 0.08, 10.0),
+						Vector3(25.0, 0.08, -10.0),
+						Vector3(0.0, 0.08, -12.0),
+						Vector3(0.0, 0.08, 12.0),
+						Vector3(-13.6464, 0.3838, 16.3536),
+						Vector3(14.0, 0.08, -16.0),
+						Vector3(-6.0, 0.08, 2.0),
+						Vector3(6.0, 0.08, -2.0),
 					]
 				"arena":
 					extent = 36.0
 					center = Vector3(-15.0, 0.0, -15.0)
-					_add_perimeter_barriers(root, center, extent)
 					spawn_points = [
-						Vector3(-26.0, 1.1, -3.0),
-						Vector3(-26.0, 1.1, -7.5),
-						Vector3(-20.0, 1.1, -3.0),
-						Vector3(-20.0, 1.1, -7.5),
-						Vector3(-15.0, 1.1, -3.0),
-						Vector3(-15.0, 1.1, -7.5),
-						Vector3(-9.0, 1.1, -3.0),
-						Vector3(-9.0, 1.1, -7.5),
-						Vector3(-4.0, 1.1, -3.5),
-						Vector3(-4.0, 1.7, -6.5),
-						Vector3(-15.0, 1.1, -5.0),
-						Vector3(-22.0, 1.1, -5.0),
+						Vector3(-25.5, 1.08, -3.0),
+						Vector3(-26.0, 1.0799, -7.5),
+						Vector3(-20.0, 1.0799, -3.0),
+						Vector3(-20.0, 1.0799, -7.5),
+						Vector3(-15.0, 1.0799, -3.0),
+						Vector3(-15.0, 1.0799, -7.5),
+						Vector3(-9.0, 1.0799, -3.0),
+						Vector3(-9.0, 1.0799, -7.5),
+						Vector3(-3.5, 1.08, -3.5),
+						Vector3(-4.3827, 1.0799, -7.4239),
+						Vector3(-14.8087, 1.08, -4.5381),
+						Vector3(-21.8087, 1.08, -4.5381),
 					]
 				"canyon":
 					extent = 40.0
@@ -721,32 +602,6 @@ func _sanitize_glb_materials(node: Node) -> void:
 					mi.set_surface_override_material(s, _sanitized_mat_cache[cache_id])
 	for c in node.get_children():
 		_sanitize_glb_materials(c)
-
-func _add_perimeter_barriers(root: Node3D, center: Vector3, extent: float) -> void:
-	var h_col := 14.0
-	var th_col := 2.0
-	var col_positions := [
-		center + Vector3(0, h_col * 0.5, -extent),
-		center + Vector3(0, h_col * 0.5, extent),
-		center + Vector3(-extent, h_col * 0.5, 0),
-		center + Vector3(extent, h_col * 0.5, 0)
-	]
-	var col_sizes := [
-		Vector3(extent * 2.2, h_col, th_col),
-		Vector3(extent * 2.2, h_col, th_col),
-		Vector3(th_col, h_col, extent * 2.2),
-		Vector3(th_col, h_col, extent * 2.2)
-	]
-	for i in 4:
-		var wall := StaticBody3D.new()
-		wall.name = "PerimeterWall_%d" % i
-		var col := CollisionShape3D.new()
-		var bs := BoxShape3D.new()
-		bs.size = col_sizes[i]
-		col.shape = bs
-		wall.add_child(col)
-		wall.position = col_positions[i]
-		root.add_child(wall)
 
 func _add_trimesh_collision(n: Node, exact: bool = false) -> void:
 	if n is MeshInstance3D:

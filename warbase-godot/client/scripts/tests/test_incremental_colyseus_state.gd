@@ -45,7 +45,7 @@ func _make_adapter(index: int):
 func _on_state(state: Dictionary, index: int) -> void:
 	if _finished: return
 	if index != 1: return
-	if int(state.get("protocol_version", 0)) != 8 or String(state.get("map_name", "")) != "industrial":
+	if int(state.get("protocol_version", 0)) != 9 or String(state.get("map_name", "")) != "industrial":
 		_fail("unexpected fixture state header: %s" % state)
 		return
 	var players: Dictionary = state.get("players", {})

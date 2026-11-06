@@ -1,6 +1,6 @@
 import { MapSchema, Schema, defineTypes, schema, t } from '@colyseus/schema';
 
-export const GAME_PROTOCOL_VERSION = 8;
+export const GAME_PROTOCOL_VERSION = 9;
 export const PRESENTATION_VIEW_TAG = 1;
 export const PRIVATE_VIEW_TAG = 2;
 

@@ -167,7 +167,7 @@ func _on_deploy() -> void:
 	_deploy_pending = false
 	menu._update_footer_selection()
 	if not available:
-		menu._show_toast("Stadium download failed. Please try again.", false)
+		menu._show_toast("Selected map could not be loaded. Please try again.", false)
 		return
 	if requested_map != GameState.selected_map: return
 	menu.visible = false
@@ -656,7 +656,7 @@ func _on_player_damaged(attacker_dir: Vector3, amount: float) -> void:
 		hud.add_damage_indicator(rel)
 
 func _on_state(state: Dictionary) -> void:
-	if not GameState.practice_mode and int(state.get("protocol_version", 0)) != 8:
+	if not GameState.practice_mode and int(state.get("protocol_version", 0)) != 9:
 		net.disconnect_from()
 		hud.feed("Game updated. Refresh the page or reopen the latest build.", Color(1, 0.4, 0.3))
 		return

@@ -79,3 +79,5 @@ The latest [five-track optimization report](audit/protocol7-optimization-2026-11
 The [rugged cyberpunk UI update](audit/cyber-ui-2026-11-06/README.md) documents the shared lobby/HUD visual system, desktop and compact previews, and UI verification.
 
 The [map collision and lobby correction](audit/map-lobby-repair-2026-11-06/REPORT.md) removes Desert Oasis hidden boundaries and embedded spawns, replaces Canyon’s Industrial alias, and simplifies the online lobby with left navigation and separate match/map labels. Matched map-data clients use protocol 8.
+
+Native and Web export commands now require the [all-map integrity gate](audit/all-map-integrity-2026-11-06/REPORT.md): source collision must match shipped geometry, all 120 spawn capsules must be clear, and packaged map scenes/previews must be present. Identical verified inputs reuse a cached physics result. Geometry compatibility is protocol 9.

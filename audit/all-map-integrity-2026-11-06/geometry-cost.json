@@ -1,0 +1,37 @@
+[
+  {
+    "map": "village",
+    "oldTriangles": 112227,
+    "newTriangles": 267371,
+    "oldBytes": 2001969,
+    "newBytes": 4509134
+  },
+  {
+    "map": "arena",
+    "oldTriangles": 1292,
+    "newTriangles": 1244,
+    "oldBytes": 13129,
+    "newBytes": 12880
+  },
+  {
+    "map": "shipment",
+    "oldTriangles": 26458,
+    "newTriangles": 21708,
+    "oldBytes": 361070,
+    "newBytes": 264256
+  },
+  {
+    "map": "dust2",
+    "oldTriangles": 78030,
+    "newTriangles": 78030,
+    "oldBytes": 1238266,
+    "newBytes": 1238304
+  },
+  {
+    "map": "nuketown",
+    "oldTriangles": 78030,
+    "newTriangles": 78030,
+    "oldBytes": 1238267,
+    "newBytes": 1238322
+  }
+]

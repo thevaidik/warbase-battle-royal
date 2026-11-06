@@ -164,7 +164,7 @@ func _on_admission_ready(token: String, error: Variant, username: String, room_n
 	_admission_token = token
 	room = client.join_or_create("battle", {
 		"username": username,
-		"protocol_version": 8,
+		"protocol_version": 9,
 		"room": room_name,
 		"map": GameState.selected_map,
 		"mode": GameState.selected_mode,
@@ -464,7 +464,7 @@ func _on_state_changed(source_room: Variant, generation: int) -> void:
 	if state is Dictionary:
 		if not _has_initial_state:
 			var players: Dictionary = state.get("players", {})
-			if int(state.get("protocol_version", 0)) != 8:
+			if int(state.get("protocol_version", 0)) != 9:
 				_fail_current_room("Server and client versions differ. Update the game and server together.", source_room, generation, "version")
 				return
 			if not players.has(_username): return
