@@ -82,3 +82,22 @@ static func decorate(control: Control, color: Color = ACCENT, backdrop: bool = f
 		frame.bleed = Vector4(box.get_content_margin(SIDE_LEFT), box.get_content_margin(SIDE_TOP), box.get_content_margin(SIDE_RIGHT), box.get_content_margin(SIDE_BOTTOM))
 	control.add_child(frame)
 	frame.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+
+
+static func configure_nameplate(label: Label3D) -> void:
+	label.font = DISPLAY_FONT
+	label.font_size = 40
+	label.pixel_size = 0.0042
+	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	label.no_depth_test = false
+	label.render_priority = 10
+	label.outline_render_priority = 9
+	label.outline_size = 6
+	label.outline_modulate = Color(0.025, 0.04, 0.045, 0.95)
+
+static func refresh_nameplate(label: Label3D, identity: String, friendly: bool, ai: bool = false) -> void:
+	var callsign := identity.trim_prefix("[BOT] ").strip_edges().to_upper()
+	var caption := callsign + "  / AI" if ai or identity.begins_with("[BOT] ") else callsign
+	if label.text != caption: label.text = caption
+	var colour := CYAN if friendly else DANGER
+	if label.modulate != colour: label.modulate = colour

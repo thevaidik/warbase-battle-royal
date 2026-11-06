@@ -107,17 +107,9 @@ func _ready() -> void:
 				_limb_areas.append(area)
 	
 	if is_instance_valid(name_label):
-		name_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-		name_label.no_depth_test = false
-		name_label.render_priority = 10
-		name_label.outline_render_priority = 9
-		name_label.outline_size = 12
-		name_label.outline_modulate = Color(0.0, 0.0, 0.0, 0.95)
-		name_label.pixel_size = 0.0055
-		name_label.font_size = 48
-		name_label.position = Vector3(0, 2.30, 0)
-		name_label.modulate = Color(0.35, 0.65, 1.0) if _is_friendly() else Color(1.0, 0.35, 0.3)
-		name_label.text = " %s  [%d HP]" % [player_id, int(health)]
+		WarUI.configure_nameplate(name_label)
+		name_label.position = Vector3(0, 2.0, 0)
+		WarUI.refresh_nameplate(name_label, player_id, _is_friendly())
 		
 	push_state(st)
 
@@ -201,7 +193,7 @@ func _set_driving_state(driving: bool) -> void:
 	for area in _hitbox_areas:
 		if is_instance_valid(area): area.collision_layer = 0 if driving or dead else 4
 	if is_instance_valid(name_label):
-		name_label.position = Vector3(0, 3.20, 0) if driving else Vector3(0, 2.30, 0)
+		name_label.position = Vector3(0, 3.20, 0) if driving else Vector3(0, 2.0, 0)
 	if not GameState.practice_mode:
 		if is_instance_valid(soldier): soldier.visible = not driving
 		if is_instance_valid(_vehicle_root): _vehicle_root.visible = false
@@ -257,7 +249,7 @@ func _is_friendly() -> bool:
 	return team == GameState.local_team
 
 func _setup_team_visuals() -> void:
-	var beacon_color := Color(0.2, 0.5, 1.0) if _is_friendly() else Color(1.0, 0.2, 0.15)
+	var beacon_color := WarUI.CYAN if _is_friendly() else WarUI.DANGER
 	var beacon_mat := StandardMaterial3D.new()
 	beacon_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	beacon_mat.albedo_color = beacon_color
@@ -421,7 +413,6 @@ func take_damage(dmg: float, _zone: String = "torso") -> void:
 		return
 	health = maxf(0.0, health - dmg)
 	if is_instance_valid(name_label):
-		name_label.text = " %s  [%d HP]" % [player_id, int(health)]
 		if health <= 0.0:
 			name_label.visible = false
 	if health <= 0.0:
@@ -514,7 +505,7 @@ func push_state(st: Dictionary) -> void:
 		if is_instance_valid(_equipped_gun):
 			_equipped_gun.visible = not is_driving
 		if is_instance_valid(name_label):
-			name_label.visible = (_current_lod < 2)
+			_update_nameplate_visibility()
 		for a in _hitbox_areas:
 			if is_instance_valid(a):
 				a.monitorable = true
@@ -527,9 +518,8 @@ func push_state(st: Dictionary) -> void:
 		if _buf.size() == 1:
 			_sync_anim(anim_str, false, float(st.get("animation_time", 0.0)))
 		if is_instance_valid(name_label):
-			name_label.visible = (_current_lod < 2)
-			name_label.modulate = Color(0.35, 0.65, 1.0) if _is_friendly() else Color(1.0, 0.35, 0.3)
-			name_label.text = " %s  [%d]" % [player_id, int(maxf(0.0, health))]
+			_update_nameplate_visibility()
+			WarUI.refresh_nameplate(name_label, player_id, _is_friendly())
 
 func react_to_hit() -> void:
 	if not dead: _hit_react = 0.18
@@ -642,8 +632,16 @@ func _update_distance_lod() -> void:
 		_set_lod(1)
 	else:
 		_set_lod(0)
-	if is_instance_valid(name_label):
-		name_label.visible = not dead and d >= 2.0 and d <= 60.0
+	_update_nameplate_visibility()
+
+func _update_nameplate_visibility() -> void:
+	if not is_instance_valid(name_label): return
+	var camera := get_viewport().get_camera_3d()
+	if camera == null:
+		name_label.visible = not dead and _current_lod < 2
+		return
+	var distance := global_position.distance_to(camera.global_position)
+	name_label.visible = not dead and distance >= 2.0 and distance <= 60.0
 
 func _set_lod(new_lod: int) -> void:
 	if is_driving:
@@ -663,16 +661,10 @@ func _set_lod(new_lod: int) -> void:
 
 	match _current_lod:
 		0: # Near (<45m): Full fidelity and beacons active
-			if is_instance_valid(name_label):
-				name_label.visible = true
-				name_label.outline_size = 12
 			for b in _beacons:
 				if is_instance_valid(b):
 					b.visible = not is_driving
 		1: # Mid (45m - 120m): Simplify nameplate outline
-			if is_instance_valid(name_label):
-				name_label.visible = true
-				name_label.outline_size = 0
 			for b in _beacons:
 				if is_instance_valid(b):
 					b.visible = not is_driving

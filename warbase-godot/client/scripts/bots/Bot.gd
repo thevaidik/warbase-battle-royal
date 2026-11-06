@@ -103,17 +103,9 @@ func _ready() -> void:
 	_setup_weapon()
 	
 	_nameplate = Label3D.new()
-	_nameplate.text = " %s  [100]" % bot_name
-	_nameplate.font_size = 28
-	_nameplate.pixel_size = 0.0032
-	_nameplate.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-	_nameplate.no_depth_test = false
-	_nameplate.render_priority = 10
-	_nameplate.outline_render_priority = 9
-	_nameplate.outline_size = 10
-	_nameplate.outline_modulate = Color(0.0, 0.0, 0.0, 0.95)
-	_nameplate.position = Vector3(0, 2.18, 0)
-	_nameplate.modulate = Color(1.0, 0.35, 0.3) if team == "B" else Color(0.35, 0.65, 1.0)
+	WarUI.configure_nameplate(_nameplate)
+	_nameplate.position = Vector3(0, 2.0, 0)
+	WarUI.refresh_nameplate(_nameplate, bot_name, GameState.selected_mode != "FFA" and team == GameState.local_team, true)
 	add_child(_nameplate)
 	
 	var hit_skeleton := soldier.get_node_or_null("Armature/Skeleton3D") as Skeleton3D
@@ -144,7 +136,7 @@ func _setup_weapon() -> void:
 		add_child(_weapon_model)
 
 func _setup_team_visuals() -> void:
-	var beacon_color := Color(1.0, 0.2, 0.15) if team == "B" else Color(0.2, 0.5, 1.0)
+	var beacon_color := WarUI.CYAN if GameState.selected_mode != "FFA" and team == GameState.local_team else WarUI.DANGER
 	var beacon_mat := StandardMaterial3D.new()
 	beacon_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	beacon_mat.albedo_color = beacon_color
@@ -337,8 +329,6 @@ func take_damage(dmg: float, zone: String = "torso", killer: String = "", source
 	if dead:
 		return
 	health -= dmg
-	if is_instance_valid(_nameplate):
-		_nameplate.text = " %s  [%d]" % [bot_name, int(maxf(0.0, health))]
 		
 	# Under fire: turn toward target immediately & alert squad
 	if is_instance_valid(_target):
@@ -419,7 +409,7 @@ func respawn_at(pos: Vector3) -> void:
 	if main_col:
 		main_col.set_deferred("disabled", false)
 	if is_instance_valid(_nameplate):
-		_nameplate.text = " %s  [100]" % bot_name
+		WarUI.refresh_nameplate(_nameplate, bot_name, GameState.selected_mode != "FFA" and team == GameState.local_team, true)
 		_nameplate.visible = true
 	if is_instance_valid(_weapon_model):
 		_weapon_model.visible = true
