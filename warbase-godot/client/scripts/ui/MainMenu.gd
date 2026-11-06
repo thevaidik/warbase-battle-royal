@@ -41,8 +41,8 @@ var _service_status_label: Label
 var _operator_page: Control
 var _settings_page: PanelContainer
 var create_time_id := "noon"
-const PLAYABLE_MAPS := ["football", "resoforge", "industrial", "village", "arena", "shipment", "dust2", "nuketown", "canyon", "desert_oasis"]
-const MAP_NAMES := {"football":"Football Stadium", "resoforge":"ResoForge Yard", "industrial":"Industrial Zone", "village":"Village Outpost", "arena":"Combat Arena", "shipment":"Shipment", "dust2":"Industrial Recon", "canyon":"Canyon", "desert_oasis":"Desert Oasis", "nuketown":"Industrial Outpost"}
+const PLAYABLE_MAPS := ["football", "resoforge", "industrial", "village", "arena", "shipment", "dust2", "nuketown", "canyon", "military_base", "ghost_city"]
+const MAP_NAMES := {"football":"Football Stadium", "resoforge":"ResoForge Yard", "industrial":"Industrial Zone", "village":"Village Outpost", "arena":"Combat Arena", "shipment":"Shipment", "dust2":"Dust II", "canyon":"Devil’s Canyon", "nuketown":"Nuketown", "military_base":"Military Base", "ghost_city":"Ghost City"}
 
 func _ready() -> void:
 	_selected_room_id = GameState.room_id
@@ -619,7 +619,7 @@ func _build_create_server_modal() -> void:
 	# Map Selection
 	mv.add_child(_mk_label("CHOOSE YOUR MAP", 10, Color(0.60, 0.68, 0.78)))
 	var maps := []
-	for id in PLAYABLE_MAPS: maps.append({"id":id,"name":"Public Conquest".to_upper()})
+	for id in PLAYABLE_MAPS: maps.append({"id":id,"name":String(MAP_NAMES[id]).to_upper()})
 	var map_grid := GridContainer.new()
 	map_grid.columns = 2
 	map_grid.add_theme_constant_override("separation", 5)

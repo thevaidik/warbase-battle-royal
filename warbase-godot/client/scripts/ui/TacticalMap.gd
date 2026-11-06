@@ -128,6 +128,7 @@ func _ensure_camera() -> void:
 	map_viewport.add_child(map_camera)
 
 func _find_bounds(root: Node) -> AABB:
+	if root.has_meta("tactical_bounds"): return root.get_meta("tactical_bounds")
 	var bounds := AABB()
 	var found := false
 	for node in root.find_children("*", "VisualInstance3D", true, false):

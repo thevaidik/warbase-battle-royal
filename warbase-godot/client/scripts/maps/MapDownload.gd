@@ -4,12 +4,12 @@ const BUILDER = preload("res://scripts/maps/MapBuilder.gd")
 ## Optional content is fetched only before joining its map; native builds include it.
 static func ensure_loaded(parent: Node, map_id: String, progress: Callable) -> bool:
 	if not BUILDER.MAP_GLBS.has(map_id): return false
-	if not OS.has_feature("web") or map_id != "football":
+	if not OS.has_feature("web") or (map_id != "football" and not map_id in BUILDER.RESTORED_MAPS):
 		var asset: String = BUILDER.MAP_GLBS[map_id]
 		return asset.is_empty() or ResourceLoader.exists(asset)
-	if ResourceLoader.exists("res://assets/maps/football.glb"): return true
+	if ResourceLoader.exists(BUILDER.MAP_GLBS[map_id]): return true
 	var base := str(JavaScriptBridge.eval("window.location.href.split('#')[0].split('?')[0].replace(/[^/]*$/, '')"))
-	progress.call("Checking Stadium download…")
+	progress.call("Checking map download…")
 	var request := HTTPRequest.new()
 	request.timeout = 30
 	parent.add_child(request)
@@ -25,8 +25,11 @@ static func ensure_loaded(parent: Node, map_id: String, progress: Callable) -> b
 		request.queue_free()
 		return false
 	var entry: Dictionary = manifest[map_id]
+	if String(entry.get("root", "")) != String(BUILDER.MAP_GLBS[map_id]):
+		request.queue_free()
+		return false
 	var filename := str(entry.get("file", ""))
-	if not filename.begins_with("map-football-") or filename.get_file() != filename or not filename.ends_with(".pck"):
+	if not filename.begins_with("map-"+map_id+"-") or filename.get_file() != filename or not filename.ends_with(".pck"):
 		request.queue_free()
 		return false
 	var path := "user://" + filename
@@ -34,7 +37,7 @@ static func ensure_loaded(parent: Node, map_id: String, progress: Callable) -> b
 	if FileAccess.file_exists(path) and FileAccess.get_sha256(path) == expected_hash:
 		request.queue_free()
 		return _mount(path, entry)
-	progress.call("Downloading Stadium…")
+	progress.call("Downloading map…")
 	request.queue_free()
 	request = HTTPRequest.new()
 	request.timeout = 300
@@ -47,7 +50,7 @@ static func ensure_loaded(parent: Node, map_id: String, progress: Callable) -> b
 	parent.add_child(timer)
 	timer.timeout.connect(func() -> void:
 		var total := maxi(int(entry.get("bytes", 1)), 1)
-		progress.call("Downloading Stadium… %d%%" % clampi(int(100.0 * request.get_downloaded_bytes() / total), 0, 99))
+		progress.call("Downloading map… %d%%" % clampi(int(100.0 * request.get_downloaded_bytes() / total), 0, 99))
 	)
 	timer.start()
 	response = await request.request_completed
@@ -73,4 +76,4 @@ static func _mount(path: String, entry: Dictionary) -> bool:
 		var resource_path: String = entry.uids[uid_text]
 		if ResourceUID.has_id(uid): ResourceUID.set_id(uid, resource_path)
 		else: ResourceUID.add_id(uid, resource_path)
-	return ResourceLoader.exists("res://assets/maps/football.glb")
+	return ResourceLoader.exists(String(entry.get("root", "res://assets/maps/football.glb")))

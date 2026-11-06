@@ -9,30 +9,7 @@ var spawn_points: Array[Vector3] = []
 
 const JEEP_SCENE: PackedScene = preload("res://scenes/CombatJeep.tscn")
 
-static var _asphalt_mat: StandardMaterial3D = null
-static var _concrete_mat: StandardMaterial3D = null
 static var _sanitized_mat_cache: Dictionary = {}
-static var _dust2_tex_cache: Array[Texture2D] = []
-
-static func asphalt_mat() -> StandardMaterial3D:
-	if not _asphalt_mat:
-		_asphalt_mat = StandardMaterial3D.new()
-		_asphalt_mat.albedo_color = Color(0.18, 0.18, 0.19)
-		_asphalt_mat.roughness = 0.92
-		_asphalt_mat.metallic = 0.0
-		_asphalt_mat.metallic_specular = 0.05
-		_asphalt_mat.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC
-	return _asphalt_mat
-
-static func concrete_mat() -> StandardMaterial3D:
-	if not _concrete_mat:
-		_concrete_mat = StandardMaterial3D.new()
-		_concrete_mat.albedo_color = Color(0.42, 0.40, 0.37)
-		_concrete_mat.roughness = 0.94
-		_concrete_mat.metallic = 0.0
-		_concrete_mat.metallic_specular = 0.05
-		_concrete_mat.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC
-	return _concrete_mat
 
 func _spawn_jeep(pos: Vector3, rot_y: float, parent: Node3D) -> Node3D:
 	var jeep := JEEP_SCENE.instantiate() as Node3D
@@ -69,90 +46,15 @@ func _theme_football(inst: Node3D) -> void:
 			rear.material_override = mi.get_active_material(0)
 			mi.add_child(rear)
 
-func _theme_dust2(inst: Node3D) -> void:
-	if _dust2_tex_cache.is_empty():
-		var tex_indices := [
-			32, 33, 31, 21, 1, 0, 28, 2, 26, 29, 9, 11, 4, 5, 16, 18,
-			6, 27, 23, 12, 15, 13, 14, 3, 25, 8, 10, 20, 30, 22, 17, 7
-		]
-		for idx in tex_indices:
-			var p := "res://assets/maps/Dust2_material_%d.png" % idx
-			if ResourceLoader.exists(p):
-				_dust2_tex_cache.append(load(p) as Texture2D)
-			
-	var meshes: Array[MeshInstance3D] = []
-	_find_mesh_instances(inst, meshes)
-	for mi in meshes:
-		if mi.mesh:
-			var sc := mi.mesh.get_surface_count()
-			for s in sc:
-				if s < _dust2_tex_cache.size() and _dust2_tex_cache[s]:
-					var mat := StandardMaterial3D.new()
-					mat.albedo_texture = _dust2_tex_cache[s]
-					mat.roughness = 0.92
-					mat.metallic = 0.0
-					mat.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC
-					mi.set_surface_override_material(s, mat)
-
-static var _shipment_container_mats: Array[StandardMaterial3D] = []
-static var _shipment_barrel_yellow: StandardMaterial3D = null
-static var _shipment_barrel_red: StandardMaterial3D = null
-static var _shipment_barrel_steel: StandardMaterial3D = null
-
-func _get_shipment_materials() -> void:
-	if _shipment_container_mats.is_empty():
-		var colors: Array[Color] = [
-			Color(0.12, 0.32, 0.58), # Oceanic Navy Blue (Hanjin / Maersk)
-			Color(0.68, 0.18, 0.14), # Crimson Cargo Red (K-Line / CMA)
-			Color(0.24, 0.34, 0.20), # Tactical Olive Green (Military)
-			Color(0.82, 0.52, 0.12), # Safety Goldenrod / Hazard Orange
-			Color(0.65, 0.38, 0.20), # Weathered Rust Orange
-			Color(0.18, 0.44, 0.42), # Industrial Teal / Seafoam
-			Color(0.48, 0.50, 0.52), # Gunmetal Grey
-		]
-		for c in colors:
-			var m := StandardMaterial3D.new()
-			m.albedo_color = c
-			m.metallic = 0.65
-			m.roughness = 0.55
-			m.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC
-			_shipment_container_mats.append(m)
-			
-		_shipment_barrel_yellow = StandardMaterial3D.new()
-		_shipment_barrel_yellow.albedo_color = Color(0.88, 0.65, 0.12)
-		_shipment_barrel_yellow.roughness = 0.45
-		_shipment_barrel_yellow.metallic = 0.6
-		_shipment_barrel_yellow.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC
-		
-		_shipment_barrel_red = StandardMaterial3D.new()
-		_shipment_barrel_red.albedo_color = Color(0.72, 0.20, 0.16)
-		_shipment_barrel_red.roughness = 0.45
-		_shipment_barrel_red.metallic = 0.6
-		_shipment_barrel_red.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC
-		
-		_shipment_barrel_steel = StandardMaterial3D.new()
-		_shipment_barrel_steel.albedo_color = Color(0.22, 0.24, 0.26)
-		_shipment_barrel_steel.roughness = 0.50
-		_shipment_barrel_steel.metallic = 0.8
-		_shipment_barrel_steel.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC
-
-func _theme_shipment(inst: Node3D) -> void:
+func _build_shipment_collision(inst: Node3D) -> void:
 	for body in inst.find_children("*", "StaticBody3D", true, false): body.free()
-	_get_shipment_materials()
-	var ground_asphalt := asphalt_mat()
-	var wall_concrete := concrete_mat()
 	
 	var meshes: Array[MeshInstance3D] = []
 	_find_mesh_instances(inst, meshes)
 	
-	var container_idx := 0
-	var barrel_idx := 0
 	for mi in meshes:
 		var n := mi.name.to_lower()
 		if n.begins_with("cargo"):
-			var mat: StandardMaterial3D = _shipment_container_mats[container_idx % _shipment_container_mats.size()]
-			mi.set_surface_override_material(0, mat)
-			container_idx += 1
 			# Fast box collider for closed containers, saving 100,000+ trimesh physics checks
 			if not n.contains("open"):
 				var sb := StaticBody3D.new()
@@ -168,10 +70,7 @@ func _theme_shipment(inst: Node3D) -> void:
 				# Only open containers get trimesh so players can enter
 				mi.create_trimesh_collision()
 		elif n.begins_with("barrel"):
-			var b_mat: StandardMaterial3D = _shipment_barrel_yellow if barrel_idx % 3 == 0 else (_shipment_barrel_red if barrel_idx % 3 == 1 else _shipment_barrel_steel)
-			mi.set_surface_override_material(0, b_mat)
 			mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-			barrel_idx += 1
 			# Accurate Cylinder collider centered to match barrel visual mesh
 			var sb := StaticBody3D.new()
 			var col := CollisionShape3D.new()
@@ -184,129 +83,42 @@ func _theme_shipment(inst: Node3D) -> void:
 			sb.add_child(col)
 			mi.add_child(sb)
 		elif n.begins_with("plane"):
-			mi.set_surface_override_material(0, ground_asphalt)
 			mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 			mi.create_trimesh_collision()
 		elif n.begins_with("wall"):
-			mi.set_surface_override_material(0, wall_concrete)
 			mi.create_trimesh_collision()
 
 
-func _desert_piece(parent: Node3D, piece_name: String, dimensions: Vector3, at: Vector3, color: Color) -> MeshInstance3D:
-	var mesh := MeshInstance3D.new()
-	mesh.name = piece_name
-	var shape := BoxMesh.new()
-	shape.size = dimensions
-	mesh.mesh = shape
-	mesh.position = at
-	var material := StandardMaterial3D.new()
-	material.albedo_color = color
-	material.roughness = 0.96
-	mesh.material_override = material
-	parent.add_child(mesh)
-	return mesh
-
-func _theme_desert_oasis(inst: Node3D, _root: Node3D) -> void:
-	# Authored in metres; this arena has no dependency on the industrial asset.
-	var sand := Color("c7a16c")
-	var stone := Color("a17e53")
-	_desert_piece(inst, "SandTerrain", Vector3(80, 1, 80), Vector3(0, -0.5, 0), sand)
-	for side in [-1.0, 1.0]:
-		_desert_piece(inst, "BoundaryRock", Vector3(80, 7, 2), Vector3(0, 3.5, side * 39), stone.darkened(0.1))
-		_desert_piece(inst, "BoundaryRock", Vector3(2, 7, 80), Vector3(side * 39, 3.5, 0), stone.darkened(0.1))
-	# Broken ruins make three routes through the centre, with gaps for flanking.
-	for side in [-1.0, 1.0]:
-		for z in [-10.0, 10.0]:
-			_desert_piece(inst, "RuinWall", Vector3(1.2, 3.4, 8), Vector3(side * 8, 1.7, z), stone)
-		for x in [-13.0, 13.0]:
-			_desert_piece(inst, "BrokenWall", Vector3(6, 2.3, 1.2), Vector3(x, 1.15, side * 5), stone)
-		for x in [-5.0, 5.0]:
-			_desert_piece(inst, "TemplePillar", Vector3(1.4, 4, 1.4), Vector3(x, 2, side * 3), stone.lightened(0.1))
-		_desert_piece(inst, "TempleLintel", Vector3(11.4, 0.7, 1.6), Vector3(0, 4.2, side * 3), stone)
-	# Low cover and broad rock outcrops leave the authored spawns unobstructed.
-	for i in 12:
-		var angle := TAU * float(i) / 12.0
-		var at := Vector3(cos(angle) * 26, 1.8, sin(angle) * 26)
-		var rock := _rock_piece(inst, "SandstoneOutcrop", Vector3(4.5, 3.6, 3.8), at, stone.darkened(0.12))
-		rock.rotation.y = angle
-	for at in [Vector3(-19, 0.6, -8), Vector3(19, 0.6, 8), Vector3(-3, 0.6, 16), Vector3(3, 0.6, -16)]:
-		_desert_piece(inst, "LowCover", Vector3(3.5, 1.2, 1.4), at, stone)
-	for at in [Vector3(-22, 0, -16), Vector3(22, 0, 16), Vector3(-20, 0, 18), Vector3(20, 0, -18)]:
-		_desert_piece(inst, "PalmTrunk", Vector3(0.5, 5.5, 0.5), at + Vector3(0, 2.75, 0), Color("705337"))
-		for leaf in 5:
-			var foliage := _desert_piece(inst, "PalmFrond", Vector3(0.8, 0.18, 5), at + Vector3(0, 5.4, 0), Color("536c3e"))
-			foliage.rotation.y = TAU * float(leaf) / 5.0
-
-func _rock_piece(parent: Node3D, piece_name: String, dimensions: Vector3, at: Vector3, color: Color) -> MeshInstance3D:
-	# Low-poly faceted rock, authored with Godot's standard primitive/mesh APIs.
-	var source := SphereMesh.new()
-	source.radius = 1.0
-	source.height = 2.0
-	source.radial_segments = 9
-	source.rings = 4
-	var faces := source.get_faces()
-	var surface := SurfaceTool.new()
-	surface.begin(Mesh.PRIMITIVE_TRIANGLES)
-	for i in range(0, faces.size(), 3):
-		var triangle: Array[Vector3] = []
-		for j in 3:
-			var point: Vector3 = faces[i + j]
-			var roughness := 1.0 + 0.10 * sin(point.x * 13.0 + point.y * 7.0 + point.z * 11.0)
-			triangle.append(point * dimensions * 0.5 * roughness)
-		var normal := (triangle[1] - triangle[0]).cross(triangle[2] - triangle[0]).normalized()
-		if normal.dot((triangle[0] + triangle[1] + triangle[2]) / 3.0) < 0: normal = -normal
-		for point in triangle:
-			surface.set_normal(normal)
-			surface.add_vertex(point)
-	var rock := MeshInstance3D.new()
-	rock.name = piece_name
-	rock.mesh = surface.commit()
-	rock.position = at
-	var material := StandardMaterial3D.new()
-	material.albedo_color = color
-	material.roughness = 0.98
-	material.cull_mode = BaseMaterial3D.CULL_DISABLED
-	rock.material_override = material
-	parent.add_child(rock)
-	return rock
-
-func _theme_canyon(inst: Node3D) -> void:
-	var sand := Color("be9468")
-	var rock := Color("98674b")
-	_desert_piece(inst, "CanyonFloor", Vector3(96, 1, 96), Vector3(0, -0.5, 0), sand)
-	# Solid visible cliffs enclose the floor; no hidden perimeter bodies.
-	for side in [-1.0, 1.0]:
-		_desert_piece(inst, "VisibleRidgeBase", Vector3(96, 2, 4), Vector3(0, 1, side * 46), rock)
-		_desert_piece(inst, "VisibleRidgeBase", Vector3(4, 2, 96), Vector3(side * 46, 1, 0), rock)
-		for i in range(-4, 5):
-			var height := 10.0 + float(posmod(i * 7 + int(side), 5)) * 1.4
-			var tint := rock.lightened(float(posmod(i, 3)) * 0.055)
-			_rock_piece(inst, "CanyonCliff", Vector3(18, height, 14), Vector3(i * 10, height * 0.5, side * 44), tint)
-			_rock_piece(inst, "CanyonCliff", Vector3(14, height, 18), Vector3(side * 44, height * 0.5, i * 10), tint)
-	# A natural arch and irregular outcrops break up the central sightline.
-	for side in [-1.0, 1.0]:
-		_rock_piece(inst, "ArchSupport", Vector3(5, 6, 6), Vector3(side * 7, 3, 0), rock.lightened(0.12))
-	_rock_piece(inst, "NaturalArch", Vector3(19, 3, 5), Vector3(0, 6.2, 0), rock)
-	for at in [Vector3(-13, 2.5, -10), Vector3(13, 2.5, 10), Vector3(-16, 2.5, 16), Vector3(16, 2.5, -16)]:
-		var outcrop := _rock_piece(inst, "CanyonOutcrop", Vector3(5, 5, 7), at, rock.darkened(0.06))
-		outcrop.rotation.y = at.x * 0.08
-	for at in [Vector3(-5, 0.7, -22), Vector3(5, 0.7, 22), Vector3(-22, 0.7, -4), Vector3(22, 0.7, 4)]:
-		_desert_piece(inst, "CanyonLowCover", Vector3(3, 1.4, 2), at, rock.lightened(0.1))
-
+const RESTORED_MAPS := ["dust2","nuketown","canyon","military_base","ghost_city"]
 const MAP_GLBS := {
-	"industrial": "res://assets/maps/low_poly_industrial_zone.glb",
-	"resoforge": "res://assets/maps/resoforge_tdm.glb",
-	"football": "res://assets/maps/football.glb",
-	"village": "res://assets/maps/village_lowres.glb",
-	"arena": "res://assets/maps/fps_shooter_game_arena_map_v3.glb",
-	"shipment": "res://assets/maps/shipment.glb",
-	"dust2": "res://assets/maps/low_poly_industrial_zone.glb",
-	"nuketown": "res://assets/maps/low_poly_industrial_zone.glb",
-	"warzone": "res://assets/maps/low_poly_industrial_zone.glb",
-	"desert_road": "res://assets/maps/low_poly_industrial_zone.glb",
-	"canyon": "",
-	"desert_oasis": "", # Procedural desert arena, authored in metres.
+	"industrial":"res://assets/maps/low_poly_industrial_zone.glb",
+	"resoforge":"res://assets/maps/resoforge_tdm.glb",
+	"football":"res://assets/maps/football.glb",
+	"village":"res://assets/maps/village_lowres.glb",
+	"arena":"res://assets/maps/fps_shooter_game_arena_map_v3.glb",
+	"shipment":"res://assets/maps/shipment.glb",
+	"dust2":"res://assets/maps/restored/dust2.scn",
+	"nuketown":"res://assets/maps/restored/nuketown.scn",
+	"canyon":"res://assets/maps/restored/canyon.scn",
+	"military_base":"res://assets/maps/restored/military_base.scn",
+	"ghost_city":"res://assets/maps/restored/ghost_city.scn",
 }
+
+func _build_restored(root_node: Node3D, map_id: String) -> void:
+	var scene: PackedScene = load(MAP_GLBS[map_id])
+	if scene == null: push_error("Map resource unavailable: " + map_id); return
+	var inst: Node3D = scene.instantiate();root_node.add_child(inst)
+	_add_trimesh_collision(inst,true)
+	_sanitize_glb_materials(inst)
+	var authoring: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://assets/data/restored-map-authoring.json"))
+	var box:Array=authoring[map_id].bounds
+	set_meta("tactical_bounds",AABB(Vector3(box[0],box[1],box[2]),Vector3(box[3],box[4],box[5])))
+	for at: Array in authoring[map_id].spawns: spawn_points.append(Vector3(at[0],at[1],at[2]))
+	_build_sky(root_node,map_id)
+	apply_time_of_day(GameState.selected_time)
+	for shape in inst.find_children("*","CollisionShape3D",true,false):
+		if shape.shape is ConcavePolygonShape3D: shape.shape.backface_collision=true
+	for light in root_node.find_children("*","Light3D",true,false):light.shadow_enabled=false
 
 func build(map_name: String) -> Array[Vector3]:
 	spawn_points.clear()
@@ -319,31 +131,25 @@ func build(map_name: String) -> Array[Vector3]:
 	if not MAP_GLBS.has(map_name):
 		push_error("Unsupported map: " + map_name)
 		return []
+	if map_name in RESTORED_MAPS:
+		_build_restored(root,map_name)
+		return spawn_points
 	var key := map_name
-	if key == "warzone" or key == "desert_road":
-		key = "canyon"
 	
 	var extent := 48.0
 	var center := Vector3.ZERO
 	
 	if MAP_GLBS.has(key):
 		var glb_path: String = MAP_GLBS[key]
-		var glb: PackedScene = null if key in ["desert_oasis", "canyon"] else load(glb_path) as PackedScene
-		if glb or key in ["desert_oasis", "canyon"]:
-			var inst := Node3D.new() if key in ["desert_oasis", "canyon"] else glb.instantiate() as Node3D
-			inst.name = "DesertOasis" if key == "desert_oasis" else "Canyon" if key == "canyon" else "GLBMap"
+		var glb: PackedScene = load(glb_path) as PackedScene
+		if glb:
+			var inst := glb.instantiate() as Node3D
+			inst.name = "GLBMap"
 			root.add_child(inst)
 			if key == "resoforge": inst.scale = Vector3.ONE * 3.0
 			
-			if key == "dust2":
-				_theme_dust2(inst)
-			elif key == "shipment":
-				_theme_shipment(inst)
-			elif key == "desert_oasis":
-				_theme_desert_oasis(inst, root)
-			elif key == "canyon":
-				_theme_canyon(inst)
-				
+			if key == "shipment": _build_shipment_collision(inst)
+
 			# Shipment has authored primitive collision, so avoid replacing it with a full trimesh.
 			if key != "shipment":
 				_add_trimesh_collision(inst, key in ["resoforge", "football", "village"])
@@ -355,9 +161,9 @@ func build(map_name: String) -> Array[Vector3]:
 			safety.name = "SafetyFloor"
 			var sc := CollisionShape3D.new()
 			var sb := BoxShape3D.new()
-			sb.size = Vector3(2200, 1.0, 2200) if key in ["canyon", "warzone", "desert_road"] else Vector3(500, 1.0, 500)
+			sb.size = Vector3(500,1.0,500)
 			sc.shape = sb
-			sc.position.y = -120.0 if key == "canyon" else -15.0
+			sc.position.y = -15.0
 			safety.add_child(sc)
 			root.add_child(safety)
 			
@@ -378,45 +184,6 @@ func build(map_name: String) -> Array[Vector3]:
 						Vector3(10.0, 0.08, 8.0),
 						Vector3(14.0, 0.08, -16.0),
 						Vector3(18.1913, 0.08, -19.5381),
-					]
-				"dust2":
-					extent = 65.0
-					center = Vector3(8.0, 0.0, 28.0)
-					# The industrial asset has a visible perimeter fence with mesh collision.
-					# Extra square barriers cut across its playable roads and buildings.
-					_spawn_jeep(Vector3(-10.0, 1.2, 4.0), 0.0, root)
-					spawn_points = [
-						Vector3(-8.0, 0.9221, 4.0),
-						Vector3(10.0, 0.9221, 4.0),
-						Vector3(25.0, 0.9221, 6.0),
-						Vector3(45.0, 0.9221, 4.0),
-						Vector3(60.0, 0.9221, 8.0),
-						Vector3(-5.0, 0.9221, 18.0),
-						Vector3(20.0, 0.9221, 20.0),
-						Vector3(35.0, 0.9221, 16.0),
-						Vector3(50.0, 0.9221, 24.0),
-						Vector3(-15.0, 0.9221, 28.0),
-						Vector3(13.2322, 1.7088, 37.7678),
-						Vector3(30.0, 0.9927, 40.0),
-					]
-				"nuketown":
-					extent = 35.0
-					center = Vector3.ZERO
-					# The industrial asset has a visible perimeter fence with mesh collision.
-					# Extra square barriers cut across its playable roads and buildings.
-					spawn_points = [
-						Vector3(-24.0, 0.9221, -14.0),
-						Vector3(24.0, 0.9221, 14.0),
-						Vector3(-25.0, 0.9221, 13.0),
-						Vector3(25.0, 1.2357, -13.0),
-						Vector3(-19.0, 0.9221, 9.0),
-						Vector3(19.0, 1.2721, -9.0),
-						Vector3(-28.0, 0.9221, 0.0),
-						Vector3(28.0, 0.9221, 0.0),
-						Vector3(-8.0, 0.9221, 12.0),
-						Vector3(8.0, 1.233, -12.0),
-						Vector3(-10.3536, 1.2933, -11.6464),
-						Vector3(10.0, 0.9221, 12.0),
 					]
 				"football":
 					extent = 110.0
@@ -499,38 +266,6 @@ func build(map_name: String) -> Array[Vector3]:
 						Vector3(-14.8087, 1.08, -4.5381),
 						Vector3(-21.8087, 1.08, -4.5381),
 					]
-				"canyon":
-					extent = 40.0
-					center = Vector3.ZERO
-					_spawn_jeep(Vector3(-24.0, 0.5, 0.0), 0.0, root)
-					_spawn_jeep(Vector3(24.0, 0.5, 0.0), PI, root)
-					spawn_points = [
-						Vector3(-28, 0.5, -28), Vector3(28, 0.5, 28),
-						Vector3(-28, 0.5, 28), Vector3(28, 0.5, -28),
-						Vector3(-28, 0.5, -14), Vector3(28, 0.5, 14),
-						Vector3(-28, 0.5, 14), Vector3(28, 0.5, -14),
-						Vector3(-14, 0.5, -28), Vector3(14, 0.5, 28),
-						Vector3(14, 0.5, -28), Vector3(-14, 0.5, 28),
-					]
-				"desert_oasis":
-					extent = 32.0
-					center = Vector3.ZERO
-					_spawn_jeep(Vector3(0.0, 0.5, -12.0), 0.0, root)
-					_spawn_jeep(Vector3(0.0, 0.5, 12.0), PI, root)
-					spawn_points = [
-						Vector3(-16.0, 0.5, -16.0),
-						Vector3(16.0, 0.5, 16.0),
-						Vector3(-16.0, 0.5, 16.0),
-						Vector3(16.0, 0.5, -16.0),
-						Vector3(0.0, 0.5, 18.0),
-						Vector3(0.0, 0.5, -18.0),
-						Vector3(18.0, 0.5, 0.0),
-						Vector3(-20.0, 0.5, 0.0),
-						Vector3(-12.0, 0.5, -18.0),
-						Vector3(12.0, 0.5, -18.0),
-						Vector3(-12.0, 0.5, 18.0),
-						Vector3(12.0, 0.5, 18.0),
-					]
 	_build_sky(root, key)
 	apply_time_of_day(GameState.selected_time)
 	for collider in find_children("*", "CollisionShape3D", true, false):
@@ -540,68 +275,18 @@ func build(map_name: String) -> Array[Vector3]:
 	return spawn_points
 
 func _sanitize_glb_materials(node: Node) -> void:
-	if node is MeshInstance3D:
-		var mi := node as MeshInstance3D
-		if mi.mesh:
-			var aabb := mi.get_aabb()
-			var node_nm := mi.name.to_lower()
-			var is_exterior := node_nm.contains("023") or node_nm.contains("024") or node_nm.contains("025") or node_nm.contains("026") or node_nm.contains("027") or node_nm.contains("028") or node_nm.contains("029") or node_nm.contains("030") or node_nm.contains("031")
-			# Esports optimization: skip small props and exterior skyscrapers from casting dynamic shadow cascades (saves 1500+ draw calls)
-			if aabb.size.length() < 1.8 or is_exterior:
-				mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-			for s in mi.mesh.get_surface_count():
-				var mat = mi.get_surface_override_material(s)
-				if not mat:
-					mat = mi.mesh.surface_get_material(s)
-				if mat is StandardMaterial3D:
-					var cache_id: int = mat.get_instance_id()
-					if not _sanitized_mat_cache.has(cache_id):
-						var m: StandardMaterial3D = mat.duplicate()
-						# 1. 16x Anisotropic Filtering for crisp textures at all viewing angles
-						m.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC
-						# 2. Natural PBR response: preserve authentic metallic surfaces (containers, barrels, cars) while eliminating plastic glare
-						var mat_res_nm: String = String(mat.resource_name).to_lower()
-						var is_glass: bool = mat_res_nm.contains("glass") or mat_res_nm == "material.032"
-						var is_exterior_mat: bool = mat_res_nm in ["material.023", "material.024", "material.025", "material.026", "material.027", "material.028", "material.029", "material.030", "material.031"]
-						if is_glass:
-							# Glass & transparent window panes: crystal clear with smooth specular reflection
-							m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-							m.cull_mode = BaseMaterial3D.CULL_DISABLED
-							m.roughness = 0.05
-							m.metallic = 0.08
-							m.metallic_specular = 0.85
-							m.albedo_color = Color(0.68, 0.82, 0.95, 0.28)
-						elif is_exterior_mat:
-							# Exterior distant skyscrapers: single-sided backface culling, 0 metallic glare
-							m.transparency = BaseMaterial3D.TRANSPARENCY_DISABLED
-							m.cull_mode = BaseMaterial3D.CULL_BACK
-							m.roughness = 0.85
-							m.metallic = 0.05
-						else:
-							# All interior walls, floors, ceilings & props: 100% solid opaque and two-sided (no see-through walls)
-							m.transparency = BaseMaterial3D.TRANSPARENCY_DISABLED
-							m.cull_mode = BaseMaterial3D.CULL_DISABLED
-							if m.metallic > 0.4:
-								m.roughness = clampf(m.roughness, 0.35, 0.85)
-								m.metallic = clampf(m.metallic, 0.4, 0.95)
-								m.metallic_specular = 0.5
-							else:
-								m.roughness = clampf(m.roughness, 0.70, 1.0)
-								m.metallic = clampf(m.metallic, 0.0, 0.15)
-								m.metallic_specular = 0.15
-						# 3. Normal mapping preserved without artificial wash-out
-						if m.normal_texture:
-							m.normal_enabled = true
-							m.normal_scale = 1.0
-						else:
-							m.normal_enabled = false
-						# 4. Tame pure untextured white surfaces (e.g. Arena Object_5)
-						if not is_glass and m.albedo_texture == null and m.albedo_color.r > 0.82 and m.albedo_color.g > 0.82 and m.albedo_color.b > 0.82:
-							m.albedo_color = Color(0.42, 0.40, 0.38, 1.0)
-						_sanitized_mat_cache[cache_id] = m
-					mi.set_surface_override_material(s, _sanitized_mat_cache[cache_id])
-	for c in node.get_children():
-		_sanitize_glb_materials(c)
+	if node is MeshInstance3D and node.mesh:
+		for surface in node.mesh.get_surface_count():
+			var original: Material = node.get_active_material(surface)
+			if original is StandardMaterial3D:
+				var key := original.get_instance_id()
+				if not _sanitized_mat_cache.has(key):
+					var material: StandardMaterial3D = original.duplicate()
+					material.texture_filter=BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC
+					material.cull_mode=BaseMaterial3D.CULL_DISABLED
+					_sanitized_mat_cache[key]=material
+				node.set_surface_override_material(surface,_sanitized_mat_cache[key])
+	for child in node.get_children(): _sanitize_glb_materials(child)
 
 func _add_trimesh_collision(n: Node, exact: bool = false) -> void:
 	if n is MeshInstance3D:

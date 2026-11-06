@@ -129,7 +129,7 @@ test('vehicle chassis OBB blocks shot rays with nearest-hit fraction and can ign
 });
 
 test('vehicle simulation accepts an independently loaded non-Industrial map geometry', () => {
-  const geometry = loadWorldGeometry('desert_oasis')!;
+  const geometry = loadWorldGeometry('village')!;
   const sim = new VehicleSimulation(geometry);
   assert.equal(sim.states.size, geometry.vehicleSpawns.length);
   const car = sim.states.get('CAR_0')!;

@@ -3,7 +3,7 @@ extends Node
 const NetworkScript := preload("res://scripts/net/ColyseusNetwork.gd")
 const Geometry := preload("res://scripts/net/ColyseusWorldGeometry.gd")
 const MAP_FIXTURES_PATH := "res://assets/data/maps/map-fixtures.json"
-const MAPS: Array[String] = ["football", "resoforge", "industrial", "village", "arena", "shipment", "dust2", "nuketown", "canyon", "desert_oasis"]
+const MAPS: Array[String] = ["football", "resoforge", "industrial", "village", "arena", "shipment", "dust2", "nuketown", "canyon"]
 const DT := 1.0 / 60.0
 
 class StepContext extends RefCounted:

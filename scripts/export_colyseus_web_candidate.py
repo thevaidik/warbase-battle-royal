@@ -150,7 +150,7 @@ def main() -> int:
         }
         playable_maps = (
             "football", "resoforge", "industrial", "village", "arena",
-            "shipment", "dust2", "nuketown", "canyon", "desert_oasis",
+            "shipment", "dust2", "nuketown", "canyon", "military_base", "ghost_city",
         )
         required_paths.update(f"assets/data/maps/{map_name}.json.gz" for map_name in playable_maps)
         missing = required_paths - paths

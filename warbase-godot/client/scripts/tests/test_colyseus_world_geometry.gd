@@ -11,7 +11,7 @@ func _init() -> void:
 		quit(1)
 		return
 	var map_fixtures: Variant = JSON.parse_string(FileAccess.get_file_as_string(MAP_FIXTURES_PATH))
-	if not map_fixtures is Array or map_fixtures.size() != 10:
+	if not map_fixtures is Array or map_fixtures.size() != GEOMETRY.PLAYABLE_MAPS.size():
 		push_error("Invalid all-map geometry fixture file")
 		quit(1)
 	var failures := 0

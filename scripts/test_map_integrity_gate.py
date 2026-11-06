@@ -10,6 +10,10 @@ class MapPackTests(unittest.TestCase):
                      'fps_shooter_game_arena_map_v3.glb','shipment.glb']:
             self.paths.add('assets/maps/'+name+'.import')
             self.paths.add('.godot/imported/'+name+'-hash.scn')
+    def test_removed_loft_assets_cannot_ship(self):
+        self.paths.add('assets/maps/loft_17.glb.import')
+        with self.assertRaisesRegex(RuntimeError, 'Loft 17'):
+            verify_map_pack(self.paths, include_football=False)
     def test_missing_scene_cannot_ship_with_its_collision(self):
         self.paths.remove('.godot/imported/village_lowres.glb-hash.scn')
         with self.assertRaisesRegex(RuntimeError,'imported scene for village'):

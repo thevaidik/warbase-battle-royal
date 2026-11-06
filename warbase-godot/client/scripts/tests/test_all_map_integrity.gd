@@ -1,7 +1,7 @@
 extends SceneTree
 ## Authoring and release gate: scene collision, replicated geometry and spawn clearance.
 const AUTHORING = preload("res://scripts/tools/export_server_maps.gd")
-const MAPS := ["football","resoforge","industrial","village","arena","shipment","dust2","nuketown","canyon","desert_oasis"]
+const MAPS := ["football","resoforge","industrial","village","arena","shipment","dust2","nuketown","canyon","military_base", "ghost_city"]
 var failures: Array[String] = []
 func _initialize() -> void: call_deferred("run")
 func check(ok: bool, message: String) -> void:
@@ -22,7 +22,7 @@ func run() -> void:
 		check(ResourceLoader.exists("res://assets/ui/maps/"+id+".png"),id+": preview exists")
 		var asset: String = builder_script.MAP_GLBS[id]
 		if asset.ends_with("low_poly_industrial_zone.glb"):
-			check(id in ["industrial","dust2","nuketown"],id+": unexpected Industrial alias")
+			check(id == "industrial",id+": unexpected Industrial alias")
 		for shape in builder.find_children("*","CollisionShape3D",true,false):
 			if shape.disabled or not shape.get_parent() is StaticBody3D: continue
 			if shape.get_parent().name == "SafetyFloor":
@@ -65,5 +65,5 @@ func run() -> void:
 		if arg.begins_with("report="):
 			var output:=FileAccess.open(arg.trim_prefix("report="),FileAccess.WRITE)
 			if output: output.store_string(JSON.stringify(report))
-	print("ALL_MAP_INTEGRITY_OK maps=10 spawns=",report.spawn_count," failures=",failures.size())
+	print("ALL_MAP_INTEGRITY_OK maps=",MAPS.size()," spawns=",report.spawn_count," failures=",failures.size())
 	quit(0 if failures.is_empty() else 1)

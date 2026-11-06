@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { canonicalizeUsername, FixedWindowLimiter } from './abuse-protection.js';
+import { PLAYABLE_MAPS } from './world-geometry.js';
 import { consumeRoomCreationAllowance } from './battle-room.js';
 
 test('anonymous username admission canonicalizes and bounds display names', () => {
@@ -42,7 +43,7 @@ test('invalid and over-capacity room creates do not spend the shared valid-creat
 });
 
 test('all public presets force Conquest even for older client mode/map options', () => {
-  for (const map of ['industrial', 'resoforge', 'football', 'village', 'arena', 'shipment', 'dust2', 'nuketown', 'canyon', 'desert_oasis']) {
+  for (const map of PLAYABLE_MAPS) {
     for (const mode of ['TDM', 'FFA', 'CONQUEST']) {
       const settings = consumeRoomCreationAllowance({ room: `${map}-public`, map: 'industrial', mode }, 0, new FixedWindowLimiter());
       assert.equal(settings.map, map);

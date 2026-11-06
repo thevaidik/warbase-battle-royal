@@ -208,7 +208,8 @@ test('all selectable maps load independent authored geometry and match the share
     move: { from: number[]; to: number[]; expected: number[] };
   }>;
   assert.equal(mapFixtures.length, PLAYABLE_MAPS.length);
-  assert.equal(normalizeMapId('  DESERT_OASIS '), 'desert_oasis');
+  assert.equal(normalizeMapId('  MILITARY_BASE '), 'military_base');
+  assert.equal(normalizeMapId('desert_oasis'), null, 'a prop sheet is not advertised as a complete map');
   assert.equal(normalizeMapId('loft'), null);
   for (const fixture of mapFixtures) {
     const geometry = loadWorldGeometry(fixture.map);
@@ -230,8 +231,7 @@ test('all selectable maps load independent authored geometry and match the share
   assert.equal(loadWorldGeometry(' INDUSTRIAL '), industrial);
 });
 
-test('Industrial scenery variant spawns stand above the road and settle without embedding', () => {
-  const nuketown = loadWorldGeometry('nuketown')!;
+test('original map spawns stand above their authored ground and settle without embedding', () => {
   let settled = 0;
   for (const map of ['industrial', 'nuketown', 'village', 'dust2', 'canyon']) {
     const geometry = loadWorldGeometry(map)!;
@@ -252,8 +252,6 @@ test('Industrial scenery variant spawns stand above the road and settle without 
       settled++;
     }
   }
-  const observed = nuketown.spawns.find((spawn) => spawn[0] === 28 && spawn[2] === 0)!;
-  assert.ok(observed && observed[1] > 0.84, 'reported x=28/z=0 spawn must clear the 0.8421m road');
   assert.ok(settled >= 48);
 });
 

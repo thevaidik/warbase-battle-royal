@@ -34,10 +34,16 @@ func run() -> void:
 		"canyon": [Vector3(42, 25, -40), Vector3(0, 1, 0)],
 		"desert_oasis": [Vector3(30, 18, 28), Vector3(0, 1, 0)]
 	}
+	var metadata: Dictionary=JSON.parse_string(FileAccess.get_file_as_string("res://assets/data/restored-map-authoring.json"))
+	for id in metadata:
+		var box: Array=metadata[id].bounds
+		var span:float=maxf(box[3],box[5])
+		views[id]=[Vector3(span*0.65,float(box[4])+span*0.55,span*0.7),Vector3(0,float(box[4])*0.2,0)]
 	var selected := ""
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("map="): selected = arg.trim_prefix("map=")
 	for map_id in views:
+		if not load("res://scripts/maps/MapBuilder.gd").MAP_GLBS.has(map_id): continue
 		if not selected.is_empty() and selected != map_id: continue
 		var builder = load("res://scripts/maps/MapBuilder.gd").new()
 		root.add_child(builder)

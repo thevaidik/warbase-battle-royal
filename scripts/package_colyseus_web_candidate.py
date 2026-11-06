@@ -22,7 +22,7 @@ ROOT = pathlib.Path(__file__).resolve().parents[1]
 CLIENT = ROOT / "warbase-godot/client"
 PLAYABLE_MAPS = (
     "football", "resoforge", "industrial", "village", "arena",
-    "shipment", "dust2", "nuketown", "canyon", "desert_oasis",
+    "shipment", "dust2", "nuketown", "canyon", "military_base", "ghost_city",
 )
 ASSETS = WEB_EXPORT_ASSETS
 SDK_WASM_ASSET = "libcolyseus_godot.web.wasm32.release.wasm"

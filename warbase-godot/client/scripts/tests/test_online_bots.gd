@@ -18,8 +18,8 @@ func run() -> void:
 	state.server_host = "localhost:18092"
 	state.username = "AI_TESTER"
 	state.practice_mode = false
-	state.selected_map = "desert_oasis"
-	state.room_id = "desert_oasis-public"
+	state.selected_map = "canyon"
+	state.room_id = "canyon-public"
 	state.selected_primary = "m4"
 	state.selected_secondary = "dmr"
 	state.selected_throwable = "impact"

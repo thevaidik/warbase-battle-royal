@@ -9,7 +9,7 @@ extends RefCounted
 
 const DATA_DIR := "res://assets/data/maps/"
 const INDUSTRIAL_FALLBACK_PATH := "res://assets/data/industrial.json.gz"
-const PLAYABLE_MAPS: Array[String] = ["football", "resoforge", "industrial", "village", "arena", "shipment", "dust2", "nuketown", "canyon", "desert_oasis"]
+const PLAYABLE_MAPS: Array[String] = ["football", "resoforge", "industrial", "village", "arena", "shipment", "dust2", "nuketown", "canyon", "military_base", "ghost_city"]
 const NODE_STRIDE := 10
 const SPOKES := 12
 const CAPSULE_LEVELS: Array[float] = [0.08, 0.24, 0.4, 0.9, 1.4, 1.56, 1.72]

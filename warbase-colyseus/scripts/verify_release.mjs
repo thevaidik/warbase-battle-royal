@@ -31,9 +31,9 @@ try {
   lobby.onMessage('-', id => rooms.delete(id));
   const suffix = Date.now().toString(36);
   const names = ['ReleaseCheckA_' + suffix, 'ReleaseCheckB_' + suffix];
-  const a = await clients[0].joinOrCreate('battle', { protocol_version: 10, room: 'industrial-public', username: names[0] }); joined.push(a);
+  const a = await clients[0].joinOrCreate('battle', { protocol_version: 11, room: 'industrial-public', username: names[0] }); joined.push(a);
   a.onMessage('*', () => {});
-  const b = await clients[1].joinOrCreate('battle', { protocol_version: 10, room: 'industrial-public', username: names[1] }); joined.push(b);
+  const b = await clients[1].joinOrCreate('battle', { protocol_version: 11, room: 'industrial-public', username: names[1] }); joined.push(b);
   b.onMessage('*', () => {});
   assert.equal(a.roomId, b.roomId, 'both peers share a room');
   await until(() => a.state?.players?.has(names[1]) && b.state?.players?.has(names[0]), 'public peers visible');

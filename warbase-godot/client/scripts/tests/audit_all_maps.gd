@@ -8,7 +8,8 @@ const MAPS = [
 	"dust2",
 	"nuketown",
 	"canyon",
-	"desert_oasis",
+	"military_base",
+	"ghost_city",
 	"football",
 	"resoforge"
 ]

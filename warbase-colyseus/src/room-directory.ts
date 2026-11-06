@@ -4,7 +4,7 @@ import { PLAYABLE_MAPS } from './world-geometry.js';
 export const OFFICIAL_MAP_NAMES: Record<string, string> = {
   industrial: 'Industrial Zone', resoforge: 'ResoForge Yard', football: 'Football Stadium',
   village: 'Village Outpost', arena: 'Combat Arena', shipment: 'Shipment',
-  dust2: 'Industrial Recon', canyon: 'Canyon', desert_oasis: 'Desert Oasis', nuketown: 'Industrial Outpost',
+  dust2: 'Dust II', canyon: 'Devil’s Canyon', nuketown: 'Nuketown', military_base: 'Military Base', ghost_city: 'Ghost City',
 };
 
 /** Read the framework driver, so HTTP fallback and realtime lobby agree even

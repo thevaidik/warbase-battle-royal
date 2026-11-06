@@ -5,7 +5,7 @@ func check(ok: bool, message: String) -> void:
 	if not ok: failures += 1
 	print("PASS: " if ok else "FAIL: ", message)
 func run() -> void:
-	for id in ["desert_oasis", "canyon"]:
+	for id in ["dust2", "canyon"]:
 		var builder = load("res://scripts/maps/MapBuilder.gd").new()
 		root.add_child(builder)
 		var spawns: Array = builder.build(id)
@@ -28,12 +28,6 @@ func run() -> void:
 			query.collision_mask = 1
 			query.transform.origin = point + Vector3.UP * 0.9
 			check(space.intersect_shape(query).is_empty(), "%s spawn capsule is not embedded: %s" % [id,point])
-		if id == "desert_oasis":
-			for direction in [Vector3.RIGHT, Vector3.LEFT, Vector3.FORWARD, Vector3.BACK]:
-				var from: Vector3 = direction * 30 + Vector3.UP
-				var to: Vector3 = direction * 35 + Vector3.UP
-				check(space.intersect_ray(PhysicsRayQueryParameters3D.create(from,to,1)).is_empty(), "former Desert Oasis hidden boundary is clear")
-				check(not space.intersect_ray(PhysicsRayQueryParameters3D.create(to,direction * 42 + Vector3.UP,1)).is_empty(), "visible Desert Oasis rock boundary remains solid")
 		builder.free()
 		await physics_frame
 	print("DESERT CANYON COLLISION TEST: %d failures" % failures)

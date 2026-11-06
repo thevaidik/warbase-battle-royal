@@ -6,8 +6,9 @@ import pathlib
 import subprocess
 import tempfile
 from client_provenance import client_fingerprint
+from optional_map_assets import RESTORED_MAPS
 
-MAPS = ('football','resoforge','industrial','village','arena','shipment','dust2','nuketown','canyon','desert_oasis')
+MAPS = ('football','resoforge','industrial','village','arena','shipment','dust2','nuketown','canyon','military_base', 'ghost_city')
 
 def ensure_map_integrity(root: pathlib.Path, godot: pathlib.Path) -> dict:
     client = root / 'warbase-godot/client'
@@ -26,7 +27,7 @@ def ensure_map_integrity(root: pathlib.Path, godot: pathlib.Path) -> dict:
     if cache.exists():
         previous = json.loads(cache.read_text())
         if previous.get('inputs') == inputs and previous.get('verified') is True:
-            print('MAP_INTEGRITY_GATE_OK cached=true maps=10')
+            print(f'MAP_INTEGRITY_GATE_OK cached=true maps={len(MAPS)}')
             return previous
     with tempfile.TemporaryDirectory(prefix='warbase-map-gate-') as directory:
         report = pathlib.Path(directory) / 'result.json'
@@ -44,17 +45,20 @@ def ensure_map_integrity(root: pathlib.Path, godot: pathlib.Path) -> dict:
     value = {'inputs':inputs,'verified':True,'report':result}
     cache.parent.mkdir(parents=True,exist_ok=True)
     cache.write_text(json.dumps(value,indent=2)+'\n')
-    print('MAP_INTEGRITY_GATE_OK cached=false maps=10 spawns='+str(result['spawn_count']))
+    print(f'MAP_INTEGRITY_GATE_OK cached=false maps={len(MAPS)} spawns='+str(result['spawn_count']))
     return value
 
 
 def verify_map_pack(paths: set[str], *, include_football: bool) -> None:
     """Collision without its scene or thumbnail must never ship."""
+    if any('loft' in path.lower() for path in paths):
+        raise RuntimeError('Removed Loft 17 content cannot ship')
     required = {f'assets/data/maps/{name}.json.gz' for name in MAPS}
     required.update(f'assets/ui/maps/{name}.png.import' for name in MAPS)
     assets = ['low_poly_industrial_zone.glb','resoforge_tdm.glb','village_lowres.glb',
               'fps_shooter_game_arena_map_v3.glb','shipment.glb']
     if include_football:
+        required.update(f'assets/maps/restored/{name}.scn' for name in RESTORED_MAPS)
         assets.append('football.glb')
     required.update('assets/maps/'+name+'.import' for name in assets)
     missing = required - paths
