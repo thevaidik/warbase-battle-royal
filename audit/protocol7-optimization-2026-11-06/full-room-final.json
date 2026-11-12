@@ -1,0 +1,261 @@
+{
+  "valid": false,
+  "reason": "incomplete or interrupted cohort",
+  "sdkPeersJoined": 63,
+  "roomId": "f7eef44d-b6a4-49d9-bf26-c26416b3d146",
+  "sharedFullSecondsLowerBound": 69.12,
+  "maxHelperCpuPercent": 7.33,
+  "maxHelperLoopExcessP95Ms": 2.353535000000001,
+  "helperSaturationSuspected": false,
+  "capacityEvidenceQualified": false,
+  "shardCount": 3,
+  "peerDistribution": [
+    21,
+    21,
+    21
+  ],
+  "exitCodes": [
+    0,
+    0,
+    0
+  ],
+  "observerFinishedEarly": false,
+  "endpoint": "https://war.vaidik.blog/colyseus",
+  "observer": "packaged-native",
+  "limits": "Latency percentiles stay per-shard; percentiles are not averaged. Helper qualification is not a client FPS or server tick pass.",
+  "release": "wire7c-20261106",
+  "clientSourceFingerprint": "cd341407d751bbe8c8f0ae152c2460325467a211b47c99f28cdd06a726fd81aa",
+  "native": {
+    "seconds": 120.073953333332,
+    "frame_ms_p50": 8.455,
+    "frame_ms_p95": 51.564,
+    "frame_ms_p99": 124.505,
+    "disconnects": 0,
+    "peak_remotes": 63,
+    "applied_corrections": 0
+  },
+  "effectiveServerHz": 47.772048129049324,
+  "worstRollingTickP95Ms": 29.412523999984842,
+  "strict60HzAnd60FpsPass": false,
+  "serverRssMaxBytes": 199544832,
+  "cohorts": [
+    {
+      "gameplay": {
+        "shotsAttempted": 21,
+        "fireEchoes": 21,
+        "confirmedHits": 1,
+        "grenadeAttempts": 8,
+        "grenadesAccepted": 5,
+        "uniqueExplosionsSeen": 11,
+        "seatAttempts": 15,
+        "vehicleApproachInputs": 40674,
+        "seatEntries": 9,
+        "vehicleInputs": 364,
+        "damageEvents": 3,
+        "killEvents": 0
+      },
+      "lifecycle": {
+        "controlledTransportDrops": 0,
+        "drops": 0,
+        "dropsByPhase": {
+          "joining": 0,
+          "active": 0,
+          "cleanup": 0
+        },
+        "reconnects": 0,
+        "reconnectsByPhase": {
+          "joining": 0,
+          "active": 0,
+          "cleanup": 0
+        },
+        "recoveredDrops": 0,
+        "maxRecoveryMs": 0,
+        "clientLeaves": 21,
+        "sdkCohortRemovalsExpected": 20,
+        "sdkCohortRemovalsObserved": 20,
+        "remainingHumanActorsAfterSdkLeaves": 4,
+        "serverClientsAfterSdkLeaves": 0,
+        "serverBotsAfterSdkLeaves": 0,
+        "cleanupRemovalTimedOut": false,
+        "errors": 0
+      },
+      "network": {
+        "sdkPingRttP50Ms": 174,
+        "sdkPingRttP95Ms": 4324,
+        "sdkClockRttP50Ms": 1273.13,
+        "sdkClockSmoothedRttP95Ms": 1275.38,
+        "inputAckTotalSamples": 15,
+        "ackPendingMeanP95": 481.67,
+        "ackPendingFrameMax": 818,
+        "roomStateGapP50Ms": 69,
+        "roomStateGapP95Ms": 293,
+        "roomStateGapMaxMs": 373
+      },
+      "errorSamples": [],
+      "evidenceCoverage": {
+        "nativeObserverGate": true,
+        "peak64HumanActors": true,
+        "sustained64HumanOccupancy": true,
+        "authoritativeMovement": true,
+        "fireEcho": true,
+        "confirmedHit": true,
+        "acceptedGrenade": true,
+        "explosion": true,
+        "vehicleSeatEntry": true,
+        "vehicleInputsSent": true,
+        "vehicleMotion": true,
+        "sdkCleanupObserved": true
+      }
+    },
+    {
+      "gameplay": {
+        "shotsAttempted": 21,
+        "fireEchoes": 21,
+        "confirmedHits": 0,
+        "grenadeAttempts": 8,
+        "grenadesAccepted": 5,
+        "uniqueExplosionsSeen": 11,
+        "seatAttempts": 11,
+        "vehicleApproachInputs": 41957,
+        "seatEntries": 7,
+        "vehicleInputs": 343,
+        "damageEvents": 11,
+        "killEvents": 0
+      },
+      "lifecycle": {
+        "controlledTransportDrops": 0,
+        "drops": 0,
+        "dropsByPhase": {
+          "joining": 0,
+          "active": 0,
+          "cleanup": 0
+        },
+        "reconnects": 0,
+        "reconnectsByPhase": {
+          "joining": 0,
+          "active": 0,
+          "cleanup": 0
+        },
+        "recoveredDrops": 0,
+        "maxRecoveryMs": 0,
+        "clientLeaves": 21,
+        "sdkCohortRemovalsExpected": 20,
+        "sdkCohortRemovalsObserved": 20,
+        "remainingHumanActorsAfterSdkLeaves": 4,
+        "serverClientsAfterSdkLeaves": 0,
+        "serverBotsAfterSdkLeaves": 0,
+        "cleanupRemovalTimedOut": false,
+        "errors": 0
+      },
+      "network": {
+        "sdkPingRttP50Ms": 169,
+        "sdkPingRttP95Ms": 3329,
+        "sdkClockRttP50Ms": 1264.31,
+        "sdkClockSmoothedRttP95Ms": 1268.81,
+        "inputAckTotalSamples": 15,
+        "ackPendingMeanP95": 486.76,
+        "ackPendingFrameMax": 861,
+        "roomStateGapP50Ms": 74,
+        "roomStateGapP95Ms": 280,
+        "roomStateGapMaxMs": 390
+      },
+      "errorSamples": [],
+      "evidenceCoverage": {
+        "nativeObserverGate": true,
+        "peak64HumanActors": true,
+        "sustained64HumanOccupancy": true,
+        "authoritativeMovement": true,
+        "fireEcho": true,
+        "confirmedHit": false,
+        "acceptedGrenade": true,
+        "explosion": true,
+        "vehicleSeatEntry": true,
+        "vehicleInputsSent": true,
+        "vehicleMotion": true,
+        "sdkCleanupObserved": true
+      }
+    },
+    {
+      "gameplay": {
+        "shotsAttempted": 21,
+        "fireEchoes": 20,
+        "confirmedHits": 0,
+        "grenadeAttempts": 8,
+        "grenadesAccepted": 1,
+        "uniqueExplosionsSeen": 11,
+        "seatAttempts": 8,
+        "vehicleApproachInputs": 49608,
+        "seatEntries": 3,
+        "vehicleInputs": 135,
+        "damageEvents": 2,
+        "killEvents": 0
+      },
+      "lifecycle": {
+        "controlledTransportDrops": 0,
+        "drops": 1,
+        "dropsByPhase": {
+          "joining": 0,
+          "active": 1,
+          "cleanup": 0
+        },
+        "reconnects": 1,
+        "reconnectsByPhase": {
+          "joining": 0,
+          "active": 1,
+          "cleanup": 0
+        },
+        "recoveredDrops": 1,
+        "maxRecoveryMs": 455,
+        "clientLeaves": 21,
+        "sdkCohortRemovalsExpected": 20,
+        "sdkCohortRemovalsObserved": 20,
+        "remainingHumanActorsAfterSdkLeaves": 4,
+        "serverClientsAfterSdkLeaves": 0,
+        "serverBotsAfterSdkLeaves": 0,
+        "cleanupRemovalTimedOut": false,
+        "errors": 0
+      },
+      "network": {
+        "sdkPingRttP50Ms": 184,
+        "sdkPingRttP95Ms": 4316,
+        "sdkClockRttP50Ms": 1320.54,
+        "sdkClockSmoothedRttP95Ms": 1275.17,
+        "inputAckTotalSamples": 15,
+        "ackPendingMeanP95": 667.67,
+        "ackPendingFrameMax": 839,
+        "roomStateGapP50Ms": 74,
+        "roomStateGapP95Ms": 279,
+        "roomStateGapMaxMs": 450
+      },
+      "errorSamples": [
+        {
+          "username": "SDKnhe4g3n4g11",
+          "type": "drop",
+          "phase": "active",
+          "code": 1006,
+          "reason": ""
+        }
+      ],
+      "evidenceCoverage": {
+        "nativeObserverGate": true,
+        "peak64HumanActors": true,
+        "sustained64HumanOccupancy": true,
+        "authoritativeMovement": true,
+        "fireEcho": true,
+        "confirmedHit": false,
+        "acceptedGrenade": true,
+        "explosion": true,
+        "vehicleSeatEntry": true,
+        "vehicleInputsSent": true,
+        "vehicleMotion": true,
+        "sdkCleanupObserved": true
+      }
+    }
+  ],
+  "containerNetworkMbps": {
+    "rx": 3.221,
+    "tx": 26.396,
+    "seconds": 30.024,
+    "limit": "Container bytes, not measured WAN link capacity; does not prove uplink saturation."
+  }
+}

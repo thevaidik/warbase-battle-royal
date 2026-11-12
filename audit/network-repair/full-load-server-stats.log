@@ -1,0 +1,13 @@
+warbase-server CPU=103.05% MEM=93.84MiB / 7.67GiB NET=18.6MB / 77.1MB
+2026/10/27 17:27:13 Validation denied for BOT_STRESS_02: reload (magazine already full); rejected since last log=5
+2026/10/27 17:27:13 Validation denied for BOT_STRESS_10: reload (magazine already full); rejected since last log=1
+2026/10/27 17:27:13 Validation denied for BOT_STRESS_18: reload (magazine already full); rejected since last log=10
+2026/10/27 17:27:13 Validation denied for BOT_STRESS_42: reload (magazine already full); rejected since last log=2
+2026/10/27 17:27:13 Validation denied for BOT_STRESS_51: reload (already reloading); rejected since last log=3
+2026/10/27 17:27:13 Validation denied for BOT_STRESS_59: reload (magazine already full); rejected since last log=1
+2026/10/27 17:27:13 Validation denied for BOT_STRESS_38: reload (already reloading); rejected since last log=2
+2026/10/27 17:27:13 Validation denied for BOT_STRESS_28: reload (magazine already full); rejected since last log=1
+2026/10/27 17:27:13 Validation denied for BOT_STRESS_04: reload (magazine already full); rejected since last log=2
+2026/10/27 17:27:13 Validation denied for BOT_STRESS_52: reload (magazine already full); rejected since last log=1
+2026/10/27 17:27:13 Validation denied for BOT_STRESS_21: reload (already reloading); rejected since last log=5
+2026/10/27 17:27:13 Validation denied for BOT_STRESS_34: fire (no ammo remaining); rejected since last log=2

@@ -1,0 +1,4 @@
+[Colyseus reconnection]: ⏳ will retry in 0.2 seconds...
+[Colyseus reconnection]: 🔄 Re-establishing sessionId 'UIyhvulp3' with roomId 'jfGuA2Dr6'... (attempt 1 of 15)
+[Colyseus reconnection]: ✅ reconnection successful!
+RELEASE_SDK_OK signed_join=true lobby=true privacy=true conquest=true reconnect=true removal=true

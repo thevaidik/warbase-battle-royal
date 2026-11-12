@@ -1,9 +1,12 @@
 ## Explicit CLI QA mode for the official server; inactive in ordinary play.
 extends Node
 ## Real rendered observer. Explicit official room only; never creates a local server.
+const OFFICIAL_HOST := "war.vaidik.blog"
+const COLYSEUS_CANDIDATE_HOST := "war.vaidik.blog/colyseus"
 var main
 var elapsed := 0.0
 var frames: Array[float] = []
+var phase_frame_times: Dictionary = {}
 var gaps: Array[float] = []
 var pings: Array[float] = []
 var last_state_ms := 0
@@ -25,25 +28,41 @@ var ads_frames := 0
 var confirmed_hits := 0
 var confirmed_kills := 0
 var local_grenades := 0
-var next_respawn_ms := 0
 var local_respawns := 0
 var next_grenade := 75.0
 var applied_corrections := 0
-var previous_watermark := 0
+var sdk_reconcile_seq_max := 0
+var sdk_ack_sequence_max := 0
+var sdk_inputs_sent_max := 0
 var respawn_at_ms := 0
 var last_pos := Vector3.ZERO
 var walking_distance := 0.0
 var previous_walk := Vector3.ZERO
 var cpu: Array[float] = []
 var draws: Array[float] = []
+var phase_position_errors: Dictionary = {}
+var prediction_samples: Array[Dictionary] = []
+var event_markers: Array[Dictionary] = []
+var _last_prediction_sample_ms := 0
+var _last_phase := ""
+var _last_server_seat := ""
+var _stall_active := false
 var seconds := 180.0
 var output_path := ""
+var injected_drop_at := -1.0
+var injected_drop := false
 func begin(game: Node) -> void:
 	main = game
 	call_deferred("run")
 func run() -> void:
 	var state = get_tree().root.get_node("GameState")
-	state.server_host = "war.vaidik.blog"
+	var candidate_backend := true
+	state.server_host = COLYSEUS_CANDIDATE_HOST if candidate_backend else OFFICIAL_HOST
+	var allowed_host := COLYSEUS_CANDIDATE_HOST if candidate_backend else OFFICIAL_HOST
+	if state.server_host != allowed_host:
+		push_error("Official observer host rejected: " + state.server_host)
+		get_tree().quit(1)
+		return
 	state.username = "QA_WEB_APP" if OS.has_feature("web") else "QA_NATIVE_APP"
 	state.practice_mode = false
 	state.selected_map = "industrial"
@@ -51,8 +70,26 @@ func run() -> void:
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("qa_room="): state.room_id = arg.trim_prefix("qa_room=")
 		if arg.begins_with("qa_map="): state.selected_map = arg.trim_prefix("qa_map=")
+		if arg.begins_with("qa_drop_at="): injected_drop_at = float(arg.trim_prefix("qa_drop_at="))
 		if arg.begins_with("qa_seconds="): seconds = float(arg.trim_prefix("qa_seconds="))
 		if arg.begins_with("qa_output="): output_path = arg.trim_prefix("qa_output=")
+	if OS.has_feature("web"):
+		var room_query := String(JavaScriptBridge.eval("new URLSearchParams(window.location.search).get('qa_room') || ''"))
+		var map_query := String(JavaScriptBridge.eval("new URLSearchParams(window.location.search).get('qa_map') || ''"))
+		var seconds_query := String(JavaScriptBridge.eval("new URLSearchParams(window.location.search).get('qa_seconds') || ''"))
+		var valid_room_query := RegEx.new()
+		valid_room_query.compile("^[A-Za-z0-9_-]{1,64}$")
+		if valid_room_query.search(room_query) != null: state.room_id = room_query
+		if ["industrial", "resoforge", "football", "village", "arena", "shipment", "dust2", "nuketown", "canyon", "military_base", "ghost_city"].has(map_query): state.selected_map = map_query
+		if seconds_query.is_valid_float(): seconds = float(seconds_query)
+		var drop_query := String(JavaScriptBridge.eval("new URLSearchParams(window.location.search).get('qa_drop_at') || ''"))
+		if drop_query.is_valid_float(): injected_drop_at = float(drop_query)
+	var allowed_room := RegEx.new()
+	allowed_room.compile("^[A-Za-z0-9_-]{1,64}$")
+	if allowed_room.search(state.room_id) == null:
+		push_error("Explicit official test room must be a simple room identifier")
+		get_tree().quit(1)
+		return
 	if state.room_id.is_empty(): push_error("Explicit official test room required"); get_tree().quit(1); return
 	seconds = clampf(seconds,1.0,1800.0)
 	await main._on_deploy()
@@ -60,15 +97,22 @@ func run() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	main.net.state_received.connect(on_state)
 	main.net.connection_changed.connect(func(connected: bool):
-		if not connected: disconnects += 1)
-	main.net.fire_received.connect(func(_a,_b,_c,_d,_e): fire_events += 1)
+		if not connected:
+			disconnects += 1
+			_mark_event("connection_lost", _prediction_diagnostics())
+		else:
+			_mark_event("connection_restored", _prediction_diagnostics()))
+	main.net.fire_received.connect(func(_a,_b,_c,_d,_e,_weapon): fire_events += 1)
 	main.net.hit_confirmed.connect(func(): confirmed_hits += 1)
 	main.net.kill_confirmed.connect(func(): confirmed_kills += 1)
 	main.net.respawn_received.connect(func(_pos):
 		respawn_at_ms = Time.get_ticks_msec()
-		local_respawns += 1)
+		local_respawns += 1
+		_mark_event("respawn_received", _prediction_diagnostics()))
 	main.net.damage_received.connect(func(_a,_b,_c,_d): damage_events += 1)
-	main.net.explosion_received.connect(func(_a,_b,_c): explosion_events += 1)
+	main.net.explosion_received.connect(func(_id,_pos,_kind):
+		explosion_events += 1
+		_mark_event("explosion_received", {"id": _id, "pos": _vec_array(_pos), "kind": _kind}))
 	var timeout := Time.get_ticks_msec() + 20000
 	while not state.online_ready and Time.get_ticks_msec() < timeout: await get_tree().process_frame
 	if not state.online_ready: push_error("Official server connection failed");get_tree().quit(1);return
@@ -79,6 +123,16 @@ func run() -> void:
 		var dt := get_tree().root.get_process_delta_time()
 		elapsed += dt
 		frames.append(dt*1000)
+		if injected_drop_at >= 0.0 and elapsed >= injected_drop_at and not injected_drop:
+			injected_drop = true
+			_mark_event("official_sdk_drop_injected")
+			main.net.room.drop()
+		if dt >= 0.1 and not _stall_active:
+			_stall_active = true
+			_mark_event("frame_stall_started", {"frame_ms": dt * 1000.0, "fps": Engine.get_frames_per_second(), "remotes": main.mp.remotes.size(), "driving": false, "prediction": _prediction_diagnostics()})
+		elif _stall_active and dt < 0.05:
+			_stall_active = false
+			_mark_event("frame_stall_ended", {"fps": Engine.get_frames_per_second(), "remotes": main.mp.remotes.size(), "driving": false})
 		cpu.append(Performance.get_monitor(Performance.TIME_PROCESS)*1000)
 		draws.append(Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME))
 		peak_remotes = maxi(peak_remotes, main.mp.remotes.size())
@@ -86,71 +140,57 @@ func run() -> void:
 		if not is_instance_valid(player):
 			print("OBSERVER: returned to lobby after a terminal connection error")
 			break
-		if main._reconcile_after_sequence != previous_watermark:
-			if Time.get_ticks_msec()-respawn_at_ms>1000 and not player.is_driving: applied_corrections += 1
-			previous_watermark = main._reconcile_after_sequence
+		var render_phase := "dead" if player.is_dead else "drone"
+		if not phase_frame_times.has(render_phase):
+			var phase_samples: Array[float] = []
+			phase_frame_times[render_phase] = phase_samples
+		phase_frame_times[render_phase].append(dt * 1000.0)
+		if candidate_backend:
+			var reconciler = main.net.get("local_reconciler")
+			var input_handle = main.net.get("input_handle")
+			if reconciler != null: sdk_reconcile_seq_max = maxi(sdk_reconcile_seq_max, int(reconciler.reconcile_seq))
+			if input_handle != null:
+				sdk_ack_sequence_max = maxi(sdk_ack_sequence_max, int(input_handle.last_processed))
+				sdk_inputs_sent_max = maxi(sdk_inputs_sent_max, int(input_handle.sent_count))
 		if main.weapons.ads_amount > 0.9: ads_frames += 1
 		if player.is_dead:
-			if Time.get_ticks_msec()>=next_respawn_ms:
-				next_respawn_ms=Time.get_ticks_msec()+1000
-				main.net.send_respawn()
+			main._request_redeployment()
 			continue
-		if main.current_driven_jeep != null:
-			var car = main.current_driven_jeep
-			if not was_driving: seat_entries += 1; previous_car = car.global_position
-			was_driving = true
-			driving_seconds += dt
-			drive_distance += car.global_position.distance_to(previous_car)
-			previous_car = car.global_position
-			if int(driving_seconds / 6) % 3 == 0:
-				Input.action_release("move_forward")
-				Input.action_press("move_back",0.7)
-			else:
-				Input.action_release("move_back")
-				Input.action_press("move_forward")
-			if int(driving_seconds / 8) % 2 == 1: Input.action_press("move_right",0.25)
-			else: Input.action_release("move_right")
-			if driving_seconds > 35 and int(elapsed) != last_sample: main.net.send_vehicle_seat("",false)
-		else:
-			if was_driving: seat_exits += 1
-			was_driving = false
-			walking_distance += minf(player.global_position.distance_to(previous_walk),1.0)
-			previous_walk = player.global_position
-			var target := Vector3.ZERO
-			var nearest := INF
-			var candidate = null
-			if seat_entries == 0:
-				for car in main._online_vehicles.values():
-					if String(car.get_meta("server_driver","")).is_empty():
-						var distance: float = player.global_position.distance_to(car.global_position)
-						if distance < nearest: nearest=distance;target=car.global_position;candidate=car
-			if candidate:
-				var direction: Vector3 = target-player.global_position
-				player.yaw = atan2(-direction.x,-direction.z)
-				if nearest < 4.3 and int(elapsed) != last_sample: main._handle_vehicle_interact()
-			else: player.yaw += dt * 0.15
-			Input.action_press("move_forward")
-			if player.velocity.length() < 0.8 and int(elapsed)%4<2: Input.action_press("move_right")
-			else: Input.action_release("move_right")
-			if int(elapsed)%10==7: Input.action_press("jump")
-			else: Input.action_release("jump")
-			if elapsed > 50:
-				_aim_at_visible_hostile()
-				if int(elapsed)%5<2: Input.action_press("fire")
-				else: Input.action_release("fire")
-				if int(elapsed)%12>=6: Input.action_press("ads")
-				else: Input.action_release("ads")
-				if elapsed >= next_grenade and state.throwables_remaining>0:
-					next_grenade = elapsed + 35
-					main._throw_grenade()
-					local_grenades += 1
-				if main.weapons.ammo == 0: main.weapons.start_reload()
+		walking_distance += minf(player.global_position.distance_to(previous_walk),1.0)
+		previous_walk = player.global_position
+		player.yaw += dt * 0.15
+		Input.action_press("move_forward")
+		if player.velocity.length() < 0.8 and int(elapsed)%4<2: Input.action_press("move_right")
+		else: Input.action_release("move_right")
+		if int(elapsed)%10<3: Input.action_press("drone_up")
+		else: Input.action_release("drone_up")
+		if int(elapsed)%10>=6 and int(elapsed)%10<8: Input.action_press("drone_down")
+		else: Input.action_release("drone_down")
+		if elapsed > 8.0:
+			_aim_at_visible_hostile()
+			if int(elapsed)%5<2: Input.action_press("fire")
+			else: Input.action_release("fire")
+			if int(elapsed)%12>=6: Input.action_press("ads")
+			else: Input.action_release("ads")
+			if elapsed >= next_grenade and state.throwables_remaining>0:
+				next_grenade = elapsed + 35
+				main._throw_grenade()
+				local_grenades += 1
+			if main.weapons.ammo == 0: main.weapons.start_reload()
 		if int(elapsed) != last_sample:
 			last_sample = int(elapsed)
 			pings.append(main.net.current_ping)
 			print("OBS t=",last_sample," fps=",Engine.get_frames_per_second()," ping=",main.net.current_ping," remotes=",main.mp.remotes.size()," seats=",seat_entries," drive_m=",snappedf(drive_distance,.1)," pos=",player.global_position)
-	for action in ["move_forward","move_back","move_right","jump","fire","ads"]: Input.action_release(action)
-	var report := {"host":"war.vaidik.blog","platform":"web" if OS.has_feature("web") else "native-release","audio_disabled":AudioServer.is_bus_mute(AudioServer.get_bus_index("Master")),"release_export":OS.has_feature("release") and not OS.has_feature("editor"),"local_respawns":local_respawns,"local_shots":main.weapons._shot_seq if is_instance_valid(main.weapons) else 0,"confirmed_hits":confirmed_hits,"confirmed_kills":confirmed_kills,"ads_frames":ads_frames,"local_grenades":local_grenades,"seconds":elapsed,"peak_remotes":peak_remotes,"frame_ms_p50":percentile(frames,.5),"frame_ms_p95":percentile(frames,.95),"frame_ms_p99":percentile(frames,.99),"frame_ms_max":percentile(frames,1),"cpu_process_ms_p95":percentile(cpu,.95),"draw_calls_p95":percentile(draws,.95),"snapshot_gap_ms_p95":percentile(gaps,.95),"snapshot_gap_ms_max":percentile(gaps,1),"ping_ms_p50":percentile(pings,.5),"ping_ms_p95":percentile(pings,.95),"max_position_error_m":max_position_error,"snapshots_with_error_over_2_5m":errors_over_2_5,"applied_corrections":applied_corrections,"disconnects":disconnects,"seat_entries":seat_entries,"seat_exits":seat_exits,"driving_seconds":driving_seconds,"drive_distance_m":drive_distance,"walking_distance_m":walking_distance,"fire_events":fire_events,"damage_events":damage_events,"explosion_events":explosion_events,"local_bots":main.bots.bots.size() if is_instance_valid(main.bots) else -1}
+		if candidate_backend and Time.get_ticks_msec() - _last_prediction_sample_ms >= 1000:
+			_last_prediction_sample_ms = Time.get_ticks_msec()
+			_record_prediction_sample(player)
+	for action in ["move_forward","move_back","move_right","jump","drone_up","drone_down","fire","ads"]: Input.action_release(action)
+	var report := {"host":state.server_host,"backend":"colyseus" if candidate_backend else "legacy","platform":"web" if OS.has_feature("web") else "native-release","audio_disabled":AudioServer.is_bus_mute(AudioServer.get_bus_index("Master")),"release_export":OS.has_feature("release") and not OS.has_feature("editor"),"local_respawns":local_respawns,"local_shots":main.weapons._shot_seq if is_instance_valid(main.weapons) else 0,"confirmed_hits":confirmed_hits,"confirmed_kills":confirmed_kills,"ads_frames":ads_frames,"local_grenades":local_grenades,"sdk_reconcile_seq_max":sdk_reconcile_seq_max,"sdk_ack_sequence_max":sdk_ack_sequence_max,"sdk_inputs_sent_max":sdk_inputs_sent_max,"seconds":elapsed,"peak_remotes":peak_remotes,"frame_ms_p50":percentile(frames,.5),"frame_ms_p95":percentile(frames,.95),"frame_ms_p99":percentile(frames,.99),"frame_ms_max":percentile(frames,1),"cpu_process_ms_p95":percentile(cpu,.95),"draw_calls_p95":percentile(draws,.95),"snapshot_gap_ms_p95":percentile(gaps,.95),"snapshot_gap_ms_max":percentile(gaps,1),"remote_pose_preparation":main.net.get_remote_pose_preparation_diagnostics() if main.net.has_method("get_remote_pose_preparation_diagnostics") else {"enabled":false},"remote_pose_application":main.mp.get_remote_pose_application_diagnostics() if main.mp.has_method("get_remote_pose_application_diagnostics") else {"enabled":false},"ping_ms_p50":percentile(pings,.5),"ping_ms_p95":percentile(pings,.95),"max_position_error_m":max_position_error,"snapshots_with_error_over_2_5m":errors_over_2_5,"phase_position_errors":phase_position_errors,"prediction_samples":prediction_samples,"prediction_final":_prediction_diagnostics(),"event_markers":event_markers,"applied_corrections":applied_corrections,"disconnects":disconnects,"seat_entries":seat_entries,"seat_exits":seat_exits,"driving_seconds":driving_seconds,"drive_distance_m":drive_distance,"walking_distance_m":walking_distance,"fire_events":fire_events,"damage_events":damage_events,"explosion_events":explosion_events,"local_bots":main.bots.bots.size() if is_instance_valid(main.bots) else -1}
+	report["injected_sdk_drop"] = injected_drop
+	report["phase_frame_times"] = {}
+	for phase in phase_frame_times:
+		var values: Array[float] = phase_frame_times[phase]
+		report["phase_frame_times"][phase] = {"samples": values.size(), "p50_ms": percentile(values, .5), "p95_ms": percentile(values, .95), "p99_ms": percentile(values, .99)}
 	if output_path.is_empty(): output_path = "user://qa-latest.json"
 	var file := FileAccess.open(output_path,FileAccess.WRITE)
 	if file: file.store_string(JSON.stringify(report,"  "))
@@ -173,11 +213,52 @@ func on_state(snapshot: Dictionary) -> void:
 	last_state_ms = now
 	var state = get_tree().root.get_node("GameState")
 	var me: Dictionary = snapshot.get("players",{}).get(state.username,{})
-	if not me.is_empty() and is_instance_valid(main.player) and not main.player.is_dead and not main.player.is_driving:
-		var position := Vector3(me.get("x",0),me.get("y",0),me.get("z",0))
-		var error: float = main.player.global_position.distance_to(position)
-		max_position_error = maxf(max_position_error,error)
+	if me.is_empty() or not is_instance_valid(main.player): return
+	var player = main.player
+	var server_seat := String(me.get("driving_vehicle", ""))
+	if server_seat != _last_server_seat:
+		_mark_event("vehicle_seat_enter_authoritative" if not server_seat.is_empty() else "vehicle_seat_exit_authoritative", {"previous_seat": _last_server_seat, "server_seat": server_seat, "server_player_pos": [float(me.get("x", 0)), float(me.get("y", 0)), float(me.get("z", 0))], "prediction": _prediction_diagnostics()})
+		_last_server_seat = server_seat
+	var phase := "dead" if player.is_dead else ("respawn_grace" if respawn_at_ms > 0 and now - respawn_at_ms < 2000 else "drone")
+	if phase != _last_phase:
+		_mark_event("phase_changed", {"from": _last_phase, "to": phase, "player_pos": _vec_array(player.global_position), "server_player_pos": [float(me.get("x", 0)), float(me.get("y", 0)), float(me.get("z", 0))], "prediction": _prediction_diagnostics()})
+		_last_phase = phase
+	if phase == "dead": return
+	var server_pos := Vector3(float(me.get("x", 0)), float(me.get("y", 0)), float(me.get("z", 0)))
+	var error: float = player.global_position.distance_to(server_pos)
+	_record_phase_error(phase, error, player.global_position, server_pos)
+	if phase == "drone" or phase == "respawn_grace":
+		max_position_error = maxf(max_position_error, error)
 		if error > 2.5: errors_over_2_5 += 1
+
+func _record_phase_error(phase: String, error: float, local_pos: Vector3, server_pos: Vector3) -> void:
+	var stats: Dictionary = phase_position_errors.get(phase, {"count": 0, "max_m": 0.0, "over_2_5m": 0, "last_error_m": 0.0, "last_local": [], "last_server": []})
+	stats["count"] = int(stats.get("count", 0)) + 1
+	stats["max_m"] = maxf(float(stats.get("max_m", 0.0)), error)
+	stats["last_error_m"] = error
+	stats["last_local"] = _vec_array(local_pos)
+	stats["last_server"] = _vec_array(server_pos)
+	if error > 2.5: stats["over_2_5m"] = int(stats.get("over_2_5m", 0)) + 1
+	phase_position_errors[phase] = stats
+
+func _record_prediction_sample(player: Node) -> void:
+	if prediction_samples.size() >= 1800: return
+	var diagnostics := _prediction_diagnostics()
+	var phase := "dead" if player.is_dead else ("respawn_grace" if respawn_at_ms > 0 and Time.get_ticks_msec() - respawn_at_ms < 2000 else "drone")
+	var sample := {"t_s": elapsed, "phase": phase, "player_pos": _vec_array(player.global_position), "velocity": _vec_array(player.velocity), "diagnostics": diagnostics}
+	prediction_samples.append(sample)
+
+func _prediction_diagnostics() -> Dictionary:
+	return main.net.get_prediction_diagnostics() if main.net.has_method("get_prediction_diagnostics") else {}
+
+func _mark_event(name: String, data: Dictionary = {}) -> void:
+	if event_markers.size() >= 512: return
+	var item := {"event": name, "t_s": elapsed, "monotonic_ms": Time.get_ticks_msec(), "phase": _last_phase}
+	for key in data: item[key] = data[key]
+	event_markers.append(item)
+
+func _vec_array(value: Vector3) -> Array:
+	return [value.x, value.y, value.z]
 
 func _aim_at_visible_hostile() -> bool:
 	if not is_instance_valid(main.player) or main.player.is_dead or main.player.is_driving:
@@ -197,21 +278,9 @@ func _aim_at_visible_hostile() -> bool:
 			continue
 		if remote.has_method("_is_friendly") and bool(remote.call("_is_friendly")):
 			continue
-		var chest: Area3D = null
 		var hit_areas: Array = remote.get("_hitbox_areas")
-		for area in hit_areas:
-			if not is_instance_valid(area) or not (area is Area3D):
-				continue
-			if String(area.get_meta("zone", "")) != "torso":
-				continue
-			if chest == null:
-				chest = area
-			if String(area.get_meta("from_bone", "")) == "mixamorig_Spine1" and String(area.get_meta("to_bone", "")) == "mixamorig_Neck":
-				chest = area
-				break
-		if not is_instance_valid(chest):
-			continue
-		var point := chest.global_position
+		if hit_areas.is_empty() or not is_instance_valid(hit_areas[0]): continue
+		var point: Vector3 = hit_areas[0].global_position
 		var distance := camera.global_position.distance_to(point)
 		if distance <= 0.01 or distance > best_distance:
 			continue

@@ -1,0 +1,6 @@
+WEB CHECK PASS: 170 packed files; gzip and Brotli are byte-identical; hashed URLs verified
+{
+  "identity": 67161107,
+  "gzip": 36881848,
+  "br": 34614653
+}

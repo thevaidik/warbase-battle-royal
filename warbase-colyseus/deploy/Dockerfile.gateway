@@ -1,0 +1,9 @@
+FROM nginx:stable-alpine
+RUN apk add --no-cache gettext
+COPY gateway.conf /etc/nginx/templates/gateway.conf.template
+COPY gateway-entrypoint.sh /usr/local/bin/warbase-gateway-entrypoint
+RUN chmod 0755 /usr/local/bin/warbase-gateway-entrypoint
+EXPOSE 8081
+HEALTHCHECK --interval=30s --timeout=3s --retries=3 CMD wget -q -O /dev/null http://127.0.0.1:8081/health || exit 1
+ENTRYPOINT ["/usr/local/bin/warbase-gateway-entrypoint"]
+CMD ["nginx", "-g", "daemon off;"]

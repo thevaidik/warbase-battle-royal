@@ -1,0 +1,55 @@
+2026/10/27 21:33:41 === BOUNDED MATCH TRAFFIC + REAL AUTHORITATIVE VEHICLE INPUT TEST ===
+2026/10/27 21:33:41 Target Host: war.vaidik.blog | Room: industrial-public | Simulated Players: 1 | Duration: 20s
+2026/10/27 21:33:41 All 1 simulated players connecting...
+2026/10/27 21:33:42 [T+01s] Active: 1 | Up: 0.0 KB/s (0 pkts) | Down: 0.0 KB/s (0.00 Mbps, 0 pkts) | Per-Player Down: 0.0 KB/s
+2026/10/27 21:33:43 [T+02s] Active: 1 | Up: 1.8 KB/s (43 pkts) | Down: 15.0 KB/s (0.12 Mbps, 33 pkts) | Per-Player Down: 15.0 KB/s
+2026/10/27 21:33:44 [T+03s] Active: 1 | Up: 2.8 KB/s (66 pkts) | Down: 19.9 KB/s (0.16 Mbps, 39 pkts) | Per-Player Down: 19.9 KB/s
+2026/10/27 21:33:45 [T+04s] Active: 1 | Up: 2.8 KB/s (66 pkts) | Down: 18.8 KB/s (0.15 Mbps, 49 pkts) | Per-Player Down: 18.8 KB/s
+2026/10/27 21:33:46 [T+05s] Active: 1 | Up: 2.8 KB/s (66 pkts) | Down: 20.0 KB/s (0.16 Mbps, 56 pkts) | Per-Player Down: 20.0 KB/s
+2026/10/27 21:33:47 [T+06s] Active: 1 | Up: 2.8 KB/s (66 pkts) | Down: 19.4 KB/s (0.15 Mbps, 48 pkts) | Per-Player Down: 19.4 KB/s
+2026/10/27 21:33:48 [T+07s] Active: 1 | Up: 2.8 KB/s (66 pkts) | Down: 20.3 KB/s (0.16 Mbps, 39 pkts) | Per-Player Down: 20.3 KB/s
+2026/10/27 21:33:49 [T+08s] Active: 1 | Up: 2.8 KB/s (66 pkts) | Down: 17.4 KB/s (0.14 Mbps, 38 pkts) | Per-Player Down: 17.4 KB/s
+2026/10/27 21:33:50 [T+09s] Active: 1 | Up: 0.6 KB/s (17 pkts) | Down: 23.0 KB/s (0.18 Mbps, 40 pkts) | Per-Player Down: 23.0 KB/s
+2026/10/27 21:33:51 [T+10s] Active: 1 | Up: 0.0 KB/s (2 pkts) | Down: 20.5 KB/s (0.16 Mbps, 31 pkts) | Per-Player Down: 20.5 KB/s
+2026/10/27 21:33:52 [T+11s] Active: 1 | Up: 0.0 KB/s (2 pkts) | Down: 19.3 KB/s (0.15 Mbps, 32 pkts) | Per-Player Down: 19.3 KB/s
+2026/10/27 21:33:53 [T+12s] Active: 1 | Up: 1.8 KB/s (44 pkts) | Down: 22.6 KB/s (0.18 Mbps, 49 pkts) | Per-Player Down: 22.6 KB/s
+2026/10/27 21:33:54 [T+13s] Active: 1 | Up: 2.8 KB/s (66 pkts) | Down: 21.4 KB/s (0.17 Mbps, 45 pkts) | Per-Player Down: 21.4 KB/s
+2026/10/27 21:33:55 [T+14s] Active: 1 | Up: 2.8 KB/s (66 pkts) | Down: 20.5 KB/s (0.16 Mbps, 41 pkts) | Per-Player Down: 20.5 KB/s
+2026/10/27 21:33:56 [T+15s] Active: 1 | Up: 2.8 KB/s (66 pkts) | Down: 22.0 KB/s (0.17 Mbps, 44 pkts) | Per-Player Down: 22.0 KB/s
+2026/10/27 21:33:57 [T+16s] Active: 1 | Up: 1.6 KB/s (39 pkts) | Down: 21.2 KB/s (0.17 Mbps, 44 pkts) | Per-Player Down: 21.2 KB/s
+2026/10/27 21:33:58 [T+17s] Active: 1 | Up: 0.0 KB/s (2 pkts) | Down: 21.1 KB/s (0.17 Mbps, 31 pkts) | Per-Player Down: 21.1 KB/s
+2026/10/27 21:33:59 [T+18s] Active: 1 | Up: 0.0 KB/s (2 pkts) | Down: 21.2 KB/s (0.17 Mbps, 35 pkts) | Per-Player Down: 21.2 KB/s
+2026/10/27 21:34:00 [T+19s] Active: 1 | Up: 0.0 KB/s (2 pkts) | Down: 22.2 KB/s (0.17 Mbps, 57 pkts) | Per-Player Down: 22.2 KB/s
+2026/10/27 21:34:01 === FINAL AUDIT RESULTS ===
+2026/10/27 21:34:01 Total Duration: 20.000524666s
+2026/10/27 21:34:01 Peak Players: 1; joined=1; errors=0
+2026/10/27 21:34:01 Total Sent: 793 packets (0.03 MB)
+2026/10/27 21:34:01 Total Received: 791 packets (0.38 MB)
+2026/10/27 21:34:01 Aggregate Download Throughput: 19.36 KB/s (0.15 Mbps)
+2026/10/27 21:34:01 Per-Player Download Rate: 19.36 KB/s (0.15 Mbps)
+{
+  "car_distance_m": 0,
+  "confirmed_seat_entries": 0,
+  "confirmed_seat_exits": 0,
+  "connection_errors": 0,
+  "driven_cars": 0,
+  "hold_seconds": 20.000524666,
+  "host": "war.vaidik.blog",
+  "joined": 1,
+  "max_car_speed_mps": 0,
+  "peak_peers": 1,
+  "ping_ms_max": 540,
+  "ping_ms_p50": 343,
+  "ping_ms_p95": 369,
+  "received_bytes": 396403,
+  "replicated_damage_deliveries": 44,
+  "replicated_explosion_deliveries": 0,
+  "replicated_fire_deliveries": 156,
+  "requested_peers": 1,
+  "room": "industrial-public",
+  "sent_bytes": 33899,
+  "snapshot_gap_ms_max": 287.129,
+  "snapshot_gap_ms_p50": 33.098,
+  "snapshot_gap_ms_p95": 42.088,
+  "snapshot_gap_ms_p99": 83.605
+}

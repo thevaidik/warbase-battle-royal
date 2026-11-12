@@ -1,0 +1,62 @@
+services:
+  warbase-colyseus-candidate:
+    image: ${COLYSEUS_CANDIDATE_IMAGE:-warbase-colyseus:candidate}
+    build:
+      context: ../..
+      dockerfile: warbase-colyseus/Dockerfile.candidate
+    container_name: warbase-colyseus-candidate
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      HOST: 0.0.0.0
+      PORT: "8081"
+      STATIC_DIR: /app/static
+      PUBLIC_ADDRESS: ${COLYSEUS_PUBLIC_ADDRESS:-war.vaidik.blog/colyseus}
+      ADMISSION_JWT_SECRET_FILE: /run/secrets/admission/jwt
+      ADMISSION_GATEWAY_SECRET_FILE: /run/secrets/gateway/token
+      ADMISSION_TRUSTED_PROXY_CIDRS: ${ADMISSION_TRUSTED_PROXY_CIDRS:-100.107.118.10/32}
+      ADMISSION_ISSUE_PER_CALLER_PER_MINUTE: ${ADMISSION_ISSUE_PER_CALLER_PER_MINUTE:-30}
+      ADMISSION_ISSUE_GLOBAL_PER_MINUTE: ${ADMISSION_ISSUE_GLOBAL_PER_MINUTE:-300}
+      ADMISSION_PLAYER_JOINS_PER_MINUTE: ${ADMISSION_PLAYER_JOINS_PER_MINUTE:-30}
+      ADMISSION_PLAYER_ROOM_CREATES_PER_MINUTE: ${ADMISSION_PLAYER_ROOM_CREATES_PER_MINUTE:-4}
+      OPS_METRICS_TOKEN_FILE: /run/secrets/ops_metrics_token
+      ENABLE_PRIVATE_MONITOR: ${ENABLE_PRIVATE_MONITOR:-0}
+      ENABLE_PRIVATE_ADMIN: ${ENABLE_PRIVATE_ADMIN:-0}
+      ADMIN_DATABASE_PATH: /app/admin-data/operations.sqlite
+      ADMIN_JWT_SECRET_FILE: /run/secrets/admin/jwt
+      ADMIN_SESSION_SECRET_FILE: /run/secrets/admin/session
+      ADMIN_TAILNET_HTTP: ${ADMIN_TAILNET_HTTP:-0}
+    volumes:
+      - ${OPS_METRICS_TOKEN_HOST_FILE:-/dev/null}:/run/secrets/ops_metrics_token:ro
+      - warbase-admission-secrets:/run/secrets/admission:ro
+      - warbase-gateway-secrets:/run/secrets/gateway:ro
+      - warbase-admin-data:/app/admin-data
+      - warbase-admin-secrets:/run/secrets/admin:ro
+    ports:
+      - "${COLYSEUS_HOST_BIND_IP:-127.0.0.1}:8082:8081"
+    networks:
+      warbase_server_default:
+        aliases:
+          - warbase-colyseus-candidate
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:8081/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 3s
+      start_period: 20s
+      retries: 3
+
+networks:
+  warbase_server_default:
+    external: true
+
+volumes:
+  warbase-admission-secrets:
+    external: true
+    name: warbase-admission-secrets
+  warbase-gateway-secrets:
+    external: true
+    name: warbase-gateway-secrets
+  warbase-admin-data:
+    name: warbase-admin-data
+  warbase-admin-secrets:
+    name: warbase-admin-secrets

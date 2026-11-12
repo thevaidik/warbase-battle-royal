@@ -1,0 +1,122 @@
+[
+  {
+    "function": "(idle)",
+    "file": "",
+    "line": 0,
+    "samplePercent": 45.0
+  },
+  {
+    "function": "raycast",
+    "file": "world-geometry.js",
+    "line": 77,
+    "samplePercent": 17.99
+  },
+  {
+    "function": "dist",
+    "file": "bot-simulation.js",
+    "line": 9,
+    "samplePercent": 8.39
+  },
+  {
+    "function": "intersectTriangle",
+    "file": "world-geometry.js",
+    "line": 45,
+    "samplePercent": 7.68
+  },
+  {
+    "function": "collisionRaycast",
+    "file": "world-geometry.js",
+    "line": 191,
+    "samplePercent": 5.21
+  },
+  {
+    "function": "(program)",
+    "file": "",
+    "line": 0,
+    "samplePercent": 2.61
+  },
+  {
+    "function": "get states",
+    "file": "vehicle-simulation.js",
+    "line": 88,
+    "samplePercent": 2.32
+  },
+  {
+    "function": "testCollisionTriangle",
+    "file": "world-geometry.js",
+    "line": 107,
+    "samplePercent": 2.07
+  },
+  {
+    "function": "path",
+    "file": "bot-simulation.js",
+    "line": 264,
+    "samplePercent": 1.63
+  },
+  {
+    "function": "nearest",
+    "file": "bot-simulation.js",
+    "line": 253,
+    "samplePercent": 1.54
+  },
+  {
+    "function": "plan",
+    "file": "bot-simulation.js",
+    "line": 290,
+    "samplePercent": 1.45
+  },
+  {
+    "function": "(garbage collector)",
+    "file": "",
+    "line": 0,
+    "samplePercent": 0.82
+  },
+  {
+    "function": "",
+    "file": "battle-room.js",
+    "line": 537,
+    "samplePercent": 0.81
+  },
+  {
+    "function": "step",
+    "file": "bot-simulation.js",
+    "line": 173,
+    "samplePercent": 0.3
+  },
+  {
+    "function": "",
+    "file": "battle-room.js",
+    "line": 197,
+    "samplePercent": 0.2
+  },
+  {
+    "function": "vehicleBlocked",
+    "file": "battle-room.js",
+    "line": 537,
+    "samplePercent": 0.15
+  },
+  {
+    "function": "get",
+    "file": "index.mjs",
+    "line": 7417,
+    "samplePercent": 0.11
+  },
+  {
+    "function": "",
+    "file": "index.mjs",
+    "line": 7269,
+    "samplePercent": 0.1
+  },
+  {
+    "function": "capsuleCandidates",
+    "file": "world-geometry.js",
+    "line": 249,
+    "samplePercent": 0.1
+  },
+  {
+    "function": "rayBlocked",
+    "file": "world-geometry.js",
+    "line": 291,
+    "samplePercent": 0.09
+  }
+]

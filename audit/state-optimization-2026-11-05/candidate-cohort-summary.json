@@ -1,0 +1,25 @@
+{
+  "valid": false,
+  "reason": "incomplete or interrupted cohort",
+  "sdkPeersJoined": 61,
+  "roomId": "481e3558-317c-4464-bfc9-0d7dbcf2d006",
+  "sharedFullSecondsLowerBound": 0,
+  "maxHelperCpuPercent": 0,
+  "maxHelperLoopExcessP95Ms": 0,
+  "helperSaturationSuspected": true,
+  "capacityEvidenceQualified": false,
+  "shardCount": 3,
+  "peerDistribution": [
+    21,
+    21,
+    21
+  ],
+  "exitCodes": [
+    1,
+    1,
+    1
+  ],
+  "endpoint": "https://war.vaidik.blog/colyseus",
+  "observer": "packaged-native",
+  "limits": "Latency percentiles stay per-shard; percentiles are not averaged. Helper qualification is not a client FPS or server tick pass."
+}

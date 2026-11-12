@@ -1,0 +1,45 @@
+ok  	warbase-server/cmd/game	(cached)
+?   	warbase-server/cmd/schema	[no test files]
+?   	warbase-server/cmd/stress	[no test files]
+--- FAIL: TestBotsUseAuthorityAndRespectTeams (0.27s)
+    bots_test.go:136: bot bypassed RPM limit
+2026/10/27 23:59:42 Player probe-43 disconnected from room industrial-public
+2026/10/27 23:59:42 Player probe-31 disconnected from room industrial-public
+2026/10/27 23:59:42 Player probe-30 disconnected from room industrial-public
+2026/10/27 23:59:42 Player probe-18 disconnected from room industrial-public
+2026/10/27 23:59:42 Player probe-32 disconnected from room industrial-public
+2026/10/27 23:59:42 Player probe-23 disconnected from room industrial-public
+2026/10/27 23:59:42 Player probe-34 disconnected from room industrial-public
+2026/10/27 23:59:42 Player probe-56 disconnected from room industrial-public
+2026/10/27 23:59:42 Player probe-33 disconnected from room industrial-public
+2026/10/27 23:59:42 Player probe-37 disconnected from room industrial-public
+2026/10/27 23:59:42 Player probe-35 disconnected from room industrial-public
+2026/10/27 23:59:42 Player probe-38 disconnected from room industrial-public
+2026/10/27 23:59:42 Player probe-36 disconnected from room industrial-public
+2026/10/27 23:59:42 Player probe-28 disconnected from room industrial-public
+2026/10/27 23:59:42 Player probe-39 disconnected from room industrial-public
+2026/10/27 23:59:42 Player probe-41 disconnected from room industrial-public
+2026/10/27 23:59:42 Player probe-42 disconnected from room industrial-public
+2026/10/27 23:59:42 Player probe-40 disconnected from room industrial-public
+2026/10/27 23:59:42 Player probe-27 disconnected from room industrial-public
+2026/10/27 23:59:42 Player probe-16 disconnected from room industrial-public
+2026/10/27 23:59:42 Player probe-44 disconnected from room industrial-public
+2026/10/27 23:59:42 Player probe-53 disconnected from room industrial-public
+2026/10/27 23:59:42 Player probe-48 disconnected from room industrial-public
+2026/10/27 23:59:42 Player probe-19 disconnected from room industrial-public
+2026/10/27 23:59:42 Player probe-17 disconnected from room industrial-public
+2026/10/27 23:59:42 Player probe-22 disconnected from room industrial-public
+2026/10/27 23:59:42 Player probe-21 disconnected from room industrial-public
+2026/10/27 23:59:42 Player probe-29 disconnected from room industrial-public
+2026/10/27 23:59:42 Player probe-46 disconnected from room industrial-public
+2026/10/27 23:59:42 Player probe-24 disconnected from room industrial-public
+2026/10/27 23:59:42 Player probe-45 disconnected from room industrial-public
+2026/10/27 23:59:42 Player probe-20 disconnected from room industrial-public
+2026/10/27 23:59:42 Player probe-25 disconnected from room industrial-public
+2026/10/27 23:59:47 Player driver disconnected from room test
+FAIL
+FAIL	warbase-server/internal/engine	471.988s
+?   	warbase-server/internal/engine/shared/proto	[no test files]
+?   	warbase-server/internal/jsonlog	[no test files]
+?   	warbase-server/internal/validator	[no test files]
+FAIL

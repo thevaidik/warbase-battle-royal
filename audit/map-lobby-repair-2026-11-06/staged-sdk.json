@@ -1,0 +1,20 @@
+{
+  "maps": [
+    {
+      "map": "desert_oasis",
+      "protocol": 8,
+      "movedX": 4.546667098999023,
+      "ack": 44,
+      "feetY": -5.551115123125783e-17
+    },
+    {
+      "map": "canyon",
+      "protocol": 8,
+      "movedX": 4.340000152587891,
+      "ack": 42,
+      "feetY": 5.551115123125783e-17
+    }
+  ],
+  "previousClientRejected": true,
+  "canonicalDirectoryVerified": true
+}

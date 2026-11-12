@@ -1,5 +1,7 @@
 # WarBase: 60-Player & 30-Vehicle Netcode Audit & Optimization Report
 
+> **Historical report — superseded.** This October 12 snapshot describes an earlier implementation and test workload, not the current release. Its update rates, hitbox-culling description, scalability claims and expected benchmark output are outdated. See [Game performance and improvements](GAME_PERFORMANCE_AND_IMPROVEMENTS.md) for current implementation details, measured results and remaining limitations. The numbers below are retained as historical claims; they are not a guarantee of current performance.
+
 **Date:** October 12, 2026  
 **Target Environment:** 60 Concurrent Players + 30 Physics Vehicles across a 1.5–2.2 km Terrain (e.g., Devil's Canyon)  
 **Engines / Stacks:** Go Authoritative Server (`warbase-server`) + Godot 4 Client (`warbase-godot`)  

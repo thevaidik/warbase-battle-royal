@@ -1,0 +1,10 @@
+{
+  "runner": "Godot 4.7.2 headless",
+  "playersPerBatch": 64,
+  "batchesPerRound": 100,
+  "rounds": 5,
+  "oldMedianUs": 75861,
+  "newMedianUs": 31041,
+  "parityAndIsolation": "pass",
+  "scope": "schema snapshot conversion microbenchmark; not a whole-game FPS result"
+}

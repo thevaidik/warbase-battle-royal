@@ -1,0 +1,559 @@
+{
+  "test": "official-colyseus-sdk-buffered-input-load",
+  "endpoint": "https://war.vaidik.blog/colyseus",
+  "roomId": "dac67d68-e814-4970-98fa-699b4011dfae",
+  "map": "industrial",
+  "result": "duration_complete",
+  "runSeconds": 118.2,
+  "requested": {
+    "sdkPeers": 63,
+    "nativeObserverUsername": "QA_NATIVE_APP",
+    "humansTotalTarget": 64,
+    "durationSeconds": 60,
+    "maxWallSeconds": 480,
+    "sdk": "0.18",
+    "roomCreationMs": 403,
+    "sdkJoinLatencyP95Ms": 2853
+  },
+  "observed": {
+    "sdkPeersJoined": 63,
+    "nativeObserverSeen": true,
+    "nativeObserverVerifiedHuman": true,
+    "humanActorsAtPeak": 64,
+    "maxPlayersIncludingBots": 64,
+    "maxBotsObserved": 7,
+    "serverStatePatches": 1225,
+    "statePlayersAtLastSample": 8,
+    "maxClients": 64
+  },
+  "input": {
+    "tickRateHz": 60,
+    "sent": 226055,
+    "ackAdvances": 161134,
+    "zeroSendResults": 8935,
+    "maxPendingInputFrames": 799,
+    "ackStallIntervals": 22836,
+    "peersWithAckStalls": 63
+  },
+  "gameplay": {
+    "shotsAttempted": 63,
+    "fireEchoes": 0,
+    "confirmedHits": 0,
+    "grenadeAttempts": 8,
+    "grenadesAccepted": 0,
+    "uniqueExplosionsSeen": 1,
+    "seatAttempts": 21,
+    "vehicleApproachInputs": 24754,
+    "seatEntries": 11,
+    "vehicleInputs": 600,
+    "damageEvents": 16,
+    "killEvents": 0
+  },
+  "authoritativeMovement": {
+    "sampledSdkPlayers": 63,
+    "playersMovedOverHalfMeter": 63,
+    "totalPathMeters": 4687.51,
+    "playersWithPositionUpdates": 63
+  },
+  "vehicleMovement": {
+    "vehiclesSampled": 2,
+    "vehiclesMoved": 2,
+    "totalVehiclePathMeters": 141.46
+  },
+  "lifecycle": {
+    "controlledTransportDrops": 1,
+    "drops": 63,
+    "reconnects": 63,
+    "clientLeaves": 63,
+    "sdkCohortRemovalsExpected": 62,
+    "sdkCohortRemovalsObserved": 62,
+    "remainingHumanActorsAfterSdkLeaves": 2,
+    "serverClientsAfterSdkLeaves": 0,
+    "serverBotsAfterSdkLeaves": 0,
+    "cleanupRemovalTimedOut": false,
+    "errors": 0
+  },
+  "network": {
+    "sdkPingRttP50Ms": 706,
+    "sdkPingRttP95Ms": 1077,
+    "sdkClockRttP50Ms": 1459.52,
+    "sdkClockSmoothedRttP95Ms": 1256.7,
+    "inputAckTotalSamples": 12,
+    "ackPendingMeanP95": 340.86,
+    "ackPendingFrameMax": 757,
+    "roomStateGapP50Ms": 51,
+    "roomStateGapP95Ms": 400,
+    "roomStateGapMaxMs": 2649
+  },
+  "helperResources": {
+    "rssP95Bytes": 135634944,
+    "heapP95Bytes": 42145104,
+    "processCpuUserMs": 23819.6,
+    "processCpuSystemMs": 7219,
+    "eventLoopP95MsMax": 23.527423,
+    "samples": [
+      {
+        "at": 1793290580036,
+        "rssBytes": 127799296,
+        "heapUsedBytes": 33736688,
+        "cpuUserMs": 10901.82,
+        "cpuSystemMs": 2290.574,
+        "eventLoopP95Ms": 21.069823,
+        "eventLoopMaxMs": 60.817407,
+        "serverRoomClients": 0,
+        "serverRoomBots": 0
+      },
+      {
+        "at": 1793290585035,
+        "rssBytes": 128434176,
+        "heapUsedBytes": 35894184,
+        "cpuUserMs": 12469.975,
+        "cpuSystemMs": 2878.323,
+        "eventLoopP95Ms": 22.675455,
+        "eventLoopMaxMs": 25.296895,
+        "serverRoomClients": 0,
+        "serverRoomBots": 0
+      },
+      {
+        "at": 1793290590036,
+        "rssBytes": 129982464,
+        "heapUsedBytes": 40042856,
+        "cpuUserMs": 13694.489,
+        "cpuSystemMs": 3422.587,
+        "eventLoopP95Ms": 22.446079,
+        "eventLoopMaxMs": 49.512447,
+        "serverRoomClients": 0,
+        "serverRoomBots": 0
+      },
+      {
+        "at": 1793290595035,
+        "rssBytes": 134225920,
+        "heapUsedBytes": 36650288,
+        "cpuUserMs": 15300.421,
+        "cpuSystemMs": 3860.16,
+        "eventLoopP95Ms": 21.938175,
+        "eventLoopMaxMs": 34.045951,
+        "serverRoomClients": 0,
+        "serverRoomBots": 0
+      },
+      {
+        "at": 1793290600035,
+        "rssBytes": 135208960,
+        "heapUsedBytes": 39090296,
+        "cpuUserMs": 16519.593,
+        "cpuSystemMs": 4335.57,
+        "eventLoopP95Ms": 21.643263,
+        "eventLoopMaxMs": 24.510463,
+        "serverRoomClients": 0,
+        "serverRoomBots": 0
+      },
+      {
+        "at": 1793290605035,
+        "rssBytes": 135634944,
+        "heapUsedBytes": 38724976,
+        "cpuUserMs": 17651.864,
+        "cpuSystemMs": 4728.839,
+        "eventLoopP95Ms": 21.168127,
+        "eventLoopMaxMs": 31.260671,
+        "serverRoomClients": 0,
+        "serverRoomBots": 0
+      },
+      {
+        "at": 1793290610035,
+        "rssBytes": 134672384,
+        "heapUsedBytes": 40059368,
+        "cpuUserMs": 18761.55,
+        "cpuSystemMs": 5110.422,
+        "eventLoopP95Ms": 21.348351,
+        "eventLoopMaxMs": 23.379967,
+        "serverRoomClients": 0,
+        "serverRoomBots": 0
+      },
+      {
+        "at": 1793290615035,
+        "rssBytes": 134799360,
+        "heapUsedBytes": 38983488,
+        "cpuUserMs": 19735.322,
+        "cpuSystemMs": 5474.96,
+        "eventLoopP95Ms": 21.184511,
+        "eventLoopMaxMs": 22.478847,
+        "serverRoomClients": 0,
+        "serverRoomBots": 0
+      },
+      {
+        "at": 1793290620035,
+        "rssBytes": 134807552,
+        "heapUsedBytes": 42145104,
+        "cpuUserMs": 20743.273,
+        "cpuSystemMs": 5802.199,
+        "eventLoopP95Ms": 21.692415,
+        "eventLoopMaxMs": 25.526271,
+        "roomPollError": "This operation was aborted"
+      },
+      {
+        "at": 1793290625038,
+        "rssBytes": 135745536,
+        "heapUsedBytes": 43836328,
+        "cpuUserMs": 21671.057,
+        "cpuSystemMs": 6320.041,
+        "eventLoopP95Ms": 21.479423,
+        "eventLoopMaxMs": 26.345471,
+        "serverRoomClients": 0,
+        "serverRoomBots": 0
+      },
+      {
+        "at": 1793290630038,
+        "rssBytes": 135577600,
+        "heapUsedBytes": 39381280,
+        "cpuUserMs": 22801.565,
+        "cpuSystemMs": 6756.019,
+        "eventLoopP95Ms": 22.691839,
+        "eventLoopMaxMs": 28.033023,
+        "serverRoomClients": 0,
+        "serverRoomBots": 0
+      },
+      {
+        "at": 1793290635038,
+        "rssBytes": 135593984,
+        "heapUsedBytes": 36754408,
+        "cpuUserMs": 23830.642,
+        "cpuSystemMs": 7229.704,
+        "eventLoopP95Ms": 23.527423,
+        "eventLoopMaxMs": 28.622847,
+        "serverRoomClients": 0,
+        "serverRoomBots": 0
+      }
+    ]
+  },
+  "serverContainerResources": "Collected separately by scripts/run_colyseus_official_load.sh via docker stats; cohort executes on the server network/host, so its route and RTT differ from the Mac observer.",
+  "errorSamples": [
+    {
+      "username": "SDKmvtqvgriGate",
+      "type": "drop",
+      "code": 1006,
+      "reason": ""
+    },
+    {
+      "username": "SDKmvtqvgriGate",
+      "type": "leave",
+      "code": 4000,
+      "reason": ""
+    },
+    {
+      "username": "SDKmvtqvgri01",
+      "type": "drop",
+      "code": 1006,
+      "reason": ""
+    },
+    {
+      "username": "SDKmvtqvgri01",
+      "type": "leave",
+      "code": 4000,
+      "reason": ""
+    },
+    {
+      "username": "SDKmvtqvgri02",
+      "type": "drop",
+      "code": 1006,
+      "reason": ""
+    },
+    {
+      "username": "SDKmvtqvgri02",
+      "type": "leave",
+      "code": 4000,
+      "reason": ""
+    },
+    {
+      "username": "SDKmvtqvgri03",
+      "type": "drop",
+      "code": 1006,
+      "reason": ""
+    },
+    {
+      "username": "SDKmvtqvgri03",
+      "type": "leave",
+      "code": 4000,
+      "reason": ""
+    },
+    {
+      "username": "SDKmvtqvgri04",
+      "type": "drop",
+      "code": 1006,
+      "reason": ""
+    },
+    {
+      "username": "SDKmvtqvgri04",
+      "type": "leave",
+      "code": 4000,
+      "reason": ""
+    },
+    {
+      "username": "SDKmvtqvgri05",
+      "type": "drop",
+      "code": 1006,
+      "reason": ""
+    },
+    {
+      "username": "SDKmvtqvgri05",
+      "type": "leave",
+      "code": 4000,
+      "reason": ""
+    },
+    {
+      "username": "SDKmvtqvgri06",
+      "type": "drop",
+      "code": 1006,
+      "reason": ""
+    },
+    {
+      "username": "SDKmvtqvgri06",
+      "type": "leave",
+      "code": 4000,
+      "reason": ""
+    },
+    {
+      "username": "SDKmvtqvgri07",
+      "type": "drop",
+      "code": 1006,
+      "reason": ""
+    },
+    {
+      "username": "SDKmvtqvgri07",
+      "type": "leave",
+      "code": 4000,
+      "reason": ""
+    },
+    {
+      "username": "SDKmvtqvgri08",
+      "type": "drop",
+      "code": 1006,
+      "reason": ""
+    },
+    {
+      "username": "SDKmvtqvgri08",
+      "type": "leave",
+      "code": 4000,
+      "reason": ""
+    },
+    {
+      "username": "SDKmvtqvgri09",
+      "type": "drop",
+      "code": 1006,
+      "reason": ""
+    },
+    {
+      "username": "SDKmvtqvgri09",
+      "type": "leave",
+      "code": 4000,
+      "reason": ""
+    },
+    {
+      "username": "SDKmvtqvgri10",
+      "type": "drop",
+      "code": 1006,
+      "reason": ""
+    },
+    {
+      "username": "SDKmvtqvgri10",
+      "type": "leave",
+      "code": 4000,
+      "reason": ""
+    },
+    {
+      "username": "SDKmvtqvgri11",
+      "type": "drop",
+      "code": 1006,
+      "reason": ""
+    },
+    {
+      "username": "SDKmvtqvgri11",
+      "type": "leave",
+      "code": 4000,
+      "reason": ""
+    },
+    {
+      "username": "SDKmvtqvgri12",
+      "type": "drop",
+      "code": 1006,
+      "reason": ""
+    },
+    {
+      "username": "SDKmvtqvgri12",
+      "type": "leave",
+      "code": 4000,
+      "reason": ""
+    },
+    {
+      "username": "SDKmvtqvgri13",
+      "type": "drop",
+      "code": 1006,
+      "reason": ""
+    },
+    {
+      "username": "SDKmvtqvgri13",
+      "type": "leave",
+      "code": 4000,
+      "reason": ""
+    },
+    {
+      "username": "SDKmvtqvgri14",
+      "type": "drop",
+      "code": 1006,
+      "reason": ""
+    },
+    {
+      "username": "SDKmvtqvgri14",
+      "type": "leave",
+      "code": 4000,
+      "reason": ""
+    },
+    {
+      "username": "SDKmvtqvgri15",
+      "type": "drop",
+      "code": 1006,
+      "reason": ""
+    },
+    {
+      "username": "SDKmvtqvgri15",
+      "type": "leave",
+      "code": 4000,
+      "reason": ""
+    },
+    {
+      "username": "SDKmvtqvgri16",
+      "type": "drop",
+      "code": 1006,
+      "reason": ""
+    },
+    {
+      "username": "SDKmvtqvgri16",
+      "type": "leave",
+      "code": 4000,
+      "reason": ""
+    },
+    {
+      "username": "SDKmvtqvgri17",
+      "type": "drop",
+      "code": 1006,
+      "reason": ""
+    },
+    {
+      "username": "SDKmvtqvgri17",
+      "type": "leave",
+      "code": 4000,
+      "reason": ""
+    },
+    {
+      "username": "SDKmvtqvgri18",
+      "type": "drop",
+      "code": 1006,
+      "reason": ""
+    },
+    {
+      "username": "SDKmvtqvgri18",
+      "type": "leave",
+      "code": 4000,
+      "reason": ""
+    },
+    {
+      "username": "SDKmvtqvgri19",
+      "type": "drop",
+      "code": 1006,
+      "reason": ""
+    },
+    {
+      "username": "SDKmvtqvgri19",
+      "type": "leave",
+      "code": 4000,
+      "reason": ""
+    },
+    {
+      "username": "SDKmvtqvgri20",
+      "type": "drop",
+      "code": 1006,
+      "reason": ""
+    },
+    {
+      "username": "SDKmvtqvgri20",
+      "type": "leave",
+      "code": 4000,
+      "reason": ""
+    },
+    {
+      "username": "SDKmvtqvgri21",
+      "type": "drop",
+      "code": 1006,
+      "reason": ""
+    },
+    {
+      "username": "SDKmvtqvgri21",
+      "type": "leave",
+      "code": 4000,
+      "reason": ""
+    },
+    {
+      "username": "SDKmvtqvgri22",
+      "type": "drop",
+      "code": 1006,
+      "reason": ""
+    },
+    {
+      "username": "SDKmvtqvgri22",
+      "type": "leave",
+      "code": 4000,
+      "reason": ""
+    },
+    {
+      "username": "SDKmvtqvgri23",
+      "type": "drop",
+      "code": 1006,
+      "reason": ""
+    },
+    {
+      "username": "SDKmvtqvgri23",
+      "type": "leave",
+      "code": 4000,
+      "reason": ""
+    },
+    {
+      "username": "SDKmvtqvgri24",
+      "type": "drop",
+      "code": 1006,
+      "reason": ""
+    },
+    {
+      "username": "SDKmvtqvgri24",
+      "type": "leave",
+      "code": 4000,
+      "reason": ""
+    }
+  ],
+  "limits": {
+    "officialUrlGuard": true,
+    "directTransformMutation": false,
+    "localCapacityRun": false,
+    "loadPeersIncludeBots": false,
+    "nodeContainerCpu": "2.0 cores",
+    "nodeContainerMemory": "1536 MiB",
+    "nodeContainerPids": 128
+  },
+  "evidenceCoverage": {
+    "nativeObserverGate": true,
+    "peak64HumanActors": true,
+    "authoritativeMovement": true,
+    "fireEcho": false,
+    "confirmedHit": false,
+    "acceptedGrenade": false,
+    "explosion": true,
+    "vehicleSeatEntry": true,
+    "vehicleInputsSent": true,
+    "vehicleMotion": true,
+    "sdkCleanupObserved": true
+  },
+  "missingEvidence": [
+    "fireEcho",
+    "confirmedHit",
+    "acceptedGrenade"
+  ],
+  "coverageStatus": "incomplete"
+}

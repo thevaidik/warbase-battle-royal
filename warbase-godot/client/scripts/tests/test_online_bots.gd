@@ -18,15 +18,15 @@ func run() -> void:
 	state.server_host = "localhost:18092"
 	state.username = "AI_TESTER"
 	state.practice_mode = false
-	state.selected_map = "desert_oasis"
-	state.room_id = "desert_oasis-public"
+	state.selected_map = "canyon"
+	state.room_id = "canyon-public"
 	state.selected_primary = "m4"
 	state.selected_secondary = "dmr"
 	state.selected_throwable = "impact"
 	change_scene_to_file("res://scenes/Main.tscn")
 	while current_scene == null: await process_frame
 	var main = current_scene
-	main.net.fire_received.connect(func(shooter: String, _a: Vector3, _b: Vector3, _c: Vector3, _wall: bool) -> void:
+	main.net.fire_received.connect(func(shooter: String, _a: Vector3, _b: Vector3, _c: Vector3, _wall: bool, _weapon: String) -> void:
 		if shooter.begins_with("[BOT]"): bot_shots += 1
 	)
 	main.net.state_received.connect(func(snapshot: Dictionary) -> void:
@@ -57,20 +57,10 @@ func run() -> void:
 	check(int(me_state.get("grenades", -1)) == 1, "online throwable inventory authoritative")
 	check(state.TIMES.has(room_time) and state.selected_time == room_time, "room lighting synchronized")
 	check(main._online_vehicles.size() == 2, "online map vehicles registered")
-	var car = main._online_vehicles.get("CAR_0")
-	if car:
-		var previous_position: Vector3 = main.player.global_position
-		var cars := {"CAR_0":{"pos":car.global_position,"yaw":car.rotation.y,"speed":0,"driver":state.username,"health":1200}}
-		main._apply_online_vehicles(cars, {"driving_vehicle":"CAR_0"})
-		check(main.current_driven_jeep == car and main.player.is_driving and car.freeze, "seat snapshot activates online vehicle camera")
-		cars["CAR_0"]["driver"] = ""
-		main._apply_online_vehicles(cars, {"driving_vehicle":"", "x":previous_position.x, "y":previous_position.y, "z":previous_position.z})
-		check(main.current_driven_jeep == null and not main.player.is_driving, "exit snapshot restores infantry control")
-
 	var ghost_free := true
 	for remote in main.mp.remotes.values():
 		ghost_free = ghost_free and remote.find_child("FallbackVehicleCollider", true, false) == null
-	check(ghost_free, "infantry has no invisible vehicle collider")
+	check(ghost_free, "drones have no invisible vehicle collider")
 	check(main.bots.bots.is_empty(), "online bots are not simulated on client")
 	check(main.mp.remotes.size() == 7, "seven server bots replicated")
 	check(main.map_builder.find_child("DesertOasis", true, false) != null and main.map_builder.find_child("GLBMap", true, false) == null, "desert has no industrial scene")

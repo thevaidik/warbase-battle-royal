@@ -1,0 +1,262 @@
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import test from 'node:test';
+import { performance } from 'node:perf_hooks';
+import { INDUSTRIAL_SPAWNS, floorHeight, loadWorldGeometry, normalizeMapId, PLAYABLE_MAPS, rayBlocked, resolveIndustrialMove, settledVerticalVelocity, type Vec3, type WorldGeometry } from './world-geometry.js';
+
+const fixtures = JSON.parse(readFileSync(new URL('./data/geometry-fixtures.json', import.meta.url), 'utf8')) as {
+  rays: Array<{ name: string; from: number[]; to: number[]; blocked: boolean }>;
+  moves: Array<{ name: string; from: number[]; to: number[]; expected: number[] }>;
+};
+
+function referenceFloor(geometry: WorldGeometry, x: number, z: number, fromY: number): number | undefined {
+  const hit = geometry.trace([x, fromY, z], [x, -100, z]);
+  if (!hit || Math.abs(hit.normal[1]) < 0.5) return undefined;
+  return fromY + (-100 - fromY) * hit.fraction;
+}
+
+function referenceCapsuleBlocked(geometry: WorldGeometry, from: Vec3, to: Vec3, radius: number, height: number, horizontalOnly = false): boolean {
+  const levels = [0.08, 0.24, 0.4, 0.9, 1.4, 1.56, 1.72] as const, spokes = 12;
+  const deltaY = to[1] - from[1];
+  for (const yOffset of levels) {
+    if (yOffset > height) continue;
+    let ringRadius = radius;
+    if (yOffset < radius) ringRadius = Math.sqrt(Math.max(0, radius * radius - (radius - yOffset) ** 2));
+    else if (yOffset > height - radius) ringRadius = Math.sqrt(Math.max(0, radius * radius - (yOffset - (height - radius)) ** 2));
+    for (let spoke = 0; spoke <= spokes; spoke++) {
+      const angle = spoke === spokes ? 0 : (2 * Math.PI * spoke) / spokes;
+      const ox = spoke === spokes ? 0 : Math.cos(angle) * ringRadius, oz = spoke === spokes ? 0 : Math.sin(angle) * ringRadius;
+      const hit = geometry.trace([from[0] + ox, from[1] + yOffset, from[2] + oz], [to[0] + ox, to[1] + yOffset, to[2] + oz]);
+      if (!hit || hit.fraction <= 1e-4) continue;
+      if (horizontalOnly && Math.abs(deltaY) < 1e-6 && Math.abs(hit.normal[1]) >= 0.5) continue;
+      return true;
+    }
+  }
+  return false;
+}
+
+function referenceMove(geometry: WorldGeometry, from: Vec3, to: Vec3, radius = 0.4, height = 1.8): Vec3 {
+  if (!from.every(Number.isFinite)) return geometry.spawns[0];
+  if (!to.every(Number.isFinite)) return from;
+  if (![radius, height].every(Number.isFinite) || radius <= 0 || height < 2 * radius) return from;
+  radius = Math.min(radius, 1.5); height = Math.min(height, 4);
+  let x = from[0], y = from[1], z = from[2];
+  const stepHeight = 0.45;
+  const targetFloor = referenceFloor(geometry, to[0], to[2], y + stepHeight);
+  if (targetFloor !== undefined && targetFloor > y + 0.03 && targetFloor <= y + stepHeight) {
+    const steppedFrom: Vec3 = [x, targetFloor, z], steppedTarget: Vec3 = [to[0], targetFloor, to[2]];
+    if (!referenceCapsuleBlocked(geometry, from, steppedFrom, radius, height) && !referenceCapsuleBlocked(geometry, steppedFrom, steppedTarget, radius, height, true)) { x = to[0]; y = targetFloor; z = to[2]; }
+  }
+  const moveAxis = (axis: 0 | 2, target: number): number => {
+    const current: Vec3 = [x, y, z], destination: Vec3 = axis === 0 ? [target, y, z] : [x, y, target];
+    if (!referenceCapsuleBlocked(geometry, current, destination, radius, height, true)) return target;
+    let safe = 0, blocked = 1;
+    for (let iteration = 0; iteration < 10; iteration++) {
+      const middle = (safe + blocked) * 0.5;
+      const candidate: Vec3 = axis === 0 ? [x + (target - x) * middle, y, z] : [x, y, z + (target - z) * middle];
+      if (referenceCapsuleBlocked(geometry, current, candidate, radius, height, true)) blocked = middle; else safe = middle;
+    }
+    return axis === 0 ? x + (target - x) * safe : z + (target - z) * safe;
+  };
+  x = moveAxis(0, to[0]); z = moveAxis(2, to[2]);
+  const floor = referenceFloor(geometry, x, z, Math.max(y, to[1]) + stepHeight);
+  let targetY = to[1];
+  if (floor !== undefined && targetY <= floor && y >= floor - stepHeight) targetY = floor;
+  const verticalFrom: Vec3 = [x, y, z], verticalTo: Vec3 = [x, targetY, z];
+  if (!referenceCapsuleBlocked(geometry, verticalFrom, verticalTo, radius, height)) y = targetY;
+  else {
+    let safe = 0, blocked = 1;
+    for (let iteration = 0; iteration < 10; iteration++) {
+      const middle = (safe + blocked) * 0.5, candidate: Vec3 = [x, y + (targetY - y) * middle, z];
+      if (referenceCapsuleBlocked(geometry, verticalFrom, candidate, radius, height)) blocked = middle; else safe = middle;
+    }
+    y += (targetY - y) * safe;
+  }
+  return [x, y, z];
+}
+
+test('loads the authored Industrial spawn set and finds walkable ground', () => {
+  assert.equal(INDUSTRIAL_SPAWNS.length, 12);
+  assert.deepEqual(INDUSTRIAL_SPAWNS[0], [-22, 1.29999995231628, -22]);
+  for (const [x, spawnY, z] of INDUSTRIAL_SPAWNS) {
+    const ground = floorHeight(x, z, spawnY + 3);
+    assert.ok(ground !== undefined && Number.isFinite(ground), `missing floor beneath spawn ${x},${z}`);
+    assert.ok(ground! <= spawnY && spawnY - ground! <= 0.6, `unexpected floor height ${ground} at spawn ${x},${z}`);
+  }
+  assert.equal(floorHeight(1_000, 1_000), undefined);
+});
+
+test('rays hit actual warehouse walls and perimeter fence while road lanes remain open', () => {
+  assert.equal(rayBlocked([-12, 1.1, -10], [-8, 1.1, -10]), true, 'warehouse wall must stop fire');
+  assert.equal(rayBlocked([77, 1.4, -20], [81, 1.4, -20]), true, 'perimeter fence must stop fire');
+  assert.equal(rayBlocked([67, 0.5, -20], [73, 0.5, -20]), false, 'east road lane must remain open');
+  assert.equal(rayBlocked([-100, 1, 0], [-99, 1, 0]), false, 'unobstructed exterior segment must remain clear');
+});
+
+test('capsule movement stops at authored walls and slides along them', () => {
+  const floor = floorHeight(-12, -10, 10);
+  assert.ok(floor !== undefined);
+  const resolved = resolveIndustrialMove([-12, floor!, -10], [-8, floor!, -10]);
+  assert.ok(resolved.every(Number.isFinite));
+  const wall=loadWorldGeometry('industrial')!.trace([-12,floor!+.9,-10],[-8,floor!+.9,-10])!;
+  assert.ok(Math.abs(resolved[0]-(wall.point[0]-.408))<.03, `capsule must stop one radius before actual warehouse wall: ${resolved}`);
+  assert.ok(Math.abs(resolved[2] + 10) < 0.05, `capsule failed to slide along the warehouse wall: ${resolved}`);
+
+  const roadY = floorHeight(67, -20, 10);
+  assert.ok(roadY !== undefined);
+  const road = resolveIndustrialMove([67, roadY!, -20], [73, roadY!, -20]);
+  assert.ok(road[0] > 72.5, `capsule was blocked by open road: ${road}`);
+  const fenceY = floorHeight(77, -20, 10);
+  assert.ok(fenceY !== undefined);
+  const fence = resolveIndustrialMove([77, fenceY!, -20], [81, fenceY!, -20]);
+  assert.ok(fence[0] < 80, `capsule crossed perimeter fence: ${fence}`);
+});
+
+test('invalid coordinates fail closed without leaking non-finite movement', () => {
+  assert.equal(rayBlocked([Number.NaN, 0, 0], [0, 0, 0]), true);
+  assert.equal(floorHeight(Number.NaN, 0), undefined);
+  assert.deepEqual(resolveIndustrialMove([Number.NaN, 0, 0], [1, 0, 0]), INDUSTRIAL_SPAWNS[0]);
+  assert.deepEqual(resolveIndustrialMove([1, 2, 3], [Number.POSITIVE_INFINITY, 2, 3]), [1, 2, 3]);
+  assert.deepEqual(resolveIndustrialMove([1, 2, 3], [4, 5, 6], Number.NaN), [1, 2, 3]);
+});
+
+test('shared TS/Godot ray and movement fixtures stay deterministic', () => {
+  for (const fixture of fixtures.rays) {
+    assert.equal(rayBlocked(fixture.from as [number, number, number], fixture.to as [number, number, number]), fixture.blocked, fixture.name);
+  }
+  for (const fixture of fixtures.moves) {
+    const actual = resolveIndustrialMove(fixture.from as [number, number, number], fixture.to as [number, number, number]);
+    assert.ok(Math.hypot(actual[0] - fixture.expected[0], actual[1] - fixture.expected[1], actual[2] - fixture.expected[2]) < 0.001, `${fixture.name}: ${actual}`);
+  }
+});
+
+test('allocation-light BVH collision queries match the reference trace for shared rays and floors', () => {
+  const geometry = loadWorldGeometry('industrial')!;
+  for (const fixture of fixtures.rays) {
+    const from = fixture.from as [number, number, number], to = fixture.to as [number, number, number];
+    const length = Math.hypot(to[0] - from[0], to[1] - from[1], to[2] - from[2]);
+    const hit = geometry.trace(from, to);
+    const expectedBlocked = length >= 0.05 && hit !== null && hit.fraction > 0.02 / length && hit.fraction < 1 - 0.04 / length;
+    assert.equal(geometry.rayBlocked(from, to), expectedBlocked, fixture.name);
+  }
+  for (const [x, y, z] of INDUSTRIAL_SPAWNS) {
+    const fromY = y + 3;
+    const hit = geometry.trace([x, fromY, z], [x, -100, z]);
+    const expected = hit && Math.abs(hit.normal[1]) >= 0.5 ? fromY + (-100 - fromY) * hit.fraction : undefined;
+    const actual = geometry.floorHeight(x, z, fromY);
+    if (expected === undefined) assert.equal(actual, undefined);
+    else assert.ok(actual !== undefined && Math.abs(actual - expected) < 1e-6);
+  }
+});
+
+test('capsule volume queries are deterministic and finite at every authored spawn', () => {
+  for (const map of PLAYABLE_MAPS) {
+    const geometry = loadWorldGeometry(map)!;
+    for (const from of geometry.spawns) {
+      const to: Vec3 = [from[0]+.15,from[1]-.005,from[2]-.12];
+      const actual=geometry.resolveMove(from,to);
+      assert.ok(actual.every(Number.isFinite),map);
+      assert.deepEqual(geometry.resolveMove(from,to),actual,map);
+      assert.ok(Math.hypot(actual[0]-from[0],actual[1]-from[1],actual[2]-from[2])<.8,`${map}: excessive spawn recovery`);
+    }
+  }
+});
+
+test('benchmark swept movement candidate reuse against the reference solver', { skip: !process.env.GEOMETRY_BENCHMARK }, () => {
+  const workload: Array<{ geometry: WorldGeometry; from: Vec3; to: Vec3 }> = [];
+  for (const map of ['industrial', 'football'] as const) {
+    const geometry = loadWorldGeometry(map)!;
+    for (let i = 0; i < 28; i++) {
+      const spawn = geometry.spawns[i % geometry.spawns.length];
+      const from: Vec3 = [spawn[0] + (i % 4) * 0.17, spawn[1], spawn[2] - (i % 3) * 0.13];
+      const to: Vec3 = [from[0] + ((i % 5) - 2) * 0.72, from[1] + (i % 7 === 0 ? -0.3 : 0), from[2] + ((i % 3) - 1) * 0.68];
+      workload.push({ geometry, from, to });
+    }
+  }
+  for (const item of workload) { referenceMove(item.geometry, item.from, item.to); item.geometry.resolveMove(item.from, item.to); }
+  const measure = (run: (item: typeof workload[number]) => Vec3): number => {
+    const start = performance.now();
+    for (let repeat = 0; repeat < 3; repeat++) for (const item of workload) run(item);
+    return performance.now() - start;
+  };
+  const referenceMs = measure(item => referenceMove(item.geometry, item.from, item.to));
+  const optimizedMs = measure(item => item.geometry.resolveMove(item.from, item.to));
+  assert.ok(optimizedMs < referenceMs, `candidate reuse benchmark regressed: reference=${referenceMs.toFixed(2)}ms optimized=${optimizedMs.toFixed(2)}ms`);
+  console.log(`movement benchmark: ${workload.length * 3} Industrial/Football moves; reference=${referenceMs.toFixed(2)}ms optimized=${optimizedMs.toFixed(2)}ms speedup=${(referenceMs / optimizedMs).toFixed(2)}x`);
+});
+
+test('all selectable maps load independent authored geometry and match the shared Godot fixtures', () => {
+  const mapFixtures = JSON.parse(readFileSync(new URL('./data/maps/map-fixtures.json', import.meta.url), 'utf8')) as Array<{
+    map: string; triangles: number; spawns: number; vehicles: number; nav_step: number;
+    ray: { from: number[]; to: number[]; blocked: boolean };
+    move: { from: number[]; to: number[]; expected: number[] };
+  }>;
+  assert.equal(mapFixtures.length, PLAYABLE_MAPS.length);
+  assert.equal(normalizeMapId('  MILITARY_BASE '), 'military_base');
+  assert.equal(normalizeMapId('desert_oasis'), null, 'a prop sheet is not advertised as a complete map');
+  assert.equal(normalizeMapId('loft'), null);
+  for (const fixture of mapFixtures) {
+    const geometry = loadWorldGeometry(fixture.map);
+    assert.ok(geometry, `${fixture.map} should be an allow-listed map`);
+    assert.equal(geometry.name, fixture.map);
+    assert.equal(geometry.spawns.length, fixture.spawns);
+    assert.equal(geometry.vehicleSpawns.length, fixture.vehicles);
+    assert.ok(geometry.navStep > 0);
+    assert.ok(geometry.floorHeight(geometry.spawns[0][0], geometry.spawns[0][2], geometry.spawns[0][1] + 2) !== undefined);
+    assert.equal(geometry.rayBlocked(fixture.ray.from as [number, number, number], fixture.ray.to as [number, number, number]), fixture.ray.blocked, fixture.map);
+    const actual = geometry.resolveMove(fixture.move.from as [number, number, number], fixture.move.to as [number, number, number]);
+    assert.ok(Math.hypot(actual[0] - fixture.move.expected[0], actual[1] - fixture.move.expected[1], actual[2] - fixture.move.expected[2]) < 0.001, `${fixture.map}: ${actual}`);
+  }
+  const industrial = loadWorldGeometry('industrial')!;
+  const village = loadWorldGeometry('village')!;
+  assert.notEqual(industrial, village);
+  assert.equal(industrial.spawns[0][0], -22);
+  assert.ok(village.spawns[0][0] !== industrial.spawns[0][0]);
+  assert.equal(loadWorldGeometry(' INDUSTRIAL '), industrial);
+});
+
+test('original map spawns stand above their authored ground and settle without embedding', () => {
+  let settled = 0;
+  for (const map of ['industrial', 'nuketown', 'village', 'dust2', 'canyon']) {
+    const geometry = loadWorldGeometry(map)!;
+    for (const spawn of geometry.spawns) {
+      const floor = geometry.floorHeight(spawn[0], spawn[2], spawn[1] + 0.01);
+      assert.ok(floor !== undefined, `${map}: missing spawn floor`);
+      let position: Vec3 = spawn;
+      let vy = 0;
+      for (let tick = 0; tick < 120; tick++) {
+        vy -= 18 / 60;
+        const requestedY = position[1] + vy / 60;
+        position = geometry.resolveMove(position, [position[0], requestedY, position[2]]);
+        const beneath = geometry.floorHeight(position[0], position[2], position[1] + 0.1);
+        if(vy < 0 && geometry.isGrounded(position)) vy=0;
+      }
+      const currentFloor=geometry.floorHeight(position[0],position[2],position[1]+.02);
+      assert.ok(currentFloor===undefined || position[1]>=currentFloor-.03,`${map}: feet below current floor`);
+      assert.ok(geometry.isGrounded(position),`${map}: no capsule support after settling`);
+      assert.ok(Math.abs(vy) < 0.01, `${map}: standing player accumulates falling velocity ${vy}`);
+      settled++;
+    }
+  }
+  assert.ok(settled >= 48);
+});
+
+
+test('standing on a supported slope does not drift under gravity', () => {
+  for (const map of PLAYABLE_MAPS) {
+    const geometry=loadWorldGeometry(map)!;
+    for(const spawn of geometry.spawns) {
+      let p=geometry.resolveMove(spawn,[spawn[0],spawn[1]-.01,spawn[2]]);
+      for(let i=0;i<30;i++) p=geometry.resolveMove(p,[p[0],p[1]-.01,p[2]]);
+      if(!geometry.isGrounded(p))continue;
+      const next=geometry.resolveMove(p,[p[0],p[1]-.005,p[2]]);
+      assert.ok(Math.hypot(next[0]-p[0],next[1]-p[1],next[2]-p[2])<.0001,`${map}: standing drift`);
+    }
+  }
+});
+
+test('submillimetre pose rounding cannot cancel free flight or masquerade as floor contact',()=>{
+ for(const vy of [-6.2,-.3,.3,6.2])for(const delta of [-.0005,0,.0005])assert.equal(settledVerticalVelocity(vy,1,1+delta,false),vy);
+ assert.equal(settledVerticalVelocity(-3,0,.01,true),0);
+ assert.equal(settledVerticalVelocity(3,1,.9,false),0);
+});

@@ -76,6 +76,11 @@ var _smoke_emitter: MeshInstance3D
 var _fire_emitter: MeshInstance3D
 var _steering_wheel_mesh: Node3D
 
+static func _network_steer_from_motion(yaw_change: float, travel: float) -> float:
+	if absf(travel) <= 0.005:
+		return 0.0
+	return clampf(atan(yaw_change * 3.99 / travel), -MAX_STEER_ANGLE, MAX_STEER_ANGLE)
+
 # Camera System (Strictly 3rd Person)
 var chase_camera_pivot: Node3D
 var chase_spring_arm: SpringArm3D
@@ -96,12 +101,17 @@ var interact_area: Area3D
 
 # Roadkill kinetic tracking
 var _roadkill_cooldowns: Dictionary = {}
-var network_controlled := false
+var network_controlled := false:
+	set(value):
+		network_controlled = value
+		physics_interpolation_mode = Node.PHYSICS_INTERPOLATION_MODE_OFF if value else Node.PHYSICS_INTERPOLATION_MODE_INHERIT
 var network_position := Vector3.ZERO
 var network_yaw := 0.0
 var _parked_settle_timer := 1.0
 
 func _ready() -> void:
+	# Follow the SDK render pose after the network reconciler has updated it.
+	process_priority = 10
 	mass = 2800.0
 	center_of_mass_mode = RigidBody3D.CENTER_OF_MASS_MODE_CUSTOM
 	center_of_mass = Vector3(0.0, 0.35, 0.0)
@@ -498,7 +508,7 @@ func exit_vehicle() -> void:
 # REAL-TIME CAMERA PROCESS (PER-FRAME RENDER RATE FOR ABSOLUTE SMOOTHNESS)
 # ==============================================================================
 func _process(delta: float) -> void:
-	if network_controlled:
+	if network_controlled and not bool(get_meta("sdk_local_prediction", false)):
 		global_position = global_position.lerp(network_position, 1.0-exp(-18.0*delta))
 		rotation.y = lerp_angle(rotation.y, network_yaw, 1.0-exp(-18.0*delta))
 	_update_wheel_visuals(delta)
@@ -512,10 +522,8 @@ func _process(delta: float) -> void:
 		
 		# Align camera yaw behind travel direction if user hasn't touched the mouse recently
 		_mouse_idle_time += delta
-		if _mouse_idle_time > 0.8 and current_speed_kmh > 4.0:
+		if _mouse_idle_time > 0.8 and current_speed_kmh > 4.0 and not is_reversing:
 			var target_heading := rotation.y
-			if is_reversing:
-				target_heading += PI
 			_cam_yaw = lerp_angle(_cam_yaw, target_heading, clampf(2.2 * delta, 0.0, 1.0))
 			
 		chase_camera_pivot.rotation = Vector3(_cam_pitch, _cam_yaw, 0.0)
@@ -525,7 +533,7 @@ func _update_wheel_visuals(delta: float) -> void:
 		var travel := current_speed_kmh / 3.6 * delta * (-1.0 if is_reversing else 1.0)
 		_network_wheel_roll = wrapf(_network_wheel_roll - travel / 0.67, -PI, PI)
 		var yaw_change := angle_difference(_previous_wheel_yaw, rotation.y)
-		var target_steer := clampf(atan2(yaw_change * 3.99, absf(travel)), -MAX_STEER_ANGLE, MAX_STEER_ANGLE) if absf(travel) > 0.005 else 0.0
+		var target_steer := _network_steer_from_motion(yaw_change, travel)
 		_network_wheel_steer = lerpf(_network_wheel_steer, target_steer, 1.0-exp(-12.0*delta))
 		for i in _wheel_visual_mounts.size():
 			var steer := _network_wheel_steer if i < 2 else 0.0

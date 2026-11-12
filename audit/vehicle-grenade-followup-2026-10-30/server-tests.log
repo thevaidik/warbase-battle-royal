@@ -1,0 +1,170 @@
+
+> warbase-colyseus@0.1.0 test
+> node --import tsx --test src/*.test.ts
+
+ℹ️  optional .env file not found: .env.development, .env
+@colyseus/schema: defineTypes() is deprecated and will be removed in a future release. Use schema() with t.* field builders instead → https://docs.colyseus.io/state/schema
+✔ anonymous username admission canonicalizes and bounds display names (3.189125ms)
+✔ fixed window limiter resets, isolates keys, and bounds key storage (0.479667ms)
+✔ invalid and over-capacity room creates do not spend the shared valid-create allowance (1.19975ms)
+✔ all public presets force Conquest even for older client mode/map options (0.521334ms)
+✔ server pose asset is byte-identical to the legacy server source (4.016083ms)
+✔ tracks the animated head across idle, run, jump, translation and rotation (4.37925ms)
+✔ keeps limb-only and penetration zones distinct on the same animated actor (0.221209ms)
+✔ uses one discrete clip per rewind snapshot and rejects malformed phases (0.1885ms)
+ℹ️  optional .env file not found: .env.development, .env
+@colyseus/schema: defineTypes() is deprecated and will be removed in a future release. Use schema() with t.* field builders instead → https://docs.colyseus.io/state/schema
+Error: Unsupported map: loft-public
+    at consumeRoomCreationAllowance (/Users/vaidik/Developer/WarBase /warbase-colyseus/src/battle-room.ts:51:77)
+    at BattleRoom.onCreate (/Users/vaidik/Developer/WarBase /warbase-colyseus/src/battle-room.ts:109:18)
+    at handleCreateRoom (file:///Users/vaidik/Developer/WarBase%20/warbase-colyseus/node_modules/@colyseus/core/build/MatchMaker.mjs:298:18)
+    at Module.createRoom (file:///Users/vaidik/Developer/WarBase%20/warbase-colyseus/node_modules/@colyseus/core/build/MatchMaker.mjs:245:18)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async ColyseusTestServer.createRoom (file:///Users/vaidik/Developer/WarBase%20/warbase-colyseus/node_modules/@colyseus/testing/build/TestServer.mjs:23:18)
+    at async waitForActual (node:assert:646:5)
+    at async strict.rejects (node:assert:769:25)
+    at async TestContext.<anonymous> (/Users/vaidik/Developer/WarBase /warbase-colyseus/src/battle-room.test.ts:97:5)
+    at async Test.run (node:internal/test_runner/test:1313:7)
+✔ all 280 authoritative weapon-zone rows match the shared combat fixture (0.900875ms)
+✔ server ray directions match the Godot camera at four yaw cardinals and pitch (0.133167ms)
+✔ server movement preserves analog magnitude and normalizes diagonal input like Godot (0.072542ms)
+✔ two driven vehicles collide head-on without chassis passing through at 60 Hz (14.512583ms)
+@colyseus/sdk: onMessage() not registered for type 'identity'.
+Error: username already in room
+    at BattleRoom.onJoin (/Users/vaidik/Developer/WarBase /warbase-colyseus/src/battle-room.ts:251:234)
+    at BattleRoom._onJoin (file:///Users/vaidik/Developer/WarBase%20/warbase-colyseus/node_modules/@colyseus/core/build/Room.mjs:1126:22)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async connectClientToRoom (file:///Users/vaidik/Developer/WarBase%20/warbase-colyseus/node_modules/@colyseus/core/build/Transport.mjs:132:3)
+    at async WebSocketServer.onConnection (file:///Users/vaidik/Developer/WarBase%20/warbase-colyseus/node_modules/@colyseus/ws-transport/build/WebSocketTransport.mjs:192:7)
+Room connection was closed unexpectedly (4002): 
+[Colyseus reconnection]: ⏳ will retry in 0.2 seconds...
+[Colyseus reconnection]: 🔄 Re-establishing sessionId '45tHhWrUq' with roomId 'UrhirhE2O'... (attempt 1 of 15)
+[Colyseus reconnection]: ✅ reconnection successful!
+@colyseus/sdk: onMessage() not registered for type 'identity'.
+▶ BattleRoom admission, combat authority, ammo and lifecycle
+  ✔ admits a player, times the real Industrial bot join, and cleans up leaving clients (384.057416ms)
+  ℹ first Industrial player+bot admission: 163.4 ms
+@colyseus/sdk: onMessage() not registered for type 'identity'.
+  ✔ times actual Football geometry and bot admission (888.65225ms)
+  ℹ first Football player+bot admission: 872.5 ms
+@colyseus/sdk: onMessage() not registered for type 'identity'.
+@colyseus/sdk: onMessage() not registered for type 'identity'.
+@colyseus/sdk: onMessage() not registered for type 'respawn'.
+  ✔ joins a live Conquest room with four objectives, balanced teams, and ticking capture state (58.795458ms)
+@colyseus/sdk: onMessage() not registered for type 'identity'.
+  ✔ live room actions replicate grenade inventory, vehicle seat and authoritative motion (119.742292ms)
+@colyseus/sdk: onMessage() not registered for type 'identity'.
+  ✔ death and dropped connections forcibly release vehicle seats and invalidate old inputs (5.412083ms)
+@colyseus/sdk: onMessage() not registered for type 'identity'.
+[Colyseus reconnection]: ⏳ will retry in 0.2 seconds...
+[Colyseus reconnection]: 🔄 Re-establishing sessionId 'IalA4msHo' with roomId 'THCn5WDMk'... (attempt 1 of 15)
+[Colyseus reconnection]: ✅ reconnection successful!
+@colyseus/sdk: onMessage() not registered for type 'fire'.
+  ✔ SDK reconnect releases the old vehicle epoch and accepts fresh inputs after re-entry (685.754416ms)
+@colyseus/sdk: onMessage() not registered for type 'identity'.
+@colyseus/sdk: onMessage() not registered for type 'fire'.
+@colyseus/sdk: onMessage() not registered for type 'fire'.
+@colyseus/sdk: onMessage() not registered for type 'fire'.
+@colyseus/sdk: onMessage() not registered for type 'fire'.
+@colyseus/sdk: onMessage() not registered for type 'fire'.
+@colyseus/sdk: onMessage() not registered for type 'fire'.
+@colyseus/sdk: onMessage() not registered for type 'fire'.
+@colyseus/sdk: onMessage() not registered for type 'fire'.
+@colyseus/sdk: onMessage() not registered for type 'fire'.
+@colyseus/sdk: onMessage() not registered for type 'fire'.
+@colyseus/sdk: onMessage() not registered for type 'fire'.
+@colyseus/sdk: onMessage() not registered for type 'fire'.
+  ✔ preserves weapon magazines across switches and completes reloads (1558.363708ms)
+@colyseus/sdk: onMessage() not registered for type 'identity'.
+  ✔ stale reload completion cannot clear a newer weapon reload (3311.326625ms)
+@colyseus/sdk: onMessage() not registered for type 'identity'.
+@colyseus/sdk: onMessage() not registered for type 'identity'.
+@colyseus/sdk: onMessage() not registered for type 'fire'.
+@colyseus/sdk: onMessage() not registered for type 'damage'.
+@colyseus/sdk: onMessage() not registered for type 'fire'.
+@colyseus/sdk: onMessage() not registered for type 'damage'.
+@colyseus/sdk: onMessage() not registered for type 'hit_confirmed'.
+  ✔ applies server ray damage with range falloff and rejects shot replay/cadence (16.989584ms)
+@colyseus/sdk: onMessage() not registered for type 'identity'.
+@colyseus/sdk: onMessage() not registered for type 'identity'.
+@colyseus/sdk: onMessage() not registered for type 'fire'.
+@colyseus/sdk: onMessage() not registered for type 'fire'.
+@colyseus/sdk: onMessage() not registered for type 'fire'.
+@colyseus/sdk: onMessage() not registered for type 'fire'.
+@colyseus/sdk: onMessage() not registered for type 'fire'.
+@colyseus/sdk: onMessage() not registered for type 'fire'.
+  ✔ framework rewind preserves run→firing→jump clip, phase and quaternion at each shot (9.880958ms)
+@colyseus/sdk: onMessage() not registered for type 'identity'.
+@colyseus/sdk: onMessage() not registered for type 'identity'.
+@colyseus/sdk: onMessage() not registered for type 'identity'.
+@colyseus/sdk: onMessage() not registered for type 'fire'.
+@colyseus/sdk: onMessage() not registered for type 'fire'.
+@colyseus/sdk: onMessage() not registered for type 'fire'.
+@colyseus/sdk: onMessage() not registered for type 'fire'.
+@colyseus/sdk: onMessage() not registered for type 'fire'.
+@colyseus/sdk: onMessage() not registered for type 'fire'.
+  ✔ spawn protection and friendly bodies block authoritative hits (8.834708ms)
+@colyseus/sdk: onMessage() not registered for type 'identity'.
+@colyseus/sdk: onMessage() not registered for type 'respawn'.
+  ✔ early respawn requests cannot bypass server death delay or spawn protection (3.103625ms)
+@colyseus/sdk: onMessage() not registered for type 'identity'.
+  ✔ consumes and acknowledges movement inputs while dead without moving the player (260.043375ms)
+@colyseus/sdk: onMessage() not registered for type 'identity'.
+@colyseus/sdk: onMessage() not registered for type 'identity'.
+@colyseus/sdk: onMessage() not registered for type 'fire'.
+@colyseus/sdk: onMessage() not registered for type 'fire'.
+  ✔ Industrial walls block server-traced animated hits (5.507ms)
+✔ BattleRoom admission, combat authority, ammo and lifecycle (7352.406ms)
+✔ server bot roster yields capacity to humans and assigns balanced TDM teams (297.248917ms)
+✔ bot combat waits for reaction time, uses the real Industrial line of sight, and respawns authoritatively (2.9285ms)
+✔ bots do not acquire or shoot targets through the authored warehouse wall (6.148875ms)
+✔ Conquest objective goals replace idle patrol goals when no enemy is visible (1.813ms)
+✔ Conquest creates four distinct objectives from valid map spawns (1.654459ms)
+✔ all playable maps get four separated objectives whose centers do not overlap capture zones (395.420791ms)
+✔ uncontested capture advances and contested presence freezes progress (0.971708ms)
+✔ enemy ownership must be neutralized before the objective can be captured (0.611875ms)
+✔ dead and vehicle occupants do not contribute to capture (0.831291ms)
+✔ objective advantage bleeds tickets and kills cost one ticket (0.479875ms)
+✔ zero tickets finishes the match and finished state is immutable (0.315125ms)
+✔ authored Industrial vehicle spawns are present and finite (0.597292ms)
+✔ grenade launch rejects malformed, excessive, remote, blocked, and rate-limited requests (0.148375ms)
+✔ fuse and impact grenades simulate and produce authoritative explosion positions (36.315541ms)
+✔ explosions use distance falloff and actual map occlusion (0.231667ms)
+✔ grenade system rejects non-finite time and invalid throwables without leaking active projectiles (0.083417ms)
+✔ operations metrics handler disables, denies, and serves authorized requests (0.674125ms)
+✔ mounted metrics HTTP route enforces disabled, unauthorized and authorized requests (70.4235ms)
+✔ process metrics retain bounded timing samples and counters independently of rooms (0.194542ms)
+✔ debug tools reject production or non-loopback Playground configurations (1.687166ms)
+✔ mounted tools serve locally, deny public forwarding and stay disabled by default (60.701459ms)
+✔ private admin is opt-in and requires private operations storage and secrets (0.548166ms)
+✔ beta admin bootstraps, authenticates and persists while denying public forwarding (745.799625ms)
+✔ vehicles use authored spawns and validate exclusive seat entry/exit (2.478958ms)
+✔ unoccupied vehicles keep a stable seat generation across simulation ticks (0.728583ms)
+✔ forced cleanup repairs an orphaned player-side seat without disturbing another driver (0.416292ms)
+✔ vehicle prediction step is deterministic and returns collision candidate separately (0.962958ms)
+✔ buffered driving frames after seat exit are fenced from infantry controls (0.560291ms)
+✔ death or disconnect releases the authoritative seat and fences buffered controls (0.347ms)
+✔ destroyed occupied vehicle releases its driver before the respawn delay (0.239917ms)
+✔ vehicle chassis OBB blocks shot rays with nearest-hit fraction and can ignore its own driver (0.579792ms)
+✔ vehicle simulation accepts an independently loaded non-Industrial map geometry (0.734875ms)
+✔ vehicle input is bounded, authoritative, and fails safe when it goes stale (3.096833ms)
+✔ vehicle damage destroys then respawns at the authored location after the Go delay (0.122416ms)
+✔ vehicle chassis stops at the authored Industrial warehouse and speeding roadkills are emitted (7.336875ms)
+✔ loads the authored Industrial spawn set and finds walkable ground (2.19025ms)
+✔ rays hit actual warehouse walls and perimeter fence while road lanes remain open (0.319916ms)
+✔ capsule movement stops at authored walls and slides along them (5.825625ms)
+✔ invalid coordinates fail closed without leaking non-finite movement (0.158167ms)
+✔ shared TS/Godot ray and movement fixtures stay deterministic (7.368292ms)
+✔ allocation-light BVH collision queries match the reference trace for shared rays and floors (1.499875ms)
+✔ swept candidate reuse exactly matches the pre-optimization movement solver on all maps (329.731583ms)
+﹣ benchmark swept movement candidate reuse against the reference solver (0.0605ms) # SKIP
+✔ all selectable maps load independent authored geometry and match the shared Godot fixtures (0.707666ms)
+✔ Industrial scenery variant spawns stand above the road and settle without embedding (138.51825ms)
+ℹ tests 72
+ℹ suites 0
+ℹ pass 71
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 1
+ℹ todo 0
+ℹ duration_ms 15707.145

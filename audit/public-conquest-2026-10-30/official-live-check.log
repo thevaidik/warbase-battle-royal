@@ -1,0 +1,11 @@
+{"map":"canyon","mode":"CONQUEST","objectives":4,"tickets":[500,500],"result":"PASS"}
+{"map":"desert_oasis","mode":"CONQUEST","objectives":4,"tickets":[500,500],"result":"PASS"}
+{"map":"football","mode":"CONQUEST","objectives":4,"tickets":[500,500],"result":"PASS"}
+{"map":"arena","mode":"CONQUEST","objectives":4,"tickets":[500,500],"result":"PASS"}
+{"map":"nuketown","mode":"CONQUEST","objectives":4,"tickets":[500,500],"result":"PASS"}
+{"map":"dust2","mode":"CONQUEST","objectives":4,"tickets":[500,500],"result":"PASS"}
+{"map":"industrial","mode":"CONQUEST","objectives":4,"tickets":[500,500],"result":"PASS"}
+{"map":"resoforge","mode":"CONQUEST","objectives":4,"tickets":[500,500],"result":"PASS"}
+{"map":"shipment","mode":"CONQUEST","objectives":4,"tickets":[500,500],"result":"PASS"}
+{"map":"village","mode":"CONQUEST","objectives":4,"tickets":[500,500],"result":"PASS"}
+ALL_TEN_PUBLIC_CONQUEST_OK clean directory; zero players/bots after cleanup

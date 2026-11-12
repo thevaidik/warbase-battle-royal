@@ -1,0 +1,6 @@
+LIFECYCLE_MEMORY {"label":"baseline","object_count":1519,"object_resource_count":4,"static_memory_bytes":24534263}
+LIFECYCLE_MEMORY {"label":"after_cleanup_01","object_count":1877,"object_resource_count":12,"static_memory_bytes":36607712}
+LIFECYCLE_MEMORY {"label":"after_cleanup_02","object_count":2199,"object_resource_count":12,"static_memory_bytes":37064652}
+LIFECYCLE_MEMORY {"label":"after_cleanup_03","object_count":2521,"object_resource_count":12,"static_memory_bytes":37483888}
+LIFECYCLE_MEMORY {"label":"after_cleanup_04","object_count":2843,"object_resource_count":12,"static_memory_bytes":37906460}
+LIFECYCLE_MEMORY {"label":"after_cleanup_05","object_count":2845,"object_resource_count":12,"static_memory_bytes":37918612}

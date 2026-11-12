@@ -1,0 +1,123 @@
+2026/10/27 23:14:11 === BOUNDED MATCH TRAFFIC + REAL AUTHORITATIVE VEHICLE INPUT TEST ===
+2026/10/27 23:14:11 Target Host: war.vaidik.blog | Room: d97b1fd1-69a3-4ca3-b1fc-3522ea0e1039 | Simulated Players: 64 | Duration: 35s
+2026/10/27 23:14:13 All 64 simulated players connecting...
+2026/10/27 23:14:14 [T+01s] Active: 1 | Up: 0.0 KB/s (2 pkts) | Down: 0.0 KB/s (0.00 Mbps, 0 pkts) | Per-Player Down: 0.0 KB/s
+2026/10/27 23:14:15 [T+02s] Active: 64 | Up: 7.2 KB/s (265 pkts) | Down: 153.3 KB/s (1.20 Mbps, 621 pkts) | Per-Player Down: 2.4 KB/s
+2026/10/27 23:14:19 [T+03s] Active: 64 | Up: 27.8 KB/s (866 pkts) | Down: 382.5 KB/s (2.99 Mbps, 654 pkts) | Per-Player Down: 6.0 KB/s
+2026/10/27 23:14:20 [T+06s] Active: 64 | Up: 22.3 KB/s (589 pkts) | Down: 303.4 KB/s (2.37 Mbps, 337 pkts) | Per-Player Down: 4.7 KB/s
+2026/10/27 23:14:20 [T+07s] Active: 64 | Up: 6.2 KB/s (179 pkts) | Down: 179.8 KB/s (1.40 Mbps, 181 pkts) | Per-Player Down: 2.8 KB/s
+2026/10/27 23:14:21 [BOT_STRESS_27] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 23:14:21 [BOT_STRESS_35] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 23:14:22 [BOT_STRESS_45] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 23:14:23 [BOT_STRESS_39] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 23:14:24 [BOT_STRESS_10] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 23:14:23 [T+08s] Active: 64 | Up: 6.8 KB/s (175 pkts) | Down: 175.1 KB/s (1.37 Mbps, 169 pkts) | Per-Player Down: 2.7 KB/s
+2026/10/27 23:14:24 [T+10s] Active: 61 | Up: 19.9 KB/s (519 pkts) | Down: 181.2 KB/s (1.42 Mbps, 190 pkts) | Per-Player Down: 3.0 KB/s
+2026/10/27 23:14:22 [BOT_STRESS_18] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 23:14:24 [BOT_STRESS_21] read ended: read tcp 192.168.0.193:62200->172.67.199.98:443: use of closed network connection
+2026/10/27 23:14:24 [BOT_STRESS_12] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 23:14:24 [BOT_STRESS_61] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 23:14:24 [BOT_STRESS_11] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 23:14:24 [BOT_STRESS_49] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 23:14:24 [BOT_STRESS_00] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 23:14:25 [T+11s] Active: 60 | Up: 5.0 KB/s (133 pkts) | Down: 50.0 KB/s (0.39 Mbps, 50 pkts) | Per-Player Down: 0.8 KB/s
+2026/10/27 23:14:25 [BOT_STRESS_55] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 23:14:25 [BOT_STRESS_16] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 23:14:25 [BOT_STRESS_60] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 23:14:25 [BOT_STRESS_46] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 23:14:25 [BOT_STRESS_44] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 23:14:25 [BOT_STRESS_56] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 23:14:26 [BOT_STRESS_09] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 23:14:26 [BOT_STRESS_40] read ended: read tcp 192.168.0.193:62219->172.67.199.98:443: use of closed network connection
+2026/10/27 23:14:26 [BOT_STRESS_28] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 23:14:26 [BOT_STRESS_33] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 23:14:26 [BOT_STRESS_63] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 23:14:24 [BOT_STRESS_02] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 23:14:26 [BOT_STRESS_58] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 23:14:26 [BOT_STRESS_31] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 23:14:26 [T+12s] Active: 52 | Up: 9.1 KB/s (249 pkts) | Down: 400.0 KB/s (3.13 Mbps, 420 pkts) | Per-Player Down: 7.7 KB/s
+2026/10/27 23:14:26 [BOT_STRESS_24] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 23:14:24 [BOT_STRESS_53] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 23:14:26 [BOT_STRESS_47] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 23:14:26 [BOT_STRESS_06] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 23:14:26 [BOT_STRESS_01] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 23:14:26 [T+13s] Active: 36 | Up: 16.6 KB/s (472 pkts) | Down: 323.2 KB/s (2.53 Mbps, 369 pkts) | Per-Player Down: 9.0 KB/s
+2026/10/27 23:14:26 [BOT_STRESS_51] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 23:14:26 [BOT_STRESS_36] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 23:14:26 [BOT_STRESS_03] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 23:14:26 [BOT_STRESS_19] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 23:14:26 [BOT_STRESS_14] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 23:14:27 [T+14s] Active: 28 | Up: 14.2 KB/s (388 pkts) | Down: 120.9 KB/s (0.94 Mbps, 137 pkts) | Per-Player Down: 4.3 KB/s
+2026/10/27 23:14:29 [T+15s] Active: 28 | Up: 3.5 KB/s (87 pkts) | Down: 22.5 KB/s (0.18 Mbps, 27 pkts) | Per-Player Down: 0.8 KB/s
+2026/10/27 23:14:29 [T+16s] Active: 28 | Up: 0.3 KB/s (7 pkts) | Down: 1.7 KB/s (0.01 Mbps, 1 pkts) | Per-Player Down: 0.1 KB/s
+2026/10/27 23:14:33 [BOT_STRESS_29] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 23:14:33 [BOT_STRESS_38] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 23:14:35 [BOT_STRESS_41] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 23:14:37 [BOT_STRESS_15] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 23:14:37 [BOT_STRESS_48] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 23:14:37 [BOT_STRESS_37] read ended: read tcp 192.168.0.193:62216->172.67.199.98:443: use of closed network connection
+2026/10/27 23:14:37 [BOT_STRESS_34] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 23:14:38 [BOT_STRESS_50] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 23:14:38 [BOT_STRESS_42] read ended: read tcp 192.168.0.193:62221->172.67.199.98:443: use of closed network connection
+2026/10/27 23:14:39 [BOT_STRESS_07] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 23:14:39 [BOT_STRESS_23] read ended: read tcp 192.168.0.193:62202->172.67.199.98:443: use of closed network connection
+2026/10/27 23:14:34 [T+17s] Active: 28 | Up: 2.7 KB/s (67 pkts) | Down: 27.3 KB/s (0.21 Mbps, 36 pkts) | Per-Player Down: 1.0 KB/s
+2026/10/27 23:14:40 [BOT_STRESS_22] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 23:14:40 [BOT_STRESS_04] read ended: read tcp 192.168.0.193:62183->172.67.199.98:443: use of closed network connection
+2026/10/27 23:14:40 [BOT_STRESS_32] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 23:14:40 [BOT_STRESS_20] read ended: read tcp 192.168.0.193:62199->172.67.199.98:443: use of closed network connection
+2026/10/27 23:14:40 [BOT_STRESS_05] read ended: read tcp 192.168.0.193:62184->172.67.199.98:443: use of closed network connection
+2026/10/27 23:14:40 [BOT_STRESS_43] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 23:14:40 [BOT_STRESS_54] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 23:14:40 [BOT_STRESS_62] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 23:14:40 [BOT_STRESS_13] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 23:14:41 [T+26s] Active: 12 | Up: 10.6 KB/s (281 pkts) | Down: 141.0 KB/s (1.10 Mbps, 213 pkts) | Per-Player Down: 11.8 KB/s
+2026/10/27 23:14:41 [T+27s] Active: 7 | Up: 1.3 KB/s (42 pkts) | Down: 49.1 KB/s (0.38 Mbps, 83 pkts) | Per-Player Down: 7.0 KB/s
+2026/10/27 23:14:41 [BOT_STRESS_30] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 23:14:41 [BOT_STRESS_52] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 23:14:41 [BOT_STRESS_08] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 23:14:41 [BOT_STRESS_26] read ended: read tcp 192.168.0.193:62207->172.67.199.98:443: use of closed network connection
+2026/10/27 23:14:41 [BOT_STRESS_57] read ended: read tcp 192.168.0.193:62236->172.67.199.98:443: use of closed network connection
+2026/10/27 23:14:41 [BOT_STRESS_59] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 23:14:41 [BOT_STRESS_17] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 23:14:41 [T+28s] Active: 1 | Up: 0.8 KB/s (29 pkts) | Down: 25.3 KB/s (0.20 Mbps, 40 pkts) | Per-Player Down: 25.3 KB/s
+2026/10/27 23:14:42 [T+29s] Active: 1 | Up: 0.3 KB/s (26 pkts) | Down: 11.8 KB/s (0.09 Mbps, 19 pkts) | Per-Player Down: 11.8 KB/s
+2026/10/27 23:14:43 [T+30s] Active: 1 | Up: 1.5 KB/s (48 pkts) | Down: 7.4 KB/s (0.06 Mbps, 12 pkts) | Per-Player Down: 7.4 KB/s
+2026/10/27 23:14:44 [T+31s] Active: 1 | Up: 1.6 KB/s (52 pkts) | Down: 9.8 KB/s (0.08 Mbps, 16 pkts) | Per-Player Down: 9.8 KB/s
+2026/10/27 23:14:45 [T+32s] Active: 1 | Up: 1.6 KB/s (55 pkts) | Down: 12.2 KB/s (0.10 Mbps, 19 pkts) | Per-Player Down: 12.2 KB/s
+2026/10/27 23:14:46 [T+33s] Active: 1 | Up: 1.6 KB/s (55 pkts) | Down: 12.2 KB/s (0.09 Mbps, 19 pkts) | Per-Player Down: 12.2 KB/s
+2026/10/27 23:14:47 [T+34s] Active: 1 | Up: 1.1 KB/s (41 pkts) | Down: 10.3 KB/s (0.08 Mbps, 17 pkts) | Per-Player Down: 10.3 KB/s
+2026/10/27 23:14:48 [BOT_STRESS_25] read ended: read tcp 192.168.0.193:62208->172.67.199.98:443: use of closed network connection
+2026/10/27 23:14:48 === FINAL AUDIT RESULTS ===
+2026/10/27 23:14:48 Total Duration: 35.004266875s
+2026/10/27 23:14:48 Peak Players: 64; joined=64; errors=49
+2026/10/27 23:14:48 Total Sent: 4645 packets (0.16 MB)
+2026/10/27 23:14:48 Total Received: 3647 packets (2.55 MB)
+2026/10/27 23:14:48 Aggregate Download Throughput: 74.60 KB/s (0.58 Mbps)
+2026/10/27 23:14:48 Per-Player Download Rate: 1.17 KB/s (0.01 Mbps)
+{
+  "car_distance_m": 0,
+  "confirmed_seat_entries": 0,
+  "confirmed_seat_exits": 0,
+  "connection_errors": 49,
+  "driven_cars": 0,
+  "hold_seconds": 35.004266875,
+  "host": "war.vaidik.blog",
+  "joined": 64,
+  "max_car_speed_mps": 0,
+  "peak_peers": 64,
+  "ping_ms_max": 17478,
+  "ping_ms_p50": 4090,
+  "ping_ms_p95": 11043,
+  "received_bytes": 2674066,
+  "replicated_damage_deliveries": 46,
+  "replicated_explosion_deliveries": 0,
+  "replicated_fire_deliveries": 14602,
+  "requested_peers": 64,
+  "room": "d97b1fd1-69a3-4ca3-b1fc-3522ea0e1039",
+  "sent_bytes": 166048,
+  "snapshot_gap_ms_max": 14804.665,
+  "snapshot_gap_ms_p50": 2.86,
+  "snapshot_gap_ms_p95": 1340.299,
+  "snapshot_gap_ms_p99": 5889.698
+}

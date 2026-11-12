@@ -1,0 +1,149 @@
+{
+  "test": "official-colyseus-sdk-buffered-input-load",
+  "endpoint": "https://war.vaidik.blog/colyseus",
+  "roomId": "bf80e47f-2d02-48d3-9818-f2d436330dd3",
+  "map": "industrial",
+  "result": "failed: Native observer QA_WEB_APP did not join room bf80e47f-2d02-48d3-9818-f2d436330dd3 within 120s",
+  "runSeconds": 125.1,
+  "requested": {
+    "sdkPeers": 63,
+    "nativeObserverUsername": "QA_WEB_APP",
+    "humansTotalTarget": 64,
+    "durationSeconds": 60,
+    "maxWallSeconds": 480,
+    "sdk": "0.18",
+    "roomCreationMs": 585,
+    "sdkJoinLatencyP95Ms": 1710
+  },
+  "observed": {
+    "sdkPeersJoined": 1,
+    "nativeObserverSeen": false,
+    "nativeObserverVerifiedHuman": false,
+    "humanActorsAtPeak": 1,
+    "maxPlayersIncludingBots": 8,
+    "maxBotsObserved": 7,
+    "serverStatePatches": 2328,
+    "statePlayersAtLastSample": 8,
+    "maxClients": 64
+  },
+  "input": {
+    "tickRateHz": 60,
+    "sent": 0,
+    "ackAdvances": 0,
+    "zeroSendResults": 0,
+    "maxPendingInputFrames": 0,
+    "ackStallIntervals": 0,
+    "peersWithAckStalls": 0
+  },
+  "gameplay": {
+    "shotsAttempted": 0,
+    "fireEchoes": 0,
+    "confirmedHits": 0,
+    "grenadeAttempts": 0,
+    "grenadesAccepted": 0,
+    "uniqueExplosionsSeen": 0,
+    "seatAttempts": 0,
+    "vehicleApproachInputs": 0,
+    "seatEntries": 0,
+    "vehicleInputs": 0,
+    "damageEvents": 7,
+    "killEvents": 0
+  },
+  "authoritativeMovement": {
+    "sampledSdkPlayers": 1,
+    "playersMovedOverHalfMeter": 1,
+    "totalPathMeters": 5.44,
+    "playersWithPositionUpdates": 1
+  },
+  "vehicleMovement": {
+    "vehiclesSampled": 2,
+    "vehiclesMoved": 0,
+    "totalVehiclePathMeters": 0
+  },
+  "lifecycle": {
+    "controlledTransportDrops": 0,
+    "drops": 0,
+    "dropsByPhase": {
+      "joining": 0,
+      "active": 0,
+      "cleanup": 0
+    },
+    "reconnects": 0,
+    "reconnectsByPhase": {
+      "joining": 0,
+      "active": 0,
+      "cleanup": 0
+    },
+    "clientLeaves": 1,
+    "sdkCohortRemovalsExpected": 0,
+    "sdkCohortRemovalsObserved": 0,
+    "remainingHumanActorsAfterSdkLeaves": 1,
+    "serverClientsAfterSdkLeaves": 0,
+    "serverBotsAfterSdkLeaves": 0,
+    "cleanupRemovalTimedOut": false,
+    "errors": 0
+  },
+  "network": {
+    "sdkPingRttP50Ms": 0,
+    "sdkPingRttP95Ms": 0,
+    "sdkClockRttP50Ms": 0,
+    "sdkClockSmoothedRttP95Ms": 0,
+    "inputAckTotalSamples": 0,
+    "ackPendingMeanP95": 0,
+    "ackPendingFrameMax": 0,
+    "roomStateGapP50Ms": 51,
+    "roomStateGapP95Ms": 62,
+    "roomStateGapMaxMs": 111
+  },
+  "helperResources": {
+    "rssP95Bytes": 0,
+    "heapP95Bytes": 0,
+    "processCpuUserMs": 2918,
+    "processCpuSystemMs": 615.5,
+    "eventLoopP95MsMax": 0,
+    "samples": []
+  },
+  "serverContainerResources": "Collected separately by scripts/run_colyseus_official_load.sh via docker stats; cohort executes on the server network/host, so its route and RTT differ from the Mac observer.",
+  "errorSamples": [
+    {
+      "username": "SDKmvu8zgu5Gate",
+      "type": "leave",
+      "code": 4000,
+      "reason": ""
+    }
+  ],
+  "limits": {
+    "officialUrlGuard": true,
+    "directTransformMutation": false,
+    "localCapacityRun": false,
+    "loadPeersIncludeBots": false,
+    "nodeContainerCpu": "2.0 cores",
+    "nodeContainerMemory": "1536 MiB",
+    "nodeContainerPids": 128
+  },
+  "evidenceCoverage": {
+    "nativeObserverGate": false,
+    "peak64HumanActors": false,
+    "authoritativeMovement": true,
+    "fireEcho": false,
+    "confirmedHit": false,
+    "acceptedGrenade": false,
+    "explosion": false,
+    "vehicleSeatEntry": false,
+    "vehicleInputsSent": false,
+    "vehicleMotion": false,
+    "sdkCleanupObserved": true
+  },
+  "missingEvidence": [
+    "nativeObserverGate",
+    "peak64HumanActors",
+    "fireEcho",
+    "confirmedHit",
+    "acceptedGrenade",
+    "explosion",
+    "vehicleSeatEntry",
+    "vehicleInputsSent",
+    "vehicleMotion"
+  ],
+  "coverageStatus": "incomplete"
+}

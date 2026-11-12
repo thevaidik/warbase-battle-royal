@@ -1,0 +1,42 @@
+{
+  "benchmark": "bot-nearest-squared-distance",
+  "date": "2026-11-05T10:12:01.794Z",
+  "node": "v24.16.0",
+  "platform": "darwin/arm64",
+  "workload": {
+    "nodeCount": 2000,
+    "pointCount": 40,
+    "iterationsPerSample": 1500,
+    "warmupIterations": 4,
+    "rounds": 5
+  },
+  "collisionMock": "trace always returns no hit; movementBlocked still performs all 5 traces for accepted candidates",
+  "equivalence": {
+    "checksPassed": 160,
+    "previousChecksum": 65970000,
+    "optimizedChecksum": 65970000,
+    "sameChecksum": true
+  },
+  "samplesMs": {
+    "previous": [
+      1155.8756250000001,
+      1155.885792,
+      1163.4124580000002,
+      1202.426708,
+      1325.2962080000007
+    ],
+    "optimized": [
+      507.90987500000006,
+      494.0117499999999,
+      663.5264999999999,
+      609.9973329999993,
+      525.7534999999989
+    ]
+  },
+  "medianMs": {
+    "previous": 1163.4124580000002,
+    "optimized": 525.7534999999989
+  },
+  "speedup": 2.21284776611093,
+  "traceCalls": 87046400
+}

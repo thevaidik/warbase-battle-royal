@@ -1,0 +1,8 @@
+goos: darwin
+goarch: arm64
+pkg: warbase-server/internal/engine
+cpu: Apple M4
+BenchmarkTraceAnimatedPlayerHit-10          	  291600	       758.9 ns/op	       0 B/op	       0 allocs/op
+BenchmarkTraceShotPlayerHitHistorical-10    	  286516	       897.3 ns/op	       0 B/op	       0 allocs/op
+PASS
+ok  	warbase-server/internal/engine	1.190s

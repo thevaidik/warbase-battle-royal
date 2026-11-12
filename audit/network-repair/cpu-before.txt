@@ -1,0 +1,190 @@
+File: warbase-server-profile
+Build ID: a2ded5a425602ffc6a44a044995bd7dec054c885
+Type: cpu
+Time: 2026-10-27 23:03:41 IST
+Duration: 20s, Total samples = 25.02s (125.09%)
+Showing nodes accounting for 18.80s, 75.14% of 25.02s total
+Dropped 429 nodes (cum <= 0.13s)
+      flat  flat%   sum%        cum   cum%
+        2s  7.99%  7.99%         2s  7.99%  internal/runtime/syscall/linux.Syscall6
+     1.39s  5.56% 13.55%      4.20s 16.79%  warbase-server/internal/engine.(*collisionNode).ray
+     1.19s  4.76% 18.31%      1.27s  5.08%  warbase-server/internal/engine.bounds.intersects
+     1.01s  4.04% 22.34%      1.54s  6.16%  warbase-server/internal/engine.triangleFraction
+     0.97s  3.88% 26.22%      5.70s 22.78%  google.golang.org/protobuf/internal/impl.(*MessageInfo).unmarshalPointerEager
+     0.68s  2.72% 28.94%      0.83s  3.32%  compress/flate.(*huffmanEncoder).bitCounts
+     0.59s  2.36% 31.29%      3.35s 13.39%  google.golang.org/protobuf/internal/impl.(*MessageInfo).marshalAppendPointer
+     0.52s  2.08% 33.37%      2.28s  9.11%  google.golang.org/protobuf/internal/impl.(*MessageInfo).sizePointerSlow
+     0.44s  1.76% 35.13%      0.44s  1.76%  runtime.memmove
+     0.41s  1.64% 36.77%      0.62s  2.48%  sort.partition
+     0.39s  1.56% 38.33%      0.39s  1.56%  runtime.futex
+     0.39s  1.56% 39.89%      0.75s  3.00%  runtime.scanObjectsSmall
+     0.34s  1.36% 41.25%      1.24s  4.96%  runtime.mallocgcSmallScanNoHeader
+     0.32s  1.28% 42.53%      0.45s  1.80%  sort.insertionSort
+     0.31s  1.24% 43.76%      0.31s  1.24%  warbase-server/internal/engine.dot (inline)
+     0.30s  1.20% 44.96%      0.30s  1.20%  runtime.nextFreeFast (inline)
+     0.28s  1.12% 46.08%      0.49s  1.96%  compress/flate.(*deflateFast).encode
+     0.28s  1.12% 47.20%      0.28s  1.12%  google.golang.org/protobuf/encoding/protowire.AppendVarint
+     0.27s  1.08% 48.28%      0.61s  2.44%  google.golang.org/protobuf/internal/impl.appendStringNoZeroValidateUTF8
+     0.25s     1% 49.28%      0.29s  1.16%  runtime.(*mspan).writeHeapBitsSmall
+     0.24s  0.96% 50.24%      4.13s 16.51%  google.golang.org/protobuf/internal/impl.consumeMapOfMessage
+     0.23s  0.92% 51.16%      0.23s  0.92%  compress/flate.byFreq.Less
+     0.23s  0.92% 52.08%      0.29s  1.16%  internal/runtime/maps.(*Iter).Next
+     0.21s  0.84% 52.92%      0.74s  2.96%  google.golang.org/protobuf/internal/impl.consumeStringValidateUTF8
+     0.20s   0.8% 53.72%      0.23s  0.92%  google.golang.org/protobuf/internal/impl.pointer.Apply (inline)
+     0.18s  0.72% 54.44%      0.18s  0.72%  aeshashbody
+     0.18s  0.72% 55.16%      0.25s     1%  google.golang.org/protobuf/internal/impl.appendFloatNoZero
+     0.18s  0.72% 55.88%      1.92s  7.67%  runtime.mallocgc
+     0.17s  0.68% 56.55%      0.45s  1.80%  compress/flate.(*huffmanBitWriter).writeTokens
+     0.17s  0.68% 57.23%      0.18s  0.72%  google.golang.org/protobuf/internal/impl.sizeFloatNoZero
+     0.16s  0.64% 57.87%      0.19s  0.76%  google.golang.org/protobuf/internal/impl.appendInt32NoZero
+     0.16s  0.64% 58.51%      0.22s  0.88%  runtime.tryDeferToSpanScan
+     0.15s   0.6% 59.11%      0.24s  0.96%  runtime.resolveTypeOff
+     0.14s  0.56% 59.67%      0.20s   0.8%  compress/flate.(*huffmanBitWriter).writeCode
+     0.14s  0.56% 60.23%      0.14s  0.56%  runtime.memclrNoHeapPointers
+     0.14s  0.56% 60.79%      0.21s  0.84%  runtime.typedmemmove
+     0.13s  0.52% 61.31%      0.24s  0.96%  runtime.mallocgcTiny
+     0.13s  0.52% 61.83%      0.50s  2.00%  runtime.slicebytetostring
+     0.12s  0.48% 62.31%      7.38s 29.50%  warbase-server/internal/engine.(*ReplicationManager).BroadcastRoomState
+     0.10s   0.4% 62.71%      0.36s  1.44%  google.golang.org/protobuf/internal/impl.(*stringConverter).PBValueOf
+     0.10s   0.4% 63.11%      0.16s  0.64%  internal/sync.(*HashTrieMap[go.shape.interface {},go.shape.interface {}]).Load
+     0.10s   0.4% 63.51%      0.32s  1.28%  reflect.Value.Convert
+     0.09s  0.36% 63.87%      2.16s  8.63%  compress/flate.(*huffmanBitWriter).indexTokens
+     0.09s  0.36% 64.23%      0.25s     1%  google.golang.org/protobuf/encoding/protowire.AppendString (inline)
+     0.09s  0.36% 64.59%      0.15s   0.6%  google.golang.org/protobuf/encoding/protowire.SizeVarint (inline)
+     0.09s  0.36% 64.95%      2.50s  9.99%  google.golang.org/protobuf/internal/impl.appendMapItem
+     0.09s  0.36% 65.31%      0.67s  2.68%  reflect.copyVal
+     0.09s  0.36% 65.67%      0.92s  3.68%  runtime.mapassign_faststr
+     0.08s  0.32% 65.99%      0.66s  2.64%  google.golang.org/protobuf/internal/impl.(*stringConverter).GoValueOf
+     0.08s  0.32% 66.31%      0.19s  0.76%  google.golang.org/protobuf/internal/impl.appendStringValueValidateUTF8
+     0.08s  0.32% 66.63%      2.11s  8.43%  google.golang.org/protobuf/internal/impl.sizeMap
+     0.08s  0.32% 66.95%      5.93s 23.70%  google.golang.org/protobuf/proto.UnmarshalOptions.unmarshal
+     0.08s  0.32% 67.27%      0.35s  1.40%  reflect.(*MapIter).Next
+     0.08s  0.32% 67.59%      0.68s  2.72%  reflect.New
+     0.07s  0.28% 67.87%      0.18s  0.72%  google.golang.org/protobuf/internal/impl.(*messageConverter).PBValueOf
+     0.07s  0.28% 68.15%      0.46s  1.84%  internal/runtime/maps.(*table).grow
+     0.07s  0.28% 68.43%      0.27s  1.08%  runtime.stealWork
+     0.06s  0.24% 68.67%      2.36s  9.43%  google.golang.org/protobuf/internal/impl.(*MessageInfo).sizePointer
+     0.06s  0.24% 68.90%      0.13s  0.52%  google.golang.org/protobuf/internal/impl.appendUint64NoZero
+     0.06s  0.24% 69.14%      0.22s  0.88%  google.golang.org/protobuf/internal/impl.consumeStringValueValidateUTF8
+     0.06s  0.24% 69.38%      0.41s  1.64%  runtime.convTstring
+     0.06s  0.24% 69.62%      0.15s   0.6%  runtime.selectgo
+     0.05s   0.2% 69.82%      0.83s  3.32%  github.com/gorilla/websocket.(*Conn).advanceFrame
+     0.05s   0.2% 70.02%      5.32s 21.26%  google.golang.org/protobuf/internal/impl.consumeMessageInfo
+     0.05s   0.2% 70.22%      0.19s  0.76%  internal/runtime/maps.(*table).uncheckedPutSlot
+     0.05s   0.2% 70.42%      0.89s  3.56%  reflect.Value.SetMapIndex
+     0.05s   0.2% 70.62%      0.34s  1.36%  reflect.Value.assignTo
+     0.05s   0.2% 70.82%      0.21s  0.84%  reflect.implements
+     0.05s   0.2% 71.02%      0.29s  1.16%  reflect.resolveTypeOff
+     0.05s   0.2% 71.22%      0.16s  0.64%  reflect.typedmemmove
+     0.05s   0.2% 71.42%      0.57s  2.28%  runtime.netpoll
+     0.04s  0.16% 71.58%      0.78s  3.12%  bufio.(*Reader).fill
+     0.04s  0.16% 71.74%      5.66s 22.62%  google.golang.org/protobuf/internal/impl.(*MessageInfo).initOneofFieldCoders.func1
+     0.04s  0.16% 71.90%      3.11s 12.43%  google.golang.org/protobuf/internal/impl.appendMap
+     0.04s  0.16% 72.06%      4.46s 17.83%  google.golang.org/protobuf/internal/impl.encoderFuncsForMap.func3
+     0.04s  0.16% 72.22%      5.78s 23.10%  google.golang.org/protobuf/proto.MarshalOptions.marshal
+     0.03s  0.12% 72.34%      5.71s 22.82%  google.golang.org/protobuf/internal/impl.(*MessageInfo).unmarshalPointer
+     0.03s  0.12% 72.46%      5.83s 23.30%  google.golang.org/protobuf/proto.Marshal
+     0.03s  0.12% 72.58%      0.52s  2.08%  internal/runtime/syscall/linux.EpollWait
+     0.03s  0.12% 72.70%      0.23s  0.92%  reflect.mapIterNext
+     0.03s  0.12% 72.82%      0.78s  3.12%  reflect.mapassign_faststr
+     0.03s  0.12% 72.94%      0.14s  0.56%  runtime.newobject
+     0.03s  0.12% 73.06%      0.80s  3.20%  runtime.scanSpan
+     0.03s  0.12% 73.18%      1.56s  6.24%  runtime.schedule
+     0.03s  0.12% 73.30%      1.23s  4.92%  runtime.systemstack
+     0.03s  0.12% 73.42%      8.73s 34.89%  warbase-server/internal/engine.(*GameSession).streamBoundedUpdates
+     0.02s  0.08% 73.50%      2.07s  8.27%  compress/flate.(*huffmanEncoder).generate
+     0.02s  0.08% 73.58%      0.87s  3.48%  github.com/gorilla/websocket.(*Conn).NextReader
+     0.02s  0.08% 73.66%      0.29s  1.16%  google.golang.org/protobuf/internal/impl.pointer.AsValueOf
+     0.02s  0.08% 73.74%      0.14s  0.56%  math.Abs (inline)
+     0.02s  0.08% 73.82%      0.74s  2.96%  net.(*netFD).Read
+     0.02s  0.08% 73.90%      0.75s  3.00%  reflect.mapassign_faststr0
+     0.02s  0.08% 73.98%      0.88s  3.52%  reflect.unsafe_New
+     0.02s  0.08% 74.06%      1.37s  5.48%  runtime.findRunnable
+     0.02s  0.08% 74.14%      0.95s  3.80%  runtime.gcDrain
+     0.02s  0.08% 74.22%      0.31s  1.24%  runtime.heapSetTypeNoHeader (inline)
+     0.02s  0.08% 74.30%      0.18s  0.72%  runtime.newarray
+     0.02s  0.08% 74.38%      1.22s  4.88%  sort.pdqsort
+     0.02s  0.08% 74.46%      3.08s 12.31%  warbase-server/internal/engine.(*Match).processMessage
+     0.01s  0.04% 74.50%      0.87s  3.48%  github.com/gorilla/websocket.(*Conn).write
+     0.01s  0.04% 74.54%      0.13s  0.52%  google.golang.org/protobuf/internal/impl.appendMessageSliceInfo
+     0.01s  0.04% 74.58%      2.19s  8.75%  google.golang.org/protobuf/internal/impl.sizeMessageInfo
+     0.01s  0.04% 74.62%      0.30s  1.20%  google.golang.org/protobuf/reflect/protoreflect.Value.Interface
+     0.01s  0.04% 74.66%      0.66s  2.64%  reflect.(*MapIter).Key
+     0.01s  0.04% 74.70%      0.39s  1.56%  reflect.(*rtype).ptrTo
+     0.01s  0.04% 74.74%      0.27s  1.08%  reflect.NewAt (inline)
+     0.01s  0.04% 74.78%      0.19s  0.76%  runtime.(*mcache).refill
+     0.01s  0.04% 74.82%      0.14s  0.56%  runtime.(*timers).check
+     0.01s  0.04% 74.86%      0.15s   0.6%  runtime.futexwakeup
+     0.01s  0.04% 74.90%      0.26s  1.04%  runtime.mPark (inline)
+     0.01s  0.04% 74.94%      1.57s  6.27%  runtime.park_m
+     0.01s  0.04% 74.98%      5.13s 20.50%  warbase-server/internal/engine.(*GameSession).EnqueueStateUpdate
+     0.01s  0.04% 75.02%      1.38s  5.52%  warbase-server/internal/engine.(*GameSession).ListenForPlayerInputs
+     0.01s  0.04% 75.06%      7.67s 30.66%  warbase-server/internal/engine.(*GameSession).nextDeliveryFrame
+     0.01s  0.04% 75.10%     12.22s 48.84%  warbase-server/internal/engine.(*Match).Run
+     0.01s  0.04% 75.14%      4.04s 16.15%  warbase-server/internal/engine.(*mapGeometry).trace
+         0     0% 75.14%      0.78s  3.12%  bufio.(*Reader).Peek
+         0     0% 75.14%      3.29s 13.15%  compress/flate.(*Writer).Close (inline)
+         0     0% 75.14%      0.86s  3.44%  compress/flate.(*byFreq).sort (inline)
+         0     0% 75.14%      0.36s  1.44%  compress/flate.(*byLiteral).sort (inline)
+         0     0% 75.14%      3.29s 13.15%  compress/flate.(*compressor).close
+         0     0% 75.14%      3.29s 13.15%  compress/flate.(*compressor).encSpeed
+         0     0% 75.14%      2.80s 11.19%  compress/flate.(*huffmanBitWriter).writeBlockDynamic
+         0     0% 75.14%      0.36s  1.44%  compress/flate.(*huffmanEncoder).assignEncodingAndSize
+         0     0% 75.14%      3.29s 13.15%  compress/gzip.(*Writer).Close
+         0     0% 75.14%      0.93s  3.72%  github.com/gorilla/websocket.(*Conn).ReadMessage
+         0     0% 75.14%      0.88s  3.52%  github.com/gorilla/websocket.(*Conn).WriteMessage
+         0     0% 75.14%      0.78s  3.12%  github.com/gorilla/websocket.(*Conn).read
+         0     0% 75.14%      0.87s  3.48%  github.com/gorilla/websocket.(*messageWriter).flushFrame
+         0     0% 75.14%      2.23s  8.91%  google.golang.org/protobuf/internal/impl.(*MessageInfo).initOneofFieldCoders.func3
+         0     0% 75.14%      3.28s 13.11%  google.golang.org/protobuf/internal/impl.(*MessageInfo).initOneofFieldCoders.func4
+         0     0% 75.14%      3.35s 13.39%  google.golang.org/protobuf/internal/impl.(*MessageInfo).marshal
+         0     0% 75.14%      2.28s  9.11%  google.golang.org/protobuf/internal/impl.(*MessageInfo).size
+         0     0% 75.14%      5.71s 22.82%  google.golang.org/protobuf/internal/impl.(*MessageInfo).unmarshal
+         0     0% 75.14%      3.22s 12.87%  google.golang.org/protobuf/internal/impl.appendMessageInfo
+         0     0% 75.14%      2.12s  8.47%  google.golang.org/protobuf/internal/impl.encoderFuncsForMap.func1
+         0     0% 75.14%      3.12s 12.47%  google.golang.org/protobuf/internal/impl.encoderFuncsForMap.func2
+         0     0% 75.14%      5.98s 23.90%  google.golang.org/protobuf/proto.Unmarshal
+         0     0% 75.14%      0.72s  2.88%  internal/poll.(*FD).Read
+         0     0% 75.14%      0.85s  3.40%  internal/poll.(*FD).Write
+         0     0% 75.14%      1.52s  6.08%  internal/poll.ignoringEINTRIO (inline)
+         0     0% 75.14%      0.46s  1.84%  internal/runtime/maps.(*table).rehash
+         0     0% 75.14%      0.13s  0.52%  internal/runtime/maps.(*table).reset
+         0     0% 75.14%      0.18s  0.72%  internal/runtime/maps.newGroups (inline)
+         0     0% 75.14%      0.14s  0.56%  internal/runtime/maps.newTable
+         0     0% 75.14%      0.18s  0.72%  internal/runtime/maps.newarray
+         0     0% 75.14%      0.74s  2.96%  net.(*conn).Read
+         0     0% 75.14%      0.84s  3.36%  net.(*conn).Write
+         0     0% 75.14%      0.84s  3.36%  net.(*netFD).Write
+         0     0% 75.14%      0.29s  1.16%  reflect.(*rtype).typeOff (inline)
+         0     0% 75.14%      0.34s  1.36%  reflect.Value.Set
+         0     0% 75.14%      0.13s  0.52%  reflect.ptrTo (inline)
+         0     0% 75.14%      0.20s   0.8%  runtime.(*mcache).nextFree
+         0     0% 75.14%      0.25s     1%  runtime.futexsleep
+         0     0% 75.14%      0.97s  3.88%  runtime.gcBgMarkWorker
+         0     0% 75.14%      0.95s  3.80%  runtime.gcBgMarkWorker.func2
+         0     0% 75.14%      0.28s  1.12%  runtime.gcDrainMarkWorkerDedicated (inline)
+         0     0% 75.14%      0.67s  2.68%  runtime.gcDrainMarkWorkerIdle (inline)
+         0     0% 75.14%      0.14s  0.56%  runtime.mallocgcSmallNoscan
+         0     0% 75.14%      1.57s  6.27%  runtime.mcall
+         0     0% 75.14%      0.25s     1%  runtime.notesleep
+         0     0% 75.14%      0.15s   0.6%  runtime.notewakeup
+         0     0% 75.14%      0.24s  0.96%  runtime.rtype.typeOff (inline)
+         0     0% 75.14%      0.15s   0.6%  runtime.startm
+         0     0% 75.14%      0.29s  1.16%  runtime.stopm
+         0     0% 75.14%      0.16s  0.64%  runtime.wakep
+         0     0% 75.14%      1.22s  4.88%  sort.Sort
+         0     0% 75.14%      0.16s  0.64%  sync.(*Map).Load (inline)
+         0     0% 75.14%      1.51s  6.04%  syscall.RawSyscall6
+         0     0% 75.14%      0.67s  2.68%  syscall.Read (inline)
+         0     0% 75.14%      1.52s  6.08%  syscall.Syscall
+         0     0% 75.14%      0.85s  3.40%  syscall.Write (inline)
+         0     0% 75.14%      0.67s  2.68%  syscall.read
+         0     0% 75.14%      0.85s  3.40%  syscall.write
+         0     0% 75.14%      0.40s  1.60%  warbase-server/internal/engine.(*GameSession).EnqueueDirectEvent
+         0     0% 75.14%      8.73s 34.89%  warbase-server/internal/engine.(*GameSession).StreamUpdatesToPlayer
+         0     0% 75.14%      1.71s  6.83%  warbase-server/internal/engine.(*Match).advanceGrenades
+         0     0% 75.14%      0.17s  0.68%  warbase-server/internal/engine.(*mapGeometry).blocked
+         0     0% 75.14%      1.70s  6.79%  warbase-server/internal/engine.(*mapGeometry).grenadeTrace
+         0     0% 75.14%      2.22s  8.87%  warbase-server/internal/engine.(*mapGeometry).movementBlocked
+         0     0% 75.14%      3.38s 13.51%  warbase-server/internal/engine.compressDelivery
+         0     0% 75.14%      1.70s  6.79%  warbase-server/internal/engine.stepGrenade

@@ -1,0 +1,11 @@
+✔ HTML revalidates when included in the release manifest, including directory index responses (0.290167ms)
+✔ fixed SDK runtime paths revalidate while content-addressed assets remain immutable (0.058833ms)
+✔ development assets keep bounded caching without a release manifest (0.087125ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 119.776208

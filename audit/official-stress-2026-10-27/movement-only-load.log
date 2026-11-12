@@ -1,0 +1,278 @@
+2026/10/27 22:18:11 === BOUNDED MATCH TRAFFIC + REAL AUTHORITATIVE VEHICLE INPUT TEST ===
+2026/10/27 22:18:11 Target Host: war.vaidik.blog | Room: c946f0c8-7f5d-47c3-9881-947d53caec84 | Simulated Players: 63 | Duration: 3m0s
+2026/10/27 22:18:12 All 63 simulated players connecting...
+2026/10/27 22:18:13 [T+01s] Active: 49 | Up: 29.5 KB/s (694 pkts) | Down: 178.3 KB/s (1.39 Mbps, 537 pkts) | Per-Player Down: 3.6 KB/s
+2026/10/27 22:18:14 [T+02s] Active: 60 | Up: 68.7 KB/s (1601 pkts) | Down: 285.1 KB/s (2.23 Mbps, 386 pkts) | Per-Player Down: 4.8 KB/s
+2026/10/27 22:18:15 [T+03s] Active: 63 | Up: 87.7 KB/s (2036 pkts) | Down: 417.4 KB/s (3.26 Mbps, 444 pkts) | Per-Player Down: 6.6 KB/s
+2026/10/27 22:18:16 [T+04s] Active: 63 | Up: 128.5 KB/s (2971 pkts) | Down: 562.4 KB/s (4.39 Mbps, 480 pkts) | Per-Player Down: 8.9 KB/s
+2026/10/27 22:18:17 [T+05s] Active: 63 | Up: 151.7 KB/s (3500 pkts) | Down: 1036.1 KB/s (8.09 Mbps, 775 pkts) | Per-Player Down: 16.4 KB/s
+2026/10/27 22:18:18 [T+06s] Active: 63 | Up: 166.0 KB/s (3828 pkts) | Down: 1580.1 KB/s (12.34 Mbps, 1057 pkts) | Per-Player Down: 25.1 KB/s
+2026/10/27 22:18:19 [T+07s] Active: 63 | Up: 166.7 KB/s (3843 pkts) | Down: 2125.7 KB/s (16.61 Mbps, 1369 pkts) | Per-Player Down: 33.7 KB/s
+2026/10/27 22:18:20 [T+08s] Active: 63 | Up: 166.7 KB/s (3843 pkts) | Down: 1701.6 KB/s (13.29 Mbps, 1048 pkts) | Per-Player Down: 27.0 KB/s
+2026/10/27 22:18:21 [T+09s] Active: 63 | Up: 166.7 KB/s (3843 pkts) | Down: 798.2 KB/s (6.24 Mbps, 496 pkts) | Per-Player Down: 12.7 KB/s
+2026/10/27 22:18:22 [T+10s] Active: 63 | Up: 166.7 KB/s (3843 pkts) | Down: 1184.8 KB/s (9.26 Mbps, 732 pkts) | Per-Player Down: 18.8 KB/s
+2026/10/27 22:18:23 [T+11s] Active: 63 | Up: 166.7 KB/s (3843 pkts) | Down: 1259.5 KB/s (9.84 Mbps, 792 pkts) | Per-Player Down: 20.0 KB/s
+2026/10/27 22:18:24 [T+12s] Active: 63 | Up: 166.7 KB/s (3843 pkts) | Down: 1133.4 KB/s (8.85 Mbps, 691 pkts) | Per-Player Down: 18.0 KB/s
+2026/10/27 22:18:25 [T+13s] Active: 63 | Up: 166.7 KB/s (3843 pkts) | Down: 1026.9 KB/s (8.02 Mbps, 628 pkts) | Per-Player Down: 16.3 KB/s
+2026/10/27 22:18:26 [T+14s] Active: 63 | Up: 166.7 KB/s (3844 pkts) | Down: 954.3 KB/s (7.46 Mbps, 594 pkts) | Per-Player Down: 15.1 KB/s
+2026/10/27 22:18:27 [T+15s] Active: 63 | Up: 166.6 KB/s (3842 pkts) | Down: 769.5 KB/s (6.01 Mbps, 460 pkts) | Per-Player Down: 12.2 KB/s
+2026/10/27 22:18:28 [T+16s] Active: 63 | Up: 166.7 KB/s (3843 pkts) | Down: 761.2 KB/s (5.95 Mbps, 462 pkts) | Per-Player Down: 12.1 KB/s
+2026/10/27 22:18:29 [T+17s] Active: 63 | Up: 166.7 KB/s (3843 pkts) | Down: 888.3 KB/s (6.94 Mbps, 546 pkts) | Per-Player Down: 14.1 KB/s
+2026/10/27 22:18:30 [T+18s] Active: 63 | Up: 166.8 KB/s (3845 pkts) | Down: 816.5 KB/s (6.38 Mbps, 510 pkts) | Per-Player Down: 13.0 KB/s
+2026/10/27 22:18:31 [T+19s] Active: 63 | Up: 166.6 KB/s (3841 pkts) | Down: 352.5 KB/s (2.75 Mbps, 214 pkts) | Per-Player Down: 5.6 KB/s
+2026/10/27 22:18:32 [T+20s] Active: 63 | Up: 166.8 KB/s (3845 pkts) | Down: 651.3 KB/s (5.09 Mbps, 394 pkts) | Per-Player Down: 10.3 KB/s
+2026/10/27 22:18:33 [T+21s] Active: 63 | Up: 166.6 KB/s (3841 pkts) | Down: 715.3 KB/s (5.59 Mbps, 432 pkts) | Per-Player Down: 11.4 KB/s
+2026/10/27 22:18:34 [T+22s] Active: 63 | Up: 166.7 KB/s (3843 pkts) | Down: 577.4 KB/s (4.51 Mbps, 355 pkts) | Per-Player Down: 9.2 KB/s
+2026/10/27 22:18:35 [T+23s] Active: 63 | Up: 166.7 KB/s (3843 pkts) | Down: 884.8 KB/s (6.91 Mbps, 537 pkts) | Per-Player Down: 14.0 KB/s
+2026/10/27 22:18:36 [T+24s] Active: 63 | Up: 166.7 KB/s (3843 pkts) | Down: 823.7 KB/s (6.44 Mbps, 502 pkts) | Per-Player Down: 13.1 KB/s
+2026/10/27 22:18:37 [T+25s] Active: 63 | Up: 166.7 KB/s (3843 pkts) | Down: 1264.2 KB/s (9.88 Mbps, 775 pkts) | Per-Player Down: 20.1 KB/s
+2026/10/27 22:18:38 [T+26s] Active: 63 | Up: 166.7 KB/s (3844 pkts) | Down: 1195.2 KB/s (9.34 Mbps, 742 pkts) | Per-Player Down: 19.0 KB/s
+2026/10/27 22:18:39 [T+27s] Active: 63 | Up: 166.6 KB/s (3842 pkts) | Down: 1091.2 KB/s (8.53 Mbps, 667 pkts) | Per-Player Down: 17.3 KB/s
+2026/10/27 22:18:40 [T+28s] Active: 63 | Up: 166.8 KB/s (3845 pkts) | Down: 954.6 KB/s (7.46 Mbps, 584 pkts) | Per-Player Down: 15.2 KB/s
+2026/10/27 22:18:41 [T+29s] Active: 63 | Up: 166.6 KB/s (3841 pkts) | Down: 395.0 KB/s (3.09 Mbps, 247 pkts) | Per-Player Down: 6.3 KB/s
+2026/10/27 22:18:42 [T+30s] Active: 63 | Up: 166.7 KB/s (3844 pkts) | Down: 287.3 KB/s (2.24 Mbps, 179 pkts) | Per-Player Down: 4.6 KB/s
+2026/10/27 22:18:43 [T+31s] Active: 63 | Up: 166.7 KB/s (3844 pkts) | Down: 343.9 KB/s (2.69 Mbps, 212 pkts) | Per-Player Down: 5.5 KB/s
+2026/10/27 22:18:44 [T+32s] Active: 63 | Up: 166.6 KB/s (3841 pkts) | Down: 460.0 KB/s (3.59 Mbps, 280 pkts) | Per-Player Down: 7.3 KB/s
+2026/10/27 22:18:45 [T+33s] Active: 63 | Up: 166.7 KB/s (3843 pkts) | Down: 394.6 KB/s (3.08 Mbps, 239 pkts) | Per-Player Down: 6.3 KB/s
+2026/10/27 22:18:46 [T+34s] Active: 63 | Up: 166.7 KB/s (3843 pkts) | Down: 471.7 KB/s (3.68 Mbps, 286 pkts) | Per-Player Down: 7.5 KB/s
+2026/10/27 22:18:47 [T+35s] Active: 63 | Up: 166.7 KB/s (3843 pkts) | Down: 611.9 KB/s (4.78 Mbps, 377 pkts) | Per-Player Down: 9.7 KB/s
+2026/10/27 22:18:48 [T+36s] Active: 63 | Up: 166.7 KB/s (3843 pkts) | Down: 924.2 KB/s (7.22 Mbps, 579 pkts) | Per-Player Down: 14.7 KB/s
+2026/10/27 22:18:49 [T+37s] Active: 63 | Up: 166.7 KB/s (3843 pkts) | Down: 658.4 KB/s (5.14 Mbps, 405 pkts) | Per-Player Down: 10.5 KB/s
+2026/10/27 22:18:50 [T+38s] Active: 63 | Up: 166.7 KB/s (3844 pkts) | Down: 616.6 KB/s (4.82 Mbps, 375 pkts) | Per-Player Down: 9.8 KB/s
+2026/10/27 22:18:51 [T+39s] Active: 63 | Up: 166.6 KB/s (3842 pkts) | Down: 670.4 KB/s (5.24 Mbps, 412 pkts) | Per-Player Down: 10.6 KB/s
+2026/10/27 22:18:52 [T+40s] Active: 63 | Up: 166.7 KB/s (3843 pkts) | Down: 765.3 KB/s (5.98 Mbps, 477 pkts) | Per-Player Down: 12.1 KB/s
+2026/10/27 22:18:53 [T+41s] Active: 63 | Up: 166.7 KB/s (3843 pkts) | Down: 890.5 KB/s (6.96 Mbps, 547 pkts) | Per-Player Down: 14.1 KB/s
+2026/10/27 22:18:54 [T+42s] Active: 63 | Up: 166.7 KB/s (3843 pkts) | Down: 848.6 KB/s (6.63 Mbps, 524 pkts) | Per-Player Down: 13.5 KB/s
+2026/10/27 22:18:55 [T+43s] Active: 63 | Up: 166.7 KB/s (3843 pkts) | Down: 872.6 KB/s (6.82 Mbps, 532 pkts) | Per-Player Down: 13.9 KB/s
+2026/10/27 22:18:56 [T+44s] Active: 63 | Up: 166.7 KB/s (3843 pkts) | Down: 467.8 KB/s (3.65 Mbps, 291 pkts) | Per-Player Down: 7.4 KB/s
+2026/10/27 22:18:57 [T+45s] Active: 63 | Up: 166.7 KB/s (3844 pkts) | Down: 504.0 KB/s (3.94 Mbps, 317 pkts) | Per-Player Down: 8.0 KB/s
+2026/10/27 22:18:58 [T+46s] Active: 63 | Up: 166.7 KB/s (3843 pkts) | Down: 537.6 KB/s (4.20 Mbps, 337 pkts) | Per-Player Down: 8.5 KB/s
+2026/10/27 22:18:59 [T+47s] Active: 63 | Up: 166.7 KB/s (3843 pkts) | Down: 322.4 KB/s (2.52 Mbps, 197 pkts) | Per-Player Down: 5.1 KB/s
+2026/10/27 22:19:00 [T+48s] Active: 63 | Up: 166.6 KB/s (3842 pkts) | Down: 412.5 KB/s (3.22 Mbps, 253 pkts) | Per-Player Down: 6.5 KB/s
+2026/10/27 22:19:01 [T+49s] Active: 63 | Up: 166.7 KB/s (3843 pkts) | Down: 740.4 KB/s (5.78 Mbps, 450 pkts) | Per-Player Down: 11.8 KB/s
+2026/10/27 22:19:02 [T+50s] Active: 63 | Up: 166.7 KB/s (3843 pkts) | Down: 985.5 KB/s (7.70 Mbps, 613 pkts) | Per-Player Down: 15.6 KB/s
+2026/10/27 22:19:03 [T+51s] Active: 63 | Up: 166.7 KB/s (3843 pkts) | Down: 1339.1 KB/s (10.46 Mbps, 832 pkts) | Per-Player Down: 21.3 KB/s
+2026/10/27 22:19:04 [T+52s] Active: 63 | Up: 166.7 KB/s (3843 pkts) | Down: 1704.7 KB/s (13.32 Mbps, 1052 pkts) | Per-Player Down: 27.1 KB/s
+2026/10/27 22:19:05 [T+53s] Active: 63 | Up: 166.7 KB/s (3843 pkts) | Down: 1281.2 KB/s (10.01 Mbps, 789 pkts) | Per-Player Down: 20.3 KB/s
+2026/10/27 22:19:06 [T+54s] Active: 63 | Up: 166.7 KB/s (3843 pkts) | Down: 1853.0 KB/s (14.48 Mbps, 1137 pkts) | Per-Player Down: 29.4 KB/s
+2026/10/27 22:19:07 [T+55s] Active: 63 | Up: 166.2 KB/s (3832 pkts) | Down: 1837.9 KB/s (14.36 Mbps, 1133 pkts) | Per-Player Down: 29.2 KB/s
+2026/10/27 22:19:08 [T+56s] Active: 63 | Up: 164.6 KB/s (3796 pkts) | Down: 740.8 KB/s (5.79 Mbps, 457 pkts) | Per-Player Down: 11.8 KB/s
+2026/10/27 22:19:09 [T+57s] Active: 63 | Up: 166.7 KB/s (3844 pkts) | Down: 809.7 KB/s (6.33 Mbps, 503 pkts) | Per-Player Down: 12.9 KB/s
+2026/10/27 22:19:10 [T+58s] Active: 63 | Up: 166.6 KB/s (3841 pkts) | Down: 753.9 KB/s (5.89 Mbps, 471 pkts) | Per-Player Down: 12.0 KB/s
+2026/10/27 22:19:11 [T+59s] Active: 63 | Up: 166.7 KB/s (3843 pkts) | Down: 793.6 KB/s (6.20 Mbps, 483 pkts) | Per-Player Down: 12.6 KB/s
+2026/10/27 22:19:12 [T+60s] Active: 63 | Up: 166.7 KB/s (3843 pkts) | Down: 1023.2 KB/s (7.99 Mbps, 627 pkts) | Per-Player Down: 16.2 KB/s
+2026/10/27 22:19:13 [T+61s] Active: 63 | Up: 166.7 KB/s (3843 pkts) | Down: 1300.7 KB/s (10.16 Mbps, 808 pkts) | Per-Player Down: 20.6 KB/s
+2026/10/27 22:19:14 [T+62s] Active: 63 | Up: 166.7 KB/s (3844 pkts) | Down: 1353.1 KB/s (10.57 Mbps, 828 pkts) | Per-Player Down: 21.5 KB/s
+2026/10/27 22:19:15 [T+63s] Active: 63 | Up: 166.7 KB/s (3844 pkts) | Down: 1828.8 KB/s (14.29 Mbps, 1143 pkts) | Per-Player Down: 29.0 KB/s
+2026/10/27 22:19:16 [T+64s] Active: 63 | Up: 166.6 KB/s (3842 pkts) | Down: 1065.4 KB/s (8.32 Mbps, 649 pkts) | Per-Player Down: 16.9 KB/s
+2026/10/27 22:19:17 [T+65s] Active: 63 | Up: 166.6 KB/s (3842 pkts) | Down: 616.3 KB/s (4.81 Mbps, 385 pkts) | Per-Player Down: 9.8 KB/s
+2026/10/27 22:19:18 [T+66s] Active: 63 | Up: 166.7 KB/s (3844 pkts) | Down: 566.6 KB/s (4.43 Mbps, 351 pkts) | Per-Player Down: 9.0 KB/s
+2026/10/27 22:19:19 [T+67s] Active: 63 | Up: 166.6 KB/s (3842 pkts) | Down: 974.5 KB/s (7.61 Mbps, 605 pkts) | Per-Player Down: 15.5 KB/s
+2026/10/27 22:19:20 [T+68s] Active: 63 | Up: 166.7 KB/s (3843 pkts) | Down: 1496.6 KB/s (11.69 Mbps, 918 pkts) | Per-Player Down: 23.8 KB/s
+2026/10/27 22:19:21 [T+69s] Active: 63 | Up: 166.7 KB/s (3843 pkts) | Down: 846.8 KB/s (6.62 Mbps, 517 pkts) | Per-Player Down: 13.4 KB/s
+2026/10/27 22:19:22 [T+70s] Active: 63 | Up: 166.7 KB/s (3844 pkts) | Down: 507.9 KB/s (3.97 Mbps, 322 pkts) | Per-Player Down: 8.1 KB/s
+2026/10/27 22:19:23 [T+71s] Active: 63 | Up: 166.6 KB/s (3842 pkts) | Down: 729.3 KB/s (5.70 Mbps, 450 pkts) | Per-Player Down: 11.6 KB/s
+2026/10/27 22:19:24 [T+72s] Active: 63 | Up: 166.7 KB/s (3844 pkts) | Down: 938.4 KB/s (7.33 Mbps, 571 pkts) | Per-Player Down: 14.9 KB/s
+2026/10/27 22:19:25 [T+73s] Active: 63 | Up: 166.7 KB/s (3843 pkts) | Down: 545.8 KB/s (4.26 Mbps, 337 pkts) | Per-Player Down: 8.7 KB/s
+2026/10/27 22:19:26 [T+74s] Active: 63 | Up: 166.6 KB/s (3842 pkts) | Down: 755.1 KB/s (5.90 Mbps, 474 pkts) | Per-Player Down: 12.0 KB/s
+2026/10/27 22:19:27 [T+75s] Active: 63 | Up: 166.8 KB/s (3845 pkts) | Down: 956.3 KB/s (7.47 Mbps, 591 pkts) | Per-Player Down: 15.2 KB/s
+2026/10/27 22:19:28 [T+76s] Active: 63 | Up: 166.6 KB/s (3841 pkts) | Down: 720.9 KB/s (5.63 Mbps, 443 pkts) | Per-Player Down: 11.4 KB/s
+2026/10/27 22:19:29 [T+77s] Active: 63 | Up: 166.8 KB/s (3845 pkts) | Down: 519.4 KB/s (4.06 Mbps, 318 pkts) | Per-Player Down: 8.2 KB/s
+2026/10/27 22:19:30 [T+78s] Active: 63 | Up: 166.6 KB/s (3841 pkts) | Down: 761.8 KB/s (5.95 Mbps, 468 pkts) | Per-Player Down: 12.1 KB/s
+2026/10/27 22:19:31 [T+79s] Active: 63 | Up: 166.7 KB/s (3844 pkts) | Down: 1126.4 KB/s (8.80 Mbps, 691 pkts) | Per-Player Down: 17.9 KB/s
+2026/10/27 22:19:32 [T+80s] Active: 63 | Up: 166.7 KB/s (3843 pkts) | Down: 1646.9 KB/s (12.87 Mbps, 1002 pkts) | Per-Player Down: 26.1 KB/s
+2026/10/27 22:19:33 [T+81s] Active: 63 | Up: 166.7 KB/s (3843 pkts) | Down: 1294.0 KB/s (10.11 Mbps, 805 pkts) | Per-Player Down: 20.5 KB/s
+2026/10/27 22:19:34 [T+82s] Active: 63 | Up: 166.6 KB/s (3842 pkts) | Down: 1384.4 KB/s (10.82 Mbps, 850 pkts) | Per-Player Down: 22.0 KB/s
+2026/10/27 22:19:35 [T+83s] Active: 63 | Up: 166.7 KB/s (3844 pkts) | Down: 760.5 KB/s (5.94 Mbps, 478 pkts) | Per-Player Down: 12.1 KB/s
+2026/10/27 22:19:36 [T+84s] Active: 63 | Up: 166.7 KB/s (3843 pkts) | Down: 752.1 KB/s (5.88 Mbps, 467 pkts) | Per-Player Down: 11.9 KB/s
+2026/10/27 22:19:37 [T+85s] Active: 63 | Up: 166.6 KB/s (3842 pkts) | Down: 1082.2 KB/s (8.45 Mbps, 663 pkts) | Per-Player Down: 17.2 KB/s
+2026/10/27 22:19:38 [T+86s] Active: 63 | Up: 166.8 KB/s (3845 pkts) | Down: 1375.7 KB/s (10.75 Mbps, 841 pkts) | Per-Player Down: 21.8 KB/s
+2026/10/27 22:19:39 [T+87s] Active: 63 | Up: 166.7 KB/s (3843 pkts) | Down: 1604.3 KB/s (12.53 Mbps, 993 pkts) | Per-Player Down: 25.5 KB/s
+2026/10/27 22:19:40 [T+88s] Active: 63 | Up: 166.6 KB/s (3842 pkts) | Down: 1371.8 KB/s (10.72 Mbps, 849 pkts) | Per-Player Down: 21.8 KB/s
+2026/10/27 22:19:41 [T+89s] Active: 63 | Up: 166.6 KB/s (3842 pkts) | Down: 1182.3 KB/s (9.24 Mbps, 732 pkts) | Per-Player Down: 18.8 KB/s
+2026/10/27 22:19:42 [T+90s] Active: 63 | Up: 166.7 KB/s (3844 pkts) | Down: 460.0 KB/s (3.59 Mbps, 281 pkts) | Per-Player Down: 7.3 KB/s
+2026/10/27 22:19:43 [T+91s] Active: 63 | Up: 166.6 KB/s (3842 pkts) | Down: 649.9 KB/s (5.08 Mbps, 399 pkts) | Per-Player Down: 10.3 KB/s
+2026/10/27 22:19:44 [T+92s] Active: 63 | Up: 166.8 KB/s (3845 pkts) | Down: 502.3 KB/s (3.92 Mbps, 309 pkts) | Per-Player Down: 8.0 KB/s
+2026/10/27 22:19:45 [T+93s] Active: 63 | Up: 166.6 KB/s (3841 pkts) | Down: 527.4 KB/s (4.12 Mbps, 331 pkts) | Per-Player Down: 8.4 KB/s
+2026/10/27 22:19:46 [T+94s] Active: 63 | Up: 166.8 KB/s (3845 pkts) | Down: 503.2 KB/s (3.93 Mbps, 312 pkts) | Per-Player Down: 8.0 KB/s
+2026/10/27 22:19:47 [T+95s] Active: 63 | Up: 166.6 KB/s (3842 pkts) | Down: 748.0 KB/s (5.84 Mbps, 462 pkts) | Per-Player Down: 11.9 KB/s
+2026/10/27 22:19:48 [T+96s] Active: 63 | Up: 166.6 KB/s (3842 pkts) | Down: 798.2 KB/s (6.24 Mbps, 488 pkts) | Per-Player Down: 12.7 KB/s
+2026/10/27 22:19:49 [T+97s] Active: 63 | Up: 165.6 KB/s (3817 pkts) | Down: 1159.3 KB/s (9.06 Mbps, 713 pkts) | Per-Player Down: 18.4 KB/s
+2026/10/27 22:19:50 [T+98s] Active: 63 | Up: 166.7 KB/s (3843 pkts) | Down: 1518.1 KB/s (11.86 Mbps, 946 pkts) | Per-Player Down: 24.1 KB/s
+2026/10/27 22:19:51 [T+99s] Active: 63 | Up: 166.7 KB/s (3843 pkts) | Down: 1396.1 KB/s (10.91 Mbps, 862 pkts) | Per-Player Down: 22.2 KB/s
+2026/10/27 22:19:52 [T+100s] Active: 63 | Up: 166.7 KB/s (3843 pkts) | Down: 912.5 KB/s (7.13 Mbps, 565 pkts) | Per-Player Down: 14.5 KB/s
+2026/10/27 22:19:53 [T+101s] Active: 63 | Up: 166.7 KB/s (3843 pkts) | Down: 909.8 KB/s (7.11 Mbps, 560 pkts) | Per-Player Down: 14.4 KB/s
+2026/10/27 22:19:54 [T+102s] Active: 63 | Up: 166.7 KB/s (3843 pkts) | Down: 1213.0 KB/s (9.48 Mbps, 748 pkts) | Per-Player Down: 19.3 KB/s
+2026/10/27 22:19:55 [T+103s] Active: 63 | Up: 166.7 KB/s (3843 pkts) | Down: 1258.2 KB/s (9.83 Mbps, 783 pkts) | Per-Player Down: 20.0 KB/s
+2026/10/27 22:19:56 [T+104s] Active: 63 | Up: 166.7 KB/s (3843 pkts) | Down: 779.9 KB/s (6.09 Mbps, 479 pkts) | Per-Player Down: 12.4 KB/s
+2026/10/27 22:19:57 [T+105s] Active: 63 | Up: 166.7 KB/s (3843 pkts) | Down: 1142.0 KB/s (8.92 Mbps, 703 pkts) | Per-Player Down: 18.1 KB/s
+2026/10/27 22:19:58 [T+106s] Active: 63 | Up: 166.6 KB/s (3842 pkts) | Down: 1303.8 KB/s (10.19 Mbps, 812 pkts) | Per-Player Down: 20.7 KB/s
+2026/10/27 22:19:59 [T+107s] Active: 63 | Up: 166.7 KB/s (3843 pkts) | Down: 1720.3 KB/s (13.44 Mbps, 1059 pkts) | Per-Player Down: 27.3 KB/s
+2026/10/27 22:20:00 [T+108s] Active: 63 | Up: 166.7 KB/s (3843 pkts) | Down: 1001.6 KB/s (7.83 Mbps, 625 pkts) | Per-Player Down: 15.9 KB/s
+2026/10/27 22:20:01 [T+109s] Active: 63 | Up: 166.7 KB/s (3844 pkts) | Down: 420.9 KB/s (3.29 Mbps, 264 pkts) | Per-Player Down: 6.7 KB/s
+2026/10/27 22:20:02 [T+110s] Active: 63 | Up: 166.6 KB/s (3842 pkts) | Down: 646.2 KB/s (5.05 Mbps, 392 pkts) | Per-Player Down: 10.3 KB/s
+2026/10/27 22:20:03 [T+111s] Active: 63 | Up: 166.8 KB/s (3845 pkts) | Down: 698.6 KB/s (5.46 Mbps, 429 pkts) | Per-Player Down: 11.1 KB/s
+2026/10/27 22:20:04 [T+112s] Active: 63 | Up: 166.6 KB/s (3841 pkts) | Down: 446.9 KB/s (3.49 Mbps, 278 pkts) | Per-Player Down: 7.1 KB/s
+2026/10/27 22:20:05 [T+113s] Active: 63 | Up: 166.7 KB/s (3843 pkts) | Down: 738.6 KB/s (5.77 Mbps, 460 pkts) | Per-Player Down: 11.7 KB/s
+2026/10/27 22:20:06 [T+114s] Active: 63 | Up: 166.7 KB/s (3844 pkts) | Down: 1289.6 KB/s (10.08 Mbps, 797 pkts) | Per-Player Down: 20.5 KB/s
+2026/10/27 22:20:07 [T+115s] Active: 63 | Up: 166.6 KB/s (3842 pkts) | Down: 1477.3 KB/s (11.54 Mbps, 910 pkts) | Per-Player Down: 23.4 KB/s
+2026/10/27 22:20:08 [T+116s] Active: 63 | Up: 166.7 KB/s (3844 pkts) | Down: 1314.1 KB/s (10.27 Mbps, 815 pkts) | Per-Player Down: 20.9 KB/s
+2026/10/27 22:20:09 [T+117s] Active: 63 | Up: 166.7 KB/s (3843 pkts) | Down: 933.1 KB/s (7.29 Mbps, 567 pkts) | Per-Player Down: 14.8 KB/s
+2026/10/27 22:20:10 [T+118s] Active: 63 | Up: 166.8 KB/s (3845 pkts) | Down: 995.3 KB/s (7.78 Mbps, 620 pkts) | Per-Player Down: 15.8 KB/s
+2026/10/27 22:20:11 [T+119s] Active: 63 | Up: 166.6 KB/s (3842 pkts) | Down: 1194.6 KB/s (9.33 Mbps, 741 pkts) | Per-Player Down: 19.0 KB/s
+2026/10/27 22:20:12 [T+120s] Active: 63 | Up: 166.6 KB/s (3841 pkts) | Down: 1164.0 KB/s (9.09 Mbps, 714 pkts) | Per-Player Down: 18.5 KB/s
+2026/10/27 22:20:13 [T+121s] Active: 63 | Up: 166.7 KB/s (3843 pkts) | Down: 1353.5 KB/s (10.57 Mbps, 841 pkts) | Per-Player Down: 21.5 KB/s
+2026/10/27 22:20:14 [T+122s] Active: 63 | Up: 166.7 KB/s (3844 pkts) | Down: 1385.7 KB/s (10.83 Mbps, 854 pkts) | Per-Player Down: 22.0 KB/s
+2026/10/27 22:20:15 [T+123s] Active: 63 | Up: 166.7 KB/s (3843 pkts) | Down: 1270.8 KB/s (9.93 Mbps, 791 pkts) | Per-Player Down: 20.2 KB/s
+2026/10/27 22:20:16 [T+124s] Active: 63 | Up: 166.6 KB/s (3842 pkts) | Down: 1183.7 KB/s (9.25 Mbps, 734 pkts) | Per-Player Down: 18.8 KB/s
+2026/10/27 22:20:17 [T+125s] Active: 63 | Up: 166.7 KB/s (3844 pkts) | Down: 1018.3 KB/s (7.96 Mbps, 621 pkts) | Per-Player Down: 16.2 KB/s
+2026/10/27 22:20:18 [T+126s] Active: 63 | Up: 166.8 KB/s (3845 pkts) | Down: 1351.4 KB/s (10.56 Mbps, 844 pkts) | Per-Player Down: 21.5 KB/s
+2026/10/27 22:20:19 [T+127s] Active: 63 | Up: 166.5 KB/s (3840 pkts) | Down: 1201.8 KB/s (9.39 Mbps, 743 pkts) | Per-Player Down: 19.1 KB/s
+2026/10/27 22:20:20 [T+128s] Active: 63 | Up: 166.7 KB/s (3844 pkts) | Down: 1618.4 KB/s (12.64 Mbps, 996 pkts) | Per-Player Down: 25.7 KB/s
+2026/10/27 22:20:21 [T+129s] Active: 63 | Up: 166.7 KB/s (3844 pkts) | Down: 1651.3 KB/s (12.90 Mbps, 1022 pkts) | Per-Player Down: 26.2 KB/s
+2026/10/27 22:20:22 [T+130s] Active: 63 | Up: 166.6 KB/s (3842 pkts) | Down: 1081.1 KB/s (8.45 Mbps, 667 pkts) | Per-Player Down: 17.2 KB/s
+2026/10/27 22:20:23 [T+131s] Active: 63 | Up: 166.6 KB/s (3842 pkts) | Down: 1076.2 KB/s (8.41 Mbps, 672 pkts) | Per-Player Down: 17.1 KB/s
+2026/10/27 22:20:24 [T+132s] Active: 63 | Up: 166.7 KB/s (3843 pkts) | Down: 1261.9 KB/s (9.86 Mbps, 771 pkts) | Per-Player Down: 20.0 KB/s
+2026/10/27 22:20:25 [T+133s] Active: 63 | Up: 166.7 KB/s (3843 pkts) | Down: 1446.0 KB/s (11.30 Mbps, 898 pkts) | Per-Player Down: 23.0 KB/s
+2026/10/27 22:20:26 [T+134s] Active: 63 | Up: 166.7 KB/s (3844 pkts) | Down: 1280.4 KB/s (10.00 Mbps, 792 pkts) | Per-Player Down: 20.3 KB/s
+2026/10/27 22:20:27 [T+135s] Active: 63 | Up: 166.7 KB/s (3843 pkts) | Down: 1297.9 KB/s (10.14 Mbps, 801 pkts) | Per-Player Down: 20.6 KB/s
+2026/10/27 22:20:28 [T+136s] Active: 63 | Up: 166.7 KB/s (3843 pkts) | Down: 1102.9 KB/s (8.62 Mbps, 684 pkts) | Per-Player Down: 17.5 KB/s
+2026/10/27 22:20:29 [T+137s] Active: 63 | Up: 166.7 KB/s (3843 pkts) | Down: 1224.8 KB/s (9.57 Mbps, 750 pkts) | Per-Player Down: 19.4 KB/s
+2026/10/27 22:20:30 [T+138s] Active: 63 | Up: 166.7 KB/s (3843 pkts) | Down: 1115.4 KB/s (8.71 Mbps, 693 pkts) | Per-Player Down: 17.7 KB/s
+2026/10/27 22:20:31 [T+139s] Active: 63 | Up: 166.6 KB/s (3842 pkts) | Down: 1407.6 KB/s (11.00 Mbps, 876 pkts) | Per-Player Down: 22.3 KB/s
+2026/10/27 22:20:32 [T+140s] Active: 63 | Up: 166.8 KB/s (3846 pkts) | Down: 1609.4 KB/s (12.57 Mbps, 995 pkts) | Per-Player Down: 25.5 KB/s
+2026/10/27 22:20:33 [T+141s] Active: 63 | Up: 166.6 KB/s (3841 pkts) | Down: 1663.1 KB/s (12.99 Mbps, 1030 pkts) | Per-Player Down: 26.4 KB/s
+2026/10/27 22:20:34 [T+142s] Active: 63 | Up: 140.5 KB/s (3238 pkts) | Down: 1349.1 KB/s (10.54 Mbps, 833 pkts) | Per-Player Down: 21.4 KB/s
+2026/10/27 22:20:35 [T+143s] Active: 63 | Up: 151.1 KB/s (3487 pkts) | Down: 932.0 KB/s (7.28 Mbps, 578 pkts) | Per-Player Down: 14.8 KB/s
+2026/10/27 22:20:36 [T+144s] Active: 63 | Up: 158.7 KB/s (3660 pkts) | Down: 1369.3 KB/s (10.70 Mbps, 842 pkts) | Per-Player Down: 21.7 KB/s
+2026/10/27 22:20:37 [T+145s] Active: 63 | Up: 154.6 KB/s (3565 pkts) | Down: 1649.9 KB/s (12.89 Mbps, 1022 pkts) | Per-Player Down: 26.2 KB/s
+2026/10/27 22:20:38 [T+146s] Active: 63 | Up: 166.6 KB/s (3841 pkts) | Down: 1875.1 KB/s (14.65 Mbps, 1160 pkts) | Per-Player Down: 29.8 KB/s
+2026/10/27 22:20:39 [T+147s] Active: 63 | Up: 160.8 KB/s (3708 pkts) | Down: 1115.4 KB/s (8.71 Mbps, 690 pkts) | Per-Player Down: 17.7 KB/s
+2026/10/27 22:20:40 [T+148s] Active: 63 | Up: 166.7 KB/s (3844 pkts) | Down: 1534.6 KB/s (11.99 Mbps, 950 pkts) | Per-Player Down: 24.4 KB/s
+2026/10/27 22:20:41 [T+149s] Active: 63 | Up: 166.6 KB/s (3841 pkts) | Down: 2031.6 KB/s (15.87 Mbps, 1264 pkts) | Per-Player Down: 32.2 KB/s
+2026/10/27 22:20:42 [T+150s] Active: 63 | Up: 166.7 KB/s (3844 pkts) | Down: 1881.9 KB/s (14.70 Mbps, 1157 pkts) | Per-Player Down: 29.9 KB/s
+2026/10/27 22:20:43 [T+151s] Active: 63 | Up: 166.8 KB/s (3845 pkts) | Down: 1494.7 KB/s (11.68 Mbps, 930 pkts) | Per-Player Down: 23.7 KB/s
+2026/10/27 22:20:44 [T+152s] Active: 63 | Up: 166.5 KB/s (3840 pkts) | Down: 1216.5 KB/s (9.50 Mbps, 745 pkts) | Per-Player Down: 19.3 KB/s
+2026/10/27 22:20:45 [T+153s] Active: 63 | Up: 166.7 KB/s (3843 pkts) | Down: 1076.0 KB/s (8.41 Mbps, 666 pkts) | Per-Player Down: 17.1 KB/s
+2026/10/27 22:20:46 [T+154s] Active: 63 | Up: 166.7 KB/s (3844 pkts) | Down: 778.8 KB/s (6.08 Mbps, 485 pkts) | Per-Player Down: 12.4 KB/s
+2026/10/27 22:20:47 [T+155s] Active: 63 | Up: 166.6 KB/s (3842 pkts) | Down: 1327.3 KB/s (10.37 Mbps, 815 pkts) | Per-Player Down: 21.1 KB/s
+2026/10/27 22:20:48 [T+156s] Active: 63 | Up: 166.7 KB/s (3843 pkts) | Down: 1539.6 KB/s (12.03 Mbps, 958 pkts) | Per-Player Down: 24.4 KB/s
+2026/10/27 22:20:49 [BOT_STRESS_39] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 22:20:49 [T+157s] Active: 62 | Up: 165.6 KB/s (3818 pkts) | Down: 981.5 KB/s (7.67 Mbps, 608 pkts) | Per-Player Down: 15.8 KB/s
+2026/10/27 22:20:50 [T+158s] Active: 62 | Up: 164.0 KB/s (3782 pkts) | Down: 1102.0 KB/s (8.61 Mbps, 682 pkts) | Per-Player Down: 17.8 KB/s
+2026/10/27 22:20:50 [BOT_STRESS_10] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 22:20:51 [T+159s] Active: 61 | Up: 161.4 KB/s (3722 pkts) | Down: 1095.4 KB/s (8.56 Mbps, 687 pkts) | Per-Player Down: 18.0 KB/s
+2026/10/27 22:20:52 [T+160s] Active: 61 | Up: 161.4 KB/s (3721 pkts) | Down: 1253.4 KB/s (9.79 Mbps, 764 pkts) | Per-Player Down: 20.5 KB/s
+2026/10/27 22:20:52 [BOT_STRESS_30] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 22:20:53 [BOT_STRESS_45] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 22:20:53 [T+161s] Active: 59 | Up: 159.2 KB/s (3671 pkts) | Down: 1582.8 KB/s (12.37 Mbps, 983 pkts) | Per-Player Down: 26.8 KB/s
+2026/10/27 22:20:53 [BOT_STRESS_00] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 22:20:54 [BOT_STRESS_23] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 22:20:54 [BOT_STRESS_37] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 22:20:54 [BOT_STRESS_42] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 22:20:54 [T+162s] Active: 55 | Up: 152.6 KB/s (3519 pkts) | Down: 1813.3 KB/s (14.17 Mbps, 1115 pkts) | Per-Player Down: 33.0 KB/s
+2026/10/27 22:20:54 [BOT_STRESS_25] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 22:20:54 [BOT_STRESS_32] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 22:20:54 [BOT_STRESS_17] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 22:20:54 [BOT_STRESS_07] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 22:20:54 [BOT_STRESS_28] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 22:20:54 [BOT_STRESS_12] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 22:20:54 [BOT_STRESS_06] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 22:20:54 [BOT_STRESS_15] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 22:20:54 [BOT_STRESS_04] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 22:20:54 [BOT_STRESS_02] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 22:20:54 [BOT_STRESS_24] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 22:20:54 [BOT_STRESS_13] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 22:20:54 [BOT_STRESS_50] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 22:20:54 [BOT_STRESS_41] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 22:20:54 [BOT_STRESS_33] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 22:20:54 [BOT_STRESS_34] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 22:20:55 [BOT_STRESS_46] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 22:20:55 [BOT_STRESS_62] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 22:20:55 [BOT_STRESS_29] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 22:20:55 [BOT_STRESS_16] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 22:20:55 [BOT_STRESS_44] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 22:20:55 [BOT_STRESS_52] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 22:20:55 [BOT_STRESS_26] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 22:20:55 [BOT_STRESS_61] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 22:20:55 [BOT_STRESS_20] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 22:20:55 [BOT_STRESS_03] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 22:20:55 [BOT_STRESS_11] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 22:20:55 [T+163s] Active: 28 | Up: 101.9 KB/s (2349 pkts) | Down: 1191.8 KB/s (9.31 Mbps, 736 pkts) | Per-Player Down: 42.6 KB/s
+2026/10/27 22:20:55 [BOT_STRESS_36] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 22:20:55 [BOT_STRESS_14] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 22:20:55 [BOT_STRESS_05] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 22:20:55 [BOT_STRESS_21] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 22:20:55 [BOT_STRESS_47] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 22:20:55 [BOT_STRESS_49] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 22:20:55 [BOT_STRESS_38] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 22:20:55 [BOT_STRESS_60] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 22:20:55 [BOT_STRESS_59] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 22:20:55 [BOT_STRESS_18] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 22:20:55 [BOT_STRESS_31] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 22:20:55 [BOT_STRESS_57] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 22:20:55 [BOT_STRESS_27] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 22:20:55 [BOT_STRESS_09] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 22:20:55 [BOT_STRESS_48] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 22:20:55 [BOT_STRESS_35] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 22:20:55 [BOT_STRESS_53] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 22:20:55 [BOT_STRESS_40] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 22:20:55 [BOT_STRESS_22] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 22:20:55 [BOT_STRESS_19] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 22:20:55 [BOT_STRESS_01] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 22:20:56 [BOT_STRESS_51] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 22:20:56 [BOT_STRESS_56] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 22:20:56 [BOT_STRESS_54] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 22:20:56 [BOT_STRESS_43] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 22:20:56 [BOT_STRESS_55] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 22:20:56 [BOT_STRESS_08] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 22:20:56 [BOT_STRESS_58] read ended: websocket: close 1006 (abnormal closure): unexpected EOF
+2026/10/27 22:20:56 [T+164s] Active: 0 | Up: 26.2 KB/s (604 pkts) | Down: 540.1 KB/s (4.22 Mbps, 334 pkts) | Per-Player Down: 540.1 KB/s
+2026/10/27 22:20:57 [T+165s] Active: 0 | Up: 0.0 KB/s (0 pkts) | Down: 0.0 KB/s (0.00 Mbps, 0 pkts) | Per-Player Down: 0.0 KB/s
+2026/10/27 22:20:58 [T+166s] Active: 0 | Up: 0.0 KB/s (0 pkts) | Down: 0.0 KB/s (0.00 Mbps, 0 pkts) | Per-Player Down: 0.0 KB/s
+2026/10/27 22:20:59 [T+167s] Active: 0 | Up: 0.0 KB/s (0 pkts) | Down: 0.0 KB/s (0.00 Mbps, 0 pkts) | Per-Player Down: 0.0 KB/s
+2026/10/27 22:21:00 [T+168s] Active: 0 | Up: 0.0 KB/s (0 pkts) | Down: 0.0 KB/s (0.00 Mbps, 0 pkts) | Per-Player Down: 0.0 KB/s
+2026/10/27 22:21:01 [T+169s] Active: 0 | Up: 0.0 KB/s (0 pkts) | Down: 0.0 KB/s (0.00 Mbps, 0 pkts) | Per-Player Down: 0.0 KB/s
+2026/10/27 22:21:02 [T+170s] Active: 0 | Up: 0.0 KB/s (0 pkts) | Down: 0.0 KB/s (0.00 Mbps, 0 pkts) | Per-Player Down: 0.0 KB/s
+2026/10/27 22:21:03 [T+171s] Active: 0 | Up: 0.0 KB/s (0 pkts) | Down: 0.0 KB/s (0.00 Mbps, 0 pkts) | Per-Player Down: 0.0 KB/s
+2026/10/27 22:21:04 [T+172s] Active: 0 | Up: 0.0 KB/s (0 pkts) | Down: 0.0 KB/s (0.00 Mbps, 0 pkts) | Per-Player Down: 0.0 KB/s
+2026/10/27 22:21:05 [T+173s] Active: 0 | Up: 0.0 KB/s (0 pkts) | Down: 0.0 KB/s (0.00 Mbps, 0 pkts) | Per-Player Down: 0.0 KB/s
+2026/10/27 22:21:06 [T+174s] Active: 0 | Up: 0.0 KB/s (0 pkts) | Down: 0.0 KB/s (0.00 Mbps, 0 pkts) | Per-Player Down: 0.0 KB/s
+2026/10/27 22:21:07 [T+175s] Active: 0 | Up: 0.0 KB/s (0 pkts) | Down: 0.0 KB/s (0.00 Mbps, 0 pkts) | Per-Player Down: 0.0 KB/s
+2026/10/27 22:21:08 [T+176s] Active: 0 | Up: 0.0 KB/s (0 pkts) | Down: 0.0 KB/s (0.00 Mbps, 0 pkts) | Per-Player Down: 0.0 KB/s
+2026/10/27 22:21:09 [T+177s] Active: 0 | Up: 0.0 KB/s (0 pkts) | Down: 0.0 KB/s (0.00 Mbps, 0 pkts) | Per-Player Down: 0.0 KB/s
+2026/10/27 22:21:10 [T+178s] Active: 0 | Up: 0.0 KB/s (0 pkts) | Down: 0.0 KB/s (0.00 Mbps, 0 pkts) | Per-Player Down: 0.0 KB/s
+2026/10/27 22:21:11 [T+179s] Active: 0 | Up: 0.0 KB/s (0 pkts) | Down: 0.0 KB/s (0.00 Mbps, 0 pkts) | Per-Player Down: 0.0 KB/s
+2026/10/27 22:21:12 === FINAL AUDIT RESULTS ===
+2026/10/27 22:21:12 Total Duration: 3m0.000170708s
+2026/10/27 22:21:12 Peak Players: 63; joined=63; errors=63
+2026/10/27 22:21:12 Total Sent: 614621 packets (26.03 MB)
+2026/10/27 22:21:12 Total Received: 105874 packets (165.56 MB)
+2026/10/27 22:21:12 Aggregate Download Throughput: 941.83 KB/s (7.36 Mbps)
+2026/10/27 22:21:12 Per-Player Download Rate: 14.95 KB/s (0.12 Mbps)
+{
+  "car_distance_m": 0,
+  "confirmed_seat_entries": 0,
+  "confirmed_seat_exits": 0,
+  "connection_errors": 63,
+  "driven_cars": 0,
+  "hold_seconds": 180.000170708,
+  "host": "war.vaidik.blog",
+  "joined": 63,
+  "max_car_speed_mps": 0,
+  "peak_peers": 63,
+  "ping_ms_max": 108753,
+  "ping_ms_p50": 68887,
+  "ping_ms_p95": 105401,
+  "received_bytes": 173597746,
+  "replicated_damage_deliveries": 0,
+  "replicated_explosion_deliveries": 0,
+  "replicated_fire_deliveries": 0,
+  "requested_peers": 63,
+  "room": "c946f0c8-7f5d-47c3-9881-947d53caec84",
+  "sent_bytes": 27292545,
+  "snapshot_gap_ms_max": 1432.168,
+  "snapshot_gap_ms_p50": 83.766,
+  "snapshot_gap_ms_p95": 229.23,
+  "snapshot_gap_ms_p99": 353.532
+}

@@ -1,11 +1,16 @@
 extends SceneTree
 ## Rebuild server collision/spawn data from the same shapes used by the client.
-const MAPS := ["football", "resoforge", "industrial", "village", "arena", "shipment", "dust2", "canyon", "desert_oasis", "nuketown"]
+const MAPS := ["football","resoforge","industrial","village","arena","shipment","dust2","nuketown","canyon","military_base","ghost_city"]
 func _initialize() -> void:
 	call_deferred("run")
 func run() -> void:
 	var output := {}
-	for map_id in MAPS:
+	var selected: Array = Array(MAPS)
+	for arg in OS.get_cmdline_user_args():
+		if arg.begins_with("maps="): selected = Array(arg.trim_prefix("maps=").split(","))
+	for id in selected:
+		if not MAPS.has(id): push_error("Unsupported map: " + str(id)); quit(1); return
+	for map_id in selected:
 		var builder = load("res://scripts/maps/MapBuilder.gd").new()
 		root.add_child(builder)
 		var spawns: Array[Vector3] = builder.build(map_id)
@@ -20,7 +25,8 @@ func run() -> void:
 		output[map_id] = {"spawns": spawn_data, "triangles": triangles, "vehicles":vehicles, "nav_step":1.0 if map_id == "football" else 2.0}
 		print("MAP EXPORT: ", map_id, " triangles=", triangles.size() / 9)
 		builder.free()
-	var path := ProjectSettings.globalize_path("res://../server/internal/engine/maps.json")
+	var path := ProjectSettings.globalize_path("res://../../build/map-authoring/maps.json")
+	DirAccess.make_dir_recursive_absolute(path.get_base_dir())
 	var file := FileAccess.open(path, FileAccess.WRITE)
 	if file == null:
 		push_error("Cannot write map collision data")
@@ -28,7 +34,7 @@ func run() -> void:
 		return
 	file.store_string(JSON.stringify(output))
 	quit()
-func collect(node: Node, triangles: Array) -> void:
+static func collect(node: Node, triangles: Array) -> void:
 	if node is CollisionShape3D and not node.disabled and node.get_parent() is StaticBody3D:
 		var shape: Shape3D = node.shape
 		var faces := PackedVector3Array()

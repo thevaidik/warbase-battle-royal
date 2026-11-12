@@ -1,0 +1,1 @@
+Native PCK includes skeletal_hitboxes. Native ZIP integrity and Web lossless compression checks passed.

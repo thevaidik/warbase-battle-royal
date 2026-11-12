@@ -1,0 +1,7 @@
+{
+  "sdkVersion": "0.18.9",
+  "patchId": "room-lifetime-v1",
+  "sourceSha256": "8e3fce5e8cd4721fb839126660f15095ee7ddeee31d08c4924f3af16a7ce0181",
+  "upstreamSourceSha256": "a4c92b238917ca012c61502f4e8f2e1acbfebfba929826f05d721bf3b70f6fb1",
+  "nativeBinariesModified": false
+}

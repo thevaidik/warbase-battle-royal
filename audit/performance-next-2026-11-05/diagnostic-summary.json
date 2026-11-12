@@ -1,0 +1,24 @@
+{
+  "seconds": 100.001991333334,
+  "release_export": false,
+  "frame_ms_p50": 11.166,
+  "frame_ms_p95": 72.732,
+  "frame_ms_p99": 133.056666666667,
+  "cpu_process_ms_p95": 313.452,
+  "draw_calls_p95": 636.0,
+  "peak_remotes": 63,
+  "disconnects": 0,
+  "seat_entries": 1,
+  "seat_exits": 1,
+  "drive_distance_m": 55.8131859065786,
+  "confirmed_hits": 1,
+  "local_grenades": 1,
+  "local_respawns": 3,
+  "humanActorsAtPeak": 64,
+  "limitations": [
+    "Development executable, not packaged release",
+    "Overlapped build/test activity; not controlled before/after",
+    "Peak occupancy does not establish 60 seconds continuously at 64 players",
+    "Private server metrics were captured earlier, not a matched full-room server timing sample"
+  ]
+}

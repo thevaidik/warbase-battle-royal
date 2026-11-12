@@ -1,0 +1,14 @@
+{
+  "endpoint": "http://127.0.0.1:18301",
+  "maps": [
+    {
+      "map": "village",
+      "protocol": 9,
+      "movedMetres": 2.066666603088379,
+      "ack": 20,
+      "feetY": -5.551115123125783e-17
+    }
+  ],
+  "previousClientRejected": true,
+  "canonicalDirectoryVerified": true
+}

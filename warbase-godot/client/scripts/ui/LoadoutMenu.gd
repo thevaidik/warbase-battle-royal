@@ -10,6 +10,7 @@ var _details: Label
 var _preview: SubViewport
 var _model_root: Node3D
 var _preview_model: Node3D
+var _preview_panel: PanelContainer
 
 func _ready() -> void:
 	theme = WarUI.theme()
@@ -49,11 +50,13 @@ func _ready() -> void:
 	_catalog.add_theme_constant_override("v_separation", 12)
 	scroll.add_child(_catalog)
 	var panel := PanelContainer.new()
+	_preview_panel = panel
 	panel.custom_minimum_size.x = 300
 	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	panel.size_flags_stretch_ratio = 0.7
 	panel.add_theme_stylebox_override("panel", WarUI.panel(WarUI.PANEL, WarUI.LINE, 16))
 	body.add_child(panel)
+	WarUI.decorate(panel, WarUI.CYAN)
 	var info := VBoxContainer.new()
 	info.add_theme_constant_override("separation", 12)
 	panel.add_child(info)
@@ -92,12 +95,15 @@ func _ready() -> void:
 	_details = _label("", 14, WarUI.MUTED)
 	_details.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	info.add_child(_details)
+	resized.connect(_fit_layout)
+	_fit_layout()
 	_refresh()
 	visible = false
 
 func _label(text: String, font_size: int, color: Color = WarUI.TEXT) -> Label:
 	var label := Label.new()
 	label.text = text
+	if font_size >= 20: WarUI.heading(label)
 	label.add_theme_font_size_override("font_size", font_size)
 	label.add_theme_color_override("font_color", color)
 	return label
@@ -138,7 +144,8 @@ func _refresh() -> void:
 	for id in _slots:
 		var selected_id := _equipped(id)
 		var name_text := String(GameState.THROWABLES[selected_id]["name"]) if id == "throwable" else String(names[selected_id])
-		_slots[id].text = id.to_upper() + "\n" + name_text
+		var slot_label := "THROWABLE" if id == "throwable" else ("PRIMARY PAYLOAD" if id == "primary" else "SECONDARY PAYLOAD")
+		_slots[id].text = slot_label + "\n" + name_text
 		_slots[id].add_theme_stylebox_override("normal", WarUI.panel(WarUI.RAISED if slot == id else WarUI.PANEL, WarUI.ACCENT if slot == id else WarUI.LINE, 14))
 	for child in _catalog.get_children():
 		_catalog.remove_child(child)
@@ -149,7 +156,7 @@ func _refresh() -> void:
 			_card(id, equipment["name"], equipment["description"], "2 PER LIFE")
 	else:
 		for weapon in GameState.WEAPONS:
-			var category := "SEMI-AUTO" if not weapon["is_auto"] else "AUTOMATIC"
+			var category := "SEMI-AUTO PAYLOAD" if not weapon["is_auto"] else "AUTOMATIC PAYLOAD"
 			_card(weapon["id"], weapon["name"], "%d DAMAGE   /   %d RPM\n%d ROUNDS   /   %.1fs RELOAD" % [weapon["damage"], weapon["fire_rate"], weapon["mag_size"], weapon["reload_time"]], category)
 	_update_preview(_equipped(slot))
 
@@ -192,7 +199,12 @@ func _update_preview(id: String) -> void:
 		_details.text = GameState.THROWABLES[id]["description"] + "\n[G] Throw. Restocked on respawn."
 	else:
 		var config: Dictionary = GameState.WEAPONS[GameState.weapon_index_for_id(id)]
-		_preview_model = WeaponView.build(id)
+		_preview_model = preload("res://scripts/drones/DronePayloadBuilder.gd").build(id)
 		_title.text = config["name"]
-		_details.text = "%d rounds • %.1fs reload\n%d RPM • %s" % [config["mag_size"], config["reload_time"], config["fire_rate"], "Automatic" if config["is_auto"] else "Semi-automatic"]
+		_details.text = "Mounted payload • %d rounds • %.1fs reload\n%d RPM • %s" % [config["mag_size"], config["reload_time"], config["fire_rate"], "Automatic" if config["is_auto"] else "Semi-automatic"]
 	_model_root.add_child(_preview_model)
+
+func _fit_layout() -> void:
+	if not is_instance_valid(_catalog): return
+	_catalog.columns = 1 if size.x < 880 else 2
+	_preview_panel.custom_minimum_size.x = 240 if size.x < 880 else 300

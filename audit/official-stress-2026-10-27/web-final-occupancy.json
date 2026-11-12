@@ -1,0 +1,240 @@
+[
+  {
+    "time": 1793119958.0719519,
+    "room": {
+      "id": "464482fa-4520-40cd-b5f1-f81f72ce789f",
+      "name": "QA web final 64",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 1,
+      "botCount": 7,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    },
+    "online": 2
+  },
+  {
+    "time": 1793119961.782038,
+    "room": {
+      "id": "464482fa-4520-40cd-b5f1-f81f72ce789f",
+      "name": "QA web final 64",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 63,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    },
+    "online": 64
+  },
+  {
+    "time": 1793119966.00348,
+    "room": {
+      "id": "464482fa-4520-40cd-b5f1-f81f72ce789f",
+      "name": "QA web final 64",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 63,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    },
+    "online": 64
+  },
+  {
+    "time": 1793119970.111535,
+    "room": {
+      "id": "464482fa-4520-40cd-b5f1-f81f72ce789f",
+      "name": "QA web final 64",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 63,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    },
+    "online": 64
+  },
+  {
+    "time": 1793119974.52945,
+    "room": {
+      "id": "464482fa-4520-40cd-b5f1-f81f72ce789f",
+      "name": "QA web final 64",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    },
+    "online": 65
+  },
+  {
+    "time": 1793119978.503438,
+    "room": {
+      "id": "464482fa-4520-40cd-b5f1-f81f72ce789f",
+      "name": "QA web final 64",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    },
+    "online": 65
+  },
+  {
+    "time": 1793119982.502898,
+    "room": {
+      "id": "464482fa-4520-40cd-b5f1-f81f72ce789f",
+      "name": "QA web final 64",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    },
+    "online": 65
+  },
+  {
+    "time": 1793119986.481199,
+    "room": {
+      "id": "464482fa-4520-40cd-b5f1-f81f72ce789f",
+      "name": "QA web final 64",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    },
+    "online": 65
+  },
+  {
+    "time": 1793119990.455519,
+    "room": {
+      "id": "464482fa-4520-40cd-b5f1-f81f72ce789f",
+      "name": "QA web final 64",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    },
+    "online": 65
+  },
+  {
+    "time": 1793119994.275504,
+    "room": {
+      "id": "464482fa-4520-40cd-b5f1-f81f72ce789f",
+      "name": "QA web final 64",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    },
+    "online": 65
+  },
+  {
+    "time": 1793119998.279505,
+    "room": {
+      "id": "464482fa-4520-40cd-b5f1-f81f72ce789f",
+      "name": "QA web final 64",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    },
+    "online": 65
+  },
+  {
+    "time": 1793120002.3527548,
+    "room": {
+      "id": "464482fa-4520-40cd-b5f1-f81f72ce789f",
+      "name": "QA web final 64",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    },
+    "online": 65
+  },
+  {
+    "time": 1793120006.292314,
+    "room": {
+      "id": "464482fa-4520-40cd-b5f1-f81f72ce789f",
+      "name": "QA web final 64",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 62,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    },
+    "online": 63
+  },
+  {
+    "time": 1793120010.1442828,
+    "room": {
+      "id": "464482fa-4520-40cd-b5f1-f81f72ce789f",
+      "name": "QA web final 64",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 61,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    },
+    "online": 62
+  },
+  {
+    "time": 1793120014.061253,
+    "room": {
+      "id": "464482fa-4520-40cd-b5f1-f81f72ce789f",
+      "name": "QA web final 64",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 58,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    },
+    "online": 59
+  },
+  {
+    "time": 1793120017.933689,
+    "room": {
+      "id": "464482fa-4520-40cd-b5f1-f81f72ce789f",
+      "name": "QA web final 64",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 58,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    },
+    "online": 59
+  },
+  {
+    "time": 1793120022.077224,
+    "room": {
+      "id": "464482fa-4520-40cd-b5f1-f81f72ce789f",
+      "name": "QA web final 64",
+      "map": "industrial",
+      "mode": "TDM",
+      "playerCount": 2,
+      "botCount": 6,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    },
+    "online": 3
+  }
+]

@@ -1,0 +1,9 @@
+{
+  "path": "/tmp/warbase-colyseus-features-final-20261105.tar.gz",
+  "remotePath": "/tmp/warbase-colyseus-features-final-20261105.tar.gz",
+  "bytes": 156140160,
+  "sha256": "20885b568f3db11c983110dbf1cba85b9f26bfe7d5a71c1ec6f0089caeb5a153",
+  "deployed": true,
+  "productionRecord": "production.json",
+  "note": "Final reproducible source/client archive includes the staged cache correction. Deployed image IDs and original rollback containers are recorded in production.json."
+}

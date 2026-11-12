@@ -1,0 +1,159 @@
+2026/10/28 04:26:56 === BOUNDED MATCH TRAFFIC + REAL AUTHORITATIVE VEHICLE INPUT TEST ===
+2026/10/28 04:26:56 Target Host: war.vaidik.blog | Room: 1ca8fb67-6fdb-4bf0-abfa-c3fc98f249e0 | Simulated Players: 64 | Duration: 1m0s
+2026/10/28 04:26:58 All 64 simulated players connecting...
+2026/10/28 04:26:58 [BOT_STRESS_04] read ended: websocket: close 1008 (policy violation): room no longer exists; refresh the room list
+2026/10/28 04:26:58 [BOT_STRESS_01] read ended: websocket: close 1008 (policy violation): room no longer exists; refresh the room list
+2026/10/28 04:26:58 [BOT_STRESS_06] read ended: websocket: close 1008 (policy violation): room no longer exists; refresh the room list
+2026/10/28 04:26:58 [BOT_STRESS_08] read ended: websocket: close 1008 (policy violation): room no longer exists; refresh the room list
+2026/10/28 04:26:58 [BOT_STRESS_02] read ended: websocket: close 1008 (policy violation): room no longer exists; refresh the room list
+2026/10/28 04:26:58 [BOT_STRESS_00] read ended: websocket: close 1008 (policy violation): room no longer exists; refresh the room list
+2026/10/28 04:26:58 [BOT_STRESS_09] read ended: websocket: close 1008 (policy violation): room no longer exists; refresh the room list
+2026/10/28 04:26:58 [BOT_STRESS_05] read ended: websocket: close 1008 (policy violation): room no longer exists; refresh the room list
+2026/10/28 04:26:58 [BOT_STRESS_07] read ended: websocket: close 1008 (policy violation): room no longer exists; refresh the room list
+2026/10/28 04:26:58 [BOT_STRESS_03] read ended: websocket: close 1008 (policy violation): room no longer exists; refresh the room list
+2026/10/28 04:26:58 [BOT_STRESS_27] read ended: websocket: close 1008 (policy violation): room no longer exists; refresh the room list
+2026/10/28 04:26:58 [BOT_STRESS_19] read ended: websocket: close 1008 (policy violation): room no longer exists; refresh the room list
+2026/10/28 04:26:58 [BOT_STRESS_23] read ended: websocket: close 1008 (policy violation): room no longer exists; refresh the room list
+2026/10/28 04:26:58 [BOT_STRESS_13] read ended: websocket: close 1008 (policy violation): room no longer exists; refresh the room list
+2026/10/28 04:26:58 [BOT_STRESS_29] read ended: websocket: close 1008 (policy violation): room no longer exists; refresh the room list
+2026/10/28 04:26:58 [BOT_STRESS_11] read ended: websocket: close 1008 (policy violation): room no longer exists; refresh the room list
+2026/10/28 04:26:58 [BOT_STRESS_25] read ended: websocket: close 1008 (policy violation): room no longer exists; refresh the room list
+2026/10/28 04:26:58 [BOT_STRESS_12] read ended: websocket: close 1008 (policy violation): room no longer exists; refresh the room list
+2026/10/28 04:26:58 [BOT_STRESS_28] read ended: websocket: close 1008 (policy violation): room no longer exists; refresh the room list
+2026/10/28 04:26:58 [BOT_STRESS_10] read ended: websocket: close 1008 (policy violation): room no longer exists; refresh the room list
+2026/10/28 04:26:58 [BOT_STRESS_17] read ended: websocket: close 1008 (policy violation): room no longer exists; refresh the room list
+2026/10/28 04:26:58 [BOT_STRESS_15] read ended: websocket: close 1008 (policy violation): room no longer exists; refresh the room list
+2026/10/28 04:26:58 [BOT_STRESS_30] read ended: websocket: close 1008 (policy violation): room no longer exists; refresh the room list
+2026/10/28 04:26:58 [BOT_STRESS_20] read ended: websocket: close 1008 (policy violation): room no longer exists; refresh the room list
+2026/10/28 04:26:58 [BOT_STRESS_31] read ended: websocket: close 1008 (policy violation): room no longer exists; refresh the room list
+2026/10/28 04:26:58 [BOT_STRESS_24] read ended: websocket: close 1008 (policy violation): room no longer exists; refresh the room list
+2026/10/28 04:26:58 [BOT_STRESS_22] read ended: websocket: close 1008 (policy violation): room no longer exists; refresh the room list
+2026/10/28 04:26:58 [BOT_STRESS_26] read ended: websocket: close 1008 (policy violation): room no longer exists; refresh the room list
+2026/10/28 04:26:58 [BOT_STRESS_16] read ended: websocket: close 1008 (policy violation): room no longer exists; refresh the room list
+2026/10/28 04:26:58 [BOT_STRESS_21] read ended: websocket: close 1008 (policy violation): room no longer exists; refresh the room list
+2026/10/28 04:26:58 [BOT_STRESS_18] read ended: websocket: close 1008 (policy violation): room no longer exists; refresh the room list
+2026/10/28 04:26:58 [BOT_STRESS_34] read ended: websocket: close 1008 (policy violation): room no longer exists; refresh the room list
+2026/10/28 04:26:58 [BOT_STRESS_33] read ended: websocket: close 1008 (policy violation): room no longer exists; refresh the room list
+2026/10/28 04:26:58 [BOT_STRESS_36] read ended: websocket: close 1008 (policy violation): room no longer exists; refresh the room list
+2026/10/28 04:26:58 [BOT_STRESS_32] read ended: websocket: close 1008 (policy violation): room no longer exists; refresh the room list
+2026/10/28 04:26:58 [BOT_STRESS_35] read ended: websocket: close 1008 (policy violation): room no longer exists; refresh the room list
+2026/10/28 04:26:58 [BOT_STRESS_38] read ended: websocket: close 1008 (policy violation): room no longer exists; refresh the room list
+2026/10/28 04:26:58 [BOT_STRESS_37] read ended: websocket: close 1008 (policy violation): room no longer exists; refresh the room list
+2026/10/28 04:26:58 [BOT_STRESS_40] read ended: websocket: close 1008 (policy violation): room no longer exists; refresh the room list
+2026/10/28 04:26:58 [BOT_STRESS_39] read ended: websocket: close 1008 (policy violation): room no longer exists; refresh the room list
+2026/10/28 04:26:58 [BOT_STRESS_14] read ended: websocket: close 1008 (policy violation): room no longer exists; refresh the room list
+2026/10/28 04:26:58 [BOT_STRESS_41] read ended: websocket: close 1008 (policy violation): room no longer exists; refresh the room list
+2026/10/28 04:26:58 [BOT_STRESS_44] read ended: websocket: close 1008 (policy violation): room no longer exists; refresh the room list
+2026/10/28 04:26:58 [BOT_STRESS_42] read ended: websocket: close 1008 (policy violation): room no longer exists; refresh the room list
+2026/10/28 04:26:58 [BOT_STRESS_45] read ended: websocket: close 1008 (policy violation): room no longer exists; refresh the room list
+2026/10/28 04:26:58 [BOT_STRESS_46] read ended: websocket: close 1008 (policy violation): room no longer exists; refresh the room list
+2026/10/28 04:26:58 [BOT_STRESS_43] read ended: websocket: close 1008 (policy violation): room no longer exists; refresh the room list
+2026/10/28 04:26:58 [BOT_STRESS_47] read ended: websocket: close 1008 (policy violation): room no longer exists; refresh the room list
+2026/10/28 04:26:58 [BOT_STRESS_48] read ended: websocket: close 1008 (policy violation): room no longer exists; refresh the room list
+2026/10/28 04:26:58 [BOT_STRESS_49] read ended: websocket: close 1008 (policy violation): room no longer exists; refresh the room list
+2026/10/28 04:26:58 [BOT_STRESS_52] read ended: websocket: close 1008 (policy violation): room no longer exists; refresh the room list
+2026/10/28 04:26:58 [BOT_STRESS_53] read ended: websocket: close 1008 (policy violation): room no longer exists; refresh the room list
+2026/10/28 04:26:58 [BOT_STRESS_51] read ended: websocket: close 1008 (policy violation): room no longer exists; refresh the room list
+2026/10/28 04:26:58 [BOT_STRESS_54] read ended: websocket: close 1008 (policy violation): room no longer exists; refresh the room list
+2026/10/28 04:26:58 [BOT_STRESS_56] read ended: websocket: close 1008 (policy violation): room no longer exists; refresh the room list
+2026/10/28 04:26:58 [BOT_STRESS_50] read ended: websocket: close 1008 (policy violation): room no longer exists; refresh the room list
+2026/10/28 04:26:58 [BOT_STRESS_55] read ended: websocket: close 1008 (policy violation): room no longer exists; refresh the room list
+2026/10/28 04:26:58 [BOT_STRESS_57] read ended: websocket: close 1008 (policy violation): room no longer exists; refresh the room list
+2026/10/28 04:26:58 [BOT_STRESS_58] read ended: websocket: close 1008 (policy violation): room no longer exists; refresh the room list
+2026/10/28 04:26:58 [BOT_STRESS_62] read ended: websocket: close 1008 (policy violation): room no longer exists; refresh the room list
+2026/10/28 04:26:58 [BOT_STRESS_61] read ended: websocket: close 1008 (policy violation): room no longer exists; refresh the room list
+2026/10/28 04:26:58 [BOT_STRESS_59] read ended: websocket: close 1008 (policy violation): room no longer exists; refresh the room list
+2026/10/28 04:26:58 [BOT_STRESS_63] read ended: websocket: close 1008 (policy violation): room no longer exists; refresh the room list
+2026/10/28 04:26:58 [BOT_STRESS_60] read ended: websocket: close 1008 (policy violation): room no longer exists; refresh the room list
+2026/10/28 04:26:59 [T+01s] Active: 0 | Up: 0.0 KB/s (0 pkts) | Down: 0.0 KB/s (0.00 Mbps, 0 pkts) | Per-Player Down: 0.0 KB/s
+2026/10/28 04:27:00 [T+02s] Active: 0 | Up: 0.0 KB/s (0 pkts) | Down: 0.0 KB/s (0.00 Mbps, 0 pkts) | Per-Player Down: 0.0 KB/s
+2026/10/28 04:27:01 [T+03s] Active: 0 | Up: 0.0 KB/s (0 pkts) | Down: 0.0 KB/s (0.00 Mbps, 0 pkts) | Per-Player Down: 0.0 KB/s
+2026/10/28 04:27:02 [T+04s] Active: 0 | Up: 0.0 KB/s (0 pkts) | Down: 0.0 KB/s (0.00 Mbps, 0 pkts) | Per-Player Down: 0.0 KB/s
+2026/10/28 04:27:03 [T+05s] Active: 0 | Up: 0.0 KB/s (0 pkts) | Down: 0.0 KB/s (0.00 Mbps, 0 pkts) | Per-Player Down: 0.0 KB/s
+2026/10/28 04:27:04 [T+06s] Active: 0 | Up: 0.0 KB/s (0 pkts) | Down: 0.0 KB/s (0.00 Mbps, 0 pkts) | Per-Player Down: 0.0 KB/s
+2026/10/28 04:27:05 [T+07s] Active: 0 | Up: 0.0 KB/s (0 pkts) | Down: 0.0 KB/s (0.00 Mbps, 0 pkts) | Per-Player Down: 0.0 KB/s
+2026/10/28 04:27:06 [T+08s] Active: 0 | Up: 0.0 KB/s (0 pkts) | Down: 0.0 KB/s (0.00 Mbps, 0 pkts) | Per-Player Down: 0.0 KB/s
+2026/10/28 04:27:07 [T+09s] Active: 0 | Up: 0.0 KB/s (0 pkts) | Down: 0.0 KB/s (0.00 Mbps, 0 pkts) | Per-Player Down: 0.0 KB/s
+2026/10/28 04:27:08 [T+10s] Active: 0 | Up: 0.0 KB/s (0 pkts) | Down: 0.0 KB/s (0.00 Mbps, 0 pkts) | Per-Player Down: 0.0 KB/s
+2026/10/28 04:27:09 [T+11s] Active: 0 | Up: 0.0 KB/s (0 pkts) | Down: 0.0 KB/s (0.00 Mbps, 0 pkts) | Per-Player Down: 0.0 KB/s
+2026/10/28 04:27:10 [T+12s] Active: 0 | Up: 0.0 KB/s (0 pkts) | Down: 0.0 KB/s (0.00 Mbps, 0 pkts) | Per-Player Down: 0.0 KB/s
+2026/10/28 04:27:11 [T+13s] Active: 0 | Up: 0.0 KB/s (0 pkts) | Down: 0.0 KB/s (0.00 Mbps, 0 pkts) | Per-Player Down: 0.0 KB/s
+2026/10/28 04:27:12 [T+14s] Active: 0 | Up: 0.0 KB/s (0 pkts) | Down: 0.0 KB/s (0.00 Mbps, 0 pkts) | Per-Player Down: 0.0 KB/s
+2026/10/28 04:27:13 [T+15s] Active: 0 | Up: 0.0 KB/s (0 pkts) | Down: 0.0 KB/s (0.00 Mbps, 0 pkts) | Per-Player Down: 0.0 KB/s
+2026/10/28 04:27:14 [T+16s] Active: 0 | Up: 0.0 KB/s (0 pkts) | Down: 0.0 KB/s (0.00 Mbps, 0 pkts) | Per-Player Down: 0.0 KB/s
+2026/10/28 04:27:15 [T+17s] Active: 0 | Up: 0.0 KB/s (0 pkts) | Down: 0.0 KB/s (0.00 Mbps, 0 pkts) | Per-Player Down: 0.0 KB/s
+2026/10/28 04:27:16 [T+18s] Active: 0 | Up: 0.0 KB/s (0 pkts) | Down: 0.0 KB/s (0.00 Mbps, 0 pkts) | Per-Player Down: 0.0 KB/s
+2026/10/28 04:27:17 [T+19s] Active: 0 | Up: 0.0 KB/s (0 pkts) | Down: 0.0 KB/s (0.00 Mbps, 0 pkts) | Per-Player Down: 0.0 KB/s
+2026/10/28 04:27:18 [T+20s] Active: 0 | Up: 0.0 KB/s (0 pkts) | Down: 0.0 KB/s (0.00 Mbps, 0 pkts) | Per-Player Down: 0.0 KB/s
+2026/10/28 04:27:19 [T+21s] Active: 0 | Up: 0.0 KB/s (0 pkts) | Down: 0.0 KB/s (0.00 Mbps, 0 pkts) | Per-Player Down: 0.0 KB/s
+2026/10/28 04:27:20 [T+22s] Active: 0 | Up: 0.0 KB/s (0 pkts) | Down: 0.0 KB/s (0.00 Mbps, 0 pkts) | Per-Player Down: 0.0 KB/s
+2026/10/28 04:27:21 [T+23s] Active: 0 | Up: 0.0 KB/s (0 pkts) | Down: 0.0 KB/s (0.00 Mbps, 0 pkts) | Per-Player Down: 0.0 KB/s
+2026/10/28 04:27:22 [T+24s] Active: 0 | Up: 0.0 KB/s (0 pkts) | Down: 0.0 KB/s (0.00 Mbps, 0 pkts) | Per-Player Down: 0.0 KB/s
+2026/10/28 04:27:23 [T+25s] Active: 0 | Up: 0.0 KB/s (0 pkts) | Down: 0.0 KB/s (0.00 Mbps, 0 pkts) | Per-Player Down: 0.0 KB/s
+2026/10/28 04:27:24 [T+26s] Active: 0 | Up: 0.0 KB/s (0 pkts) | Down: 0.0 KB/s (0.00 Mbps, 0 pkts) | Per-Player Down: 0.0 KB/s
+2026/10/28 04:27:25 [T+27s] Active: 0 | Up: 0.0 KB/s (0 pkts) | Down: 0.0 KB/s (0.00 Mbps, 0 pkts) | Per-Player Down: 0.0 KB/s
+2026/10/28 04:27:26 [T+28s] Active: 0 | Up: 0.0 KB/s (0 pkts) | Down: 0.0 KB/s (0.00 Mbps, 0 pkts) | Per-Player Down: 0.0 KB/s
+2026/10/28 04:27:27 [T+29s] Active: 0 | Up: 0.0 KB/s (0 pkts) | Down: 0.0 KB/s (0.00 Mbps, 0 pkts) | Per-Player Down: 0.0 KB/s
+2026/10/28 04:27:28 [T+30s] Active: 0 | Up: 0.0 KB/s (0 pkts) | Down: 0.0 KB/s (0.00 Mbps, 0 pkts) | Per-Player Down: 0.0 KB/s
+2026/10/28 04:27:29 [T+31s] Active: 0 | Up: 0.0 KB/s (0 pkts) | Down: 0.0 KB/s (0.00 Mbps, 0 pkts) | Per-Player Down: 0.0 KB/s
+2026/10/28 04:27:30 [T+32s] Active: 0 | Up: 0.0 KB/s (0 pkts) | Down: 0.0 KB/s (0.00 Mbps, 0 pkts) | Per-Player Down: 0.0 KB/s
+2026/10/28 04:27:31 [T+33s] Active: 0 | Up: 0.0 KB/s (0 pkts) | Down: 0.0 KB/s (0.00 Mbps, 0 pkts) | Per-Player Down: 0.0 KB/s
+2026/10/28 04:27:32 [T+34s] Active: 0 | Up: 0.0 KB/s (0 pkts) | Down: 0.0 KB/s (0.00 Mbps, 0 pkts) | Per-Player Down: 0.0 KB/s
+2026/10/28 04:27:33 [T+35s] Active: 0 | Up: 0.0 KB/s (0 pkts) | Down: 0.0 KB/s (0.00 Mbps, 0 pkts) | Per-Player Down: 0.0 KB/s
+2026/10/28 04:27:34 [T+36s] Active: 0 | Up: 0.0 KB/s (0 pkts) | Down: 0.0 KB/s (0.00 Mbps, 0 pkts) | Per-Player Down: 0.0 KB/s
+2026/10/28 04:27:35 [T+37s] Active: 0 | Up: 0.0 KB/s (0 pkts) | Down: 0.0 KB/s (0.00 Mbps, 0 pkts) | Per-Player Down: 0.0 KB/s
+2026/10/28 04:27:36 [T+38s] Active: 0 | Up: 0.0 KB/s (0 pkts) | Down: 0.0 KB/s (0.00 Mbps, 0 pkts) | Per-Player Down: 0.0 KB/s
+2026/10/28 04:27:37 [T+39s] Active: 0 | Up: 0.0 KB/s (0 pkts) | Down: 0.0 KB/s (0.00 Mbps, 0 pkts) | Per-Player Down: 0.0 KB/s
+2026/10/28 04:27:38 [T+40s] Active: 0 | Up: 0.0 KB/s (0 pkts) | Down: 0.0 KB/s (0.00 Mbps, 0 pkts) | Per-Player Down: 0.0 KB/s
+2026/10/28 04:27:39 [T+41s] Active: 0 | Up: 0.0 KB/s (0 pkts) | Down: 0.0 KB/s (0.00 Mbps, 0 pkts) | Per-Player Down: 0.0 KB/s
+2026/10/28 04:27:40 [T+42s] Active: 0 | Up: 0.0 KB/s (0 pkts) | Down: 0.0 KB/s (0.00 Mbps, 0 pkts) | Per-Player Down: 0.0 KB/s
+2026/10/28 04:27:41 [T+43s] Active: 0 | Up: 0.0 KB/s (0 pkts) | Down: 0.0 KB/s (0.00 Mbps, 0 pkts) | Per-Player Down: 0.0 KB/s
+2026/10/28 04:27:42 [T+44s] Active: 0 | Up: 0.0 KB/s (0 pkts) | Down: 0.0 KB/s (0.00 Mbps, 0 pkts) | Per-Player Down: 0.0 KB/s
+2026/10/28 04:27:43 [T+45s] Active: 0 | Up: 0.0 KB/s (0 pkts) | Down: 0.0 KB/s (0.00 Mbps, 0 pkts) | Per-Player Down: 0.0 KB/s
+2026/10/28 04:27:44 [T+46s] Active: 0 | Up: 0.0 KB/s (0 pkts) | Down: 0.0 KB/s (0.00 Mbps, 0 pkts) | Per-Player Down: 0.0 KB/s
+2026/10/28 04:27:45 [T+47s] Active: 0 | Up: 0.0 KB/s (0 pkts) | Down: 0.0 KB/s (0.00 Mbps, 0 pkts) | Per-Player Down: 0.0 KB/s
+2026/10/28 04:27:46 [T+48s] Active: 0 | Up: 0.0 KB/s (0 pkts) | Down: 0.0 KB/s (0.00 Mbps, 0 pkts) | Per-Player Down: 0.0 KB/s
+2026/10/28 04:27:47 [T+49s] Active: 0 | Up: 0.0 KB/s (0 pkts) | Down: 0.0 KB/s (0.00 Mbps, 0 pkts) | Per-Player Down: 0.0 KB/s
+2026/10/28 04:27:48 [T+50s] Active: 0 | Up: 0.0 KB/s (0 pkts) | Down: 0.0 KB/s (0.00 Mbps, 0 pkts) | Per-Player Down: 0.0 KB/s
+2026/10/28 04:27:49 [T+51s] Active: 0 | Up: 0.0 KB/s (0 pkts) | Down: 0.0 KB/s (0.00 Mbps, 0 pkts) | Per-Player Down: 0.0 KB/s
+2026/10/28 04:27:50 [T+52s] Active: 0 | Up: 0.0 KB/s (0 pkts) | Down: 0.0 KB/s (0.00 Mbps, 0 pkts) | Per-Player Down: 0.0 KB/s
+2026/10/28 04:27:51 [T+53s] Active: 0 | Up: 0.0 KB/s (0 pkts) | Down: 0.0 KB/s (0.00 Mbps, 0 pkts) | Per-Player Down: 0.0 KB/s
+2026/10/28 04:27:52 [T+54s] Active: 0 | Up: 0.0 KB/s (0 pkts) | Down: 0.0 KB/s (0.00 Mbps, 0 pkts) | Per-Player Down: 0.0 KB/s
+2026/10/28 04:27:53 [T+55s] Active: 0 | Up: 0.0 KB/s (0 pkts) | Down: 0.0 KB/s (0.00 Mbps, 0 pkts) | Per-Player Down: 0.0 KB/s
+2026/10/28 04:27:54 [T+56s] Active: 0 | Up: 0.0 KB/s (0 pkts) | Down: 0.0 KB/s (0.00 Mbps, 0 pkts) | Per-Player Down: 0.0 KB/s
+2026/10/28 04:27:55 [T+57s] Active: 0 | Up: 0.0 KB/s (0 pkts) | Down: 0.0 KB/s (0.00 Mbps, 0 pkts) | Per-Player Down: 0.0 KB/s
+2026/10/28 04:27:56 [T+58s] Active: 0 | Up: 0.0 KB/s (0 pkts) | Down: 0.0 KB/s (0.00 Mbps, 0 pkts) | Per-Player Down: 0.0 KB/s
+2026/10/28 04:27:57 [T+59s] Active: 0 | Up: 0.0 KB/s (0 pkts) | Down: 0.0 KB/s (0.00 Mbps, 0 pkts) | Per-Player Down: 0.0 KB/s
+{
+  "car_distance_m": 0,
+  "confirmed_seat_entries": 0,
+  "confirmed_seat_exits": 0,
+  "connection_errors": 64,
+  "driven_cars": 0,
+  "hold_seconds": 60.000166138,
+  "host": "war.vaidik.blog",
+  "joined": 64,
+  "max_car_speed_mps": 0,
+  "peak_peers": 6,
+  "ping_ms_max": 0,
+  "ping_ms_p50": 0,
+  "ping_ms_p95": 0,
+  "received_bytes": 0,
+  "replicated_damage_deliveries": 0,
+  "replicated_explosion_deliveries": 0,
+  "replicated_fire_deliveries": 0,
+  "requested_peers": 64,
+  "room": "1ca8fb67-6fdb-4bf0-abfa-c3fc98f249e0",
+  "sent_bytes": 0,
+  "snapshot_gap_ms_max": 0,
+  "snapshot_gap_ms_p50": 0,
+  "snapshot_gap_ms_p95": 0,
+  "snapshot_gap_ms_p99": 0
+}
+2026/10/28 04:27:58 === FINAL AUDIT RESULTS ===
+2026/10/28 04:27:58 Total Duration: 1m0.000166138s
+2026/10/28 04:27:58 Peak Players: 6; joined=64; errors=64
+2026/10/28 04:27:58 Total Sent: 0 packets (0.00 MB)
+2026/10/28 04:27:58 Total Received: 0 packets (0.00 MB)
+2026/10/28 04:27:58 Aggregate Download Throughput: 0.00 KB/s (0.00 Mbps)
+2026/10/28 04:27:58 Per-Player Download Rate: 0.00 KB/s (0.00 Mbps)

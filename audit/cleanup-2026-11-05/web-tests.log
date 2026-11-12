@@ -1,0 +1,12 @@
+python3 scripts/test_colyseus_web_packaging.py
+...
+----------------------------------------------------------------------
+Ran 3 tests in 0.001s
+
+OK
+python3 scripts/test_client_provenance.py
+....
+----------------------------------------------------------------------
+Ran 4 tests in 0.004s
+
+OK

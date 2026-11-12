@@ -1,0 +1,330 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+ERROR: Condition "ret != noErr" is true. Returning: ""
+   at: get_system_ca_certificates (platform/macos/os_macos.mm:1035)
+VEHICLE WHEEL TEST: 0 failures
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+ERROR: Condition "ret != noErr" is true. Returning: ""
+   at: get_system_ca_certificates (platform/macos/os_macos.mm:1035)
+PASS: native and Web release QA probe compiles
+PASS: audio disabled without synthesizing or allocating sound players
+PASS: latency does not correct five metres of valid later movement
+PASS: repeated rejected inputs still enforce the authoritative position
+PASS: respawn cannot reconcile against pre-death positions
+PASS: authoritative death cannot be bypassed by a pending respawn
+PASS: authoritative living snapshot recovers a latched respawn screen
+PASS: respawn recovery clears the outstanding request
+PASS: all events survive a batched delivery frame
+PASS: native gzip delivery retains the snapshot and every event
+PASS: events precede the newest world state
+PASS: input acknowledgement survives binary decoding
+PASS: state acknowledgements release only consumed movement and driving inputs
+PASS: remote weapons share immutable mesh resources with independent nodes
+PASS: stream decoder starts with bounded memory
+PASS: Go gzip stream fragment 1 decodes in Godot
+PASS: Go gzip stream fragment 2 decodes in Godot
+PASS: Go gzip stream fragment 3 decodes in Godot
+PASS: oversized stream frames are rejected before decompression
+PASS: reconnecting resets compression history
+PASS: join bursts queue actor creation
+PASS: one frame builds at most one remote actor
+PASS: departed actors and queued bots disappear without a three-second ghost
+PASS: explicit player departures survive binary decoding
+PASS: expired blood stains cannot break later bullet impacts
+PASS: connection interruption has a persistent synchronization banner
+PASS: terminal connection error returns to the room picker
+NETWORK RECOVERY TEST: 0 failures
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+ERROR: Condition "ret != noErr" is true. Returning: ""
+   at: get_system_ca_certificates (platform/macos/os_macos.mm:1035)
+PASS: map collision blocks both sides like the authority
+PASS: capsule climbs a low step without mantling or clipping
+PASS: low ceiling rejects the entire step-up capsule
+PASS: releasing crouch cannot grow the body into a ceiling
+PASS: standing resumes after clearing low cover
+PASS: valid stadium surfaces below -4m do not trigger a teleport
+TRAVERSAL SAFETY TEST: 0 failures
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+ERROR: Condition "ret != noErr" is true. Returning: ""
+   at: get_system_ca_certificates (platform/macos/os_macos.mm:1035)
+PASS: stadium has 12 authored spawns
+PASS: no artificial invisible boundaries
+PASS: spawn 0 has solid ground
+PASS: spawn 0 clears a player capsule
+PASS: spawn 1 has solid ground
+PASS: spawn 1 clears a player capsule
+PASS: spawn 2 has solid ground
+PASS: spawn 2 clears a player capsule
+PASS: spawn 3 has solid ground
+PASS: spawn 3 clears a player capsule
+PASS: spawn 4 has solid ground
+PASS: spawn 4 clears a player capsule
+PASS: spawn 5 has solid ground
+PASS: spawn 5 clears a player capsule
+PASS: spawn 6 has solid ground
+PASS: spawn 6 clears a player capsule
+PASS: spawn 7 has solid ground
+PASS: spawn 7 clears a player capsule
+PASS: spawn 8 has solid ground
+PASS: spawn 8 clears a player capsule
+PASS: spawn 9 has solid ground
+PASS: spawn 9 clears a player capsule
+PASS: spawn 10 has solid ground
+PASS: spawn 10 clears a player capsule
+PASS: spawn 11 has solid ground
+PASS: spawn 11 clears a player capsule
+PASS: uses the supplied stadium plus repaired rear surfaces
+PASS: missing rear faces are present
+PASS: rear faces align with the source mesh
+PASS: rear surfaces add no collision geometry
+PASS: both wall sides share the original atlas material
+PASS: rear triangles face outward using Godot winding
+PASS: no identically oriented overlapping triangles remain
+PASS: repaired full-detail mesh retains the expected non-overlapping surfaces
+PASS: authored railings and cut-outs retain alpha masking
+PASS: stadium responds to room time of day
+PASS: full texture resolution retained
+FOOTBALL MAP TEST: 0 failures
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+ERROR: Condition "ret != noErr" is true. Returning: ""
+   at: get_system_ca_certificates (platform/macos/os_macos.mm:1035)
+PASS: level aim has a deliberate overhand loft
+PASS: vertical aim keeps vertical throw control
+PASS: grenade retains speed and follows a ballistic arc after one second
+PASS: first impact bounces without erasing forward momentum
+PASS: level throw lands roughly 28 metres away
+PASS: grenade settles on the floor without sinking or rolling indefinitely
+PASS: sweep rebounds from a thin wall without tunnelling
+PASS: armed impact grenade stops on first contact
+PASS: visual grenade uses the shared flight model
+GRENADE BALLISTICS TEST: 0 failures; landing_x=28.079 final=(39.68426, 0.062, 0.0)
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+ERROR: Condition "ret != noErr" is true. Returning: ""
+   at: get_system_ca_certificates (platform/macos/os_macos.mm:1035)
+PASS: industrial uses the authored visible boundary
+PASS: industrial east road ray clear at z=-20.0
+PASS: industrial player capsule crosses former invisible wall at z=-20.0
+PASS: industrial visible perimeter fence remains solid at z=-20.0
+PASS: industrial east road ray clear at z=20.0
+PASS: industrial player capsule crosses former invisible wall at z=20.0
+PASS: industrial visible perimeter fence remains solid at z=20.0
+PASS: industrial east road ray clear at z=35.0
+PASS: industrial player capsule crosses former invisible wall at z=35.0
+PASS: industrial visible perimeter fence remains solid at z=35.0
+PASS: industrial warehouse wall remains solid
+PASS: dust2 uses the authored visible boundary
+PASS: dust2 east road ray clear at z=-20.0
+PASS: dust2 player capsule crosses former invisible wall at z=-20.0
+PASS: dust2 visible perimeter fence remains solid at z=-20.0
+PASS: dust2 east road ray clear at z=20.0
+PASS: dust2 player capsule crosses former invisible wall at z=20.0
+PASS: dust2 visible perimeter fence remains solid at z=20.0
+PASS: dust2 east road ray clear at z=35.0
+PASS: dust2 player capsule crosses former invisible wall at z=35.0
+PASS: dust2 visible perimeter fence remains solid at z=35.0
+PASS: dust2 warehouse wall remains solid
+PASS: nuketown uses the authored visible boundary
+PASS: nuketown east road ray clear at z=-20.0
+PASS: nuketown player capsule crosses former invisible wall at z=-20.0
+PASS: nuketown visible perimeter fence remains solid at z=-20.0
+PASS: nuketown east road ray clear at z=20.0
+PASS: nuketown player capsule crosses former invisible wall at z=20.0
+PASS: nuketown visible perimeter fence remains solid at z=20.0
+PASS: nuketown east road ray clear at z=35.0
+PASS: nuketown player capsule crosses former invisible wall at z=35.0
+PASS: nuketown visible perimeter fence remains solid at z=35.0
+PASS: nuketown warehouse wall remains solid
+PASS: canyon uses the authored visible boundary
+PASS: canyon east road ray clear at z=-20.0
+PASS: canyon player capsule crosses former invisible wall at z=-20.0
+PASS: canyon visible perimeter fence remains solid at z=-20.0
+PASS: canyon east road ray clear at z=20.0
+PASS: canyon player capsule crosses former invisible wall at z=20.0
+PASS: canyon visible perimeter fence remains solid at z=20.0
+PASS: canyon east road ray clear at z=35.0
+PASS: canyon player capsule crosses former invisible wall at z=35.0
+PASS: canyon visible perimeter fence remains solid at z=35.0
+PASS: canyon warehouse wall remains solid
+INDUSTRIAL COLLISION TEST: 0 failures
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+ERROR: Condition "ret != noErr" is true. Returning: ""
+   at: get_system_ca_certificates (platform/macos/os_macos.mm:1035)
+ERROR: Connection to remote host failed!
+   at: connect_to_host (core/io/stream_peer_tcp.cpp:90)
+ERROR: Connection to remote host failed!
+   at: connect_to_host (core/io/stream_peer_tcp.cpp:90)
+ERROR: Connection to remote host failed!
+   at: connect_to_host (core/io/stream_peer_tcp.cpp:90)
+ERROR: Connection to remote host failed!
+   at: connect_to_host (core/io/stream_peer_tcp.cpp:90)
+CHECK PASS AK consumes one cartridge
+CHECK PASS draw animation blocks firing
+CHECK PASS pistol consumes one cartridge
+CHECK PASS switch preserves rifle magazine
+CHECK PASS switch preserves pistol magazine
+CHECK PASS switch cancels reload without free ammo
+CHECK PASS 8x zoom uses optical FOV ratio
+CHECK PASS sniper uses scope aperture
+CHECK PASS recoil spring settles through frame spikes
+CHECK PASS bots and parked vehicles retain finite physics
+CHECK PASS pause suspends practice simulation
+CHECK PASS respawn resets weapon state
+CHECK PASS M4 Carbine fires and consumes ammo
+CHECK PASS weapon ID roundtrip
+CHECK PASS new weapon has muzzle and animated magazine
+CHECK PASS MP5 SMG fires and consumes ammo
+CHECK PASS weapon ID roundtrip
+CHECK PASS new weapon has muzzle and animated magazine
+CHECK PASS DMR-52 fires and consumes ammo
+CHECK PASS weapon ID roundtrip
+CHECK PASS new weapon has muzzle and animated magazine
+CHECK PASS DMR starts at 4x
+CHECK PASS DMR supports 6x
+CHECK PASS DMR requires trigger release between shots
+CHECK PASS DMR ADS displays the scope reticle
+CHECK PASS cannot equip a weapon outside selected slots
+CHECK PASS tracer uses rifle muzzle velocity
+CHECK PASS sniper retains lethal damage at maximum range
+CHECK PASS hit feedback uses the bounded blood pool
+CHECK PASS blood effect expires and particles are reused
+WEAPON TEST: 0 failures
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+ERROR: Condition "ret != noErr" is true. Returning: ""
+   at: get_system_ca_certificates (platform/macos/os_macos.mm:1035)
+CHECK PASS Go combat fixture contains 280 weapon/zone/range cases
+CHECK PASS client zone damage matches Go combat fixture across weapons, zones, and ranges
+RIG_BONES count=65 sampled=14
+RIG_SAMPLE Rifle Idle t=0.0 mixamorig_Hips=(-0.003,0.913,-0.008) mixamorig_Spine=(0.001,1.020,0.015) mixamorig_Spine1=(0.004,1.146,0.031) mixamorig_Spine2=(0.005,1.291,0.044) mixamorig_Head=(0.005,1.514,0.028) mixamorig_HeadTop_End=(0.029,1.738,-0.092) mixamorig_LeftArm=(-0.162,1.347,0.034) mixamorig_LeftForeArm=(-0.270,1.131,-0.030) mixamorig_RightArm=(0.184,1.362,0.030) mixamorig_RightForeArm=(0.288,1.150,-0.051) mixamorig_LeftUpLeg=(-0.140,0.860,-0.018) mixamorig_LeftLeg=(-0.193,0.468,-0.126) mixamorig_RightUpLeg=(0.127,0.845,0.001) mixamorig_RightLeg=(0.145,0.435,-0.007)
+RIG_SAMPLE Rifle Idle t=2.15 mixamorig_Hips=(-0.056,0.915,-0.028) mixamorig_Spine=(-0.053,1.022,-0.006) mixamorig_Spine1=(-0.053,1.148,0.008) mixamorig_Spine2=(-0.055,1.293,0.021) mixamorig_Head=(-0.060,1.516,0.003) mixamorig_HeadTop_End=(-0.039,1.744,-0.111) mixamorig_LeftArm=(-0.223,1.346,0.005) mixamorig_LeftForeArm=(-0.314,1.125,-0.069) mixamorig_RightArm=(0.122,1.367,0.012) mixamorig_RightForeArm=(0.238,1.158,-0.060) mixamorig_LeftUpLeg=(-0.192,0.861,-0.043) mixamorig_LeftLeg=(-0.220,0.468,-0.157) mixamorig_RightUpLeg=(0.074,0.847,-0.013) mixamorig_RightLeg=(0.118,0.439,0.001)
+RIG_SAMPLE Rifle Idle t=4.3 mixamorig_Hips=(-0.069,0.917,-0.037) mixamorig_Spine=(-0.066,1.024,-0.015) mixamorig_Spine1=(-0.065,1.150,-0.000) mixamorig_Spine2=(-0.067,1.295,0.012) mixamorig_Head=(-0.071,1.518,-0.007) mixamorig_HeadTop_End=(-0.132,1.728,-0.138) mixamorig_LeftArm=(-0.235,1.348,-0.001) mixamorig_LeftForeArm=(-0.331,1.127,-0.064) mixamorig_RightArm=(0.111,1.368,-0.001) mixamorig_RightForeArm=(0.225,1.159,-0.074) mixamorig_LeftUpLeg=(-0.205,0.863,-0.053) mixamorig_LeftLeg=(-0.224,0.467,-0.160) mixamorig_RightUpLeg=(0.060,0.849,-0.020) mixamorig_RightLeg=(0.108,0.442,0.004)
+RIG_SAMPLE Rifle Idle t=6.45 mixamorig_Hips=(-0.034,0.914,-0.013) mixamorig_Spine=(-0.029,1.021,0.010) mixamorig_Spine1=(-0.028,1.147,0.026) mixamorig_Spine2=(-0.028,1.292,0.039) mixamorig_Head=(-0.029,1.515,0.022) mixamorig_HeadTop_End=(-0.015,1.735,-0.107) mixamorig_LeftArm=(-0.195,1.347,0.026) mixamorig_LeftForeArm=(-0.302,1.127,-0.023) mixamorig_RightArm=(0.151,1.364,0.027) mixamorig_RightForeArm=(0.258,1.152,-0.050) mixamorig_LeftUpLeg=(-0.170,0.861,-0.023) mixamorig_LeftLeg=(-0.210,0.469,-0.138) mixamorig_RightUpLeg=(0.097,0.846,-0.004) mixamorig_RightLeg=(0.129,0.437,-0.003)
+RIG_SAMPLE Rifle Run t=0.0 mixamorig_Hips=(0.002,0.848,-0.003) mixamorig_Spine=(0.007,0.952,-0.038) mixamorig_Spine1=(0.013,1.059,-0.107) mixamorig_Spine2=(0.019,1.177,-0.191) mixamorig_Head=(0.026,1.334,-0.350) mixamorig_HeadTop_End=(0.020,1.523,-0.522) mixamorig_LeftArm=(-0.156,1.226,-0.254) mixamorig_LeftForeArm=(-0.285,1.012,-0.259) mixamorig_RightArm=(0.217,1.241,-0.256) mixamorig_RightForeArm=(0.304,1.036,-0.367) mixamorig_LeftUpLeg=(-0.135,0.796,0.006) mixamorig_LeftLeg=(-0.108,0.498,-0.276) mixamorig_RightUpLeg=(0.129,0.796,0.048) mixamorig_RightLeg=(0.101,0.387,0.032)
+RIG_SAMPLE Rifle Run t=0.175 mixamorig_Hips=(0.005,0.852,0.015) mixamorig_Spine=(0.020,0.954,-0.022) mixamorig_Spine1=(0.021,1.064,-0.087) mixamorig_Spine2=(0.017,1.186,-0.166) mixamorig_Head=(-0.005,1.349,-0.317) mixamorig_HeadTop_End=(0.008,1.530,-0.496) mixamorig_LeftArm=(-0.163,1.258,-0.168) mixamorig_LeftForeArm=(-0.321,1.068,-0.135) mixamorig_RightArm=(0.193,1.232,-0.285) mixamorig_RightForeArm=(0.215,1.015,-0.405) mixamorig_LeftUpLeg=(-0.136,0.817,0.037) mixamorig_LeftLeg=(-0.106,0.479,-0.193) mixamorig_RightUpLeg=(0.129,0.785,0.057) mixamorig_RightLeg=(0.114,0.427,0.256)
+RIG_SAMPLE Rifle Run t=0.35 mixamorig_Hips=(-0.016,0.852,0.067) mixamorig_Spine=(-0.013,0.956,0.032) mixamorig_Spine1=(-0.015,1.065,-0.033) mixamorig_Spine2=(-0.020,1.186,-0.113) mixamorig_Head=(-0.026,1.349,-0.267) mixamorig_HeadTop_End=(-0.019,1.534,-0.442) mixamorig_LeftArm=(-0.183,1.195,-0.188) mixamorig_LeftForeArm=(-0.274,0.965,-0.220) mixamorig_RightArm=(0.168,1.287,-0.155) mixamorig_RightForeArm=(0.304,1.109,-0.264) mixamorig_LeftUpLeg=(-0.152,0.803,0.093) mixamorig_LeftLeg=(-0.131,0.393,0.100) mixamorig_RightUpLeg=(0.115,0.797,0.102) mixamorig_RightLeg=(0.102,0.496,-0.177)
+RIG_SAMPLE Rifle Run t=0.525 mixamorig_Hips=(-0.014,0.846,0.036) mixamorig_Spine=(-0.017,0.950,0.003) mixamorig_Spine1=(-0.011,1.060,-0.061) mixamorig_Spine2=(-0.004,1.182,-0.140) mixamorig_Head=(0.020,1.347,-0.291) mixamorig_HeadTop_End=(0.031,1.532,-0.466) mixamorig_LeftArm=(-0.141,1.179,-0.262) mixamorig_LeftForeArm=(-0.170,0.935,-0.305) mixamorig_RightArm=(0.173,1.300,-0.119) mixamorig_RightForeArm=(0.366,1.155,-0.184) mixamorig_LeftUpLeg=(-0.147,0.783,0.045) mixamorig_LeftLeg=(-0.140,0.410,0.216) mixamorig_RightUpLeg=(0.117,0.804,0.087) mixamorig_RightLeg=(0.097,0.473,-0.156)
+RIG_SAMPLE Firing walk Rifle t=0.0 mixamorig_Hips=(0.001,0.858,-0.003) mixamorig_Spine=(-0.008,0.963,0.024) mixamorig_Spine1=(0.006,1.089,0.038) mixamorig_Spine2=(0.027,1.233,0.050) mixamorig_Head=(0.081,1.443,0.025) mixamorig_HeadTop_End=(0.199,1.577,-0.157) mixamorig_LeftArm=(-0.087,1.330,-0.071) mixamorig_LeftForeArm=(-0.075,1.215,-0.292) mixamorig_RightArm=(0.169,1.272,0.177) mixamorig_RightForeArm=(0.288,1.122,0.016) mixamorig_LeftUpLeg=(-0.114,0.806,-0.079) mixamorig_LeftLeg=(-0.102,0.448,-0.280) mixamorig_RightUpLeg=(0.111,0.788,0.065) mixamorig_RightLeg=(0.173,0.444,-0.150)
+RIG_SAMPLE Firing walk Rifle t=0.35 mixamorig_Hips=(-0.002,0.888,0.021) mixamorig_Spine=(-0.013,0.993,0.046) mixamorig_Spine1=(-0.005,1.120,0.057) mixamorig_Spine2=(0.009,1.264,0.066) mixamorig_Head=(0.054,1.477,0.039) mixamorig_HeadTop_End=(0.167,1.622,-0.137) mixamorig_LeftArm=(-0.110,1.357,-0.057) mixamorig_LeftForeArm=(-0.096,1.244,-0.279) mixamorig_RightArm=(0.147,1.312,0.195) mixamorig_RightForeArm=(0.267,1.161,0.036) mixamorig_LeftUpLeg=(-0.109,0.835,-0.065) mixamorig_LeftLeg=(-0.088,0.482,-0.274) mixamorig_RightUpLeg=(0.102,0.819,0.099) mixamorig_RightLeg=(0.177,0.415,0.081)
+RIG_SAMPLE Firing walk Rifle t=0.7 mixamorig_Hips=(-0.042,0.883,-0.001) mixamorig_Spine=(-0.046,0.987,0.033) mixamorig_Spine1=(-0.031,1.112,0.048) mixamorig_Spine2=(-0.011,1.256,0.061) mixamorig_Head=(0.043,1.466,0.037) mixamorig_HeadTop_End=(0.162,1.607,-0.139) mixamorig_LeftArm=(-0.124,1.356,-0.063) mixamorig_LeftForeArm=(-0.118,1.238,-0.283) mixamorig_RightArm=(0.126,1.295,0.192) mixamorig_RightForeArm=(0.243,1.141,0.034) mixamorig_LeftUpLeg=(-0.159,0.842,-0.081) mixamorig_LeftLeg=(-0.102,0.442,-0.156) mixamorig_RightUpLeg=(0.064,0.804,0.063) mixamorig_RightLeg=(0.174,0.462,-0.136)
+RIG_SAMPLE Firing walk Rifle t=1.05 mixamorig_Hips=(-0.026,0.870,0.002) mixamorig_Spine=(-0.025,0.978,0.022) mixamorig_Spine1=(-0.012,1.104,0.034) mixamorig_Spine2=(0.005,1.248,0.046) mixamorig_Head=(0.053,1.460,0.022) mixamorig_HeadTop_End=(0.171,1.600,-0.155) mixamorig_LeftArm=(-0.107,1.341,-0.079) mixamorig_LeftForeArm=(-0.101,1.222,-0.298) mixamorig_RightArm=(0.143,1.294,0.180) mixamorig_RightForeArm=(0.261,1.143,0.020) mixamorig_LeftUpLeg=(-0.151,0.821,-0.056) mixamorig_LeftLeg=(-0.129,0.421,0.033) mixamorig_RightUpLeg=(0.088,0.799,0.061) mixamorig_RightLeg=(0.103,0.485,-0.203)
+CHECK PASS remote head ray resolves to its anatomical area
+CHECK PASS remote torso ray resolves to its anatomical area
+CHECK PASS remote torso ray resolves to its anatomical area
+CHECK PASS remote stomach ray resolves to its anatomical area
+CHECK PASS remote arm ray resolves to its anatomical area
+CHECK PASS remote leg ray resolves to its anatomical area
+CHECK PASS remote clear miss remains a miss
+CHECK PASS remote narrow neck area does not inflate into a head hit
+CHECK PASS local bot head ray resolves to its anatomical area
+CHECK PASS local bot torso ray resolves to its anatomical area
+CHECK PASS local bot torso ray resolves to its anatomical area
+CHECK PASS local bot stomach ray resolves to its anatomical area
+CHECK PASS local bot arm ray resolves to its anatomical area
+CHECK PASS local bot leg ray resolves to its anatomical area
+CHECK PASS local bot clear miss remains a miss
+CHECK PASS local bot narrow neck area does not inflate into a head hit
+CHECK PASS layer-2 bot body cannot mask the layer-4 head zone
+CHECK PASS rotated remote head ray resolves to its anatomical area
+CHECK PASS rotated remote torso ray resolves to its anatomical area
+CHECK PASS rotated remote torso ray resolves to its anatomical area
+CHECK PASS rotated remote stomach ray resolves to its anatomical area
+CHECK PASS rotated remote arm ray resolves to its anatomical area
+CHECK PASS rotated remote leg ray resolves to its anatomical area
+CHECK PASS rotated remote clear miss remains a miss
+CHECK PASS rotated remote narrow neck area does not inflate into a head hit
+CHECK PASS rotated local bot head ray resolves to its anatomical area
+CHECK PASS rotated local bot torso ray resolves to its anatomical area
+CHECK PASS rotated local bot torso ray resolves to its anatomical area
+CHECK PASS rotated local bot stomach ray resolves to its anatomical area
+CHECK PASS rotated local bot arm ray resolves to its anatomical area
+CHECK PASS rotated local bot leg ray resolves to its anatomical area
+CHECK PASS rotated local bot clear miss remains a miss
+CHECK PASS rotated local bot narrow neck area does not inflate into a head hit
+CHECK PASS remote at 20m selects visual LOD 0
+CHECK PASS remote anatomical zones stay active at 20m visual LOD 0
+CHECK PASS remote LOD 0 at 20m head ray resolves to its anatomical area
+CHECK PASS remote LOD 0 at 20m torso ray resolves to its anatomical area
+CHECK PASS remote LOD 0 at 20m torso ray resolves to its anatomical area
+CHECK PASS remote LOD 0 at 20m stomach ray resolves to its anatomical area
+CHECK PASS remote LOD 0 at 20m arm ray resolves to its anatomical area
+CHECK PASS remote LOD 0 at 20m leg ray resolves to its anatomical area
+CHECK PASS remote LOD 0 at 20m clear miss remains a miss
+CHECK PASS remote LOD 0 at 20m narrow neck area does not inflate into a head hit
+CHECK PASS remote at 70m selects visual LOD 1
+CHECK PASS remote anatomical zones stay active at 70m visual LOD 1
+CHECK PASS remote LOD 1 at 70m head ray resolves to its anatomical area
+CHECK PASS remote LOD 1 at 70m torso ray resolves to its anatomical area
+CHECK PASS remote LOD 1 at 70m torso ray resolves to its anatomical area
+CHECK PASS remote LOD 1 at 70m stomach ray resolves to its anatomical area
+CHECK PASS remote LOD 1 at 70m arm ray resolves to its anatomical area
+CHECK PASS remote LOD 1 at 70m leg ray resolves to its anatomical area
+CHECK PASS remote LOD 1 at 70m clear miss remains a miss
+CHECK PASS remote LOD 1 at 70m narrow neck area does not inflate into a head hit
+CHECK PASS remote at 130m selects visual LOD 2
+CHECK PASS remote anatomical zones stay active at 130m visual LOD 2
+CHECK PASS remote LOD 2 at 130m head ray resolves to its anatomical area
+CHECK PASS remote LOD 2 at 130m torso ray resolves to its anatomical area
+CHECK PASS remote LOD 2 at 130m torso ray resolves to its anatomical area
+CHECK PASS remote LOD 2 at 130m stomach ray resolves to its anatomical area
+CHECK PASS remote LOD 2 at 130m arm ray resolves to its anatomical area
+CHECK PASS remote LOD 2 at 130m leg ray resolves to its anatomical area
+CHECK PASS remote LOD 2 at 130m clear miss remains a miss
+CHECK PASS remote LOD 2 at 130m narrow neck area does not inflate into a head hit
+CHECK PASS driver state disables all remote anatomical areas
+CHECK PASS leaving driver state restores all remote anatomical areas
+CHECK PASS online predicted hit does not show confirmed local hitmarker
+CHECK PASS server hit confirmation still shows online hitmarker
+CHECK PASS practice mode retains immediate local hitmarker
+HITBOX TEST: 0 failures
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+ERROR: Condition "ret != noErr" is true. Returning: ""
+   at: get_system_ca_certificates (platform/macos/os_macos.mm:1035)
+AUTOTEST: deployed map=industrial player_at=(-22.0, 1.5, -22.0)
+ERROR: Connection to remote host failed!
+   at: connect_to_host (core/io/stream_peer_tcp.cpp:90)
+ERROR: Connection to remote host failed!
+   at: connect_to_host (core/io/stream_peer_tcp.cpp:90)
+ERROR: Connection to remote host failed!
+   at: connect_to_host (core/io/stream_peer_tcp.cpp:90)
+ERROR: Connection to remote host failed!
+   at: connect_to_host (core/io/stream_peer_tcp.cpp:90)
+AUTOTEST: server fire decode kind=fire shooter=BOT_1 wall=true
+AUTOTEST: state bytes=59
+AUTOTEST: moving forward, pos=(-22.0, 0.918089, -22.0)
+AUTOTEST: moved to (-22.0, 0.918089, -27.76996)
+AUTOTEST: fired, ammo=29 tracers_active=1
+AUTOTEST: grenade thrown, bots=7
+AUTOTEST: bot damaged hp=66.0
+AUTOTEST: bot killed dead=true
+AUTOTEST: player hp=75.0
+AUTOTEST: local kills=1
+AUTOTEST: roster entries=8 player_kills=1
+AUTOTEST: switched to pistol ammo=12
+AUTOTEST: switched to HMG ammo=60 name=WB-46 LMG
+AUTOTEST: back to AK ammo=29
+AUTOTEST: vehicle entered! jeep_pos=(-20.0, 0.784834, 19.99997) vel=(0.0, 0.030673, 0.008335)
+AUTOTEST: vehicle transmission verified! Gear 1=52km/h (climb), Gear 2=115km/h (speed)
+AUTOTEST: vehicle toggled to wide 3rd person chase! is_wide=true spring_len=8.80000019073486
+AUTOTEST: vehicle toggled back to normal 3rd person chase! is_wide=false spring_len=6.19999980926514
+AUTOTEST: vehicle exited safely! player_pos=(-22.4, 1.057683, -1.808267) driving=false
+AUTOTEST: scoreboard open=true mouse_mode=0
+AUTOTEST: bot_damage_enabled=false
+AUTOTEST: peaceful test hp_before=100.0 hp_after=100.0 (damage prevented=true)
+AUTOTEST: scoreboard closed, mouse_mode=0
+AUTOTEST: DONE pos=(-22.4, 1.057683, -1.808267) hp=100.0 phase=1 fps=1.0 phys_ms=0.0
+

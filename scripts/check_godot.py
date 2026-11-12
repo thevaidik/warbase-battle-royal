@@ -7,19 +7,36 @@ import subprocess
 import sys
 import tempfile
 import time
+from map_integrity_gate import ensure_map_integrity
 
 root = pathlib.Path(__file__).resolve().parents[1]
 godot = os.environ.get("GODOT", "/Applications/Godot.app/Contents/MacOS/Godot")
+ensure_map_integrity(root, pathlib.Path(godot))
 commands = [
+    (["--script", "res://scripts/tests/test_drone_hangar.gd"], "DRONE_HANGAR_TEST failures=0"),
+    (["--script", "res://scripts/tests/test_weapon_clearance.gd"], "WEAPON CLEARANCE TEST: 0 failures"),
+    (["res://scenes/tests/DroneVisuals.tscn"], "DRONE_VISUAL_TEST failures=0"),
+    (["--script", "res://scripts/tests/test_drone_smoke.gd", "--fixed-fps", "60"], "DRONE_SMOKE_TEST failures=0"),
+    (["--script", "res://scripts/tests/test_render_pose_ownership.gd"], "RENDER_POSE_OWNERSHIP failures=0"),
+    (["--script", "res://scripts/tests/test_vehicle_impact_response.gd"], "VEHICLE_IMPACT_RESPONSE failures=0"),
+    (["res://scenes/tests/VehiclePredictionParity.tscn"], "VEHICLE_PREDICTION_PARITY"),
+    (["--script", "res://scripts/tests/test_colyseus_world_geometry.gd"], "GEOMETRY_PARITY_OK"),
+    (["--script", "res://scripts/tests/test_capsule_contact.gd"], "CAPSULE CONTACT TEST: 0 failures"),
+    (["--script", "res://scripts/tests/test_nameplates.gd"], "NAMEPLATE_TEST failures=0"),
+    (["--script", "res://scripts/tests/test_input_focus.gd"], "INPUT_FOCUS_TEST failures=0"),
+    (["--script", "res://scripts/tests/test_desert_canyon_collision.gd", "--fixed-fps", "60"], "DESERT CANYON COLLISION TEST: 0 failures"),
+    (["res://scenes/tests/SDKRoomOwnership.tscn"], "SDK_ROOM_OWNERSHIP_OK failures=0"),
+    (["res://scenes/tests/SchemaSnapshot.tscn"], "SCHEMA_SNAPSHOT parity=64"),
+    (["res://scenes/tests/WorldGeometryPrecomputed.tscn"], "WORLD_GEOMETRY_PRECOMPUTED"),
+    (["res://scenes/tests/RoomSignalCleanup.tscn"], "ROOM_SIGNAL_CLEANUP_OK"),
+    (["res://scenes/tests/ObjectiveMarkers.tscn"], "OBJECTIVE_MARKERS_OK"),
+    (["res://scenes/tests/ColyseusReconnectLifecycle.tscn"], "COLYSEUS_RECONNECT_LIFECYCLE_TEST_OK"),
     (["--script", "res://scripts/tests/test_vehicle_wheels.gd", "--fixed-fps", "60"], "VEHICLE WHEEL TEST: 0 failures"),
     (["--script", "res://scripts/tests/test_network_recovery.gd", "--fixed-fps", "60"], "NETWORK RECOVERY TEST: 0 failures"),
-    (["--script", "res://scripts/tests/test_traversal_safety.gd", "--fixed-fps", "60"], "TRAVERSAL SAFETY TEST: 0 failures"),
     (["--script", "res://scripts/tests/test_football_map.gd", "--fixed-fps", "60"], "FOOTBALL MAP TEST: 0 failures"),
     (["--script", "res://scripts/tests/test_grenade_ballistics.gd", "--fixed-fps", "60"], "GRENADE BALLISTICS TEST: 0 failures"),
     (["--script", "res://scripts/tests/test_industrial_collision.gd", "--fixed-fps", "60"], "INDUSTRIAL COLLISION TEST: 0 failures"),
     (["--script", "res://scripts/tests/test_weapon_handling.gd", "--fixed-fps", "60"], "WEAPON TEST: 0 failures"),
-    (["--script", "res://scripts/tests/test_hitboxes.gd", "--fixed-fps", "60"], "HITBOX TEST: 0 failures"),
-    (["res://scenes/Main.tscn", "--fixed-fps", "60", "--", "autotest", "host=localhost:18091"], "AUTOTEST: DONE"),
 ]
 for arguments, marker in commands:
     with tempfile.TemporaryDirectory(prefix="warbase-test-") as directory:

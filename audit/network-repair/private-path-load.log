@@ -1,0 +1,127 @@
+2026/10/27 23:21:08 === BOUNDED MATCH TRAFFIC + REAL AUTHORITATIVE VEHICLE INPUT TEST ===
+2026/10/27 23:21:08 Target Host: 100.107.118.10:8081 | Room: f5bffbcd-808d-418e-be79-a94af96d69ca | Simulated Players: 64 | Duration: 30s
+2026/10/27 23:21:10 All 64 simulated players connecting...
+2026/10/27 23:21:11 [T+01s] Active: 64 | Up: 94.2 KB/s (3090 pkts) | Down: 1713.9 KB/s (13.39 Mbps, 1579 pkts) | Per-Player Down: 26.8 KB/s
+2026/10/27 23:21:12 [T+02s] Active: 64 | Up: 40.9 KB/s (1195 pkts) | Down: 1304.3 KB/s (10.19 Mbps, 1342 pkts) | Per-Player Down: 20.4 KB/s
+2026/10/27 23:21:13 [T+03s] Active: 64 | Up: 84.7 KB/s (2950 pkts) | Down: 1860.2 KB/s (14.53 Mbps, 1280 pkts) | Per-Player Down: 29.1 KB/s
+2026/10/27 23:21:14 [T+04s] Active: 64 | Up: 76.7 KB/s (2573 pkts) | Down: 1610.9 KB/s (12.59 Mbps, 1231 pkts) | Per-Player Down: 25.2 KB/s
+2026/10/27 23:21:16 [T+05s] Active: 64 | Up: 30.4 KB/s (927 pkts) | Down: 931.4 KB/s (7.28 Mbps, 957 pkts) | Per-Player Down: 14.6 KB/s
+2026/10/27 23:21:16 [T+06s] Active: 64 | Up: 40.6 KB/s (1285 pkts) | Down: 1305.4 KB/s (10.20 Mbps, 1275 pkts) | Per-Player Down: 20.4 KB/s
+2026/10/27 23:21:18 [T+07s] Active: 64 | Up: 62.6 KB/s (1991 pkts) | Down: 1413.3 KB/s (11.04 Mbps, 1185 pkts) | Per-Player Down: 22.1 KB/s
+2026/10/27 23:21:18 [T+08s] Active: 64 | Up: 36.6 KB/s (1067 pkts) | Down: 1131.0 KB/s (8.84 Mbps, 1135 pkts) | Per-Player Down: 17.7 KB/s
+2026/10/27 23:21:19 [T+09s] Active: 64 | Up: 32.8 KB/s (979 pkts) | Down: 787.3 KB/s (6.15 Mbps, 741 pkts) | Per-Player Down: 12.3 KB/s
+2026/10/27 23:21:20 [T+10s] Active: 64 | Up: 41.2 KB/s (1276 pkts) | Down: 1366.2 KB/s (10.67 Mbps, 1276 pkts) | Per-Player Down: 21.3 KB/s
+2026/10/27 23:21:22 [T+11s] Active: 64 | Up: 73.1 KB/s (2441 pkts) | Down: 1792.2 KB/s (14.00 Mbps, 1486 pkts) | Per-Player Down: 28.0 KB/s
+2026/10/27 23:21:22 [T+12s] Active: 64 | Up: 43.1 KB/s (1397 pkts) | Down: 1564.6 KB/s (12.22 Mbps, 1264 pkts) | Per-Player Down: 24.4 KB/s
+2026/10/27 23:21:24 [T+13s] Active: 64 | Up: 28.4 KB/s (806 pkts) | Down: 1035.9 KB/s (8.09 Mbps, 758 pkts) | Per-Player Down: 16.2 KB/s
+2026/10/27 23:21:24 [T+14s] Active: 64 | Up: 13.3 KB/s (370 pkts) | Down: 318.9 KB/s (2.49 Mbps, 247 pkts) | Per-Player Down: 5.0 KB/s
+2026/10/27 23:21:26 [T+15s] Active: 64 | Up: 30.5 KB/s (908 pkts) | Down: 1198.5 KB/s (9.36 Mbps, 981 pkts) | Per-Player Down: 18.7 KB/s
+2026/10/27 23:21:27 [T+16s] Active: 64 | Up: 22.1 KB/s (590 pkts) | Down: 513.4 KB/s (4.01 Mbps, 521 pkts) | Per-Player Down: 8.0 KB/s
+2026/10/27 23:21:27 [T+17s] Active: 64 | Up: 16.8 KB/s (443 pkts) | Down: 323.1 KB/s (2.52 Mbps, 343 pkts) | Per-Player Down: 5.0 KB/s
+2026/10/27 23:21:30 [T+19s] Active: 64 | Up: 18.6 KB/s (530 pkts) | Down: 779.9 KB/s (6.09 Mbps, 810 pkts) | Per-Player Down: 12.2 KB/s
+2026/10/27 23:21:30 [T+20s] Active: 64 | Up: 10.6 KB/s (300 pkts) | Down: 255.8 KB/s (2.00 Mbps, 243 pkts) | Per-Player Down: 4.0 KB/s
+2026/10/27 23:21:31 [T+21s] Active: 64 | Up: 4.5 KB/s (124 pkts) | Down: 78.3 KB/s (0.61 Mbps, 80 pkts) | Per-Player Down: 1.2 KB/s
+2026/10/27 23:21:33 [T+22s] Active: 64 | Up: 36.4 KB/s (1103 pkts) | Down: 1303.5 KB/s (10.18 Mbps, 1242 pkts) | Per-Player Down: 20.4 KB/s
+2026/10/27 23:21:33 [T+23s] Active: 64 | Up: 10.3 KB/s (291 pkts) | Down: 293.2 KB/s (2.29 Mbps, 315 pkts) | Per-Player Down: 4.6 KB/s
+2026/10/27 23:21:35 [T+24s] Active: 64 | Up: 12.0 KB/s (337 pkts) | Down: 351.2 KB/s (2.74 Mbps, 372 pkts) | Per-Player Down: 5.5 KB/s
+2026/10/27 23:21:35 [T+25s] Active: 64 | Up: 15.8 KB/s (456 pkts) | Down: 684.3 KB/s (5.35 Mbps, 722 pkts) | Per-Player Down: 10.7 KB/s
+2026/10/27 23:21:36 [T+26s] Active: 64 | Up: 70.8 KB/s (2267 pkts) | Down: 1958.4 KB/s (15.30 Mbps, 1641 pkts) | Per-Player Down: 30.6 KB/s
+2026/10/27 23:21:38 [T+27s] Active: 64 | Up: 25.8 KB/s (773 pkts) | Down: 409.2 KB/s (3.20 Mbps, 343 pkts) | Per-Player Down: 6.4 KB/s
+2026/10/27 23:21:40 [T+29s] Active: 64 | Up: 21.3 KB/s (551 pkts) | Down: 422.0 KB/s (3.30 Mbps, 462 pkts) | Per-Player Down: 6.6 KB/s
+2026/10/27 23:21:40 [BOT_STRESS_58] read ended: read tcp 100.73.15.57:62637->100.107.118.10:8081: use of closed network connection
+2026/10/27 23:21:40 [BOT_STRESS_36] read ended: read tcp 100.73.15.57:62615->100.107.118.10:8081: use of closed network connection
+2026/10/27 23:21:40 [BOT_STRESS_61] read ended: read tcp 100.73.15.57:62641->100.107.118.10:8081: use of closed network connection
+2026/10/27 23:21:40 [BOT_STRESS_46] read ended: read tcp 100.73.15.57:62625->100.107.118.10:8081: use of closed network connection
+2026/10/27 23:21:40 [BOT_STRESS_25] read ended: read tcp 100.73.15.57:62604->100.107.118.10:8081: use of closed network connection
+2026/10/27 23:21:40 [BOT_STRESS_02] read ended: read tcp 100.73.15.57:62578->100.107.118.10:8081: use of closed network connection
+2026/10/27 23:21:40 [BOT_STRESS_42] read ended: read tcp 100.73.15.57:62621->100.107.118.10:8081: use of closed network connection
+2026/10/27 23:21:40 [BOT_STRESS_33] read ended: read tcp 100.73.15.57:62612->100.107.118.10:8081: use of closed network connection
+2026/10/27 23:21:40 [BOT_STRESS_17] read ended: read tcp 100.73.15.57:62596->100.107.118.10:8081: use of closed network connection
+2026/10/27 23:21:40 [BOT_STRESS_55] read ended: read tcp 100.73.15.57:62634->100.107.118.10:8081: use of closed network connection
+2026/10/27 23:21:40 [BOT_STRESS_05] read ended: read tcp 100.73.15.57:62581->100.107.118.10:8081: use of closed network connection
+2026/10/27 23:21:40 [BOT_STRESS_03] read ended: read tcp 100.73.15.57:62579->100.107.118.10:8081: use of closed network connection
+2026/10/27 23:21:40 [BOT_STRESS_45] read ended: read tcp 100.73.15.57:62624->100.107.118.10:8081: use of closed network connection
+2026/10/27 23:21:40 [BOT_STRESS_11] read ended: read tcp 100.73.15.57:62588->100.107.118.10:8081: use of closed network connection
+2026/10/27 23:21:40 [BOT_STRESS_13] read ended: read tcp 100.73.15.57:62590->100.107.118.10:8081: use of closed network connection
+2026/10/27 23:21:40 [BOT_STRESS_29] read ended: read tcp 100.73.15.57:62608->100.107.118.10:8081: use of closed network connection
+2026/10/27 23:21:40 [BOT_STRESS_08] read ended: read tcp 100.73.15.57:62585->100.107.118.10:8081: use of closed network connection
+2026/10/27 23:21:40 [BOT_STRESS_04] read ended: read tcp 100.73.15.57:62580->100.107.118.10:8081: use of closed network connection
+2026/10/27 23:21:40 [BOT_STRESS_40] read ended: read tcp 100.73.15.57:62619->100.107.118.10:8081: use of closed network connection
+2026/10/27 23:21:40 [BOT_STRESS_31] read ended: read tcp 100.73.15.57:62610->100.107.118.10:8081: use of closed network connection
+2026/10/27 23:21:40 [BOT_STRESS_53] read ended: read tcp 100.73.15.57:62632->100.107.118.10:8081: use of closed network connection
+2026/10/27 23:21:40 [BOT_STRESS_27] read ended: read tcp 100.73.15.57:62606->100.107.118.10:8081: use of closed network connection
+2026/10/27 23:21:40 [BOT_STRESS_18] read ended: read tcp 100.73.15.57:62597->100.107.118.10:8081: use of closed network connection
+2026/10/27 23:21:40 [BOT_STRESS_20] read ended: read tcp 100.73.15.57:62599->100.107.118.10:8081: use of closed network connection
+2026/10/27 23:21:40 [BOT_STRESS_44] read ended: read tcp 100.73.15.57:62623->100.107.118.10:8081: use of closed network connection
+2026/10/27 23:21:40 [BOT_STRESS_23] read ended: read tcp 100.73.15.57:62602->100.107.118.10:8081: use of closed network connection
+2026/10/27 23:21:40 [BOT_STRESS_00] read ended: read tcp 100.73.15.57:62576->100.107.118.10:8081: use of closed network connection
+2026/10/27 23:21:40 [BOT_STRESS_52] read ended: read tcp 100.73.15.57:62631->100.107.118.10:8081: use of closed network connection
+2026/10/27 23:21:40 [BOT_STRESS_07] read ended: read tcp 100.73.15.57:62583->100.107.118.10:8081: use of closed network connection
+2026/10/27 23:21:40 [BOT_STRESS_06] read ended: read tcp 100.73.15.57:62582->100.107.118.10:8081: use of closed network connection
+2026/10/27 23:21:40 [BOT_STRESS_22] read ended: read tcp 100.73.15.57:62601->100.107.118.10:8081: use of closed network connection
+2026/10/27 23:21:40 [BOT_STRESS_35] read ended: read tcp 100.73.15.57:62614->100.107.118.10:8081: use of closed network connection
+2026/10/27 23:21:40 [BOT_STRESS_09] read ended: read tcp 100.73.15.57:62586->100.107.118.10:8081: use of closed network connection
+2026/10/27 23:21:40 [BOT_STRESS_41] read ended: read tcp 100.73.15.57:62620->100.107.118.10:8081: use of closed network connection
+2026/10/27 23:21:40 [BOT_STRESS_12] read ended: read tcp 100.73.15.57:62589->100.107.118.10:8081: use of closed network connection
+2026/10/27 23:21:40 [BOT_STRESS_48] read ended: read tcp 100.73.15.57:62627->100.107.118.10:8081: use of closed network connection
+2026/10/27 23:21:40 [BOT_STRESS_59] read ended: read tcp 100.73.15.57:62638->100.107.118.10:8081: use of closed network connection
+2026/10/27 23:21:40 [BOT_STRESS_60] read ended: read tcp 100.73.15.57:62639->100.107.118.10:8081: use of closed network connection
+2026/10/27 23:21:40 [BOT_STRESS_43] read ended: read tcp 100.73.15.57:62622->100.107.118.10:8081: use of closed network connection
+2026/10/27 23:21:40 [BOT_STRESS_28] read ended: read tcp 100.73.15.57:62607->100.107.118.10:8081: use of closed network connection
+2026/10/27 23:21:40 [BOT_STRESS_15] read ended: read tcp 100.73.15.57:62594->100.107.118.10:8081: use of closed network connection
+2026/10/27 23:21:40 [BOT_STRESS_26] read ended: read tcp 100.73.15.57:62605->100.107.118.10:8081: use of closed network connection
+2026/10/27 23:21:40 [BOT_STRESS_62] read ended: read tcp 100.73.15.57:62640->100.107.118.10:8081: use of closed network connection
+2026/10/27 23:21:40 [BOT_STRESS_37] read ended: read tcp 100.73.15.57:62616->100.107.118.10:8081: use of closed network connection
+2026/10/27 23:21:40 [BOT_STRESS_63] read ended: read tcp 100.73.15.57:62642->100.107.118.10:8081: use of closed network connection
+2026/10/27 23:21:40 [BOT_STRESS_47] read ended: read tcp 100.73.15.57:62626->100.107.118.10:8081: use of closed network connection
+2026/10/27 23:21:40 [BOT_STRESS_51] read ended: read tcp 100.73.15.57:62630->100.107.118.10:8081: use of closed network connection
+2026/10/27 23:21:40 [BOT_STRESS_32] read ended: read tcp 100.73.15.57:62611->100.107.118.10:8081: use of closed network connection
+2026/10/27 23:21:40 [BOT_STRESS_49] read ended: read tcp 100.73.15.57:62628->100.107.118.10:8081: use of closed network connection
+2026/10/27 23:21:40 [BOT_STRESS_30] read ended: read tcp 100.73.15.57:62609->100.107.118.10:8081: use of closed network connection
+2026/10/27 23:21:40 [BOT_STRESS_50] read ended: read tcp 100.73.15.57:62629->100.107.118.10:8081: use of closed network connection
+2026/10/27 23:21:40 [BOT_STRESS_24] read ended: read tcp 100.73.15.57:62603->100.107.118.10:8081: use of closed network connection
+2026/10/27 23:21:40 [BOT_STRESS_14] read ended: read tcp 100.73.15.57:62593->100.107.118.10:8081: use of closed network connection
+2026/10/27 23:21:40 [BOT_STRESS_10] read ended: read tcp 100.73.15.57:62587->100.107.118.10:8081: use of closed network connection
+2026/10/27 23:21:40 [BOT_STRESS_34] read ended: read tcp 100.73.15.57:62613->100.107.118.10:8081: use of closed network connection
+2026/10/27 23:21:40 [BOT_STRESS_21] read ended: read tcp 100.73.15.57:62600->100.107.118.10:8081: use of closed network connection
+2026/10/27 23:21:41 [BOT_STRESS_01] read ended: read tcp 100.73.15.57:62577->100.107.118.10:8081: use of closed network connection
+2026/10/27 23:21:41 [BOT_STRESS_54] read ended: read tcp 100.73.15.57:62633->100.107.118.10:8081: use of closed network connection
+2026/10/27 23:21:41 [BOT_STRESS_19] read ended: read tcp 100.73.15.57:62598->100.107.118.10:8081: use of closed network connection
+2026/10/27 23:21:41 [BOT_STRESS_57] read ended: read tcp 100.73.15.57:62636->100.107.118.10:8081: use of closed network connection
+2026/10/27 23:21:41 [BOT_STRESS_56] read ended: read tcp 100.73.15.57:62635->100.107.118.10:8081: use of closed network connection
+2026/10/27 23:21:41 [BOT_STRESS_38] read ended: read tcp 100.73.15.57:62617->100.107.118.10:8081: use of closed network connection
+2026/10/27 23:21:41 === FINAL AUDIT RESULTS ===
+2026/10/27 23:21:41 Total Duration: 30.013767667s
+2026/10/27 23:21:41 Peak Players: 64; joined=64; errors=0
+2026/10/27 23:21:41 Total Sent: 31416 packets (0.98 MB)
+2026/10/27 23:21:41 Total Received: 24317 packets (26.52 MB)
+2026/10/27 23:21:41 [BOT_STRESS_39] read ended: read tcp 100.73.15.57:62618->100.107.118.10:8081: use of closed network connection
+2026/10/27 23:21:41 Aggregate Download Throughput: 904.93 KB/s (7.07 Mbps)
+2026/10/27 23:21:41 Per-Player Download Rate: 14.14 KB/s (0.11 Mbps)
+2026/10/27 23:21:41 [BOT_STRESS_16] read ended: read tcp 100.73.15.57:62595->100.107.118.10:8081: use of closed network connection
+{
+  "car_distance_m": 0,
+  "confirmed_seat_entries": 0,
+  "confirmed_seat_exits": 0,
+  "connection_errors": 0,
+  "driven_cars": 0,
+  "hold_seconds": 30.013767667,
+  "host": "100.107.118.10:8081",
+  "joined": 64,
+  "max_car_speed_mps": 0,
+  "peak_peers": 64,
+  "ping_ms_max": 6022,
+  "ping_ms_p50": 172,
+  "ping_ms_p95": 2340,
+  "received_bytes": 27813186,
+  "replicated_damage_deliveries": 0,
+  "replicated_explosion_deliveries": 0,
+  "replicated_fire_deliveries": 167714,
+  "requested_peers": 64,
+  "room": "f5bffbcd-808d-418e-be79-a94af96d69ca",
+  "sent_bytes": 1031473,
+  "snapshot_gap_ms_max": 4758.481,
+  "snapshot_gap_ms_p50": 0.714,
+  "snapshot_gap_ms_p95": 408.383,
+  "snapshot_gap_ms_p99": 1517.977
+}

@@ -1,0 +1,148 @@
+class_name WBColyseusSchema
+extends RefCounted
+
+class PlayerState extends Colyseus.Schema:
+	static var _definition: Array = []
+	static func definition() -> Array:
+		if not _definition.is_empty(): return _definition
+		_definition = [
+		Colyseus.Schema.Field.new("x", Colyseus.Schema.FLOAT32),
+		Colyseus.Schema.Field.new("y", Colyseus.Schema.FLOAT32),
+		Colyseus.Schema.Field.new("z", Colyseus.Schema.FLOAT32),
+		Colyseus.Schema.Field.new("vx", Colyseus.Schema.FLOAT32),
+		Colyseus.Schema.Field.new("vy", Colyseus.Schema.FLOAT32),
+		Colyseus.Schema.Field.new("vz", Colyseus.Schema.FLOAT32),
+		Colyseus.Schema.Field.new("qx", Colyseus.Schema.FLOAT32),
+		Colyseus.Schema.Field.new("qy", Colyseus.Schema.FLOAT32),
+		Colyseus.Schema.Field.new("qz", Colyseus.Schema.FLOAT32),
+		Colyseus.Schema.Field.new("qw", Colyseus.Schema.FLOAT32),
+		Colyseus.Schema.Field.new("yaw", Colyseus.Schema.FLOAT32),
+		Colyseus.Schema.Field.new("pitch", Colyseus.Schema.FLOAT32),
+		Colyseus.Schema.Field.new("username", Colyseus.Schema.STRING),
+		Colyseus.Schema.Field.new("animation", Colyseus.Schema.STRING),
+		Colyseus.Schema.Field.new("animation_code", Colyseus.Schema.NUMBER),
+		Colyseus.Schema.Field.new("animation_time", Colyseus.Schema.FLOAT32),
+		Colyseus.Schema.Field.new("pose_time_ms", Colyseus.Schema.NUMBER),
+		Colyseus.Schema.Field.new("weapon_id", Colyseus.Schema.STRING),
+		Colyseus.Schema.Field.new("health", Colyseus.Schema.NUMBER),
+		Colyseus.Schema.Field.new("kills", Colyseus.Schema.NUMBER),
+		Colyseus.Schema.Field.new("deaths", Colyseus.Schema.NUMBER),
+		Colyseus.Schema.Field.new("team", Colyseus.Schema.STRING),
+		Colyseus.Schema.Field.new("is_dead", Colyseus.Schema.BOOLEAN),
+		Colyseus.Schema.Field.new("ammo", Colyseus.Schema.NUMBER),
+		Colyseus.Schema.Field.new("ack_input_sequence", Colyseus.Schema.NUMBER),
+		Colyseus.Schema.Field.new("is_bot", Colyseus.Schema.BOOLEAN),
+		Colyseus.Schema.Field.new("driving_vehicle", Colyseus.Schema.STRING),
+		Colyseus.Schema.Field.new("grenades", Colyseus.Schema.NUMBER),
+		Colyseus.Schema.Field.new("throwable", Colyseus.Schema.STRING),
+		Colyseus.Schema.Field.new("vehicle_index", Colyseus.Schema.NUMBER),
+		Colyseus.Schema.Field.new("vehicle_generation", Colyseus.Schema.NUMBER),
+		Colyseus.Schema.Field.new("mobility_mode", Colyseus.Schema.STRING),
+		Colyseus.Schema.Field.new("primary_payload", Colyseus.Schema.STRING),
+		Colyseus.Schema.Field.new("secondary_payload", Colyseus.Schema.STRING),
+		Colyseus.Schema.Field.new("reserve_ammo", Colyseus.Schema.NUMBER),
+		Colyseus.Schema.Field.new("last_shot_id", Colyseus.Schema.NUMBER),
+	]
+		_definition.make_read_only()
+		return _definition
+
+class VehicleState extends Colyseus.Schema:
+	static var _definition: Array = []
+	static func definition() -> Array:
+		if not _definition.is_empty(): return _definition
+		_definition = [
+		Colyseus.Schema.Field.new("id", Colyseus.Schema.STRING),
+		Colyseus.Schema.Field.new("yaw", Colyseus.Schema.FLOAT32),
+		Colyseus.Schema.Field.new("speed", Colyseus.Schema.FLOAT32),
+		Colyseus.Schema.Field.new("health", Colyseus.Schema.NUMBER),
+		Colyseus.Schema.Field.new("driver", Colyseus.Schema.STRING),
+		Colyseus.Schema.Field.new("gear", Colyseus.Schema.NUMBER),
+		Colyseus.Schema.Field.new("x", Colyseus.Schema.FLOAT32),
+		Colyseus.Schema.Field.new("y", Colyseus.Schema.FLOAT32),
+		Colyseus.Schema.Field.new("z", Colyseus.Schema.FLOAT32),
+		Colyseus.Schema.Field.new("driver_generation", Colyseus.Schema.NUMBER),
+	]
+		_definition.make_read_only()
+		return _definition
+
+class ObjectiveState extends Colyseus.Schema:
+	static var _definition: Array = []
+	static func definition() -> Array:
+		if not _definition.is_empty(): return _definition
+		_definition = [
+		Colyseus.Schema.Field.new("id", Colyseus.Schema.STRING),
+		Colyseus.Schema.Field.new("x", Colyseus.Schema.FLOAT32),
+		Colyseus.Schema.Field.new("y", Colyseus.Schema.FLOAT32),
+		Colyseus.Schema.Field.new("z", Colyseus.Schema.FLOAT32),
+		Colyseus.Schema.Field.new("owner", Colyseus.Schema.STRING),
+		Colyseus.Schema.Field.new("capturing_team", Colyseus.Schema.STRING),
+		Colyseus.Schema.Field.new("progress", Colyseus.Schema.FLOAT32),
+		Colyseus.Schema.Field.new("contested", Colyseus.Schema.BOOLEAN),
+		Colyseus.Schema.Field.new("radius", Colyseus.Schema.FLOAT32),
+		]
+		_definition.make_read_only()
+		return _definition
+
+class ProjectileState extends Colyseus.Schema:
+	static var _definition: Array = []
+	static func definition() -> Array:
+		if not _definition.is_empty(): return _definition
+		_definition = [
+			Colyseus.Schema.Field.new("id", Colyseus.Schema.STRING),
+			Colyseus.Schema.Field.new("owner", Colyseus.Schema.STRING),
+			Colyseus.Schema.Field.new("kind", Colyseus.Schema.STRING),
+			Colyseus.Schema.Field.new("request_id", Colyseus.Schema.NUMBER),
+			Colyseus.Schema.Field.new("x", Colyseus.Schema.FLOAT32),
+			Colyseus.Schema.Field.new("y", Colyseus.Schema.FLOAT32),
+			Colyseus.Schema.Field.new("z", Colyseus.Schema.FLOAT32),
+			Colyseus.Schema.Field.new("vx", Colyseus.Schema.FLOAT32),
+			Colyseus.Schema.Field.new("vy", Colyseus.Schema.FLOAT32),
+			Colyseus.Schema.Field.new("vz", Colyseus.Schema.FLOAT32),
+			Colyseus.Schema.Field.new("active", Colyseus.Schema.NUMBER),
+		]
+		_definition.make_read_only()
+		return _definition
+
+class RoomState extends Colyseus.Schema:
+	static var _definition: Array = []
+	static func definition() -> Array:
+		if not _definition.is_empty(): return _definition
+		_definition = [
+		Colyseus.Schema.Field.new("players", Colyseus.Schema.MAP, PlayerState),
+		Colyseus.Schema.Field.new("protocol_version", Colyseus.Schema.NUMBER),
+		Colyseus.Schema.Field.new("map_name", Colyseus.Schema.STRING),
+		Colyseus.Schema.Field.new("time_of_day", Colyseus.Schema.STRING),
+		Colyseus.Schema.Field.new("room_mode", Colyseus.Schema.STRING),
+		Colyseus.Schema.Field.new("score_a", Colyseus.Schema.NUMBER),
+		Colyseus.Schema.Field.new("score_b", Colyseus.Schema.NUMBER),
+		Colyseus.Schema.Field.new("winner", Colyseus.Schema.STRING),
+		Colyseus.Schema.Field.new("vehicles", Colyseus.Schema.MAP, VehicleState),
+		Colyseus.Schema.Field.new("objectives", Colyseus.Schema.MAP, ObjectiveState),
+		Colyseus.Schema.Field.new("tickets_a", Colyseus.Schema.NUMBER),
+		Colyseus.Schema.Field.new("tickets_b", Colyseus.Schema.NUMBER),
+		Colyseus.Schema.Field.new("room_state", Colyseus.Schema.STRING),
+		Colyseus.Schema.Field.new("grenade_projectiles", Colyseus.Schema.MAP, ProjectileState),
+		Colyseus.Schema.Field.new("missile_projectiles", Colyseus.Schema.MAP, ProjectileState),
+	]
+		_definition.make_read_only()
+		return _definition
+
+static func to_dictionary(value: Variant) -> Variant:
+	# These schemas contain primitives only. The SDK already returns a fresh
+	# dictionary, so another recursive allocation pass adds no isolation.
+	# Nested schemas/collections retain the recursive path below.
+	if value is PlayerState or value is ObjectiveState:
+		return value.to_dictionary()
+	if value is Colyseus.Schema:
+		return to_dictionary(value.to_dictionary())
+	if value is Dictionary:
+		var out := {}
+		for key in value:
+			out[key] = to_dictionary(value[key])
+		return out
+	if value is Array:
+		var out := []
+		for item in value:
+			out.append(to_dictionary(item))
+		return out
+	return value

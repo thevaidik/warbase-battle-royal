@@ -1,0 +1,12 @@
+{
+  "image": "warbase-colyseus:state-pass-20261105",
+  "clientFingerprint": "dc955da473cb2954de80658f34f9be9db0af5659116abd036ff4f83173d1d1d3",
+  "pairedNativeWebMatch": true,
+  "publicManifestMatch": true,
+  "publicHealthAndListing": "pass",
+  "stagedAdmissionCacheAndIsolation": "pass",
+  "officialSdkModified": false,
+  "serverGeometryModified": false,
+  "acceptance": "FAIL: full-room performance and connection acceptance remain open",
+  "memoryPlateau": "unresolved"
+}

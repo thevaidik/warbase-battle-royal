@@ -1,0 +1,171 @@
+[
+  {
+    "elapsed": 0.7,
+    "room": {
+      "id": "7fe776ef-797d-430d-8b93-38b0f53fabd8",
+      "name": "QA desert-final",
+      "map": "desert_oasis",
+      "mode": "TDM",
+      "playerCount": 0,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 11.3,
+    "room": {
+      "id": "7fe776ef-797d-430d-8b93-38b0f53fabd8",
+      "name": "QA desert-final",
+      "map": "desert_oasis",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 22.4,
+    "room": {
+      "id": "7fe776ef-797d-430d-8b93-38b0f53fabd8",
+      "name": "QA desert-final",
+      "map": "desert_oasis",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 33.1,
+    "room": {
+      "id": "7fe776ef-797d-430d-8b93-38b0f53fabd8",
+      "name": "QA desert-final",
+      "map": "desert_oasis",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 43.7,
+    "room": {
+      "id": "7fe776ef-797d-430d-8b93-38b0f53fabd8",
+      "name": "QA desert-final",
+      "map": "desert_oasis",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 54.5,
+    "room": {
+      "id": "7fe776ef-797d-430d-8b93-38b0f53fabd8",
+      "name": "QA desert-final",
+      "map": "desert_oasis",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 65.1,
+    "room": {
+      "id": "7fe776ef-797d-430d-8b93-38b0f53fabd8",
+      "name": "QA desert-final",
+      "map": "desert_oasis",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 75.7,
+    "room": {
+      "id": "7fe776ef-797d-430d-8b93-38b0f53fabd8",
+      "name": "QA desert-final",
+      "map": "desert_oasis",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 86.6,
+    "room": {
+      "id": "7fe776ef-797d-430d-8b93-38b0f53fabd8",
+      "name": "QA desert-final",
+      "map": "desert_oasis",
+      "mode": "TDM",
+      "playerCount": 64,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 97.2,
+    "room": {
+      "id": "7fe776ef-797d-430d-8b93-38b0f53fabd8",
+      "name": "QA desert-final",
+      "map": "desert_oasis",
+      "mode": "TDM",
+      "playerCount": 63,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 107.9,
+    "room": {
+      "id": "7fe776ef-797d-430d-8b93-38b0f53fabd8",
+      "name": "QA desert-final",
+      "map": "desert_oasis",
+      "mode": "TDM",
+      "playerCount": 63,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 118.6,
+    "room": {
+      "id": "7fe776ef-797d-430d-8b93-38b0f53fabd8",
+      "name": "QA desert-final",
+      "map": "desert_oasis",
+      "mode": "TDM",
+      "playerCount": 63,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  },
+  {
+    "elapsed": 129.4,
+    "room": {
+      "id": "7fe776ef-797d-430d-8b93-38b0f53fabd8",
+      "name": "QA desert-final",
+      "map": "desert_oasis",
+      "mode": "TDM",
+      "playerCount": 63,
+      "botCount": 0,
+      "capacity": 64,
+      "timeOfDay": "noon"
+    }
+  }
+]

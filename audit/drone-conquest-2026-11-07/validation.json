@@ -1,0 +1,32 @@
+{
+  "server": {
+    "passed": 130,
+    "failed": 0,
+    "skipped_optional_benchmark": 1
+  },
+  "flight_parity": {
+    "maps": 11,
+    "spawns": 132,
+    "checkpoints": 792,
+    "max_position_error_m": 0.001417,
+    "max_velocity_error_mps": 0.000197,
+    "failures": 0
+  },
+  "native_overlap_queries": 1584,
+  "native_overlap_failures": 0,
+  "visual_failures": 0,
+  "full_scene_smoke_failures": 0,
+  "production_deployed": false,
+  "godot_release_suite": "passed",
+  "camera_safety_and_seven_payload_masks": "passed",
+  "client_fingerprint": "2e55306049931012112ad8b8d12b8e208fbd3867c96918879e1cc03815322a54",
+  "native_bytes": 182978038,
+  "native_web_exports": "passed",
+  "local_sdk_maps_passed": 11,
+  "local_sdk_clients_per_map": 8,
+  "local_resoforge_bots": 7,
+  "local_optional_web_packs_served": 6,
+  "local_resoforge_bot_update_p95_ms": 0.276,
+  "resoforge_spawn_regression": "passed",
+  "deployment_blocker": "Tailscale logged out on Mac; Umbrel SSH unavailable"
+}

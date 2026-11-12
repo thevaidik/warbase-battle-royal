@@ -1,0 +1,38 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+ERROR: Condition "ret != noErr" is true. Returning: ""
+   at: get_system_ca_certificates (platform/macos/os_macos.mm:1035)
+CHECK PASS test is running the drone combat profile
+CHECK PASS Main starts an offline practice scene without joining a room
+CHECK PASS Main wires the drone, payload system, and HUD
+CHECK PASS player collision is a centered R=0.4 m drone sphere
+CHECK PASS local player has no human rig or soldier mesh
+CHECK PASS third-person view uses the drone-mounted physical payload
+CHECK PASS selected weapon is shown on the drone body as a physical payload
+CHECK PASS chase camera sits behind the physical drone
+CHECK PASS chase camera sweep retracts before a wall
+CHECK PASS drone body hides when camera compresses into the hull
+CHECK PASS drone body and chase distance restore after clearing the wall
+CHECK PASS body-mounted payload remains visible to the chase camera across weapon changes
+CHECK PASS grenades release beside the drone instead of from the chase camera
+CHECK PASS ballistics start at the physical payload muzzle close to the drone
+CHECK PASS test target lies at the chase camera crosshair
+CHECK PASS local payload gimbal converges on the near crosshair target
+CHECK PASS close crosshair remains visible while the lower physical muzzle is blocked by cover
+CHECK PASS network shot reports the muzzle's cover hit while aiming through the crosshair target
+CHECK PASS wire positive-down yaw/pitch point from physical muzzle to the close crosshair target
+CHECK PASS close-range muzzle convergence corrects meaningful camera-to-barrel parallax
+CHECK PASS vehicle entry prompt is disabled in drone mode
+CHECK PASS drone cannot enter a nearby combat vehicle
+CHECK PASS HUD presents hull integrity and drone altitude/speed telemetry
+CHECK PASS Space control produces continuous upward flight (100.00 to 101.43, vy 6.53)
+CHECK PASS releasing vertical input actively brakes the drone
+CHECK PASS Ctrl control produces continuous downward flight
+CHECK PASS downward flight brakes smoothly after release
+CHECK PASS WASD flight accelerates and then brakes to a hover
+CHECK PASS offline respawn places the sphere center at the requested spawn offset exactly once
+CHECK PASS respawn restores the centered drone collision and zeroes flight velocity
+CHECK PASS respawn restores a living drone with its payload visible
+CHECK PASS remote gimbal follows server pitch sign -0.7
+CHECK PASS remote gimbal follows server pitch sign 0.7
+DRONE_SMOKE_TEST failures=0

@@ -1,0 +1,7 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+COLYSEUS_IDLE_PREDICTION_OK maps=10 reference_mean_us=2950.5 idle_60_total_ms=5.240 idle_60_mean_us=87.3 moving_with_old_floor_query_mean_us=460.2 moving_gated_mean_us=88.0 open_sweep_mean_us=255.9 near_wall_sweep_mean_us=1297.1 move_bvh_reference_mean_us=18658.0 move_candidates_mean_us=984.6 candidate_comparisons=80 failures=0
+WARNING: 6 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 2 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)

@@ -1,0 +1,49 @@
+{
+  "deployed": true,
+  "images": [
+    {
+      "container": "warbase-colyseus-candidate",
+      "image": "warbase-colyseus:features-cache-20261105",
+      "imageId": "sha256:54fd3585072a1ed57d4425d4d0c8b4ab77175173820cd5f81f0f16765900f8fd",
+      "healthy": true
+    },
+    {
+      "container": "warbase-server",
+      "image": "warbase-gateway:features-cache-20261105",
+      "imageId": "sha256:aa88937395f6f2f297b753a1d9f4fd72693abce4ccb523b764432e3e67a29259",
+      "healthy": true
+    }
+  ],
+  "rollback": [
+    {
+      "container": "warbase-colyseus-backup-pre-features-20261105",
+      "running": false,
+      "restart": "no"
+    },
+    {
+      "container": "warbase-gateway-backup-pre-features-20261105",
+      "running": false,
+      "restart": "no"
+    },
+    {
+      "container": "warbase-colyseus-backup-pre-cache-20261105",
+      "running": false,
+      "restart": "no"
+    },
+    {
+      "container": "warbase-gateway-backup-pre-cache-20261105",
+      "running": false,
+      "restart": "no"
+    },
+    {
+      "container": "warbase-go-retired-20261030",
+      "running": false,
+      "restart": "no"
+    }
+  ],
+  "trustedTunnel": "10.21.0.11/32",
+  "trustedGatewayPeer": "100.107.118.10/32",
+  "publicCallerAttributionVerified": true,
+  "adminAccountsPreserved": true,
+  "privateMonitorRequiresLogin": true
+}

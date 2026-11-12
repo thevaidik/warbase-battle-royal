@@ -1,0 +1,109 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+MAIN_SETUP backend=res://scripts/net/ColyseusNetwork.gd practice=false host=127.0.0.1:8081
+MAIN_MATCH_STARTED connected=false room=true
+MAIN_CONNECTION_CHANGED true
+MAIN_STATE players=["MAIN_532", "[BOT] VIPER-01", "[BOT] KESTREL-02", "[BOT] GHOST-03", "[BOT] ROOK-04", "[BOT] NOMAD-05", "[BOT] LYNX-06", "[BOT] WRAITH-07"] protocol=5.0 map=industrial
+MAIN_STATE players=["MAIN_532", "[BOT] VIPER-01", "[BOT] KESTREL-02", "[BOT] GHOST-03", "[BOT] ROOK-04", "[BOT] NOMAD-05", "[BOT] LYNX-06", "[BOT] WRAITH-07"] protocol=5.0 map=industrial
+MAIN_STATE players=["MAIN_532", "[BOT] VIPER-01", "[BOT] KESTREL-02", "[BOT] GHOST-03", "[BOT] ROOK-04", "[BOT] NOMAD-05", "[BOT] LYNX-06", "[BOT] WRAITH-07"] protocol=5.0 map=industrial
+MAIN_STATE players=["MAIN_532", "[BOT] VIPER-01", "[BOT] KESTREL-02", "[BOT] GHOST-03", "[BOT] ROOK-04", "[BOT] NOMAD-05", "[BOT] LYNX-06", "[BOT] WRAITH-07"] protocol=5.0 map=industrial
+MAIN_STATE players=["MAIN_532", "[BOT] VIPER-01", "[BOT] KESTREL-02", "[BOT] GHOST-03", "[BOT] ROOK-04", "[BOT] NOMAD-05", "[BOT] LYNX-06", "[BOT] WRAITH-07"] protocol=5.0 map=industrial
+MAIN_STATE players=["MAIN_532", "[BOT] VIPER-01", "[BOT] KESTREL-02", "[BOT] GHOST-03", "[BOT] ROOK-04", "[BOT] NOMAD-05", "[BOT] LYNX-06", "[BOT] WRAITH-07"] protocol=5.0 map=industrial
+MAIN_STATE players=["MAIN_532", "[BOT] KESTREL-02", "[BOT] GHOST-03", "[BOT] ROOK-04", "[BOT] NOMAD-05", "[BOT] LYNX-06", "[BOT] WRAITH-07", "PEER_533"] protocol=5.0 map=industrial
+MAIN_STATE players=["MAIN_532", "[BOT] KESTREL-02", "[BOT] GHOST-03", "[BOT] ROOK-04", "[BOT] NOMAD-05", "[BOT] LYNX-06", "[BOT] WRAITH-07", "PEER_533"] protocol=5.0 map=industrial
+MAIN_STATE players=["MAIN_532", "[BOT] KESTREL-02", "[BOT] GHOST-03", "[BOT] ROOK-04", "[BOT] NOMAD-05", "[BOT] LYNX-06", "[BOT] WRAITH-07", "PEER_533"] protocol=5.0 map=industrial
+MAIN_STATE players=["MAIN_532", "[BOT] KESTREL-02", "[BOT] GHOST-03", "[BOT] ROOK-04", "[BOT] NOMAD-05", "[BOT] LYNX-06", "[BOT] WRAITH-07", "PEER_533"] protocol=5.0 map=industrial
+MAIN_STATE players=["MAIN_532", "[BOT] KESTREL-02", "[BOT] GHOST-03", "[BOT] ROOK-04", "[BOT] NOMAD-05", "[BOT] LYNX-06", "[BOT] WRAITH-07", "PEER_533"] protocol=5.0 map=industrial
+MAIN_STATE players=["MAIN_532", "[BOT] KESTREL-02", "[BOT] GHOST-03", "[BOT] ROOK-04", "[BOT] NOMAD-05", "[BOT] LYNX-06", "[BOT] WRAITH-07", "PEER_533"] protocol=5.0 map=industrial
+MAIN_STATE players=["MAIN_532", "[BOT] KESTREL-02", "[BOT] GHOST-03", "[BOT] ROOK-04", "[BOT] NOMAD-05", "[BOT] LYNX-06", "[BOT] WRAITH-07", "PEER_533"] protocol=5.0 map=industrial
+MAIN_STATE players=["MAIN_532", "[BOT] KESTREL-02", "[BOT] GHOST-03", "[BOT] ROOK-04", "[BOT] NOMAD-05", "[BOT] LYNX-06", "[BOT] WRAITH-07", "PEER_533"] protocol=5.0 map=industrial
+MAIN_STATE players=["MAIN_532", "[BOT] KESTREL-02", "[BOT] GHOST-03", "[BOT] ROOK-04", "[BOT] NOMAD-05", "[BOT] LYNX-06", "[BOT] WRAITH-07", "PEER_533"] protocol=5.0 map=industrial
+MAIN_STATE players=["MAIN_532", "[BOT] KESTREL-02", "[BOT] GHOST-03", "[BOT] ROOK-04", "[BOT] NOMAD-05", "[BOT] LYNX-06", "[BOT] WRAITH-07", "PEER_533"] protocol=5.0 map=industrial
+MAIN_STATE players=["MAIN_532", "[BOT] KESTREL-02", "[BOT] GHOST-03", "[BOT] ROOK-04", "[BOT] NOMAD-05", "[BOT] LYNX-06", "[BOT] WRAITH-07", "PEER_533"] protocol=5.0 map=industrial
+MAIN_STATE players=["MAIN_532", "[BOT] KESTREL-02", "[BOT] GHOST-03", "[BOT] ROOK-04", "[BOT] NOMAD-05", "[BOT] LYNX-06", "[BOT] WRAITH-07", "PEER_533"] protocol=5.0 map=industrial
+MAIN_STATE players=["MAIN_532", "[BOT] KESTREL-02", "[BOT] GHOST-03", "[BOT] ROOK-04", "[BOT] NOMAD-05", "[BOT] LYNX-06", "[BOT] WRAITH-07", "PEER_533"] protocol=5.0 map=industrial
+MAIN_STATE players=["MAIN_532", "[BOT] KESTREL-02", "[BOT] GHOST-03", "[BOT] ROOK-04", "[BOT] NOMAD-05", "[BOT] LYNX-06", "[BOT] WRAITH-07", "PEER_533"] protocol=5.0 map=industrial
+MAIN_STATE players=["MAIN_532", "[BOT] KESTREL-02", "[BOT] GHOST-03", "[BOT] ROOK-04", "[BOT] NOMAD-05", "[BOT] LYNX-06", "[BOT] WRAITH-07", "PEER_533"] protocol=5.0 map=industrial
+MAIN_STATE players=["MAIN_532", "[BOT] KESTREL-02", "[BOT] GHOST-03", "[BOT] ROOK-04", "[BOT] NOMAD-05", "[BOT] LYNX-06", "[BOT] WRAITH-07", "PEER_533"] protocol=5.0 map=industrial
+MAIN_STATE players=["MAIN_532", "[BOT] KESTREL-02", "[BOT] GHOST-03", "[BOT] ROOK-04", "[BOT] NOMAD-05", "[BOT] LYNX-06", "[BOT] WRAITH-07", "PEER_533"] protocol=5.0 map=industrial
+MAIN_STATE players=["MAIN_532", "[BOT] KESTREL-02", "[BOT] GHOST-03", "[BOT] ROOK-04", "[BOT] NOMAD-05", "[BOT] LYNX-06", "[BOT] WRAITH-07", "PEER_533"] protocol=5.0 map=industrial
+MAIN_STATE players=["MAIN_532", "[BOT] KESTREL-02", "[BOT] GHOST-03", "[BOT] ROOK-04", "[BOT] NOMAD-05", "[BOT] LYNX-06", "[BOT] WRAITH-07", "PEER_533"] protocol=5.0 map=industrial
+MAIN_STATE players=["MAIN_532", "[BOT] KESTREL-02", "[BOT] GHOST-03", "[BOT] ROOK-04", "[BOT] NOMAD-05", "[BOT] LYNX-06", "[BOT] WRAITH-07", "PEER_533"] protocol=5.0 map=industrial
+MAIN_STATE players=["MAIN_532", "[BOT] KESTREL-02", "[BOT] GHOST-03", "[BOT] ROOK-04", "[BOT] NOMAD-05", "[BOT] LYNX-06", "[BOT] WRAITH-07", "PEER_533"] protocol=5.0 map=industrial
+MAIN_STATE players=["MAIN_532", "[BOT] KESTREL-02", "[BOT] GHOST-03", "[BOT] ROOK-04", "[BOT] NOMAD-05", "[BOT] LYNX-06", "[BOT] WRAITH-07", "PEER_533"] protocol=5.0 map=industrial
+MAIN_STATE players=["MAIN_532", "[BOT] KESTREL-02", "[BOT] GHOST-03", "[BOT] ROOK-04", "[BOT] NOMAD-05", "[BOT] LYNX-06", "[BOT] WRAITH-07", "PEER_533"] protocol=5.0 map=industrial
+MAIN_STATE players=["MAIN_532", "[BOT] KESTREL-02", "[BOT] GHOST-03", "[BOT] ROOK-04", "[BOT] NOMAD-05", "[BOT] LYNX-06", "[BOT] WRAITH-07", "PEER_533"] protocol=5.0 map=industrial
+MAIN_STATE players=["MAIN_532", "[BOT] KESTREL-02", "[BOT] GHOST-03", "[BOT] ROOK-04", "[BOT] NOMAD-05", "[BOT] LYNX-06", "[BOT] WRAITH-07", "PEER_533"] protocol=5.0 map=industrial
+MAIN_STATE players=["MAIN_532", "[BOT] KESTREL-02", "[BOT] GHOST-03", "[BOT] ROOK-04", "[BOT] NOMAD-05", "[BOT] LYNX-06", "[BOT] WRAITH-07", "PEER_533"] protocol=5.0 map=industrial
+MAIN_STATE players=["MAIN_532", "[BOT] KESTREL-02", "[BOT] GHOST-03", "[BOT] ROOK-04", "[BOT] NOMAD-05", "[BOT] LYNX-06", "[BOT] WRAITH-07", "PEER_533"] protocol=5.0 map=industrial
+MAIN_STATE players=["MAIN_532", "[BOT] KESTREL-02", "[BOT] GHOST-03", "[BOT] ROOK-04", "[BOT] NOMAD-05", "[BOT] LYNX-06", "[BOT] WRAITH-07", "PEER_533"] protocol=5.0 map=industrial
+MAIN_STATE players=["MAIN_532", "[BOT] KESTREL-02", "[BOT] GHOST-03", "[BOT] ROOK-04", "[BOT] NOMAD-05", "[BOT] LYNX-06", "[BOT] WRAITH-07", "PEER_533"] protocol=5.0 map=industrial
+MAIN_STATE players=["MAIN_532", "[BOT] KESTREL-02", "[BOT] GHOST-03", "[BOT] ROOK-04", "[BOT] NOMAD-05", "[BOT] LYNX-06", "[BOT] WRAITH-07", "PEER_533"] protocol=5.0 map=industrial
+MAIN_STATE players=["MAIN_532", "[BOT] KESTREL-02", "[BOT] GHOST-03", "[BOT] ROOK-04", "[BOT] NOMAD-05", "[BOT] LYNX-06", "[BOT] WRAITH-07", "PEER_533"] protocol=5.0 map=industrial
+MAIN_STATE players=["MAIN_532", "[BOT] KESTREL-02", "[BOT] GHOST-03", "[BOT] ROOK-04", "[BOT] NOMAD-05", "[BOT] LYNX-06", "[BOT] WRAITH-07", "PEER_533"] protocol=5.0 map=industrial
+MAIN_STATE players=["MAIN_532", "[BOT] KESTREL-02", "[BOT] GHOST-03", "[BOT] ROOK-04", "[BOT] NOMAD-05", "[BOT] LYNX-06", "[BOT] WRAITH-07", "PEER_533"] protocol=5.0 map=industrial
+MAIN_STATE players=["MAIN_532", "[BOT] KESTREL-02", "[BOT] GHOST-03", "[BOT] ROOK-04", "[BOT] NOMAD-05", "[BOT] LYNX-06", "[BOT] WRAITH-07", "PEER_533"] protocol=5.0 map=industrial
+MAIN_STATE players=["MAIN_532", "[BOT] KESTREL-02", "[BOT] GHOST-03", "[BOT] ROOK-04", "[BOT] NOMAD-05", "[BOT] LYNX-06", "[BOT] WRAITH-07", "PEER_533"] protocol=5.0 map=industrial
+MAIN_STATE players=["MAIN_532", "[BOT] KESTREL-02", "[BOT] GHOST-03", "[BOT] ROOK-04", "[BOT] NOMAD-05", "[BOT] LYNX-06", "[BOT] WRAITH-07", "PEER_533"] protocol=5.0 map=industrial
+MAIN_STATE players=["MAIN_532", "[BOT] KESTREL-02", "[BOT] GHOST-03", "[BOT] ROOK-04", "[BOT] NOMAD-05", "[BOT] LYNX-06", "[BOT] WRAITH-07", "PEER_533"] protocol=5.0 map=industrial
+MAIN_STATE players=["MAIN_532", "[BOT] KESTREL-02", "[BOT] GHOST-03", "[BOT] ROOK-04", "[BOT] NOMAD-05", "[BOT] LYNX-06", "[BOT] WRAITH-07", "PEER_533"] protocol=5.0 map=industrial
+MAIN_STATE players=["MAIN_532", "[BOT] KESTREL-02", "[BOT] GHOST-03", "[BOT] ROOK-04", "[BOT] NOMAD-05", "[BOT] LYNX-06", "[BOT] WRAITH-07", "PEER_533"] protocol=5.0 map=industrial
+MAIN_STATE players=["MAIN_532", "[BOT] KESTREL-02", "[BOT] GHOST-03", "[BOT] ROOK-04", "[BOT] NOMAD-05", "[BOT] LYNX-06", "[BOT] WRAITH-07", "PEER_533"] protocol=5.0 map=industrial
+MAIN_STATE players=["MAIN_532", "[BOT] KESTREL-02", "[BOT] GHOST-03", "[BOT] ROOK-04", "[BOT] NOMAD-05", "[BOT] LYNX-06", "[BOT] WRAITH-07", "PEER_533"] protocol=5.0 map=industrial
+MAIN_STATE players=["MAIN_532", "[BOT] KESTREL-02", "[BOT] GHOST-03", "[BOT] ROOK-04", "[BOT] NOMAD-05", "[BOT] LYNX-06", "[BOT] WRAITH-07", "PEER_533"] protocol=5.0 map=industrial
+MAIN_STATE players=["MAIN_532", "[BOT] KESTREL-02", "[BOT] GHOST-03", "[BOT] ROOK-04", "[BOT] NOMAD-05", "[BOT] LYNX-06", "[BOT] WRAITH-07", "PEER_533"] protocol=5.0 map=industrial
+MAIN_STATE players=["MAIN_532", "[BOT] KESTREL-02", "[BOT] GHOST-03", "[BOT] ROOK-04", "[BOT] NOMAD-05", "[BOT] LYNX-06", "[BOT] WRAITH-07", "PEER_533"] protocol=5.0 map=industrial
+MAIN_STATE players=["MAIN_532", "[BOT] KESTREL-02", "[BOT] GHOST-03", "[BOT] ROOK-04", "[BOT] NOMAD-05", "[BOT] LYNX-06", "[BOT] WRAITH-07", "PEER_533"] protocol=5.0 map=industrial
+MAIN_STATE players=["MAIN_532", "[BOT] KESTREL-02", "[BOT] GHOST-03", "[BOT] ROOK-04", "[BOT] NOMAD-05", "[BOT] LYNX-06", "[BOT] WRAITH-07", "PEER_533"] protocol=5.0 map=industrial
+MAIN_STATE players=["MAIN_532", "[BOT] KESTREL-02", "[BOT] GHOST-03", "[BOT] ROOK-04", "[BOT] NOMAD-05", "[BOT] LYNX-06", "[BOT] WRAITH-07", "PEER_533"] protocol=5.0 map=industrial
+MAIN_STATE players=["MAIN_532", "[BOT] KESTREL-02", "[BOT] GHOST-03", "[BOT] ROOK-04", "[BOT] NOMAD-05", "[BOT] LYNX-06", "[BOT] WRAITH-07", "PEER_533"] protocol=5.0 map=industrial
+MAIN_STATE players=["MAIN_532", "[BOT] KESTREL-02", "[BOT] GHOST-03", "[BOT] ROOK-04", "[BOT] NOMAD-05", "[BOT] LYNX-06", "[BOT] WRAITH-07", "PEER_533"] protocol=5.0 map=industrial
+MAIN_STATE players=["MAIN_532", "[BOT] KESTREL-02", "[BOT] GHOST-03", "[BOT] ROOK-04", "[BOT] NOMAD-05", "[BOT] LYNX-06", "[BOT] WRAITH-07", "PEER_533"] protocol=5.0 map=industrial
+MAIN_STATE players=["MAIN_532", "[BOT] KESTREL-02", "[BOT] GHOST-03", "[BOT] ROOK-04", "[BOT] NOMAD-05", "[BOT] LYNX-06", "[BOT] WRAITH-07", "PEER_533"] protocol=5.0 map=industrial
+MAIN_STATE players=["MAIN_532", "[BOT] KESTREL-02", "[BOT] GHOST-03", "[BOT] ROOK-04", "[BOT] NOMAD-05", "[BOT] LYNX-06", "[BOT] WRAITH-07", "PEER_533"] protocol=5.0 map=industrial
+MAIN_STATE players=["MAIN_532", "[BOT] KESTREL-02", "[BOT] GHOST-03", "[BOT] ROOK-04", "[BOT] NOMAD-05", "[BOT] LYNX-06", "[BOT] WRAITH-07", "PEER_533"] protocol=5.0 map=industrial
+MAIN_STATE players=["MAIN_532", "[BOT] KESTREL-02", "[BOT] GHOST-03", "[BOT] ROOK-04", "[BOT] NOMAD-05", "[BOT] LYNX-06", "[BOT] WRAITH-07", "PEER_533"] protocol=5.0 map=industrial
+MAIN_STATE players=["MAIN_532", "[BOT] KESTREL-02", "[BOT] GHOST-03", "[BOT] ROOK-04", "[BOT] NOMAD-05", "[BOT] LYNX-06", "[BOT] WRAITH-07", "PEER_533"] protocol=5.0 map=industrial
+MAIN_STATE players=["MAIN_532", "[BOT] KESTREL-02", "[BOT] GHOST-03", "[BOT] ROOK-04", "[BOT] NOMAD-05", "[BOT] LYNX-06", "[BOT] WRAITH-07", "PEER_533"] protocol=5.0 map=industrial
+MAIN_STATE players=["MAIN_532", "[BOT] KESTREL-02", "[BOT] GHOST-03", "[BOT] ROOK-04", "[BOT] NOMAD-05", "[BOT] LYNX-06", "[BOT] WRAITH-07", "PEER_533"] protocol=5.0 map=industrial
+MAIN_STATE players=["MAIN_532", "[BOT] KESTREL-02", "[BOT] GHOST-03", "[BOT] ROOK-04", "[BOT] NOMAD-05", "[BOT] LYNX-06", "[BOT] WRAITH-07", "PEER_533"] protocol=5.0 map=industrial
+MAIN_STATE players=["MAIN_532", "[BOT] KESTREL-02", "[BOT] GHOST-03", "[BOT] ROOK-04", "[BOT] NOMAD-05", "[BOT] LYNX-06", "[BOT] WRAITH-07", "PEER_533"] protocol=5.0 map=industrial
+MAIN_STATE players=["MAIN_532", "[BOT] KESTREL-02", "[BOT] GHOST-03", "[BOT] ROOK-04", "[BOT] NOMAD-05", "[BOT] LYNX-06", "[BOT] WRAITH-07", "PEER_533"] protocol=5.0 map=industrial
+MAIN_STATE players=["MAIN_532", "[BOT] KESTREL-02", "[BOT] GHOST-03", "[BOT] ROOK-04", "[BOT] NOMAD-05", "[BOT] LYNX-06", "[BOT] WRAITH-07", "PEER_533"] protocol=5.0 map=industrial
+MAIN_STATE players=["MAIN_532", "[BOT] KESTREL-02", "[BOT] GHOST-03", "[BOT] ROOK-04", "[BOT] NOMAD-05", "[BOT] LYNX-06", "[BOT] WRAITH-07", "PEER_533"] protocol=5.0 map=industrial
+MAIN_STATE players=["MAIN_532", "[BOT] KESTREL-02", "[BOT] GHOST-03", "[BOT] ROOK-04", "[BOT] NOMAD-05", "[BOT] LYNX-06", "[BOT] WRAITH-07", "PEER_533"] protocol=5.0 map=industrial
+MAIN_STATE players=["MAIN_532", "[BOT] KESTREL-02", "[BOT] GHOST-03", "[BOT] ROOK-04", "[BOT] NOMAD-05", "[BOT] LYNX-06", "[BOT] WRAITH-07", "PEER_533"] protocol=5.0 map=industrial
+MAIN_STATE players=["MAIN_532", "[BOT] KESTREL-02", "[BOT] GHOST-03", "[BOT] ROOK-04", "[BOT] NOMAD-05", "[BOT] LYNX-06", "[BOT] WRAITH-07", "PEER_533"] protocol=5.0 map=industrial
+MAIN_STATE players=["MAIN_532", "[BOT] KESTREL-02", "[BOT] GHOST-03", "[BOT] ROOK-04", "[BOT] NOMAD-05", "[BOT] LYNX-06", "[BOT] WRAITH-07", "PEER_533"] protocol=5.0 map=industrial
+MAIN_STATE players=["MAIN_532", "[BOT] KESTREL-02", "[BOT] GHOST-03", "[BOT] ROOK-04", "[BOT] NOMAD-05", "[BOT] LYNX-06", "[BOT] WRAITH-07", "PEER_533"] protocol=5.0 map=industrial
+MAIN_STATE players=["MAIN_532", "[BOT] KESTREL-02", "[BOT] GHOST-03", "[BOT] ROOK-04", "[BOT] NOMAD-05", "[BOT] LYNX-06", "[BOT] WRAITH-07", "PEER_533"] protocol=5.0 map=industrial
+MAIN_STATE players=["MAIN_532", "[BOT] KESTREL-02", "[BOT] GHOST-03", "[BOT] ROOK-04", "[BOT] NOMAD-05", "[BOT] LYNX-06", "[BOT] WRAITH-07", "PEER_533"] protocol=5.0 map=industrial
+MAIN_STATE players=["MAIN_532", "[BOT] KESTREL-02", "[BOT] GHOST-03", "[BOT] ROOK-04", "[BOT] NOMAD-05", "[BOT] LYNX-06", "[BOT] WRAITH-07", "PEER_533"] protocol=5.0 map=industrial
+MAIN_STATE players=["MAIN_532", "[BOT] KESTREL-02", "[BOT] GHOST-03", "[BOT] ROOK-04", "[BOT] NOMAD-05", "[BOT] LYNX-06", "[BOT] WRAITH-07", "PEER_533"] protocol=5.0 map=industrial
+MAIN_STATE players=["MAIN_532", "[BOT] KESTREL-02", "[BOT] GHOST-03", "[BOT] ROOK-04", "[BOT] NOMAD-05", "[BOT] LYNX-06", "[BOT] WRAITH-07", "PEER_533"] protocol=5.0 map=industrial
+MAIN_STATE players=["MAIN_532", "[BOT] KESTREL-02", "[BOT] GHOST-03", "[BOT] ROOK-04", "[BOT] NOMAD-05", "[BOT] LYNX-06", "[BOT] WRAITH-07", "PEER_533"] protocol=5.0 map=industrial
+MAIN_STATE players=["MAIN_532", "[BOT] KESTREL-02", "[BOT] GHOST-03", "[BOT] ROOK-04", "[BOT] NOMAD-05", "[BOT] LYNX-06", "[BOT] WRAITH-07", "PEER_533"] protocol=5.0 map=industrial
+MAIN_STATE players=["MAIN_532", "[BOT] KESTREL-02", "[BOT] GHOST-03", "[BOT] ROOK-04", "[BOT] NOMAD-05", "[BOT] LYNX-06", "[BOT] WRAITH-07", "PEER_533"] protocol=5.0 map=industrial
+MAIN_STATE players=["MAIN_532", "[BOT] KESTREL-02", "[BOT] GHOST-03", "[BOT] ROOK-04", "[BOT] NOMAD-05", "[BOT] LYNX-06", "[BOT] WRAITH-07", "PEER_533"] protocol=5.0 map=industrial
+MAIN_STATE players=["MAIN_532", "[BOT] KESTREL-02", "[BOT] GHOST-03", "[BOT] ROOK-04", "[BOT] NOMAD-05", "[BOT] LYNX-06", "[BOT] WRAITH-07", "PEER_533"] protocol=5.0 map=industrial
+MAIN_STATE players=["MAIN_532", "[BOT] KESTREL-02", "[BOT] GHOST-03", "[BOT] ROOK-04", "[BOT] NOMAD-05", "[BOT] LYNX-06", "[BOT] WRAITH-07", "PEER_533"] protocol=5.0 map=industrial
+MAIN_STATE players=["MAIN_532", "[BOT] KESTREL-02", "[BOT] GHOST-03", "[BOT] ROOK-04", "[BOT] NOMAD-05", "[BOT] LYNX-06", "[BOT] WRAITH-07", "PEER_533"] protocol=5.0 map=industrial
+MAIN_STATE players=["MAIN_532", "[BOT] KESTREL-02", "[BOT] GHOST-03", "[BOT] ROOK-04", "[BOT] NOMAD-05", "[BOT] LYNX-06", "[BOT] WRAITH-07", "PEER_533"] protocol=5.0 map=industrial
+MAIN_STATE players=["MAIN_532", "[BOT] KESTREL-02", "[BOT] GHOST-03", "[BOT] ROOK-04", "[BOT] NOMAD-05", "[BOT] LYNX-06", "[BOT] WRAITH-07", "PEER_533"] protocol=5.0 map=industrial
+MAIN_STATE players=["MAIN_532", "[BOT] KESTREL-02", "[BOT] GHOST-03", "[BOT] ROOK-04", "[BOT] NOMAD-05", "[BOT] LYNX-06", "[BOT] WRAITH-07", "PEER_533"] protocol=5.0 map=industrial
+MAIN_STATE players=["MAIN_532", "[BOT] KESTREL-02", "[BOT] GHOST-03", "[BOT] ROOK-04", "[BOT] NOMAD-05", "[BOT] LYNX-06", "[BOT] WRAITH-07", "PEER_533"] protocol=5.0 map=industrial
+MAIN_STATE players=["MAIN_532", "[BOT] KESTREL-02", "[BOT] GHOST-03", "[BOT] ROOK-04", "[BOT] NOMAD-05", "[BOT] LYNX-06", "[BOT] WRAITH-07", "PEER_533"] protocol=5.0 map=industrial
+MAIN_STATE players=["MAIN_532", "[BOT] KESTREL-02", "[BOT] GHOST-03", "[BOT] ROOK-04", "[BOT] NOMAD-05", "[BOT] LYNX-06", "[BOT] WRAITH-07", "PEER_533"] protocol=5.0 map=industrial
+MAIN_STATE players=["MAIN_532", "[BOT] KESTREL-02", "[BOT] GHOST-03", "[BOT] ROOK-04", "[BOT] NOMAD-05", "[BOT] LYNX-06", "[BOT] WRAITH-07", "PEER_533"] protocol=5.0 map=industrial
+MAIN_STATE players=["MAIN_532", "[BOT] KESTREL-02", "[BOT] GHOST-03", "[BOT] ROOK-04", "[BOT] NOMAD-05", "[BOT] LYNX-06", "[BOT] WRAITH-07", "PEER_533"] protocol=5.0 map=industrial
+MAIN_STATE players=["MAIN_532", "[BOT] KESTREL-02", "[BOT] GHOST-03", "[BOT] ROOK-04", "[BOT] NOMAD-05", "[BOT] LYNX-06", "[BOT] WRAITH-07", "PEER_533"] protocol=5.0 map=industrial
+MAIN_STATE players=["MAIN_532", "[BOT] KESTREL-02", "[BOT] GHOST-03", "[BOT] ROOK-04", "[BOT] NOMAD-05", "[BOT] LYNX-06", "[BOT] WRAITH-07", "PEER_533"] protocol=5.0 map=industrial
+MAIN_STATE players=["MAIN_532", "[BOT] KESTREL-02", "[BOT] GHOST-03", "[BOT] ROOK-04", "[BOT] NOMAD-05", "[BOT] LYNX-06", "[BOT] WRAITH-07", "PEER_533"] protocol=5.0 map=industrial
+MAIN_STATE players=["MAIN_532", "[BOT] KESTREL-02", "[BOT] GHOST-03", "[BOT] ROOK-04", "[BOT] NOMAD-05", "[BOT] LYNX-06", "[BOT] WRAITH-07", "PEER_533"] protocol=5.0 map=industrial
+MAIN_STATE players=["MAIN_532", "[BOT] KESTREL-02", "[BOT] GHOST-03", "[BOT] ROOK-04", "[BOT] NOMAD-05", "[BOT] LYNX-06", "[BOT] WRAITH-07", "PEER_533"] protocol=5.0 map=industrial
+MAIN_STATE players=["MAIN_532", "[BOT] KESTREL-02", "[BOT] GHOST-03", "[BOT] ROOK-04", "[BOT] NOMAD-05", "[BOT] LYNX-06", "[BOT] WRAITH-07", "PEER_533"] protocol=5.0 map=industrial
+MAIN_STATE players=["MAIN_532", "[BOT] KESTREL-02", "[BOT] GHOST-03", "[BOT] ROOK-04", "[BOT] NOMAD-05", "[BOT] LYNX-06", "[BOT] WRAITH-07", "PEER_533"] protocol=5.0 map=industrial
+COLYSEUS_MAIN_SMOKE_OK moved=11.99 m reconciled remote=PEER_533 coarse_hit_hint=true
+MAIN_CONNECTION_CHANGED false
+WARNING: 553 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)

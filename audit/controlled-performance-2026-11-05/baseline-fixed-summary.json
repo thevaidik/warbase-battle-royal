@@ -1,0 +1,14 @@
+{
+  "release_export": true,
+  "seconds": 125.007000666663,
+  "frame_ms_p50": 6.996,
+  "frame_ms_p95": 19.965,
+  "frame_ms_p99": 82.506,
+  "peak_remotes": 63,
+  "disconnects": 1,
+  "drive_distance_m": 78.8141331414135,
+  "confirmed_hits": 5,
+  "local_grenades": 2,
+  "phase_frame_times": null,
+  "rawCaptureLocation": "/tmp/warbase-controlled-baseline-fixed"
+}

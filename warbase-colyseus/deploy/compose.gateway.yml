@@ -1,0 +1,25 @@
+services:
+  warbase-gateway:
+    image: ${WARBASE_GATEWAY_IMAGE:-warbase-gateway:signed-admission-20261105}
+    container_name: warbase-server
+    restart: unless-stopped
+    network_mode: host
+    environment:
+      WARBASE_GATEWAY_LISTEN: ${WARBASE_GATEWAY_LISTEN:-0.0.0.0:8081}
+      WARBASE_GATEWAY_HEALTH_PORT: ${WARBASE_GATEWAY_HEALTH_PORT:-8081}
+      WARBASE_COMBAT_UPSTREAM: ${WARBASE_COMBAT_UPSTREAM:-100.107.118.10:8082}
+      WARBASE_GATEWAY_TOKEN_FILE: /run/secrets/gateway/token
+      WARBASE_TUNNEL_TRUST_CIDR: ${WARBASE_TUNNEL_TRUST_CIDR:?Set the verified Cloudflare connector IPv4 /32}
+    volumes:
+      - warbase-gateway-secrets:/run/secrets/gateway:ro
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:$${WARBASE_GATEWAY_HEALTH_PORT:-8081}/health || exit 1"]
+      interval: 30s
+      timeout: 3s
+      start_period: 5s
+      retries: 3
+
+volumes:
+  warbase-gateway-secrets:
+    external: true
+    name: warbase-gateway-secrets

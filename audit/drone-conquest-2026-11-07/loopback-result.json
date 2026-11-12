@@ -1,0 +1,148 @@
+{
+  "origin": "http://127.0.0.1:18301",
+  "protocol": 13,
+  "protocol12_rejected": true,
+  "isolateCombat": true,
+  "directory": {
+    "maps": 11,
+    "publicConquestRooms": 11,
+    "onlinePlayers": 0
+  },
+  "optionalPacks": null,
+  "maps": [
+    {
+      "map": "football",
+      "roomMode": "CONQUEST",
+      "objectives": 4,
+      "ascentMetres": 2.623,
+      "descentMetres": 2.47,
+      "settledSpeed": 0,
+      "driftMetres": 0,
+      "vehicleSeatRejected": true,
+      "cohortPlayers": 8,
+      "botsAfterJoin": 0
+    },
+    {
+      "map": "resoforge",
+      "roomMode": "CONQUEST",
+      "objectives": 4,
+      "ascentMetres": 1.392,
+      "descentMetres": 2.034,
+      "settledSpeed": 0,
+      "driftMetres": 0,
+      "vehicleSeatRejected": true,
+      "cohortPlayers": 8,
+      "botsAfterJoin": 0
+    },
+    {
+      "map": "industrial",
+      "roomMode": "CONQUEST",
+      "objectives": 4,
+      "ascentMetres": 2.658,
+      "descentMetres": 2.536,
+      "settledSpeed": 0,
+      "driftMetres": 0,
+      "vehicleSeatRejected": true,
+      "cohortPlayers": 8,
+      "botsAfterJoin": 0
+    },
+    {
+      "map": "village",
+      "roomMode": "CONQUEST",
+      "objectives": 4,
+      "ascentMetres": 2.618,
+      "descentMetres": 2.465,
+      "settledSpeed": 0,
+      "driftMetres": 0,
+      "vehicleSeatRejected": true,
+      "cohortPlayers": 8,
+      "botsAfterJoin": 0
+    },
+    {
+      "map": "arena",
+      "roomMode": "CONQUEST",
+      "objectives": 4,
+      "ascentMetres": 1.112,
+      "descentMetres": 1.684,
+      "settledSpeed": 0,
+      "driftMetres": 0,
+      "vehicleSeatRejected": true,
+      "cohortPlayers": 8,
+      "botsAfterJoin": 0
+    },
+    {
+      "map": "shipment",
+      "roomMode": "CONQUEST",
+      "objectives": 4,
+      "ascentMetres": 2.607,
+      "descentMetres": 2.511,
+      "settledSpeed": 0,
+      "driftMetres": 0,
+      "vehicleSeatRejected": true,
+      "cohortPlayers": 8,
+      "botsAfterJoin": 0
+    },
+    {
+      "map": "dust2",
+      "roomMode": "CONQUEST",
+      "objectives": 4,
+      "ascentMetres": 2.624,
+      "descentMetres": 2.523,
+      "settledSpeed": 0,
+      "driftMetres": 0,
+      "vehicleSeatRejected": true,
+      "cohortPlayers": 8,
+      "botsAfterJoin": 0
+    },
+    {
+      "map": "nuketown",
+      "roomMode": "CONQUEST",
+      "objectives": 4,
+      "ascentMetres": 2.616,
+      "descentMetres": 2.463,
+      "settledSpeed": 0,
+      "driftMetres": 0,
+      "vehicleSeatRejected": true,
+      "cohortPlayers": 8,
+      "botsAfterJoin": 0
+    },
+    {
+      "map": "canyon",
+      "roomMode": "CONQUEST",
+      "objectives": 4,
+      "ascentMetres": 2.649,
+      "descentMetres": 2.59,
+      "settledSpeed": 0,
+      "driftMetres": 0,
+      "vehicleSeatRejected": true,
+      "cohortPlayers": 8,
+      "botsAfterJoin": 0
+    },
+    {
+      "map": "military_base",
+      "roomMode": "CONQUEST",
+      "objectives": 4,
+      "ascentMetres": 2.609,
+      "descentMetres": 2.456,
+      "settledSpeed": 0,
+      "driftMetres": 0,
+      "vehicleSeatRejected": true,
+      "cohortPlayers": 8,
+      "botsAfterJoin": 0
+    },
+    {
+      "map": "ghost_city",
+      "roomMode": "CONQUEST",
+      "objectives": 4,
+      "ascentMetres": 2.587,
+      "descentMetres": 2.437,
+      "settledSpeed": 0,
+      "driftMetres": 0,
+      "vehicleSeatRejected": true,
+      "cohortPlayers": 8,
+      "botsAfterJoin": 0
+    }
+  ],
+  "failures": [],
+  "ok": true
+}

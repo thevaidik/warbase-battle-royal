@@ -1,0 +1,64 @@
+{
+  "release_export": true,
+  "seconds": 125.030414666667,
+  "frame_ms_p50": 5.707,
+  "frame_ms_p95": 42.553,
+  "frame_ms_p99": 106.045,
+  "peak_remotes": 63,
+  "disconnects": 0,
+  "drive_distance_m": 199.371266829793,
+  "confirmed_hits": 6,
+  "local_grenades": 2,
+  "phase_frame_times": null,
+  "loadResult": "duration_complete",
+  "observed": {
+    "sdkPeersJoined": 63,
+    "nativeObserverSeen": true,
+    "nativeObserverVerifiedHuman": true,
+    "humanActorsAtPeak": 64,
+    "fullOccupancySeconds": 95,
+    "minHumanPlayersDuringMeasurement": 64,
+    "measurementSeconds": 95.2,
+    "maxPlayersIncludingBots": 64,
+    "maxBotsObserved": 7,
+    "serverStatePatches": 364,
+    "statePlayersAtLastSample": 64,
+    "maxClients": 64
+  },
+  "lifecycle": {
+    "controlledTransportDrops": 0,
+    "drops": 38,
+    "dropsByPhase": {
+      "joining": 0,
+      "active": 38,
+      "cleanup": 0
+    },
+    "reconnects": 38,
+    "reconnectsByPhase": {
+      "joining": 0,
+      "active": 38,
+      "cleanup": 0
+    },
+    "clientLeaves": 63,
+    "sdkCohortRemovalsExpected": 62,
+    "sdkCohortRemovalsObserved": 0,
+    "remainingHumanActorsAfterSdkLeaves": 64,
+    "serverClientsAfterSdkLeaves": 0,
+    "serverBotsAfterSdkLeaves": 0,
+    "cleanupRemovalTimedOut": true,
+    "errors": 0
+  },
+  "network": {
+    "sdkPingRttP50Ms": 363,
+    "sdkPingRttP95Ms": 4302,
+    "sdkClockRttP50Ms": 1386.22,
+    "sdkClockSmoothedRttP95Ms": 1403.85,
+    "inputAckTotalSamples": 19,
+    "ackPendingMeanP95": 390.87,
+    "ackPendingFrameMax": 935,
+    "roomStateGapP50Ms": 51,
+    "roomStateGapP95Ms": 72,
+    "roomStateGapMaxMs": 107
+  },
+  "rawCaptureLocation": "/tmp/warbase-controlled-baseline"
+}

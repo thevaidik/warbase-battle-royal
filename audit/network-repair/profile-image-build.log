@@ -1,0 +1,35 @@
+#0 building with "default" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile:
+#1 transferring dockerfile: 217B done
+#1 DONE 1.2s
+
+#2 [internal] load metadata for docker.io/library/warbase_server-warbase-server:network-20261027
+#2 DONE 0.0s
+
+#3 [internal] load .dockerignore
+#3 transferring context:
+#3 transferring context: 2B done
+#3 DONE 1.2s
+
+#4 [1/2] FROM docker.io/library/warbase_server-warbase-server:network-20261027
+#4 ...
+
+#5 [internal] load build context
+#5 transferring context: 15.20MB 0.1s done
+#5 DONE 3.6s
+
+#4 [1/2] FROM docker.io/library/warbase_server-warbase-server:network-20261027
+#4 DONE 4.9s
+
+#6 [2/2] COPY server_bin /app/server_bin
+#6 DONE 2.5s
+
+#7 exporting to image
+#7 exporting layers
+#7 exporting layers 1.8s done
+#7 writing image sha256:27a58607a255659be9695566f7376641ea2fb2ccae10a08a1c69b1bda7a6c056 0.1s done
+#7 naming to docker.io/library/warbase_server-warbase-server:network-profile
+#7 naming to docker.io/library/warbase_server-warbase-server:network-profile 0.3s done
+#7 DONE 2.9s

@@ -1,0 +1,82 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+ERROR: Condition "ret != noErr" is true. Returning: ""
+   at: get_system_ca_certificates (platform/macos/os_macos.mm:1035)
+CHECK PASS Go combat fixture contains 280 weapon/zone/range cases
+CHECK PASS client zone damage matches Go combat fixture across weapons, zones, and ranges
+CHECK PASS remote actual head bone path resolves to its anatomical area (got head)
+CHECK PASS remote actual torso bone path resolves to its anatomical area (got torso)
+CHECK PASS remote actual stomach bone path resolves to its anatomical area (got stomach)
+CHECK PASS remote actual arm bone path resolves to its anatomical area (got arm)
+CHECK PASS remote actual leg bone path resolves to its anatomical area (got leg)
+CHECK PASS remote narrow head proxy does not inflate sideways
+CHECK PASS remote clear miss remains a miss
+CHECK PASS local bot actual head bone path resolves to its anatomical area (got head)
+CHECK PASS local bot actual torso bone path resolves to its anatomical area (got torso)
+CHECK PASS local bot actual stomach bone path resolves to its anatomical area (got stomach)
+CHECK PASS local bot actual arm bone path resolves to its anatomical area (got arm)
+CHECK PASS local bot actual leg bone path resolves to its anatomical area (got leg)
+CHECK PASS local bot narrow head proxy does not inflate sideways
+CHECK PASS local bot clear miss remains a miss
+CHECK PASS layer-2 bot body cannot mask the layer-4 head zone
+CHECK PASS rotated remote actual head bone path resolves to its anatomical area (got head)
+CHECK PASS rotated remote actual torso bone path resolves to its anatomical area (got torso)
+CHECK PASS rotated remote actual stomach bone path resolves to its anatomical area (got stomach)
+CHECK PASS rotated remote actual arm bone path resolves to its anatomical area (got arm)
+CHECK PASS rotated remote actual leg bone path resolves to its anatomical area (got leg)
+CHECK PASS rotated remote narrow head proxy does not inflate sideways
+CHECK PASS rotated remote clear miss remains a miss
+CHECK PASS rotated local bot actual head bone path resolves to its anatomical area (got head)
+CHECK PASS rotated local bot actual torso bone path resolves to its anatomical area (got torso)
+CHECK PASS rotated local bot actual stomach bone path resolves to its anatomical area (got stomach)
+CHECK PASS rotated local bot actual arm bone path resolves to its anatomical area (got arm)
+CHECK PASS rotated local bot actual leg bone path resolves to its anatomical area (got leg)
+CHECK PASS rotated local bot narrow head proxy does not inflate sideways
+CHECK PASS rotated local bot clear miss remains a miss
+CHECK PASS remote at 20m selects visual LOD 0
+CHECK PASS remote anatomical zones stay active at 20m visual LOD 0
+CHECK PASS remote LOD 0 at 20m actual head bone path resolves to its anatomical area (got head)
+CHECK PASS remote LOD 0 at 20m actual torso bone path resolves to its anatomical area (got torso)
+CHECK PASS remote LOD 0 at 20m actual stomach bone path resolves to its anatomical area (got stomach)
+CHECK PASS remote LOD 0 at 20m actual arm bone path resolves to its anatomical area (got arm)
+CHECK PASS remote LOD 0 at 20m actual leg bone path resolves to its anatomical area (got leg)
+CHECK PASS remote LOD 0 at 20m narrow head proxy does not inflate sideways
+CHECK PASS remote LOD 0 at 20m clear miss remains a miss
+CHECK PASS remote at 70m selects visual LOD 1
+CHECK PASS remote anatomical zones stay active at 70m visual LOD 1
+CHECK PASS remote LOD 1 at 70m actual head bone path resolves to its anatomical area (got head)
+CHECK PASS remote LOD 1 at 70m actual torso bone path resolves to its anatomical area (got torso)
+CHECK PASS remote LOD 1 at 70m actual stomach bone path resolves to its anatomical area (got stomach)
+CHECK PASS remote LOD 1 at 70m actual arm bone path resolves to its anatomical area (got arm)
+CHECK PASS remote LOD 1 at 70m actual leg bone path resolves to its anatomical area (got leg)
+CHECK PASS remote LOD 1 at 70m narrow head proxy does not inflate sideways
+CHECK PASS remote LOD 1 at 70m clear miss remains a miss
+CHECK PASS remote at 130m selects visual LOD 2
+CHECK PASS remote anatomical zones stay active at 130m visual LOD 2
+CHECK PASS remote LOD 2 at 130m actual head bone path resolves to its anatomical area (got head)
+CHECK PASS remote LOD 2 at 130m actual torso bone path resolves to its anatomical area (got torso)
+CHECK PASS remote LOD 2 at 130m actual stomach bone path resolves to its anatomical area (got stomach)
+CHECK PASS remote LOD 2 at 130m actual arm bone path resolves to its anatomical area (got arm)
+CHECK PASS remote LOD 2 at 130m actual leg bone path resolves to its anatomical area (got leg)
+CHECK PASS remote LOD 2 at 130m narrow head proxy does not inflate sideways
+CHECK PASS remote LOD 2 at 130m clear miss remains a miss
+CHECK PASS driver state disables all remote anatomical areas
+CHECK PASS leaving driver state restores all remote anatomical areas
+CHECK PASS idle sampled clip keeps all 14 bone-following capsules ray-hittable
+CHECK PASS run sampled clip keeps all 14 bone-following capsules ray-hittable
+CHECK PASS jump sampled clip keeps all 14 bone-following capsules ray-hittable
+CHECK PASS idle, run, and jump animation pose rays stay inside matching zones
+CHECK PASS same finite ray can promote an intervening limb to this actor's torso, head, or stomach
+CHECK PASS same-actor limb promotion retains the limb hit when cover blocks the deeper body zone
+CHECK PASS same-actor limb promotion does not pass through a different combatant
+CHECK PASS remote rendered-pose time interpolates replicated uint64 timestamps without absolute-float precision loss
+CHECK PASS remote catch-up rendering projects its pose timestamp from the last two snapshots
+CHECK PASS stationary remote catch-up uses the latest authoritative pose timestamp
+CHECK PASS hit event protobuf includes the rendered view timestamp in field 4
+CHECK PASS default zero hit view timestamp remains omitted for server-current fallback
+CHECK PASS actual online weapon fire emits a fire event for a stress peer
+CHECK PASS actual online weapon hit reports BOT_STRESS_00 and its rendered pose timestamp
+CHECK PASS online predicted hit does not show confirmed local hitmarker
+CHECK PASS server hit confirmation still shows online hitmarker
+CHECK PASS practice mode retains immediate local hitmarker
+HITBOX TEST: 0 failures

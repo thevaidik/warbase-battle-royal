@@ -1,0 +1,16 @@
+{
+  "platform": "web",
+  "seconds": 35.0009853333338,
+  "injected_sdk_drop": true,
+  "disconnect_events": 1,
+  "connected_final": true,
+  "fresh_state_final": true,
+  "drop_count": 1,
+  "reconnect_count": 1,
+  "reconnect_gap_ms": 1084,
+  "input_epoch_before_drop": 0,
+  "input_epoch_final": 1,
+  "input_ack_final": 1342,
+  "sdk_modified": false,
+  "scope": "one client plus seven server bots; recovery evidence, not full-room performance acceptance"
+}

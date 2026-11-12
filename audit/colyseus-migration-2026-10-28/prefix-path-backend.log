@@ -1,0 +1,9 @@
+
+> warbase-colyseus@0.1.0 start
+> node dist/index.js
+
+ℹ️  optional .env file not found: .env.development, .env
+@colyseus/schema: defineTypes() is deprecated and will be removed in a future release. Use schema() with t.* field builders instead → https://docs.colyseus.io/state/schema
+Bot navigation prewarmed for 10 maps in 1537 ms (RSS 377.9 MiB, heap 108.2 MiB)
+WarBase Colyseus server listening on 127.0.0.1:8081
+error during shutdown: already_shutting_down
