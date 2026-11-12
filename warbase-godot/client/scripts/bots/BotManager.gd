@@ -21,8 +21,8 @@ func setup(p: Node3D, points: Array[Vector3]) -> void:
 
 func get_spawn_point() -> Vector3:
 	if not spawn_points.is_empty():
-		var jitter := 0.7 if GameState.selected_map == "shipment" else 2.0
-		return spawn_points[randi() % spawn_points.size()] + Vector3(randf_range(-jitter, jitter), 0.0, randf_range(-jitter, jitter))
+		# Authored points passed the all-map volume gate; random offsets can enter walls.
+		return spawn_points[randi() % spawn_points.size()]
 	return Vector3(randf_range(-20, 20), 0.5, randf_range(-20, 20))
 
 func spawn_bot() -> void:
@@ -30,7 +30,7 @@ func spawn_bot() -> void:
 	var pos := get_spawn_point()
 	var b := WarBot.create_bot("BOT_%d" % _bot_seq, pos, "B")
 	add_child(b)
-	b.global_position = pos + Vector3(0, 0.2, 0)
+	b.global_position = pos + Vector3.UP * GameState.DRONE_SPAWN_OFFSET
 	b.set_target(player)
 	b.died.connect(func(bname: String, killer: String, is_head: bool, src: String) -> void:
 		bot_eliminated.emit(bname, killer, is_head, src)

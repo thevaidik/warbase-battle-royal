@@ -5,6 +5,7 @@ extends Node3D
 const MapDownloadScript := preload("res://scripts/maps/MapDownload.gd")
 const PlayerScript := preload("res://scripts/core/Player.gd")
 const WeaponSysScript := preload("res://scripts/weapons/WeaponSystem.gd")
+const DroneEffects := preload("res://scripts/drones/DroneCombatEffects.gd")
 const MapBuilderScript := preload("res://scripts/maps/MapBuilder.gd")
 const BotMgrScript := preload("res://scripts/bots/BotManager.gd")
 const MultiplayerScript := preload("res://scripts/net/MultiplayerManager.gd")
@@ -28,12 +29,11 @@ var hud: WarHUD
 var tactical_map: WarTacticalMap
 var objective_markers: WarObjectiveMarkers
 var menu: WarMenu
-var sway_root: Node3D
-var current_driven_jeep = null
 var _online_vehicles: Dictionary = {}
 
 var _send_acc := 0.0
 var _respawn_t := 0.0
+var _redeploy_queued := false
 var _next_respawn_request_ms := 0
 var _deploy_pending := false
 var _grenade_cd := 0.0
@@ -57,13 +57,6 @@ func _ready() -> void:
 	_configure_ui_scale()
 	get_window().size_changed.connect(_configure_ui_scale)
 	process_mode = Node.PROCESS_MODE_ALWAYS
-	for index in range(4, GameState.WEAPONS.size()):
-		var action := "weapon_%d" % (index + 1)
-		if not InputMap.has_action(action):
-			InputMap.add_action(action)
-			var key := InputEventKey.new()
-			key.physical_keycode = KEY_1 + index
-			InputMap.action_add_event(action, key)
 	# Industry competitive standard: unbuffered sub-millisecond raw mouse input
 	Input.use_accumulated_input = false
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
@@ -72,16 +65,6 @@ func _ready() -> void:
 	get_viewport().msaa_3d = Viewport.MSAA_4X
 	get_viewport().scaling_3d_scale = 1.0
 
-	if not InputMap.has_action("interact"):
-		InputMap.add_action("interact")
-		var ev := InputEventKey.new()
-		ev.physical_keycode = KEY_E
-		InputMap.action_add_event("interact", ev)
-	if not InputMap.has_action("crouch"):
-		InputMap.add_action("crouch")
-		var ev_c := InputEventKey.new()
-		ev_c.physical_keycode = KEY_C
-		InputMap.action_add_event("crouch", ev_c)
 	for a in OS.get_cmdline_user_args():
 		if a == "autotest":
 			_autotest = true
@@ -108,6 +91,7 @@ func _ready() -> void:
 	hud.visible = false
 	add_child(hud)
 	hud.resume_pressed.connect(_toggle_pause)
+	hud.redeploy_pressed.connect(_request_redeployment)
 	hud.quit_pressed.connect(_quit_to_menu)
 	hud.scoreboard_closed.connect(_on_scoreboard_closed)
 	
@@ -115,11 +99,17 @@ func _ready() -> void:
 	menu.name = "Menu"
 	add_child(menu)
 	menu.deploy_requested.connect(_on_deploy)
+	menu.quick_match_ready.connect(_on_quick_match)
 	
 	net.state_received.connect(_on_state)
+	net.payload_ammo_received.connect(func(state: Dictionary) -> void:
+		if is_instance_valid(weapons): weapons.reconcile_offhand_ammo(state)
+	)
 	net.hit_confirmed.connect(_on_hit_confirmed)
 	net.damage_received.connect(_on_damage_effect)
+	net.vehicle_impact_received.connect(_on_vehicle_impact)
 	net.kill_confirmed.connect(_on_kill_confirmed)
+	net.elimination_received.connect(_on_elimination_received)
 	net.respawn_received.connect(_on_net_respawn)
 	net.connection_changed.connect(_on_conn)
 	net.connection_error.connect(func(reason: String) -> void:
@@ -153,11 +143,22 @@ func _configure_ui_scale() -> void:
 	if window.content_scale_size != logical:
 		window.content_scale_size = logical
 
-func _on_deploy() -> void:
+func _on_quick_match(reservation: Dictionary, map: String) -> void:
+	if phase != Phase.MENU or _deploy_pending:
+		menu.stop_quick_match()
+		return
+	GameState.selected_map = map
+	GameState.selected_mode = "CONQUEST"
+	GameState.practice_mode = false
+	_on_deploy(reservation)
+
+func _on_deploy(reservation: Dictionary = {}) -> void:
 	if _deploy_pending: return
+	if reservation.is_empty(): menu.stop_quick_match()
 	var name_rule := RegEx.new()
 	name_rule.compile("^[A-Za-z0-9_-]{3,16}$")
 	if name_rule.search(GameState.username) == null:
+		menu.stop_quick_match()
 		menu._show_toast("Callsign: use 3–16 letters, numbers, underscores or hyphens.", false)
 		return
 	var requested_map := GameState.selected_map
@@ -167,17 +168,20 @@ func _on_deploy() -> void:
 	_deploy_pending = false
 	menu._update_footer_selection()
 	if not available:
+		menu.stop_quick_match()
 		menu._show_toast("Selected map could not be loaded. Please try again.", false)
 		return
-	if requested_map != GameState.selected_map: return
+	if requested_map != GameState.selected_map or (not reservation.is_empty() and not menu._match_queue.active):
+		menu.stop_quick_match()
+		return
 	menu.visible = false
 	if _autotest:
 		GameState.set_bot_damage(false)
-	_start_match()
+	_start_match(reservation)
 	if _autotest:
 		print("AUTOTEST: deployed map=", GameState.selected_map, " player_at=", player.global_position)
 
-func _start_match() -> void:
+func _start_match(reservation: Dictionary = {}) -> void:
 	GameState.online_ready = GameState.practice_mode
 	hud.set_connection_status("Synchronizing match…" if not GameState.practice_mode else "")
 	GameState.reset_match_stats()
@@ -198,28 +202,30 @@ func _start_match() -> void:
 			vehicle.network_position = vehicle.global_position
 			vehicle.network_yaw = vehicle.rotation.y
 			vehicle.freeze = true
+			var impact_response = load("res://scripts/vehicles/VehicleImpactResponse.gd").new()
+			impact_response.name = "ImpactResponse"
+			vehicle.add_child(impact_response)
+			impact_response.setup(vehicle, vehicle.get_node_or_null("BodyVisuals"), vehicle.chase_camera)
 	
+	world.add_child(DroneEffects.new())
+
 	# Instantiate player from Player.tscn
 	const PlayerScene: PackedScene = preload("res://scenes/Player.tscn")
 	player = PlayerScene.instantiate() as WarPlayer
 	player.colyseus_authoritative_sim = not GameState.practice_mode
 	world.add_child(player)
-	sway_root = player.get_node("Head/Camera3D/SwayRoot") as Node3D
 	var cam := player.get_node("Head/Camera3D") as Camera3D
 	var sp: Vector3 = spawns[0] if not spawns.is_empty() else Vector3(0, 0.5, 0)
-	player.global_position = sp + Vector3(0, 0.2, 0)
+	player.global_position = sp + Vector3.UP * GameState.DRONE_SPAWN_OFFSET
 	if GameState.selected_map in ["resoforge", "football"]: player.yaw = atan2(sp.x, sp.z)
 	
 	# Weapons system
 	weapons = WeaponSysScript.new()
 	weapons.name = "WeaponSystem"
 	world.add_child(weapons)
-	weapons.setup(player, cam, sway_root, net, world)
-	weapons.ammo_changed.connect(func(a: int, m: int) -> void:
-		hud.set_ammo(a, m, String(weapons.current_config()["name"]), weapons.is_reloading)
-	)
+	weapons.setup(player, cam, net, world)
 	weapons.hit_confirmed_editorial.connect(_on_local_hit_confirmed)
-	hud.set_ammo(weapons.ammo, int(weapons.current_config()["mag_size"]), String(weapons.current_config()["name"]), false)
+
 	
 	# Player damage & death hooks
 	player.damaged.connect(_on_player_damaged)
@@ -240,24 +246,34 @@ func _start_match() -> void:
 	world.add_child(mp)
 	mp.setup(net, world, GameState.username, _qa_active)
 	if not GameState.practice_mode:
-		net.connect_to(GameState.username, GameState.room_id if not GameState.room_id.is_empty() else "industrial-public", GameState.server_host)
+		net.connect_to(GameState.username, GameState.room_id if not GameState.room_id.is_empty() else "industrial-public", GameState.server_host, reservation)
 	
 	phase = Phase.PLAYING
 	hud.visible = true
+	hud.set_drone_mobility(GameState.selected_drone_chassis)
 	hud.update_player_header(GameState.username, GameState.local_team, GameState.selected_mode)
-	if GameState.selected_mode == "CONQUEST":
-		objective_markers = preload("res://scripts/ui/ObjectiveMarkers.gd").new()
-		objective_markers.player = player
-		hud.add_child(objective_markers)
-		tactical_map = TacticalMapScript.new()
-		tactical_map.name = "TacticalMap"
-		tactical_map.process_mode = Node.PROCESS_MODE_ALWAYS
-		hud.add_child(tactical_map)
-		tactical_map.configure(world, map_builder, player)
+	_ensure_conquest_ui()
 	_capture_mouse()
 	hud.feed("Deployed to %s [%s]" % [GameState.selected_map.to_upper(), GameState.selected_mode], Color(0.2, 0.9, 0.4))
 
+func _ensure_conquest_ui() -> void:
+	if GameState.selected_mode.to_upper() != "CONQUEST" or is_instance_valid(objective_markers) or not is_instance_valid(player):
+		return
+	objective_markers = preload("res://scripts/ui/ObjectiveMarkers.gd").new()
+	objective_markers.player = player
+	hud.add_child(objective_markers)
+	tactical_map = TacticalMapScript.new()
+	tactical_map.name = "TacticalMap"
+	tactical_map.process_mode = Node.PROCESS_MODE_ALWAYS
+	hud.add_child(tactical_map)
+	tactical_map.configure(world, map_builder, player)
+
 func _input(event: InputEvent) -> void:
+	if phase == Phase.DEAD:
+		if hud.is_editing_drone() and event.is_action_pressed("pause"):
+			hud.close_drone_editor()
+			get_viewport().set_input_as_handled()
+		return
 	if phase == Phase.MENU:
 		return
 	if event is InputEventKey and event.pressed and not event.echo and (event.physical_keycode == KEY_M or event.keycode == KEY_M) and GameState.selected_mode == "CONQUEST":
@@ -273,10 +289,7 @@ func _input(event: InputEvent) -> void:
 		_capture_mouse()
 	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED and phase == Phase.PLAYING:
 		var mm := event as InputEventMouseMotion
-		if current_driven_jeep != null:
-			current_driven_jeep.apply_aim_input(mm.relative.x, mm.relative.y)
-		else:
-			player.apply_look(mm.relative.x, mm.relative.y, weapons.ads_amount if weapons else 0.0)
+		player.apply_look(mm.relative.x, mm.relative.y, weapons.ads_amount if weapons else 0.0)
 	if event.is_action_pressed("pause"):
 		if hud.is_board_visible():
 			_toggle_scoreboard()
@@ -292,38 +305,14 @@ func _input(event: InputEvent) -> void:
 		if GameState.bot_damage_enabled:
 			hud.feed(" Combat Mode: Bot Damage Enabled", Color(1.0, 0.45, 0.25))
 		else:
-			hud.feed(" Peaceful Mode: Bot Damage OFF — Walk & Drive in Peace!", Color(0.3, 0.95, 0.4))
+			hud.feed(" Peaceful Mode: Bot Damage OFF — Flight test", Color(0.3, 0.95, 0.4))
 		return
 	if event is InputEventKey and event.pressed and not event.echo and (event.keycode == KEY_F3 or event.physical_keycode == KEY_F3):
 		var on = GameState.toggle_vsync()
 		Audio.ui_btn_click()
 		hud.feed(" V-Sync: %s" % ("ENABLED (Locked to Screen Refresh)" if on else "DISABLED (Uncapped Full Hardware FPS)"), Color(0.4, 0.9, 1.0))
 		return
-	if event.is_action_pressed("interact") or (event is InputEventKey and event.pressed and not event.echo and (event.keycode == KEY_E or event.physical_keycode == KEY_E)):
-		get_viewport().set_input_as_handled()
-		_handle_vehicle_interact()
-		return
-	if phase != Phase.PLAYING:
-		return
-	if current_driven_jeep != null:
-		if event is InputEventKey and event.pressed and not event.echo:
-			var code: int = event.physical_keycode if event.physical_keycode != 0 else event.keycode
-			if code == KEY_1:
-				get_viewport().set_input_as_handled()
-				current_driven_jeep.shift_gear(1)
-				return
-			elif code == KEY_2:
-				get_viewport().set_input_as_handled()
-				current_driven_jeep.shift_gear(2)
-				return
-			elif code == KEY_C or event.is_action_pressed("crouch"):
-				get_viewport().set_input_as_handled()
-				current_driven_jeep.toggle_camera_view()
-				return
-		return
-	if event.is_action_pressed("inspect") or (event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_I):
-		if weapons and weapons.has_method("start_inspect"):
-			weapons.start_inspect()
+	if phase != Phase.PLAYING: return
 	if event.is_action_pressed("grenade") and not event.is_echo():
 		_grenade_aiming = _grenade_cd <= 0.0 and GameState.throwables_remaining > 0 and GameState.online_ready and not player.is_dead
 	if event.is_action_released("grenade") and _grenade_aiming:
@@ -340,7 +329,7 @@ func _toggle_tactical_map() -> void:
 	if _tactical_map_open:
 		_map_previous_mouse_mode = Input.mouse_mode
 		_map_paused_nodes.clear()
-		for node in [player, weapons, current_driven_jeep]:
+		for node in [player, weapons]:
 			if is_instance_valid(node):
 				_map_paused_nodes.append({"node":node, "process":node.is_processing(), "physics":node.is_physics_processing(), "input":node.is_processing_input(), "unhandled_input":node.is_processing_unhandled_input()})
 				node.set_process(false)
@@ -377,59 +366,11 @@ func _on_scoreboard_closed() -> void:
 	if phase == Phase.PLAYING:
 		_capture_mouse()
 
-func _handle_vehicle_interact() -> void:
-	if phase != Phase.PLAYING: return
-	if current_driven_jeep != null:
-		if GameState.practice_mode: _exit_combat_jeep(current_driven_jeep)
-		else: net.send_vehicle_seat("", false)
-		return
-	if not is_instance_valid(player) or player.is_dead:
-		return
-	var nearest_jeep = null
-	var min_d := 4.8
-	for j in get_tree().get_nodes_in_group("combat_jeeps"):
-		if is_instance_valid(j) and not j.is_destroyed:
-			var d: float = player.global_position.distance_to(j.global_position)
-			if d < min_d:
-				min_d = d
-				nearest_jeep = j
-	if nearest_jeep:
-		if GameState.practice_mode: _enter_combat_jeep(nearest_jeep)
-		elif String(nearest_jeep.get_meta("server_driver", "")).is_empty(): net.send_vehicle_seat(String(nearest_jeep.get_meta("server_vehicle_id", "")), true)
-		else: hud.feed("Vehicle is occupied.", WarUI.MUTED)
-
-func _enter_combat_jeep(jeep) -> void:
-	if jeep == null or jeep.is_destroyed:
-		return
-	current_driven_jeep = jeep
-	player.global_position = jeep.global_position
-	player.set_driving(true)
-	if is_instance_valid(weapons):
-		weapons.visible = false
-	jeep.enter_vehicle(player)
-	if not GameState.practice_mode: jeep.freeze = true
-	hud.set_vehicle_prompt(false)
-	hud.set_vehicle_active(true)
-	hud.feed("Mounted Armored Combat Van", Color(0.3, 0.9, 1.0))
-
-func _exit_combat_jeep(jeep) -> void:
-	if jeep == null:
-		return
-	var exit_pos: Vector3 = jeep.global_position - jeep.global_transform.basis.x * 2.4 + Vector3.UP * 0.25
-	jeep.exit_vehicle()
-	current_driven_jeep = null
-	if is_instance_valid(player):
-		player.global_position = exit_pos
-		player.set_driving(false)
-		if is_instance_valid(player.camera):
-			player.camera.make_current()
-	if is_instance_valid(weapons):
-		weapons.visible = true
-	hud.set_vehicle_active(false)
-
 func _toggle_pause() -> void:
 	if phase == Phase.PLAYING:
 		phase = Phase.PAUSED
+		_set_thermal_view(false)
+		hud.set_drone_sensor(false)
 		get_tree().paused = true
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 		hud.set_paused(true)
@@ -440,6 +381,9 @@ func _toggle_pause() -> void:
 		hud.set_paused(false)
 
 func _quit_to_menu() -> void:
+	_set_thermal_view(false)
+	if is_instance_valid(hud): hud.set_drone_sensor(false)
+	menu.stop_quick_match()
 	if is_instance_valid(tactical_map):
 		tactical_map.set_open(false)
 		tactical_map.queue_free()
@@ -452,9 +396,6 @@ func _quit_to_menu() -> void:
 	_hide_grenade_preview()
 	_grenade_preview.clear()
 	get_tree().paused = false
-	if current_driven_jeep != null:
-		current_driven_jeep.exit_vehicle()
-		current_driven_jeep = null
 	net.disconnect_from()
 	if mp:
 		mp.clear()
@@ -481,12 +422,13 @@ func _quit_to_menu() -> void:
 func _grenade_launch() -> Dictionary:
 	var cam: Camera3D = player.camera
 	var dir := -cam.global_transform.basis.z.normalized()
-	var pos := cam.global_position + dir * 0.35 + cam.global_transform.basis.x * 0.16 - cam.global_transform.basis.y * 0.12
+	var origin := player.global_position + Vector3.UP * 0.12
+	var pos := origin + dir * 0.35 + cam.global_transform.basis.x * 0.08 - cam.global_transform.basis.y * 0.04
 	# Clip the hand's release point against cover rather than spawning through it.
 	var space := player.get_world_3d().direct_space_state
-	var obstruction := GrenadeFlight.sweep(space, cam.global_position, pos)
+	var obstruction := GrenadeFlight.sweep(space, origin, pos)
 	if not obstruction.is_empty():
-		pos = cam.global_position.lerp(pos, maxf(0.0, float(obstruction.fraction) - 0.08))
+		pos = origin.lerp(pos, maxf(0.0, float(obstruction.fraction) - 0.08))
 	return {"position":pos, "velocity":GrenadeFlight.launch_velocity(dir, player.velocity)}
 
 func _hide_grenade_preview() -> void:
@@ -495,7 +437,7 @@ func _hide_grenade_preview() -> void:
 
 func _update_grenade_preview(delta: float) -> void:
 	if not _grenade_aiming: return
-	if phase != Phase.PLAYING or not is_instance_valid(player) or player.is_dead or current_driven_jeep != null or hud.is_board_visible() or Input.mouse_mode != Input.MOUSE_MODE_CAPTURED:
+	if phase != Phase.PLAYING or not is_instance_valid(player) or player.is_dead or hud.is_board_visible() or Input.mouse_mode != Input.MOUSE_MODE_CAPTURED:
 		_grenade_aiming = false
 		_hide_grenade_preview()
 		return
@@ -559,13 +501,8 @@ func _throw_grenade() -> void:
 		spawn_grenade(pos, vel, spin, GameState.selected_throwable)
 	_spawn_spoon_fly(pos, cam.global_transform.basis.x * 2.8 + Vector3.UP * 2.2 + (player.velocity * 0.3 if player else Vector3.ZERO))
 	if not GameState.practice_mode:
-		var request_id := net.send_grenade(pos, vel, GameState.selected_throwable)
-		if request_id > 0:
-			var predicted := spawn_grenade(pos, vel, spin, GameState.selected_throwable)
-			if mp and mp.has_method("register_predicted_grenade"):
-				mp.register_predicted_grenade(request_id, predicted)
-	else:
 		net.send_grenade(pos, vel, GameState.selected_throwable)
+
 
 func _spawn_spoon_fly(pos: Vector3, vel: Vector3) -> void:
 	if not is_instance_valid(world):
@@ -649,14 +586,16 @@ func _on_bot_eliminated(bot_name: String, killer: String, is_headshot: bool, sou
 		hud.feed("%s was eliminated" % bot_name, Color(0.8, 0.8, 0.8))
 
 func _on_player_damaged(attacker_dir: Vector3, amount: float) -> void:
-	hud.show_damage_blood(amount)
+	hud.flash_hull_damage()
+	if GameState.practice_mode and is_instance_valid(weapons) and is_instance_valid(player):
+		weapons.spawn_hull_hit(player.global_position + attacker_dir * 0.35, -attacker_dir, clampf(amount / 30.0, 0.75, 2.0))
 	if is_instance_valid(player): player.apply_recoil(minf(0.025, amount * 0.0005), 0.0)
 	if attacker_dir != Vector3.ZERO and is_instance_valid(player):
 		var rel := player.global_transform.basis.inverse() * attacker_dir
 		hud.add_damage_indicator(rel)
 
 func _on_state(state: Dictionary) -> void:
-	if not GameState.practice_mode and int(state.get("protocol_version", 0)) != 11:
+	if not GameState.practice_mode and int(state.get("protocol_version", 0)) != WarGameState.GAME_PROTOCOL_VERSION:
 		net.disconnect_from()
 		hud.feed("Game updated. Refresh the page or reopen the latest build.", Color(1, 0.4, 0.3))
 		return
@@ -671,7 +610,7 @@ func _on_state(state: Dictionary) -> void:
 		if is_instance_valid(map_builder): map_builder.apply_time_of_day(server_time)
 	GameState.selected_mode = String(state.get("room_mode", GameState.selected_mode))
 	var me: Dictionary = (state.get("players", {}) as Dictionary).get(GameState.username, {})
-	_apply_online_vehicles(state.get("vehicles", {}), me)
+	_apply_online_vehicles(state.get("vehicles", {}))
 	if not me.is_empty():
 		if weapons and not GameState.practice_mode:
 			weapons.reconcile_ammo(me)
@@ -683,7 +622,7 @@ func _on_state(state: Dictionary) -> void:
 		# Once waiting for respawn, an authoritative living snapshot also restores
 		# the client, rather than leaving the death screen latched indefinitely.
 		if is_instance_valid(player) and player.is_dead and player.get_meta("respawn_requested", false) and not bool(me.get("is_dead", false)) and remote_hp > 0:
-			_on_net_respawn(Vector3(float(me.get("x", 0)), float(me.get("y", 0)), float(me.get("z", 0))) + Vector3.UP * 0.2)
+			_on_net_respawn(Vector3(float(me.get("x", 0)), float(me.get("y", 0)), float(me.get("z", 0))))
 		if is_instance_valid(player):
 			if remote_hp < player.health and not player.is_dead:
 				if Time.get_ticks_msec() - _last_damage_feedback_ms > 150: hud.add_damage_indicator(Vector3.ZERO)
@@ -699,6 +638,7 @@ func _on_state(state: Dictionary) -> void:
 			player.set_meta("network_dead", true)
 			player.kill()
 	if GameState.selected_mode == "CONQUEST":
+		_ensure_conquest_ui()
 		var points_value: Variant = state.get("objectives", {})
 		var points: Array = []
 		if points_value is Dictionary:
@@ -725,7 +665,7 @@ func _on_state(state: Dictionary) -> void:
 	if not finished:
 		_last_winner = ""
 
-func _apply_online_vehicles(vehicles: Dictionary, me: Dictionary) -> void:
+func _apply_online_vehicles(vehicles: Dictionary) -> void:
 	if GameState.practice_mode: return
 	for id in vehicles:
 		if not _online_vehicles.has(id): continue
@@ -743,16 +683,16 @@ func _apply_online_vehicles(vehicles: Dictionary, me: Dictionary) -> void:
 		vehicle.set_meta("server_driver", snapshot.get("driver", ""))
 		vehicle.health = float(snapshot.get("health", 1200))
 		vehicle.is_destroyed = vehicle.health <= 0
-	var seat := String(me.get("driving_vehicle", ""))
-	if not seat.is_empty() and _online_vehicles.has(seat) and current_driven_jeep != _online_vehicles[seat]:
-		_enter_combat_jeep(_online_vehicles[seat])
-	elif seat.is_empty() and current_driven_jeep != null:
-		_exit_combat_jeep(current_driven_jeep)
-		player.global_position = Vector3(float(me.get("x", 0)), float(me.get("y", 0)), float(me.get("z", 0)))
+func _on_vehicle_impact(id: String, normal: Vector3, speed: float) -> void:
+	if not _online_vehicles.has(id): return
+	var vehicle = _online_vehicles[id]
+	if not is_instance_valid(vehicle): return
+	var response = vehicle.get_node_or_null("ImpactResponse")
+	if response != null: response.kick(normal, speed)
 
 func _on_damage_effect(target: String, pos: Vector3, direction: Vector3, amount: int) -> void:
 	if phase == Phase.MENU or not is_instance_valid(weapons): return
-	weapons.spawn_blood(pos, direction, clampf(amount / 30.0, 0.75, 2.0))
+	weapons.spawn_hull_hit(pos, direction, clampf(amount / 30.0, 0.75, 2.0))
 	if target == GameState.username and is_instance_valid(player):
 		_last_damage_feedback_ms = Time.get_ticks_msec()
 		_on_player_damaged(-direction, float(amount))
@@ -764,6 +704,16 @@ func _on_hit_confirmed() -> void:
 	hud.flash_hitmarker(false)
 	Audio.hitmarker(false)
 
+func _on_elimination_received(event: Dictionary) -> void:
+	var killer := String(event.get("killer", ""))
+	var victim := String(event.get("victim", ""))
+	var weapon := String(event.get("weapon", "ak47"))
+	var chassis := String(event.get("drone", "quad"))
+	if killer.is_empty() or victim.is_empty(): return
+	hud.show_elimination(killer, victim, weapon)
+	if victim == GameState.username:
+		hud.show_killer_card(killer, weapon, chassis)
+
 func _on_kill_confirmed() -> void:
 	hud.flash_hitmarker(true)
 	Audio.hitmarker(true)
@@ -774,32 +724,30 @@ func _on_conn(connected_now: bool) -> void:
 	if phase == Phase.MENU or GameState.practice_mode:
 		return
 	if connected_now:
+		menu.confirm_quick_match()
 		hud.set_connection_status("Synchronizing match…")
-		net.send_loadout(GameState.selected_primary, GameState.selected_secondary, GameState.selected_throwable)
-		if weapons:
+		if phase != Phase.DEAD: net.send_loadout(GameState.selected_primary, GameState.selected_secondary, GameState.selected_throwable)
+		if weapons and phase != Phase.DEAD:
 			net.send_switch(String(weapons.current_config()["id"]))
 	else:
 		GameState.online_ready = false
+		if is_instance_valid(weapons): weapons.clear_pending_shots()
 		hud.set_connection_status("Connection interrupted. Reconnecting…")
 
 func _on_net_respawn(pos: Vector3) -> void:
-	if mp and mp.has_method("clear_pending_grenades"):
-		mp.clear_pending_grenades()
-	_do_respawn(pos - Vector3(0, 0.2, 0))
+	if phase != Phase.DEAD: return
+	_do_respawn(pos)
 	if weapons:
 		net.send_switch(String(weapons.current_config()["id"]))
 
-func spawn_death_blood(at: Vector3) -> void:
-	if is_instance_valid(weapons): weapons.spawn_death_blood(at)
-
 func _on_dead() -> void:
-	if is_instance_valid(player): spawn_death_blood(player.global_position)
-	if current_driven_jeep != null:
-		_exit_combat_jeep(current_driven_jeep)
-	if is_instance_valid(sway_root): sway_root.visible = false
+	_set_thermal_view(false)
+	if is_instance_valid(hud): hud.set_drone_sensor(false)
 	hud.set_health(0)
 	phase = Phase.DEAD
 	_respawn_t = 3.0
+	_redeploy_queued = false
+	hud.configure_redeploy(_can_edit_on_death())
 	_next_respawn_request_ms = 0
 	hud.set_dead(true, 3)
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
@@ -812,12 +760,16 @@ func _do_respawn(pos: Vector3) -> void:
 	player.set_meta("respawn_requested", false)
 	GameState.throwables_remaining = 2
 	player.heal_full()
+	if _redeploy_queued:
+		player.apply_deployed_chassis()
+		weapons.active_index = GameState.starting_weapon_index()
+		weapons._sync_drone_payload()
+	_redeploy_queued = false
 	player.respawn_at(pos)
 	if GameState.selected_map in ["resoforge", "football"]: player.yaw = atan2(pos.x, pos.z)
 	if is_instance_valid(weapons):
 		weapons.reset_after_respawn()
-		hud.set_ammo(weapons.ammo, int(weapons.current_config()["mag_size"]), String(weapons.current_config()["name"]), false)
-	if is_instance_valid(sway_root): sway_root.visible = true
+
 	phase = Phase.PLAYING
 	hud.set_dead(false, 0)
 	hud.set_health(100)
@@ -827,6 +779,20 @@ func _do_respawn(pos: Vector3) -> void:
 	else:
 		_capture_mouse()
 		if net.has_method("set_gameplay_input_enabled"): net.set_gameplay_input_enabled(true)
+
+func _can_edit_on_death() -> bool:
+	return GameState.practice_mode or net.supports_manual_redeploy
+
+func _request_redeployment() -> void:
+	if phase != Phase.DEAD or not _can_edit_on_death() or _respawn_t > 0.0 or _redeploy_queued: return
+	_redeploy_queued = true
+	hud.close_drone_editor()
+	hud.update_redeploy(0, true)
+
+func _set_thermal_view(on: bool) -> void:
+	if GameState.thermal_view == on: return
+	GameState.thermal_view = on
+	get_tree().call_group("drone_thermal_signatures", "set_thermal_signature", on)
 
 func _process(delta: float) -> void:
 	_grenade_cd = maxf(0.0, _grenade_cd - delta)
@@ -839,26 +805,19 @@ func _process(delta: float) -> void:
 		return
 		
 	if phase == Phase.DEAD:
-		_respawn_t -= delta
-		hud.set_dead(true, int(maxf(_respawn_t, 0.0)))
-		# Sync death state to server so remote clients render death animation
-		_send_acc += delta
-		if _send_acc >= 1.0 / 20.0 and net.connected and is_instance_valid(player):
-			_send_acc = 0.0
-			var basis := Basis(Quaternion(Vector3.UP, player.yaw))
-			var wep_id := GameState.weapon_id_for_index(weapons.active_index) if weapons else "ak47"
-			net.send_state(player.global_position, Quaternion(basis), "death", wep_id)
-			
-		if _respawn_t <= 0.0:
-			if net.connected:
-				if not player.get_meta("respawn_requested", false) or Time.get_ticks_msec() >= _next_respawn_request_ms:
-					net.send_respawn()
-					player.set_meta("respawn_requested", true)
-					_next_respawn_request_ms = Time.get_ticks_msec() + 1000
+		_respawn_t = maxf(0.0, _respawn_t - delta)
+		hud.update_redeploy(ceili(_respawn_t), _redeploy_queued)
+		if _respawn_t <= 0.0 and (_redeploy_queued or not _can_edit_on_death() or _autotest):
+			if GameState.practice_mode:
+				var spawn: Vector3 = map_builder.spawn_points.pick_random() if is_instance_valid(map_builder) and not map_builder.spawn_points.is_empty() else Vector3(0, 1, 0)
+				_do_respawn(spawn + Vector3.UP * GameState.DRONE_SPAWN_OFFSET)
+			elif net.connected and Time.get_ticks_msec() >= _next_respawn_request_ms:
+				var loadout := {"primary": GameState.selected_primary, "secondary": GameState.selected_secondary,
+					"throwable": GameState.selected_throwable, "chassis": GameState.selected_drone_chassis} if _redeploy_queued else {}
+				net.send_respawn(loadout)
+				player.set_meta("respawn_requested", true)
+				_next_respawn_request_ms = Time.get_ticks_msec() + 1000
 
-			else:
-				var sp: Vector3 = map_builder.spawn_points[randi() % map_builder.spawn_points.size()] if map_builder and not map_builder.spawn_points.is_empty() else Vector3(randf_range(-15, 15), 1.0, randf_range(-15, 15))
-				_do_respawn(sp)
 		if _autotest:
 			_autotest_tick(delta)
 		return
@@ -868,75 +827,20 @@ func _process(delta: float) -> void:
 		
 	# HUD live values
 	hud.set_health(int(player.health))
-	hud.set_crosshair(weapons.spread if weapons else 1.5, weapons.ads_amount if weapons else 0.0)
-	var optic_active := weapons and weapons.ads_amount > 0.65 and (weapons.get_current_scope_zoom() > 1 or String(weapons.current_config()["id"]) in ["m4", "mp5"])
-	var optic_weight := smoothstep(0.65, 0.88, weapons.ads_amount) if weapons else 0.0
-	if weapons:
-		hud.set_scope_magnification(weapons.get_current_scope_zoom(), String(weapons.current_config()["id"]) in ["m4", "mp5"])
-		hud.scope_overlay.field_of_view = player.camera.fov
-		hud.scope_overlay.sniper = weapons.is_scoped()
-	hud.set_scope(optic_active, optic_weight)
-	if optic_active:
-		hud.update_scope_steady(weapons.is_holding_breath, weapons.breath_stamina, rad_to_deg(player.yaw))
-	hud.set_ammo(weapons.ammo, int(weapons.current_config()["mag_size"]), String(weapons.current_config()["name"]), weapons.is_reloading)
-	if _tactical_map_open:
-		_send_acc += delta
-		if _send_acc >= 1.0 / 30.0:
-			_send_acc = 0.0
-			if current_driven_jeep != null:
-				if not GameState.practice_mode: net.send_vehicle_input(0.0, 0.0, false, current_driven_jeep.current_gear)
-			else:
-				var map_basis := Basis(Quaternion(Vector3.UP, player.yaw))
-				var map_weapon := GameState.weapon_id_for_index(weapons.active_index) if weapons else "ak47"
-				net.send_state(player.global_position, Quaternion(map_basis), "idle", map_weapon)
-		return
-	
-	# Vehicle driving and telemetry loop
-	if current_driven_jeep != null:
-		if current_driven_jeep.is_destroyed:
-			_exit_combat_jeep(current_driven_jeep)
-		else:
-			hud.set_vehicle_stats(
-				current_driven_jeep.current_speed_kmh,
-				current_driven_jeep.current_gear,
-				current_driven_jeep.health,
-				current_driven_jeep.max_health,
-				current_driven_jeep.is_reversing
-			)
-			player.global_position = current_driven_jeep.global_position
-	else:
-		var nearby_jeep = null
-		for j in get_tree().get_nodes_in_group("combat_jeeps"):
-			if is_instance_valid(j) and not j.is_destroyed and j.is_player_nearby(player):
-				nearby_jeep = j
-				break
-		hud.set_vehicle_prompt(nearby_jeep != null)
-
-	# Movement and vehicle input at 30 Hz; rendering/physics remain independent.
+	hud.set_drone_telemetry(player.velocity.length(), player.global_position.y)
+	hud.set_crosshair(weapons.spread if weapons else 1.5, weapons.ads_amount if weapons else 0.0, player.crosshair_on_enemy)
+	var sensor_active := weapons.ads_amount > 0.68 and not _tactical_map_open
+	var thermal_active := sensor_active and weapons.drone_thermal
+	_set_thermal_view(thermal_active)
+	hud.set_drone_sensor(sensor_active, thermal_active, weapons.drone_zoom(), player.drone_range_m, player.crosshair_on_enemy)
+	hud.update_payload_cards(weapons)
 	_send_acc += delta
-	if _send_acc >= 1.0 / 30.0:
+	if not GameState.practice_mode and _send_acc >= 1.0 / 30.0:
 		_send_acc = 0.0
-		if current_driven_jeep != null:
-			player.global_position = current_driven_jeep.global_position
-			if not GameState.practice_mode:
-				net.send_vehicle_input(Input.get_axis("move_back", "move_forward"), Input.get_axis("move_left", "move_right"), Input.is_action_pressed("jump"), current_driven_jeep.current_gear)
-		else:
-			var moving := Input.is_action_pressed("move_forward") or Input.is_action_pressed("move_back") or Input.is_action_pressed("move_left") or Input.is_action_pressed("move_right")
-			var anim := "idle"
-			if player.is_dead:
-				anim = "death"
-			elif weapons.is_firing and moving:
-				anim = "firing walk"
-			elif weapons.is_firing:
-				anim = "firing"
-			elif moving:
-				anim = "run"
-			var basis := Basis(Quaternion(Vector3.UP, player.yaw))
-			var wep_id := GameState.weapon_id_for_index(weapons.active_index) if weapons else "ak47"
-			net.send_state(player.global_position, Quaternion(basis), anim, wep_id)
-			if net.has_method("send_aim_pitch"):
-				net.send_aim_pitch(player.pitch)
-		
+		var animation := "firing" if weapons.is_firing and not _tactical_map_open else "idle"
+		net.send_state(player.global_position, Quaternion(Vector3.UP, player.body_yaw), animation, String(weapons.current_config()["id"]))
+		net.send_aim_pitch(-player.pitch)
+
 	if _autotest:
 		_autotest_tick(delta)
 
@@ -1003,39 +907,6 @@ func _autotest_tick(delta: float) -> void:
 		print("AUTOTEST: back to AK ammo=", weapons.ammo)
 		player.heal_full()
 		GameState.set_bot_damage(false)
-		var jeep = get_tree().get_first_node_in_group("combat_jeeps")
-		if jeep:
-			_enter_combat_jeep(jeep)
-			print("AUTOTEST: vehicle entered! jeep_pos=", jeep.global_position, " vel=", jeep.linear_velocity)
-			Input.action_press("move_forward")
-		else:
-			print("AUTOTEST: no jeep found on map")
-			
-	elif _test_stage == 6 and _test_t > 2.0:
-		_test_stage = 7
-		_test_t = 0.0
-		Input.action_release("move_forward")
-		if current_driven_jeep:
-			# Test gear shifting: starts in Gear 1 (top speed 52)
-			assert(current_driven_jeep.current_gear == 1)
-			assert(current_driven_jeep.get_top_speed() == 52.0)
-			current_driven_jeep.shift_gear(2)
-			assert(current_driven_jeep.current_gear == 2)
-			assert(current_driven_jeep.get_top_speed() == 115.0)
-			current_driven_jeep.shift_gear(1)
-			assert(current_driven_jeep.current_gear == 1)
-			assert(current_driven_jeep.get_top_speed() == 52.0)
-			print("AUTOTEST: vehicle transmission verified! Gear 1=52km/h (climb), Gear 2=115km/h (speed)")
-			# Test C key view toggle (Close 3rd Person <-> Wide 3rd Person)
-			assert(current_driven_jeep.is_wide_view == false)
-			current_driven_jeep.toggle_camera_view()
-			print("AUTOTEST: vehicle toggled to wide 3rd person chase! is_wide=", current_driven_jeep.is_wide_view, " spring_len=", current_driven_jeep.chase_spring_arm.spring_length)
-			assert(current_driven_jeep.is_wide_view == true)
-			current_driven_jeep.toggle_camera_view()
-			print("AUTOTEST: vehicle toggled back to normal 3rd person chase! is_wide=", current_driven_jeep.is_wide_view, " spring_len=", current_driven_jeep.chase_spring_arm.spring_length)
-			assert(current_driven_jeep.is_wide_view == false)
-			_exit_combat_jeep(current_driven_jeep)
-			print("AUTOTEST: vehicle exited safely! player_pos=", player.global_position, " driving=", player.is_driving)
 		# Test peaceful mode toggle
 		_toggle_scoreboard()
 		print("AUTOTEST: scoreboard open=", hud.is_board_visible(), " mouse_mode=", Input.mouse_mode)

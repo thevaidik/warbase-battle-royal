@@ -1,0 +1,130 @@
+{
+  "inputs": {
+    "client": "cb3809d9003cab6ad899d8b68c948b8e7b3f67e8a5748ac7211468697cc07fce",
+    "server": "0cf26007b1d035f66e4318db5ce8f36d95aaa921378862fe99965be4e6577420",
+    "engine": "4.7.2.stable.official.ed1daf0bf",
+    "gate": "26da3420346e6d942551a0cbca1a46fa1d6f3cd50ddc0dfeb3cd73fc7ddaf0db"
+  },
+  "verified": true,
+  "report": {
+    "dynamic_first_failures": [],
+    "dynamic_jump_requests": 134,
+    "dynamic_landings": 134,
+    "dynamic_overlap_failures": 0,
+    "dynamic_queries": 1956,
+    "failures": [],
+    "maps": [
+      {
+        "dynamic_first_failures": [],
+        "dynamic_jump_requests": 12,
+        "dynamic_landings": 12,
+        "dynamic_overlap_failures": 0,
+        "dynamic_queries": 180,
+        "failures": 0,
+        "map": "football",
+        "spawns": 12
+      },
+      {
+        "dynamic_first_failures": [],
+        "dynamic_jump_requests": 12,
+        "dynamic_landings": 12,
+        "dynamic_overlap_failures": 0,
+        "dynamic_queries": 180,
+        "failures": 0,
+        "map": "resoforge",
+        "spawns": 12
+      },
+      {
+        "dynamic_first_failures": [],
+        "dynamic_jump_requests": 12,
+        "dynamic_landings": 12,
+        "dynamic_overlap_failures": 0,
+        "dynamic_queries": 180,
+        "failures": 0,
+        "map": "industrial",
+        "spawns": 12
+      },
+      {
+        "dynamic_first_failures": [],
+        "dynamic_jump_requests": 12,
+        "dynamic_landings": 12,
+        "dynamic_overlap_failures": 0,
+        "dynamic_queries": 180,
+        "failures": 0,
+        "map": "village",
+        "spawns": 12
+      },
+      {
+        "dynamic_first_failures": [],
+        "dynamic_jump_requests": 12,
+        "dynamic_landings": 12,
+        "dynamic_overlap_failures": 0,
+        "dynamic_queries": 180,
+        "failures": 0,
+        "map": "arena",
+        "spawns": 12
+      },
+      {
+        "dynamic_first_failures": [],
+        "dynamic_jump_requests": 12,
+        "dynamic_landings": 12,
+        "dynamic_overlap_failures": 0,
+        "dynamic_queries": 180,
+        "failures": 0,
+        "map": "shipment",
+        "spawns": 12
+      },
+      {
+        "dynamic_first_failures": [],
+        "dynamic_jump_requests": 16,
+        "dynamic_landings": 16,
+        "dynamic_overlap_failures": 0,
+        "dynamic_queries": 180,
+        "failures": 0,
+        "map": "dust2",
+        "spawns": 12
+      },
+      {
+        "dynamic_first_failures": [],
+        "dynamic_jump_requests": 12,
+        "dynamic_landings": 12,
+        "dynamic_overlap_failures": 0,
+        "dynamic_queries": 180,
+        "failures": 0,
+        "map": "nuketown",
+        "spawns": 12
+      },
+      {
+        "dynamic_first_failures": [],
+        "dynamic_jump_requests": 10,
+        "dynamic_landings": 10,
+        "dynamic_overlap_failures": 0,
+        "dynamic_queries": 180,
+        "failures": 0,
+        "map": "canyon",
+        "spawns": 12
+      },
+      {
+        "dynamic_first_failures": [],
+        "dynamic_jump_requests": 14,
+        "dynamic_landings": 14,
+        "dynamic_overlap_failures": 0,
+        "dynamic_queries": 180,
+        "failures": 0,
+        "map": "military_base",
+        "spawns": 12
+      },
+      {
+        "dynamic_first_failures": [],
+        "dynamic_jump_requests": 10,
+        "dynamic_landings": 10,
+        "dynamic_overlap_failures": 0,
+        "dynamic_queries": 156,
+        "failures": 0,
+        "map": "ghost_city",
+        "spawns": 12
+      }
+    ],
+    "spawn_count": 132
+  }
+}

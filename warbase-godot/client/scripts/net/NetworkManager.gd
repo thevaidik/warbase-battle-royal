@@ -4,12 +4,19 @@ extends Node
 ## The retired Go/protobuf transport is intentionally not part of this base.
 
 signal state_received(state: Dictionary)
-signal fire_received(shooter: String, origin: Vector3, hit: Vector3, normal: Vector3, wall: bool)
+signal payload_ammo_received(state: Dictionary)
+var supports_dual_payload := false
+var supports_manual_redeploy := false
+
+signal fire_received(shooter: String, origin: Vector3, hit: Vector3, normal: Vector3, wall: bool, weapon: String)
+signal vehicle_impact_received(id: String, normal: Vector3, speed: float)
 signal hit_confirmed()
 signal kill_confirmed()
 signal grenade_received(shooter: String, pos: Vector3, vel: Vector3, grenade_id: int, kind: String, request_id: int)
 signal grenade_rejected(request_id: int)
 signal explosion_received(grenade_id: int, pos: Vector3, kind: String)
+signal missile_launched(id: int, weapon: String, position: Vector3, direction: Vector3, speed: float, duration: float)
+signal missile_impacted(id: int, position: Vector3)
 signal damage_received(target: String, pos: Vector3, direction: Vector3, amount: int)
 signal respawn_received(pos: Vector3)
 signal connection_changed(connected: bool)
@@ -22,7 +29,7 @@ var input_sequence := 0
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 
-func connect_to(_username: String, _room: String, _host: String) -> void:
+func connect_to(_username: String, _room: String, _host: String, _reservation: Dictionary = {}) -> void:
 	pass
 
 func disconnect_from() -> void:
@@ -42,8 +49,17 @@ func send_state(_pos: Vector3, _quat: Quaternion, _anim: String, _weapon: String
 func send_aim_pitch(_value: float) -> void:
 	pass
 
-func send_fire(_origin: Vector3, _hit: Vector3, _normal: Vector3, _wall: bool, _shot_id: int = 0, _yaw: float = 0.0, _pitch: float = 0.0) -> void:
+func send_fire(_origin: Vector3, _hit: Vector3, _normal: Vector3, _wall: bool, _shot_id: int = 0, _yaw: float = 0.0, _pitch: float = 0.0, _weapon: String = "") -> void:
 	pass
+
+func predict_missile(_request_id: int, _kind: String, _origin: Vector3, _velocity: Vector3) -> void:
+	pass
+
+func uses_projectile_spawns(_collection: String) -> bool:
+	return false
+
+func projectile_views() -> Array:
+	return []
 
 func send_fire_with_aim(origin: Vector3, hit: Vector3, normal: Vector3, wall: bool, shot_id: int, yaw: float, pitch: float) -> void:
 	send_fire(origin, hit, normal, wall, shot_id, yaw, pitch)
@@ -51,7 +67,7 @@ func send_fire_with_aim(origin: Vector3, hit: Vector3, normal: Vector3, wall: bo
 func send_hit(_target: String, _damage: int, _shot_id: int = 0, _view_time_ms: int = 0) -> void:
 	pass
 
-func send_reload() -> void:
+func send_reload(_weapon: String = "") -> void:
 	pass
 
 func send_switch(_weapon_id: String) -> void:
@@ -60,7 +76,7 @@ func send_switch(_weapon_id: String) -> void:
 func send_loadout(_primary: String, _secondary: String, _throwable: String) -> void:
 	pass
 
-func send_respawn() -> void:
+func send_respawn(_loadout: Dictionary = {}) -> void:
 	pass
 
 func send_grenade(_pos: Vector3, _velocity: Vector3, _kind: String = "frag") -> int:

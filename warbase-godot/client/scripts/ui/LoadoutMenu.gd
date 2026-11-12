@@ -144,7 +144,8 @@ func _refresh() -> void:
 	for id in _slots:
 		var selected_id := _equipped(id)
 		var name_text := String(GameState.THROWABLES[selected_id]["name"]) if id == "throwable" else String(names[selected_id])
-		_slots[id].text = id.to_upper() + "\n" + name_text
+		var slot_label := "THROWABLE" if id == "throwable" else ("PRIMARY PAYLOAD" if id == "primary" else "SECONDARY PAYLOAD")
+		_slots[id].text = slot_label + "\n" + name_text
 		_slots[id].add_theme_stylebox_override("normal", WarUI.panel(WarUI.RAISED if slot == id else WarUI.PANEL, WarUI.ACCENT if slot == id else WarUI.LINE, 14))
 	for child in _catalog.get_children():
 		_catalog.remove_child(child)
@@ -155,7 +156,7 @@ func _refresh() -> void:
 			_card(id, equipment["name"], equipment["description"], "2 PER LIFE")
 	else:
 		for weapon in GameState.WEAPONS:
-			var category := "SEMI-AUTO" if not weapon["is_auto"] else "AUTOMATIC"
+			var category := "SEMI-AUTO PAYLOAD" if not weapon["is_auto"] else "AUTOMATIC PAYLOAD"
 			_card(weapon["id"], weapon["name"], "%d DAMAGE   /   %d RPM\n%d ROUNDS   /   %.1fs RELOAD" % [weapon["damage"], weapon["fire_rate"], weapon["mag_size"], weapon["reload_time"]], category)
 	_update_preview(_equipped(slot))
 
@@ -198,9 +199,9 @@ func _update_preview(id: String) -> void:
 		_details.text = GameState.THROWABLES[id]["description"] + "\n[G] Throw. Restocked on respawn."
 	else:
 		var config: Dictionary = GameState.WEAPONS[GameState.weapon_index_for_id(id)]
-		_preview_model = WeaponView.build(id)
+		_preview_model = preload("res://scripts/drones/DronePayloadBuilder.gd").build(id)
 		_title.text = config["name"]
-		_details.text = "%d rounds • %.1fs reload\n%d RPM • %s" % [config["mag_size"], config["reload_time"], config["fire_rate"], "Automatic" if config["is_auto"] else "Semi-automatic"]
+		_details.text = "Mounted payload • %d rounds • %.1fs reload\n%d RPM • %s" % [config["mag_size"], config["reload_time"], config["fire_rate"], "Automatic" if config["is_auto"] else "Semi-automatic"]
 	_model_root.add_child(_preview_model)
 
 func _fit_layout() -> void:

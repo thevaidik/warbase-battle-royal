@@ -4,7 +4,11 @@ func _initialize() -> void: call_deferred("run")
 func run() -> void:
 	var metadata: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://assets/data/restored-map-authoring.json"))
 	var builder_script = load("res://scripts/maps/MapBuilder.gd")
+	var selected_map := ""
+	for arg in OS.get_cmdline_user_args():
+		if arg.begins_with("map="): selected_map = arg.trim_prefix("map=")
 	for id in metadata:
+		if not selected_map.is_empty() and selected_map != id: continue
 		var container := Node3D.new();root.add_child(container)
 		var scene: Node3D = load("res://assets/maps/restored/"+id+".scn").instantiate();container.add_child(scene)
 		var helper = builder_script.new();helper._add_trimesh_collision(scene,true)

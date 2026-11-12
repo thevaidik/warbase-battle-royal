@@ -23,7 +23,6 @@ class IncrementalRoom extends Room<{ state: BattleState; input: MoveInput }> {
     state.players = new MapSchema();
     state.vehicles = new MapSchema();
     state.objectives = new MapSchema();
-    state.protocol_version = 11;
     state.map_name = 'industrial';
     const vehicle = new VehicleState();
     vehicle.id = 'CAR_TEST';

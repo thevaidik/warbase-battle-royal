@@ -64,6 +64,12 @@ func _init() -> void:
 			push_error("Movement parity fixture failed for map %s actual=%s expected=%s" % [fixture["map"], actual_move, expected_move])
 			failures += 1
 		all_map_moves += 1
+	GEOMETRY.set_map_override("dust2")
+	var blocked_from := Vector3(-40.408,4.808,5.208)
+	var blocked_result: Vector3 = GEOMETRY.resolve_move(blocked_from, blocked_from + Vector3(0,-0.005,-6.2/60.0))
+	if blocked_result.y > blocked_from.y + 0.001:
+		push_error("Sideways recovery must not count as forward step progress")
+		failures += 1
 	GEOMETRY.set_map_override()
 	if failures == 0:
 		print("GEOMETRY_PARITY_OK maps=%d spawns=%d rays=%d moves=%d" % [map_fixtures.size(), spawns.size(), fixture_data["rays"].size() + all_map_rays, fixture_data["moves"].size() + all_map_moves])

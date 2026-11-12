@@ -3,10 +3,12 @@ import { definePlugins, ServerError } from '@colyseus/core';
 import type { AuthContext } from '@colyseus/core';
 import { findOneRoomAvailable } from '@colyseus/core/MatchMaker';
 import { UniqueSessionPlugin } from 'colyseus/plugins/unique-session';
-import { BattleState, ObjectiveState, PlayerState, VehicleState, GAME_PROTOCOL_VERSION, PRIVATE_VIEW_TAG } from './schema.js';
+import { BattleState, ObjectiveState, PlayerState, ProjectileState, VehicleState, GAME_PROTOCOL_VERSION, PRIVATE_VIEW_TAG } from './schema.js';
 import { Schema, StateView, defineTypes } from '@colyseus/schema';
-import { loadWorldGeometry, PLAYABLE_MAPS, settledVerticalVelocity, type Vec3, type WorldGeometry } from './world-geometry.js';
-import { animationCodeForClip, clipForAnimationCode, REWIND_ANIMATION_CLIPS, traceAnimatedHit, type HitZone } from './animated-hitboxes.js';
+import { loadWorldGeometry, PLAYABLE_MAPS, type Vec3, type WorldGeometry } from './world-geometry.js';
+import { traceDroneHit, type DroneHit } from './drone-hitboxes.js';
+import { DRONE_MOBILITY_MODES, DRONE_SPAWN_OFFSET, stepDroneFlight } from './drone-flight.js';
+import { animationCodeForClip, REWIND_ANIMATION_CLIPS } from './presentation-animation.js';
 import { BotSimulation, type BotPlayer, type BotShot } from './bot-simulation.js';
 import { grenadeDamageAt, grenadeVehicleDamageAt, GrenadeSimulation, validateGrenadeLaunch, type ThrowableKind } from './grenade-simulation.js';
 import { inputIsFromStaleVehicleSeat, VehicleSimulation, type VehiclePlayer } from './vehicle-simulation.js';
@@ -19,20 +21,23 @@ import { awardConquestKill, createConquestState, stepConquest, type ConquestStat
 import { getConfiguredBattleAdmission } from './admission.js';
 
 class MoveInput extends Schema {
-  move_x = 0; move_z = 0; yaw = 0; pitch = 0; jump = 0; sprint = 0; crouch = 0;
+  move_x = 0; move_y = 0; move_z = 0; yaw = 0; pitch = 0; jump = 0; sprint = 0; crouch = 0; mobility_index = -1;
   vehicle_throttle = 0; vehicle_steer = 0; vehicle_brake = 0; vehicle_gear = 1; vehicle_index = -1; vehicle_generation = 0;
 }
-defineTypes(MoveInput, { move_x: 'number', move_z: 'number', yaw: 'number', pitch: 'number', jump: 'number', sprint: 'number', crouch: 'number', vehicle_throttle: 'number', vehicle_steer: 'number', vehicle_brake: 'number', vehicle_gear: 'number', vehicle_index: 'number', vehicle_generation: 'number' });
+defineTypes(MoveInput, { move_x: 'number', move_y: 'number', move_z: 'number', yaw: 'number', pitch: 'number', jump: 'number', sprint: 'number', crouch: 'number', vehicle_throttle: 'number', vehicle_steer: 'number', vehicle_brake: 'number', vehicle_gear: 'number', vehicle_index: 'number', vehicle_generation: 'number', mobility_index: 'number' });
 
 export const activeRooms = new Map<string, { id: string; room: string; name: string; map: string; mode: string; timeOfDay: string; clients: number; bots: number; maxClients: number }>();
 type JoinOptions = { protocol_version?: number; username?: string; room?: string; cid?: string; map?: string; map_name?: string; mode?: string; time_of_day?: string; timeOfDay?: string; name?: string };
 type RoomCreationAllowance = { allow(key: string, limit: number, windowMs: number, now?: number): boolean };
 type ValidRoomSettings = { requested: string; map: string; requestedMode: string; timeOfDay: string };
-type PlayerRuntime = { username: string; map: string; lastShot: number; pendingHit: boolean; reloadUntil: number; spawnAt: number; vy: number;
-  ammoByWeapon: Record<string, number>; animationStartedAt: number; pendingWeaponId: string; lastShotId: number; pendingShotId: number; protectedUntil: number;
+type PlayerRuntime = { username: string; map: string; lastShotByWeapon: Record<string, number>; pendingHit: boolean; reloadUntil: number; spawnAt: number;
+  ammoByWeapon: Record<string, number>; reserveByWeapon: Record<string, number>; animationStartedAt: number; pendingWeaponId: string; pendingShotId: number; protectedUntil: number;
   grenadeLastThrow: number; grenadeLastRequestId: number; reloadToken: number; reloadTimer?: { clear(): void };
+  manualRedeploy: boolean;
+  offhandReloads: Map<string, { clear(): void }>;
   fireSegment?: { o: Vec3; d: Vec3; range: number; shotId: number; seen: RewindView } };
-type Weapon = { damage: number; rpm: number; magazine: number; reloadMs: number; range: number; headshot: number; falloffStart: number; falloffEnd: number; minFraction: number; bodyFraction: number };
+type Weapon = { damage: number; rpm: number; magazine: number; reloadMs: number; range: number; headshot: number; falloffStart: number; falloffEnd: number; minFraction: number; bodyFraction: number; missileSpeed?: number };
+type Missile = { id: number; owner: PlayerState; sessionId: string; weaponId: string; position: Vec3; direction: Vec3; remaining: number; speed: number; damage: number };
 const WEAPONS: Record<string, Weapon> = {
   ak47: { damage: 34, rpm: 600, magazine: 30, reloadMs: 2500, range: 90, headshot: 1.8, falloffStart: 20, falloffEnd: 90, minFraction: 0.6, bodyFraction: 0.84 },
   m4: { damage: 25, rpm: 750, magazine: 30, reloadMs: 2200, range: 90, headshot: 1.8, falloffStart: 20, falloffEnd: 90, minFraction: 0.6, bodyFraction: 0.84 },
@@ -41,9 +46,12 @@ const WEAPONS: Record<string, Weapon> = {
   pistol: { damage: 34, rpm: 400, magazine: 12, reloadMs: 1500, range: 50, headshot: 1.8, falloffStart: 10, falloffEnd: 50, minFraction: 0.5, bodyFraction: 0.84 },
   m2010: { damage: 100, rpm: 45, magazine: 5, reloadMs: 3200, range: 150, headshot: 1.8, falloffStart: 0, falloffEnd: 150, minFraction: 1, bodyFraction: 1 },
   hmg: { damage: 34, rpm: 520, magazine: 60, reloadMs: 3400, range: 90, headshot: 1.8, falloffStart: 20, falloffEnd: 90, minFraction: 0.6, bodyFraction: 0.84 },
+  aim9: { damage: 82, rpm: 75, magazine: 2, reloadMs: 4000, range: 170, headshot: 1, falloffStart: 0, falloffEnd: 170, minFraction: 1, bodyFraction: 1, missileSpeed: 78 },
+  agm114: { damage: 95, rpm: 55, magazine: 1, reloadMs: 4000, range: 140, headshot: 1, falloffStart: 0, falloffEnd: 140, minFraction: 1, bodyFraction: 1, missileSpeed: 62 },
 };
 export const MAX_WEAPON_RANGE = Math.max(...Object.values(WEAPONS).map(weapon => weapon.range));
 const getWeapon = (weaponId: string): Weapon | undefined => Object.hasOwn(WEAPONS, weaponId) ? WEAPONS[weaponId] : undefined;
+const startingReserve = (weapon: Weapon): number => weapon.magazine * (weapon.missileSpeed ? 2 : 3);
 const clamp = (n: unknown, lo: number, hi: number): number => Number.isFinite(Number(n)) ? Math.max(lo, Math.min(hi, Number(n))) : 0;
 
 /** Validate client fields before charging the shared process create allowance. */
@@ -96,17 +104,21 @@ export class BattleRoom extends Room<{ state: BattleState; input: MoveInput }> {
   plugins = definePlugins({ uniqueSession: new UniqueSessionPlugin({ max: 1, onDuplicate: 'reject' }) });
   maxClients = 64;
   state = new BattleState();
-  inputs = this.defineInput(MoveInput, { bufferMaxSize: 64, sanitize: { move_x: [-1, 1], move_z: [-1, 1], yaw: [-Math.PI * 16, Math.PI * 16], pitch: [-1.55, 1.55], jump: [0, 1], sprint: [0, 1], crouch: [0, 1], vehicle_throttle: [-1, 1], vehicle_steer: [-1, 1], vehicle_brake: [0, 1], vehicle_gear: [1, 2], vehicle_index: [-1, 1000], vehicle_generation: [0, Number.MAX_SAFE_INTEGER] } });
+  inputs = this.defineInput(MoveInput, { bufferMaxSize: 64, sanitize: { move_x: [-1, 1], move_y: [-1, 1], move_z: [-1, 1], yaw: [-Math.PI * 16, Math.PI * 16], pitch: [-1.55, 1.55], jump: [0, 1], sprint: [0, 1], crouch: [0, 1], vehicle_throttle: [-1, 1], vehicle_steer: [-1, 1], vehicle_brake: [0, 1], vehicle_gear: [1, 2], vehicle_index: [-1, 1000], vehicle_generation: [0, Number.MAX_SAFE_INTEGER] } });
   private internal = new Map<string, PlayerRuntime>();
   /** Stable lookup avoids rescanning all connected sessions for every actor at 60 Hz. */
   private sessionByUsername = new Map<string, string>();
   private rewind: any;
   private geometry!: WorldGeometry;
   private grenadeSimulation!: GrenadeSimulation;
+  private readonly missiles = new Map<number, Missile>();
+  private nextMissileId = 0;
   private vehicleSimulation!: VehicleSimulation;
   private botSimulation!: BotSimulation;
   private botProtectedUntil = new Map<string, number>();
   private botAnimationStartedAt = new Map<string, number>();
+  private botPresentationClip = new Map<string, string>();
+  private botFireUntil = new Map<string, number>();
   private vehicleWeaponBeforeDrive = new Map<string, string>();
   private operations!: RoomOperationsMetrics;
   private conquest?: ConquestState;
@@ -180,10 +192,11 @@ export class BattleRoom extends Room<{ state: BattleState; input: MoveInput }> {
     }
     this.state.map_name = map;
     this.state.time_of_day = timeOfDay;
+    if (requested.includes('-quick-')) this.seatReservationTimeout = 60;
     this.syncVehiclesToSchema();
     activeRooms.set(this.roomId, { id: this.roomId, room: requested, name: (requested === `${map}-public` ? "Public Conquest" : String(options.name ?? "Custom Match")), map, mode: requestedMode, timeOfDay, clients: 0, bots: 0, maxClients: this.maxClients });
     this.patchRate = 50;
-    this.rewind.attachAll(this.state.players, { fields: ['x', 'y', 'z', 'qx', 'qy', 'qz', 'qw'], mode: 'snapshot', interpolate: 'linear' });
+    this.rewind.attachAll(this.state.players, { fields: ['x', 'y', 'z', 'qx', 'qy', 'qz', 'qw', 'pitch'], mode: 'snapshot', interpolate: 'linear' });
     this.rewind.attachAll(this.state.players, { fields: ['animation_code', 'animation_time', 'health'], mode: 'snapshot', interpolate: 'step' });
     const voidLimit = geometry.name === "canyon" ? -119 : -14;
     let fixedTick = 0;
@@ -211,7 +224,7 @@ export class BattleRoom extends Room<{ state: BattleState; input: MoveInput }> {
         else this.operations.emptyInputSteps++;
         if (p.is_dead) {
           p.ack_input_sequence = inputChannel.consumedCount;
-          if (now >= internal.spawnAt) this.respawn(sessionId, p, internal);
+          if (!internal.manualRedeploy && now >= internal.spawnAt) this.respawn(sessionId, p, internal);
           continue;
         }
         const from: Vec3 = [p.x, p.y, p.z];
@@ -223,23 +236,19 @@ export class BattleRoom extends Room<{ state: BattleState; input: MoveInput }> {
         // A buffered driving frame can arrive after the seat-exit message. Consume
         // and acknowledge it, but do not reinterpret its stale controls as walking.
         const movementInput = input && inputIsFromStaleVehicleSeat(input.vehicle_index, input.vehicle_generation, p.vehicle_index, p.vehicle_generation) ? undefined : input;
-        const jumpFloor = (movementInput?.jump ?? 0) > 0.5 ? this.geometry.floorHeight(p.x, p.z, p.y + 0.1) : undefined;
-        if ((movementInput?.jump ?? 0) > 0.5 && Math.abs(internal.vy) < 0.001 && jumpFloor !== undefined && p.y >= jumpFloor - 0.06 && p.y <= jumpFloor + 0.3) internal.vy = 6.2;
-        internal.vy -= 18 * ctx.dt;
-        const movementX = movementInput?.move_x ?? 0, movementZ = movementInput?.move_z ?? 0;
-        const movementSpeed = (movementInput?.sprint ?? 0) > 0.5 ? 8.8 : (movementInput?.crouch ?? 0) > 0.5 ? 2.5 : 6.2;
         const movementYaw = movementInput?.yaw ?? p.yaw;
-        const [movementDx, movementDz] = movementVelocity(movementX, movementZ, movementYaw, movementSpeed);
-        const requested: Vec3 = [p.x + movementDx * ctx.dt, p.y + internal.vy * ctx.dt, p.z + movementDz * ctx.dt];
-        const resolved = this.geometry.resolveMove(from, requested);
+        const mobilityIndex = movementInput?.mobility_index ?? -1;
+        if (Number.isInteger(mobilityIndex) && mobilityIndex >= 0 && mobilityIndex < DRONE_MOBILITY_MODES.length) {
+          p.mobility_mode = DRONE_MOBILITY_MODES[mobilityIndex];
+        }
+        const flight = stepDroneFlight(this.geometry, from, [p.vx, p.vy, p.vz], {
+          move_x: movementInput?.move_x ?? 0, move_y: movementInput?.move_y ?? 0,
+          move_z: movementInput?.move_z ?? 0, yaw: movementYaw,
+          sprint: (movementInput?.sprint ?? 0) > 0.5 ? 1 : 0, mobility_mode: p.mobility_mode,
+        }, ctx.dt);
+        const resolved = flight.position;
         p.x = resolved[0]; p.y = resolved[1]; p.z = resolved[2];
-        p.vx = (p.x - from[0]) / ctx.dt; p.vz = (p.z - from[2]) / ctx.dt;
-        // The settlement helper already stops a clamped downward sweep, and
-        // upward motion never reads the floor. Query only for its remaining case.
-        const settlementFloor = internal.vy < 0 && !(resolved[1] > requested[1] + 0.00001)
-          ? this.geometry.floorHeight(p.x, p.z, p.y + 0.1) : undefined;
-        internal.vy = settledVerticalVelocity(internal.vy, requested[1], resolved[1], settlementFloor);
-        p.vy = internal.vy;
+        p.vx = flight.velocity[0]; p.vy = flight.velocity[1]; p.vz = flight.velocity[2];
         p.yaw = movementYaw; p.pitch = movementInput?.pitch ?? p.pitch;
         p.qx = 0; p.qy = Math.sin(movementYaw * 0.5); p.qz = 0; p.qw = Math.cos(movementYaw * 0.5);
         p.ack_input_sequence = inputChannel.consumedCount;
@@ -252,6 +261,7 @@ export class BattleRoom extends Room<{ state: BattleState; input: MoveInput }> {
         if (!actor.is_dead && actor.y < voidLimit) this.killPlayer(undefined, actor);
       }
       if (this.grenadeSimulation.hasGrenades) this.stepGrenades(ctx.dt);
+      if (this.missiles.size > 0) this.stepMissiles(ctx.dt);
       if (this.state.room_mode === 'CONQUEST' && this.state.room_state === 'active') this.stepConquestMode(ctx.dt);
       // Simulation remains 60 Hz; replicated schema patches are capped at 20 Hz.
       // Composite driver/vehicle mirrors must describe the same fixed tick.
@@ -274,18 +284,31 @@ export class BattleRoom extends Room<{ state: BattleState; input: MoveInput }> {
       const weapon = String(raw?.weapon ?? p.weapon_id);
       if (getWeapon(weapon)) this.selectWeapon(client.sessionId, weapon);
     });
-    this.onMessage('fire', (client, raw: any) => { if (this.allowMessage(client, 'fire', 20)) this.fire(client, raw); });
+    this.onMessage('fire', (client, raw: any) => { if (this.allowMessage(client, 'fire', 36)) this.fire(client, raw); });
     this.onMessage('hit', (client, raw: any) => { if (this.allowMessage(client, 'hit', 20)) this.hit(client, raw); });
-    this.onMessage('reload', (client) => { if (this.allowMessage(client, 'reload', 4)) this.reload(client); });
+    this.onMessage('reload', (client, raw: any) => {
+      if (!this.allowMessage(client, 'reload', 6)) return;
+      if (typeof raw?.weapon === 'string' && raw.weapon !== '') this.reloadOffhand(client, raw.weapon);
+      else this.reload(client);
+    });
     this.onMessage('switch', (client, raw: any) => { if (this.allowMessage(client, 'switch', 8)) this.selectWeapon(client.sessionId, String(raw?.weapon ?? '')); });
     this.onMessage('loadout', (client, raw: any) => {
       if (!this.allowMessage(client, 'loadout', 4)) return;
-      this.selectWeapon(client.sessionId, String(raw?.primary ?? 'ak47'));
       const p = this.state.players.get(this.internal.get(client.sessionId)?.username ?? '');
+      const runtime = this.internal.get(client.sessionId);
+      if (!p || !runtime || p.is_dead) return;
+      runtime.manualRedeploy = raw?.manual_redeploy === true;
+      const primary = String(raw?.primary ?? '');
+      const secondary = String(raw?.secondary ?? '');
+      if (getWeapon(primary)) {
+        p.primary_payload = primary;
+        p.secondary_payload = secondary !== primary && getWeapon(secondary) ? secondary : '';
+        this.selectWeapon(client.sessionId, primary);
+      }
       const throwable = String(raw?.throwable ?? p?.throwable ?? 'frag');
-      if (p && (throwable === 'frag' || throwable === 'impact')) p.throwable = throwable;
+      if (throwable === 'frag' || throwable === 'impact') p.throwable = throwable;
     });
-    this.onMessage('respawn', (client) => { if (this.allowMessage(client, 'respawn', 3)) this.requestRespawn(client); });
+    this.onMessage('respawn', (client, raw: any) => { if (this.allowMessage(client, 'respawn', 3)) this.requestRespawn(client, raw); });
     this.onMessage('grenade', (client, raw: any) => {
       const runtime = this.internal.get(client.sessionId), requestId = this.grenadeRequestId(raw?.request_id);
       if (requestId > 0 && runtime && requestId <= runtime.grenadeLastRequestId) { this.rejectGrenadeRequest(client, requestId); return; }
@@ -297,7 +320,7 @@ export class BattleRoom extends Room<{ state: BattleState; input: MoveInput }> {
     // Vehicle controls are accepted only from the buffered defineInput timeline.
   }
 
-  onJoin(client: Client, options: JoinOptions, auth?: { username: string }) {
+  onJoin(client: Client, options: JoinOptions, auth?: { username: string; queueTeam?: 'A' | 'B' }) {
     const username = canonicalizeUsername(auth?.username ?? options.username);
     if (!username) { this.operations.rejectedAdmissions++; incrementProcessOperation('rejectedAdmissions'); throw new Error('valid username required'); }
     if ([...this.internal.values()].some((x) => x.username.normalize('NFKC').toLowerCase() === username.normalize('NFKC').toLowerCase())) { this.operations.rejectedAdmissions++; incrementProcessOperation('rejectedAdmissions'); throw new Error('username already in room'); }
@@ -305,19 +328,26 @@ export class BattleRoom extends Room<{ state: BattleState; input: MoveInput }> {
     incrementProcessOperation('joined');
     const p = new PlayerState();
     const spawn = this.geometry.spawns[(this.clients.length - 1) % this.geometry.spawns.length];
-    p.x = spawn[0]; p.y = spawn[1]; p.z = spawn[2];
+    p.x = spawn[0]; p.y = spawn[1] + DRONE_SPAWN_OFFSET; p.z = spawn[2];
     if (this.state.room_mode === 'TDM' || this.state.room_mode === 'CONQUEST') {
       const players = [...this.state.players.values()];
-      p.team = players.filter((player) => player.team === 'A' && !player.is_bot).length <= players.filter((player) => player.team === 'B' && !player.is_bot).length ? 'A' : 'B';
+      p.team = auth?.queueTeam ?? (players.filter((player) => player.team === 'A' && !player.is_bot).length <= players.filter((player) => player.team === 'B' && !player.is_bot).length ? 'A' : 'B');
     } else p.team = 'NONE';
     p.username = username;
     this.state.players.set(username, p);
     client.view = new StateView();
     client.view.add(p, PRIVATE_VIEW_TAG);
     const listing = activeRooms.get(this.roomId); if (listing) listing.clients = this.clients.length;
-    this.internal.set(client.sessionId, { username, map: String(this.metadata?.map ?? 'industrial'), lastShot: 0, pendingHit: false, reloadUntil: 0, reloadToken: 0, spawnAt: 0, vy: 0, ammoByWeapon: Object.fromEntries(Object.entries(WEAPONS).map(([id, weapon]) => [id, weapon.magazine])), animationStartedAt: Date.now(), pendingWeaponId: 'ak47', lastShotId: 0, pendingShotId: 0, protectedUntil: Date.now() + 2500, grenadeLastThrow: 0, grenadeLastRequestId: 0 });
+    const runtime: PlayerRuntime = {
+      username, map: String(this.metadata?.map ?? 'industrial'), lastShotByWeapon: {}, manualRedeploy: false, offhandReloads: new Map(), pendingHit: false,
+      reloadUntil: 0, reloadToken: 0, spawnAt: 0, ammoByWeapon: {}, reserveByWeapon: {},
+      animationStartedAt: Date.now(), pendingWeaponId: 'ak47', pendingShotId: 0,
+      protectedUntil: Date.now() + 2500, grenadeLastThrow: 0, grenadeLastRequestId: 0,
+    };
+    this.restockAmmo(p, runtime);
+    this.internal.set(client.sessionId, runtime);
     this.sessionByUsername.set(username, client.sessionId);
-    client.send('identity', { username, map: this.metadata?.map, session_id: client.sessionId });
+    client.send('identity', { username, map: this.metadata?.map, session_id: client.sessionId, dual_payload: true, manual_redeploy: true });
     this.syncBots();
     this.presentationRefreshAt = 0;
     this.refreshPresentationViews();
@@ -328,7 +358,15 @@ export class BattleRoom extends Room<{ state: BattleState; input: MoveInput }> {
     if (player?.driving_vehicle) this.exitVehicle(player, true);
     try { await this.allowReconnection(client, 15); } catch { /* Colyseus invokes onLeave after the reconnect window expires. */ }
   }
-  onReconnect(client: Client) { const meta = this.internal.get(client.sessionId); if (meta) client.send('identity', { username: meta.username, map: this.metadata?.map, session_id: client.sessionId }); }
+  onReconnect(client: Client) {
+    const meta = this.internal.get(client.sessionId);
+    if (!meta) return;
+    client.send('identity', { username: meta.username, map: this.metadata?.map, session_id: client.sessionId, dual_payload: true, manual_redeploy: true });
+    const player = this.state.players.get(meta.username);
+    if (player) for (const weapon of [player.primary_payload, player.secondary_payload]) {
+      if (weapon && weapon !== player.weapon_id) this.sendOffhandAmmo(client, meta, weapon, player.last_shot_id);
+    }
+  }
   onLeave(client: Client) { client.view?.dispose(); client.view = undefined; this.presentationViews.delete(client.sessionId); const meta = this.internal.get(client.sessionId); if (meta) { this.operations.left++; incrementProcessOperation('left'); this.cancelReload(meta); this.sessionByUsername.delete(meta.username); const player = this.state.players.get(meta.username); if (player?.driving_vehicle) this.exitVehicle(player, true); if (player) for (const peer of this.clients) peer.view?.remove(player); this.state.players.delete(meta.username); } this.internal.delete(client.sessionId); const listing = activeRooms.get(this.roomId); if (listing) listing.clients = this.clients.length; this.syncBots(); if (this.clients.length === 0) activeRooms.delete(this.roomId); }
 
   onDispose() { for (const client of this.clients) { client.view?.dispose(); client.view = undefined; } this.presentationViews.clear(); for (const internal of this.internal.values()) this.cancelReload(internal); activeRooms.delete(this.roomId); roomOperationsMetrics.delete(this.roomId); }
@@ -377,7 +415,7 @@ export class BattleRoom extends Room<{ state: BattleState; input: MoveInput }> {
     if (!this.botSimulation) return;
     const humans = [...this.state.players.values()].filter((p) => !p.is_bot) as unknown as BotPlayer[];
     const { joined, removed } = this.botSimulation.sync(humans, Date.now(), this.state.room_mode === 'TDM' || this.state.room_mode === 'CONQUEST' ? 'TDM' : 'FFA');
-    for (const name of removed) { this.state.players.delete(name); this.botProtectedUntil.delete(name); this.botAnimationStartedAt.delete(name); }
+    for (const name of removed) { this.state.players.delete(name); this.botProtectedUntil.delete(name); this.botAnimationStartedAt.delete(name); this.botPresentationClip.delete(name); this.botFireUntil.delete(name); }
     for (const descriptor of joined) {
       const bot = new PlayerState();
       bot.username = descriptor.username; bot.is_bot = true; bot.x = descriptor.x; bot.y = descriptor.y; bot.z = descriptor.z;
@@ -415,6 +453,7 @@ export class BattleRoom extends Room<{ state: BattleState; input: MoveInput }> {
   private stepVehicles(dt: number): void {
     const players = this.playerView();
     const roadkills = this.vehicleSimulation.step(dt, Date.now(), players);
+    for (const impact of this.vehicleSimulation.takeImpacts()) this.broadcast('vehicle_impact', impact);
     for (const vehicle of this.vehicleSimulation.states.values()) {
       const driver = this.state.players.get(vehicle.driver);
       if (!driver) continue;
@@ -443,15 +482,55 @@ export class BattleRoom extends Room<{ state: BattleState; input: MoveInput }> {
       const previous = before.get(name), now = Date.now();
       if (previous?.dead && !player.is_dead) this.botProtectedUntil.set(name, now + 2500);
       const moved = previous ? Math.hypot(player.x - previous.x, player.y - previous.y, player.z - previous.z) > 0.01 : false;
-      let clip = player.is_dead ? 'death' : fired.has(name) ? 'firing' : player.animation === 'firing' && now - (this.botAnimationStartedAt.get(name) ?? 0) < 140 ? 'firing' : moved ? 'run' : 'idle';
-      if (player.animation !== clip) { player.animation = clip; player.animation_code = animationCodeForClip(clip); player.animation_time = 0; this.botAnimationStartedAt.set(name, now); }
+      if (fired.has(name)) this.botFireUntil.set(name, now + 320);
+      const firing = now < (this.botFireUntil.get(name) ?? 0);
+      const clip = player.is_dead ? 'death' : firing ? (moved ? 'firing walk' : 'firing') : moved ? 'run' : 'idle';
+      // Locomotion is rewritten by the bot simulation every tick. Presentation
+      // owns its timeline independently so attack clips last more than one frame.
+      if (this.botPresentationClip.get(name) !== clip) {
+        this.botPresentationClip.set(name, clip); this.botAnimationStartedAt.set(name, now);
+      }
+      player.animation = clip; player.animation_code = animationCodeForClip(clip);
       const startedAt = this.botAnimationStartedAt.get(name) ?? now;
       player.pose_time_ms = now; player.animation_time = Math.max(0, (now - startedAt) / 1000);
     }
   }
 
   private stepGrenades(dt: number): void {
-    for (const explosion of this.grenadeSimulation.step(dt)) this.resolveExplosion(explosion.id, explosion.owner, explosion.kind, explosion.position);
+    const explosions = this.grenadeSimulation.step(dt);
+    for (const grenade of this.grenadeSimulation.grenades) {
+      this.moveProjectile(this.state.grenade_projectiles.get(String(grenade.id)), grenade.position, grenade.velocity);
+    }
+    for (const explosion of explosions) {
+      this.retireProjectile(this.state.grenade_projectiles, explosion.id, explosion.position);
+      this.resolveExplosion(explosion.id, explosion.owner, explosion.kind, explosion.position);
+    }
+  }
+
+  private moveProjectile(state: ProjectileState | undefined, position: Vec3, velocity: Vec3): void {
+    if (!state) return;
+    [state.x, state.y, state.z] = position;
+    [state.vx, state.vy, state.vz] = velocity;
+  }
+
+  private publishProjectile(collection: Map<string, ProjectileState>, id: number, owner: string, kind: string, requestId: number, position: Vec3, velocity: Vec3): void {
+    const projectile = new ProjectileState();
+    projectile.id = String(id);
+    projectile.owner = owner;
+    projectile.kind = kind;
+    projectile.request_id = requestId;
+    this.moveProjectile(projectile, position, velocity);
+    collection.set(projectile.id, projectile);
+  }
+
+  private retireProjectile(collection: Map<string, ProjectileState>, id: number, position: Vec3): void {
+    const key = String(id);
+    const projectile = collection.get(key);
+    if (!projectile) return;
+    projectile.active = 0;
+    this.moveProjectile(projectile, position, [0, 0, 0]);
+    // Preserve the correlation key even when launch and impact share a patch.
+    this.clock.setTimeout(() => collection.delete(key), 150);
   }
 
   private conquestBotGoal(bot: BotPlayer): Vec3 | undefined {
@@ -462,7 +541,7 @@ export class BattleRoom extends Room<{ state: BattleState; input: MoveInput }> {
     const teamBots = [...this.state.players.values()].filter((player) => player.is_bot && player.team === team).sort((a, b) => a.username.localeCompare(b.username));
     const index = Math.max(0, teamBots.findIndex((player) => player.username === bot.username));
     const goal = candidates[index % candidates.length];
-    return [goal.x, goal.y, goal.z];
+    return [goal.x, goal.y + DRONE_SPAWN_OFFSET, goal.z];
   }
 
   private throwGrenade(client: Client, raw: any): void {
@@ -471,12 +550,13 @@ export class BattleRoom extends Room<{ state: BattleState; input: MoveInput }> {
     const kind = player.throwable === 'impact' ? 'impact' : 'frag';
     const position = this.vec(raw?.pos), velocity = this.vec(raw?.vel);
     if (!position || !velocity) { this.rejectGrenadeRequest(client, raw?.request_id); return; }
-    const now = Date.now(), eye: Vec3 = [player.x, player.y + 1.35, player.z], feet: Vec3 = [player.x, player.y, player.z];
+    const now = Date.now(), eye: Vec3 = [player.x, player.y, player.z], feet: Vec3 = [player.x, player.y, player.z];
     const launch = { owner: player.username, kind, position, velocity };
     if (!validateGrenadeLaunch(launch, feet, eye, kind, runtime.grenadeLastThrow, now, player.grenades, this.geometry)) { this.rejectGrenadeRequest(client, raw?.request_id); return; }
     const grenade = this.grenadeSimulation.launch(launch);
     if (!grenade) { this.rejectGrenadeRequest(client, raw?.request_id); return; }
     runtime.grenadeLastThrow = now; player.grenades--;
+    this.publishProjectile(this.state.grenade_projectiles, grenade.id, client.sessionId, kind, this.grenadeRequestId(raw?.request_id), grenade.position, grenade.velocity);
     this.broadcast('grenade', { shooter: player.username, pos: grenade.position, vel: grenade.velocity, id: grenade.id, throwable: grenade.kind, request_id: this.grenadeRequestId(raw?.request_id) });
   }
 
@@ -487,7 +567,7 @@ export class BattleRoom extends Room<{ state: BattleState; input: MoveInput }> {
     for (const target of this.state.players.values()) {
       if (target.is_dead || target.driving_vehicle || this.isProtected(target)) continue;
       if (owner && target.username !== owner.username && this.isTeamMode() && target.team === owner.team) continue;
-      const center: Vec3 = [target.x, target.y + 0.9, target.z];
+      const center: Vec3 = [target.x, target.y, target.z];
       const damage = grenadeDamageAt(kind, position, center, this.geometry);
       if (damage > 0) this.applyPlayerDamage(owner, target, damage);
     }
@@ -511,11 +591,9 @@ export class BattleRoom extends Room<{ state: BattleState; input: MoveInput }> {
       this.exitVehicle(player);
       return;
     }
-    if (!this.vehicleSimulation.enter(this.vehiclePlayer(player), requestedId, Date.now())) return;
-    const enteredVehicle = this.vehicleSimulation.states.get(requestedId)!;
-    player.vehicle_index = Number(requestedId.replace('CAR_', '')); player.vehicle_generation = enteredVehicle.driverGeneration;
-    this.vehicleWeaponBeforeDrive.set(player.username, player.weapon_id);
-    player.animation = 'drive'; player.animation_code = 5; player.weapon_id = 'vehicle';
+    // Drones cannot occupy vehicle seats; world vehicles remain collidable props.
+    void requestedId;
+    this.rejectMessage();
   }
 
   private isTeamMode(): boolean { return this.state.room_mode === 'TDM' || this.state.room_mode === 'CONQUEST'; }
@@ -542,7 +620,7 @@ export class BattleRoom extends Room<{ state: BattleState; input: MoveInput }> {
   }
   private isProtected(player: PlayerState): boolean {
     if (player.is_bot) return Date.now() < (this.botProtectedUntil.get(player.username) ?? 0);
-    const runtime = [...this.internal.values()].find((value) => value.username === player.username);
+    const runtime = this.internal.get(this.sessionByUsername.get(player.username) ?? '');
     return Date.now() < (runtime?.protectedUntil ?? 0);
   }
 
@@ -560,12 +638,18 @@ export class BattleRoom extends Room<{ state: BattleState; input: MoveInput }> {
     target.health = 0; target.is_dead = true; target.deaths++; target.animation = 'death'; target.animation_code = 0; target.animation_time = 0;
     if (target.is_bot) this.botSimulation.markDead(target.username, Date.now());
     else {
-      const targetRuntime = [...this.internal.values()].find((entry) => entry.username === target.username);
+      const targetRuntime = this.internal.get(this.sessionByUsername.get(target.username) ?? '');
       if (targetRuntime) { targetRuntime.spawnAt = Date.now() + 3000; this.cancelReload(targetRuntime); }
       if (target.driving_vehicle) this.exitVehicle(target, true);
     }
     if (!attacker || attacker.username === target.username) return;
     attacker.kills++;
+    this.broadcast('elimination', {
+      killer: attacker.username,
+      victim: target.username,
+      weapon: attacker.weapon_id || 'ak47',
+      drone: attacker.mobility_mode || 'quad',
+    });
     if (this.state.room_mode === 'CONQUEST') {
       if (this.state.room_state === 'active') { const state = this.conquestSimulation(); awardConquestKill(state, attacker.team); this.publishConquestState(state); }
     } else if (this.state.room_mode === 'TDM') {
@@ -582,14 +666,14 @@ export class BattleRoom extends Room<{ state: BattleState; input: MoveInput }> {
     if (!shooter || shooter.is_dead || shooter.driving_vehicle) return;
     const endpoint = this.vec(shot.endpoint), origin = this.vec(shot.origin);
     if (!endpoint || !origin) return;
-    let nearest: { target: PlayerState; distance: number; zone: HitZone } | undefined;
+    let nearest: { target: PlayerState; distance: number; zone: DroneHit['zone'] } | undefined;
     const delta: Vec3 = [endpoint[0] - origin[0], endpoint[1] - origin[1], endpoint[2] - origin[2]];
     const length = Math.hypot(...delta); if (length < 0.01) return;
     const direction: Vec3 = [delta[0] / length, delta[1] / length, delta[2] / length];
     const vehicleHit = this.vehicleSimulation.rayHit(origin, endpoint, shooter.username);
     for (const target of this.state.players.values()) {
       if (target.username === shooter.username || target.is_dead || target.driving_vehicle) continue;
-      const hit = traceAnimatedHit(origin, endpoint, [target.x, target.y, target.z], [target.qx, target.qy, target.qz, target.qw], clipForAnimationCode(target.animation_code), target.animation_time);
+      const hit = traceDroneHit(origin, endpoint, [target.x, target.y, target.z]);
       if (!hit) continue;
       const distance = hit.fraction * length;
       if (!nearest || distance < nearest.distance) nearest = { target, distance, zone: hit.zone };
@@ -643,45 +727,119 @@ export class BattleRoom extends Room<{ state: BattleState; input: MoveInput }> {
   private selectWeapon(sessionId: string, weapon: string) {
     const meta = this.internal.get(sessionId), p = this.state.players.get(meta?.username ?? '');
     const selectedWeapon = getWeapon(weapon);
-    if (!p || !meta || !selectedWeapon || p.is_dead || Date.now() < meta.reloadUntil || p.weapon_id === weapon) return;
-    if (meta.reloadTimer) this.cancelReload(meta);
+    if (!p || !meta || !selectedWeapon || p.is_dead || p.weapon_id === weapon) return;
+    if (meta.reloadTimer) this.cancelActiveReload(meta);
+    meta.offhandReloads.get(weapon)?.clear();
+    meta.offhandReloads.delete(weapon);
     meta.ammoByWeapon[p.weapon_id] = p.ammo;
+    meta.reserveByWeapon[p.weapon_id] = p.reserve_ammo;
     p.weapon_id = weapon; p.ammo = meta.ammoByWeapon[weapon] ?? selectedWeapon.magazine;
+    p.reserve_ammo = meta.reserveByWeapon[weapon] ?? startingReserve(selectedWeapon);
   }
 
   private fire(client: Client, raw: any) {
     const state = this.internal.get(client.sessionId), p = this.state.players.get(state?.username ?? '');
-    if (!p || !state || p.is_dead) return;
-    const now = Date.now(), weapon = getWeapon(p.weapon_id) ?? WEAPONS.ak47;
-    if (now < state.reloadUntil || now - state.lastShot < 60000 / weapon.rpm || p.ammo <= 0) return;
-    const requestedShotId = Math.trunc(Number(raw?.shot_id) || 0);
-    if (requestedShotId > 0 && requestedShotId <= state.lastShotId) return;
-    const shotId = requestedShotId > 0 ? requestedShotId : state.lastShotId + 1;
+    if (!p || !state || p.is_dead || p.driving_vehicle) return;
+    const suppliedId = Number(raw?.shot_id ?? 0);
+    if (!Number.isSafeInteger(suppliedId) || suppliedId < 0 || suppliedId > 0x7fffffff) return;
+    if (suppliedId > 0 && suppliedId <= p.last_shot_id) return;
+    const shotId = suppliedId || p.last_shot_id + 1;
+    // Confirm receipt even when cadence, reload, or empty ammo rejects the shot.
+    p.last_shot_id = shotId;
+    const explicit = typeof raw?.weapon === 'string' ? raw.weapon : '';
+    if (explicit && explicit !== p.primary_payload && explicit !== p.secondary_payload) return;
+    const weaponId = explicit || p.weapon_id;
+    const offhand = weaponId !== p.weapon_id;
+    const weapon = getWeapon(weaponId);
+    if (!weapon) return;
+    const now = Date.now();
+    if ((offhand ? state.offhandReloads.has(weaponId) : now < state.reloadUntil)
+      || now - (state.lastShotByWeapon[weaponId] ?? 0) < 60000 / weapon.rpm
+      || (offhand ? state.ammoByWeapon[weaponId] : p.ammo) <= 0
+      || (weapon.missileSpeed && this.missiles.size >= 128)) {
+      if (offhand) this.sendOffhandAmmo(client, state, weaponId, shotId);
+      return;
+    }
     const requestedOrigin = this.vec(raw?.origin);
-    const origin: [number, number, number] = requestedOrigin && Math.hypot(requestedOrigin[0] - p.x, requestedOrigin[1] - (p.y + 1.2), requestedOrigin[2] - p.z) <= 0.8
-      ? requestedOrigin : [p.x, p.y + 1.2, p.z];
+    const origin: [number, number, number] = requestedOrigin && Math.hypot(requestedOrigin[0] - p.x, requestedOrigin[1] - p.y, requestedOrigin[2] - p.z) <= 0.9
+      ? requestedOrigin : [p.x, p.y, p.z];
     const buffered = this.inputs.get(client.sessionId).latest;
     const hasYaw = raw?.yaw !== undefined, hasPitch = raw?.pitch !== undefined;
     if ((hasYaw && !Number.isFinite(Number(raw.yaw))) || (hasPitch && !Number.isFinite(Number(raw.pitch)))) { this.rejectMessage(); return; }
     const aimYaw = clamp(hasYaw ? raw.yaw : buffered?.yaw ?? p.yaw, -Math.PI * 16, Math.PI * 16);
     const aimPitch = clamp(hasPitch ? raw.pitch : buffered?.pitch ?? p.pitch, -1.55, 1.55);
-    p.yaw = aimYaw; p.pitch = aimPitch;
-    p.qx = 0; p.qy = Math.sin(aimYaw * 0.5); p.qz = 0; p.qw = Math.cos(aimYaw * 0.5);
     const direction = aimDirection(aimYaw, aimPitch);
     const maxRange = 300;
     const endpoint: [number, number, number] = [origin[0] + direction[0] * maxRange, origin[1] + direction[1] * maxRange, origin[2] + direction[2] * maxRange];
     const requestedHit = this.vec(raw?.hit);
     const visualHit = requestedHit && Math.hypot(requestedHit[0] - endpoint[0], requestedHit[1] - endpoint[1], requestedHit[2] - endpoint[2]) <= maxRange + 1 ? requestedHit : endpoint;
-    p.ammo--; state.ammoByWeapon[p.weapon_id] = p.ammo; state.lastShot = now; state.pendingHit = false;
-    state.lastShotId = shotId; state.pendingShotId = shotId; state.pendingWeaponId = p.weapon_id;
+    state.ammoByWeapon[weaponId] = (offhand ? state.ammoByWeapon[weaponId] : p.ammo) - 1;
+    if (offhand) this.sendOffhandAmmo(client, state, weaponId, shotId);
+    else p.ammo = state.ammoByWeapon[weaponId];
+    state.lastShotByWeapon[weaponId] = now;
+    state.pendingHit = false;
+    state.pendingShotId = shotId; state.pendingWeaponId = weaponId;
+    if (weapon.missileSpeed) {
+      const center: Vec3 = [p.x, p.y, p.z];
+      const position = this.geometry.rayBlocked(center, origin) ? center : origin;
+      const id = ++this.nextMissileId;
+      this.missiles.set(id, { id, owner: p, sessionId: client.sessionId, weaponId: weaponId, position, direction, remaining: weapon.range, speed: weapon.missileSpeed, damage: weapon.damage });
+      const velocity = direction.map(component => component * weapon.missileSpeed!) as [number, number, number];
+      this.publishProjectile(this.state.missile_projectiles, id, client.sessionId, weaponId, shotId, position, velocity);
+      this.broadcast('missile_launch', { id, weapon: weaponId, position, direction, speed: weapon.missileSpeed, duration: weapon.range / weapon.missileSpeed });
+      return;
+    }
     state.fireSegment = { o: origin, d: direction, range: maxRange, shotId, seen: this.rewind.lastSeenBy(client.sessionId, new RewindView()) };
-    this.broadcast('fire', { shooter: state.username, origin, hit: visualHit, normal: this.vec(raw?.normal) ?? [0, 1, 0], wall: Boolean(raw?.wall), shot_id: shotId });
+    this.broadcast('fire', { shooter: state.username, origin, hit: visualHit, normal: this.vec(raw?.normal) ?? [0, 1, 0], wall: Boolean(raw?.wall), shot_id: shotId, weapon: weaponId });
     this.resolveShot(client, state);
   }
 
   private hit(client: Client, raw: any) {
     // Legacy client hit notices are informational only; the server already resolved each fire ray.
     void client; void raw;
+  }
+
+  private stepMissiles(dt: number): void {
+    for (const missile of this.missiles.values()) {
+      const distance = Math.min(missile.remaining, missile.speed * dt);
+      const start = missile.position;
+      const pointAt = (fraction: number): Vec3 => [
+        start[0] + missile.direction[0] * distance * fraction,
+        start[1] + missile.direction[1] * distance * fraction,
+        start[2] + missile.direction[2] * distance * fraction,
+      ];
+      const end = pointAt(1);
+      const wall = this.geometry.trace(start, end);
+      const vehicle = this.vehicleSimulation.rayHit(start, end, missile.owner.username);
+      let fraction = Math.min(wall?.fraction ?? Infinity, vehicle?.fraction ?? Infinity);
+      let target: PlayerState | undefined;
+      for (const candidate of this.state.players.values()) {
+        if (candidate === missile.owner || candidate.is_dead) continue;
+        const hit = traceDroneHit(start, end, [candidate.x, candidate.y, candidate.z]);
+        if (hit && hit.fraction < fraction) {
+          fraction = hit.fraction;
+          target = candidate;
+        }
+      }
+      missile.remaining -= distance;
+      if (!Number.isFinite(fraction) && missile.remaining > 0) {
+        missile.position = end;
+        const velocity = missile.direction.map(component => component * missile.speed) as [number, number, number];
+        this.moveProjectile(this.state.missile_projectiles.get(String(missile.id)), end, velocity);
+        continue;
+      }
+      const position = pointAt(Math.min(1, fraction));
+      this.missiles.delete(missile.id);
+      this.retireProjectile(this.state.missile_projectiles, missile.id, position);
+      this.broadcast('missile_impact', { id: missile.id, position });
+      if (target && !this.isProtected(target) && !(this.isTeamMode() && target.team === missile.owner.team)) {
+        const client = this.clients.getById(missile.sessionId);
+        this.applyPlayerDamage(missile.owner, target, missile.damage, client);
+        client?.send('hit_confirmed', {});
+      } else if (!target && vehicle && vehicle.fraction < (wall?.fraction ?? Infinity)) {
+        this.applyVehicleDamage(missile.owner, vehicle.id, missile.weaponId, 0);
+      }
+    }
   }
 
   private resolveShot(client: Client, as: PlayerRuntime): void {
@@ -691,16 +849,12 @@ export class BattleRoom extends Room<{ state: BattleState; input: MoveInput }> {
     const seen = fire.seen;
     const endpoint: Vec3 = [fire.o[0] + fire.d[0] * fire.range, fire.o[1] + fire.d[1] * fire.range, fire.o[2] + fire.d[2] * fire.range];
     const vehicleHit = this.vehicleSimulation.rayHit(fire.o, endpoint, attacker.username);
-    let first: { target: PlayerState; along: number; zone: HitZone } | undefined;
+    let first: { target: PlayerState; along: number; zone: DroneHit['zone'] } | undefined;
     for (const other of this.state.players.values()) {
-      if (other.username === attacker.username || seen.value(other, 'health') <= 0 || seen.value(other, 'animation_code') === 5) continue;
+      if (other.username === attacker.username || seen.value(other, 'health') <= 0) continue;
       const snapshot = (field: string): number => Number(seen.value(other, field as any));
       const position: Vec3 = [snapshot('x'), snapshot('y'), snapshot('z')];
-      const rotation: [number, number, number, number] = [snapshot('qx'), snapshot('qy'), snapshot('qz'), snapshot('qw')];
-      const code = Math.trunc(snapshot('animation_code'));
-      const clip = clipForAnimationCode(code);
-      const phase = snapshot('animation_time');
-      const hit = traceAnimatedHit(fire.o, endpoint, position, rotation, clip, phase);
+      const hit = traceDroneHit(fire.o, endpoint, position);
       if (!hit) continue;
       const along = hit.fraction * fire.range;
       if (!first || along < first.along) first = { target: other, along, zone: hit.zone };
@@ -724,7 +878,7 @@ export class BattleRoom extends Room<{ state: BattleState; input: MoveInput }> {
     const internal = this.internal.get(client.sessionId), p = this.state.players.get(internal?.username ?? '');
     if (!p || !internal || p.is_dead) return;
     const w = getWeapon(p.weapon_id) ?? WEAPONS.ak47;
-    if (p.ammo < w.magazine && Date.now() >= internal.reloadUntil) {
+    if (p.ammo < w.magazine && p.reserve_ammo > 0 && Date.now() >= internal.reloadUntil) {
       internal.reloadUntil = Date.now() + w.reloadMs;
       const reloadingWeapon = p.weapon_id;
       const deadline = internal.reloadUntil;
@@ -732,33 +886,93 @@ export class BattleRoom extends Room<{ state: BattleState; input: MoveInput }> {
       internal.reloadTimer = this.clock.setTimeout(() => {
         if (internal.reloadToken !== token || internal.reloadUntil !== deadline) return;
         internal.reloadTimer = undefined; internal.reloadUntil = 0;
-        if (this.state.players.has(p.username) && !p.is_dead && p.weapon_id === reloadingWeapon) { p.ammo = w.magazine; internal.ammoByWeapon[reloadingWeapon] = p.ammo; }
+        if (this.state.players.get(p.username) !== p || p.is_dead || p.weapon_id !== reloadingWeapon) return;
+        const transferred = Math.min(w.magazine - p.ammo, p.reserve_ammo);
+        p.ammo += transferred;
+        p.reserve_ammo -= transferred;
+        internal.ammoByWeapon[reloadingWeapon] = p.ammo;
+        internal.reserveByWeapon[reloadingWeapon] = p.reserve_ammo;
       }, w.reloadMs);
     }
   }
 
+  private sendOffhandAmmo(client: Client, runtime: PlayerRuntime, weapon: string, shotId: number) {
+    client.send('payload_ammo', { weapon, ammo: runtime.ammoByWeapon[weapon], reserve_ammo: runtime.reserveByWeapon[weapon],
+      last_shot_id: shotId, reloading: runtime.offhandReloads.has(weapon) });
+  }
+
+  private reloadOffhand(client: Client, weaponId: string) {
+    const runtime = this.internal.get(client.sessionId), player = this.state.players.get(runtime?.username ?? '');
+    const weapon = getWeapon(weaponId);
+    if (!runtime || !player || !weapon || player.is_dead || player.driving_vehicle || weaponId === player.weapon_id
+      || (weaponId !== player.primary_payload && weaponId !== player.secondary_payload)) return;
+    if (!runtime.offhandReloads.has(weaponId) && runtime.ammoByWeapon[weaponId] < weapon.magazine && runtime.reserveByWeapon[weaponId] > 0) {
+      const timer = this.clock.setTimeout(() => {
+        if (runtime.offhandReloads.get(weaponId) !== timer) return;
+        runtime.offhandReloads.delete(weaponId);
+        const transferred = Math.min(weapon.magazine - runtime.ammoByWeapon[weaponId], runtime.reserveByWeapon[weaponId]);
+        runtime.ammoByWeapon[weaponId] += transferred;
+        runtime.reserveByWeapon[weaponId] -= transferred;
+        const peer = this.clients.find(candidate => candidate.sessionId === client.sessionId);
+        if (peer) this.sendOffhandAmmo(peer, runtime, weaponId, player.last_shot_id);
+      }, weapon.reloadMs);
+      runtime.offhandReloads.set(weaponId, timer);
+    }
+    this.sendOffhandAmmo(client, runtime, weaponId, player.last_shot_id);
+  }
+
   private cancelReload(internal: PlayerRuntime): void {
+    this.cancelActiveReload(internal);
+    for (const timer of internal.offhandReloads.values()) timer.clear();
+    internal.offhandReloads.clear();
+  }
+
+  private cancelActiveReload(internal: PlayerRuntime): void {
     internal.reloadToken++;
     internal.reloadTimer?.clear();
     internal.reloadTimer = undefined;
     internal.reloadUntil = 0;
   }
 
+  private restockAmmo(player: PlayerState, runtime: PlayerRuntime): void {
+    for (const [id, weapon] of Object.entries(WEAPONS)) {
+      runtime.ammoByWeapon[id] = weapon.magazine;
+      runtime.reserveByWeapon[id] = startingReserve(weapon);
+    }
+    const activeWeapon = getWeapon(player.weapon_id) ? player.weapon_id : 'ak47';
+    player.ammo = runtime.ammoByWeapon[activeWeapon];
+    player.reserve_ammo = runtime.reserveByWeapon[activeWeapon];
+  }
+
   private respawn(sessionId: string, p: PlayerState, internal: PlayerRuntime) {
     const teamOffset = p.team === 'A' ? 0 : Math.floor(this.geometry.spawns.length / 2);
     const spawnIndex = (teamOffset + p.deaths) % this.geometry.spawns.length;
     const spawn = this.geometry.spawns[spawnIndex];
-    p.x = spawn[0]; p.y = spawn[1]; p.z = spawn[2];
+    p.x = spawn[0]; p.y = spawn[1] + DRONE_SPAWN_OFFSET; p.z = spawn[2];
     this.cancelReload(internal);
-    p.health = 100; p.is_dead = false; p.vx = 0; p.vy = 0; p.vz = 0; p.animation_time = 0; p.pose_time_ms = Date.now(); p.animation = 'idle'; p.animation_code = 0; p.grenades = 2; internal.grenadeLastThrow = 0; internal.animationStartedAt = Date.now(); internal.protectedUntil = Date.now() + 2500; p.ammo = (getWeapon(p.weapon_id) ?? WEAPONS.ak47).magazine; internal.ammoByWeapon[p.weapon_id] = p.ammo;
-    internal.spawnAt = 0; internal.vy = 0;
+    p.health = 100; p.is_dead = false; p.vx = 0; p.vy = 0; p.vz = 0; p.animation_time = 0; p.pose_time_ms = Date.now(); p.animation = 'idle'; p.animation_code = 0; p.grenades = 2; internal.grenadeLastThrow = 0; internal.animationStartedAt = Date.now(); internal.protectedUntil = Date.now() + 2500;
+    this.restockAmmo(p, internal);
+    internal.spawnAt = 0;
     this.clients.find((client) => client.sessionId === sessionId)?.send('respawn', { x: p.x, y: p.y, z: p.z });
   }
 
-  private requestRespawn(client: Client): void {
+  private requestRespawn(client: Client, raw?: any): void {
     const internal = this.internal.get(client.sessionId);
     const player = this.state.players.get(internal?.username ?? '');
-    if (player?.is_dead && internal && Date.now() >= internal.spawnAt) this.respawn(client.sessionId, player, internal);
+    if (!player?.is_dead || !internal || Date.now() < internal.spawnAt) return;
+    if (internal.manualRedeploy) {
+      const { primary, secondary, throwable, chassis } = raw ?? {};
+      if (typeof primary !== 'string' || typeof secondary !== 'string'
+        || !getWeapon(primary) || !getWeapon(secondary) || primary === secondary
+        || (throwable !== 'frag' && throwable !== 'impact')
+        || !['quad', 'heli', 'wing', 'wheels', 'tracked'].includes(chassis)) return;
+      player.primary_payload = primary;
+      player.secondary_payload = secondary;
+      player.throwable = throwable;
+      player.mobility_mode = chassis === 'quad' ? 'heli' : chassis;
+      player.weapon_id = primary;
+    }
+    this.respawn(client.sessionId, player, internal);
   }
 
   private vec(value: any): [number, number, number] | undefined {

@@ -2,18 +2,14 @@ class_name ColyseusWorldGeometry
 extends RefCounted
 ## Authored map geometry and movement helpers for the Colyseus client.
 ##
-## Uses the same triangle source, prebuilt BVH nodes, capsule sample points,
-## axis order, ray tolerances, and 0.45 m step as the TypeScript server helper.
-## The capsule sweep is a deterministic approximation; it does not implement
-## Godot's native safe margin, floor snap, velocity/gravity, or crouch capsule.
+## Uses the same BVH, capsule/triangle closest-feature contacts, 8 mm skin,
+## substeps, support normals and 0.45 m grounded step as the TypeScript server.
 
 const DATA_DIR := "res://assets/data/maps/"
 const INDUSTRIAL_FALLBACK_PATH := "res://assets/data/industrial.json.gz"
+const Capsule := preload("res://scripts/net/CapsuleContact.gd")
 const PLAYABLE_MAPS: Array[String] = ["football", "resoforge", "industrial", "village", "arena", "shipment", "dust2", "nuketown", "canyon", "military_base", "ghost_city"]
 const NODE_STRIDE := 10
-const SPOKES := 12
-const CAPSULE_LEVELS: Array[float] = [0.08, 0.24, 0.4, 0.9, 1.4, 1.56, 1.72]
-const MOVE_CANDIDATE_LIMIT := 64
 const SWEEP_EPSILON := 0.0001
 
 static var _loaded := false
@@ -26,11 +22,12 @@ static var _triangle_edge_2 := PackedVector3Array()
 static var _triangle_unit_normal := PackedVector3Array()
 static var _nodes := PackedFloat32Array()
 static var _order := PackedInt32Array()
+static var _flight_prop_vertices := PackedFloat32Array()
+static var _flight_prop_bounds: Array[Dictionary] = []
 static var _spawns: Array[Vector3] = []
 static var _ray_stack: Array[int] = []
 static var _move_candidate_stack: Array[int] = []
 static var _move_candidate_triangles: Array[int] = []
-static var _capsule_offsets_cache: Dictionary = {}
 
 
 static func _ensure_data() -> void:
@@ -102,7 +99,34 @@ static func _ensure_data() -> void:
 		return
 	_loaded_map = map_name
 	_loaded = true
+	_build_flight_props(data.get("vehicles", []))
 
+
+static func _build_flight_props(vehicles: Array) -> void:
+	_flight_prop_vertices.clear()
+	_flight_prop_bounds.clear()
+	var faces := [[0,2,1],[0,3,2],[4,5,6],[4,6,7],[0,1,5],[0,5,4],[3,7,6],[3,6,2],[0,4,7],[0,7,3],[1,2,6],[1,6,5]]
+	for spawn in vehicles:
+		var from := Vector3(spawn[0],spawn[1]+2.5,spawn[2])
+		var hit := _raycast(from,Vector3(spawn[0],spawn[1]-5.0,spawn[2]))
+		var base_y: float = float(spawn[1])
+		if not hit.is_empty() and absf(Vector3(hit.normal).y)>=0.65: base_y=from.y-7.5*float(hit.fraction)+0.08
+		for bounds in [[Vector3(-1.15,0.4,-2.5),Vector3(1.15,1.5,2.5)],[Vector3(-1.1,1.475,-1.8),Vector3(1.1,2.425,2.2)]]:
+			var lo: Vector3=bounds[0];var hi: Vector3=bounds[1]
+			var c:=cos(float(spawn[3]));var ss:=sin(float(spawn[3]))
+			var points: Array[Vector3] = []
+			for point in [Vector3(lo.x,lo.y,lo.z),Vector3(hi.x,lo.y,lo.z),Vector3(hi.x,hi.y,lo.z),Vector3(lo.x,hi.y,lo.z),Vector3(lo.x,lo.y,hi.z),Vector3(hi.x,lo.y,hi.z),Vector3(hi.x,hi.y,hi.z),Vector3(lo.x,hi.y,hi.z)]:
+				points.append(Vector3(float(spawn[0])+c*point.x+ss*point.z,base_y+point.y,float(spawn[2])-ss*point.x+c*point.z))
+			var minimum:=points[0];var maximum:=points[0]
+			for point in points: minimum=minimum.min(point);maximum=maximum.max(point)
+			_flight_prop_bounds.append({"min":minimum,"max":maximum,"first":_flight_prop_vertices.size()/9})
+			for face in faces:
+				for index in face:
+					var point: Vector3=points[index]
+					_flight_prop_vertices.append_array(PackedFloat32Array([point.x,point.y,point.z]))
+
+static func _contact_triangle(at: Vector3,radius: float,height: float,triangle: int,margin: float) -> Dictionary:
+	return Capsule.capsule_triangle(at,radius,height,_flight_prop_vertices if triangle<0 else _vertices,-triangle-1 if triangle<0 else triangle,margin)
 
 ## Optional explicit selection for standalone geometry fixtures and tools.
 static func set_map_override(map_name: String = "") -> void:
@@ -121,9 +145,9 @@ static func get_loaded_map() -> String:
 	_ensure_data()
 	return _loaded_map
 
-static func settled_vertical_velocity(vy: float, requested_y: float, resolved_y: float, floor_value: Variant) -> float:
-	if vy < 0.0 and (resolved_y > requested_y + 0.00001 or (floor_value != null and resolved_y <= float(floor_value) + 0.03)): return 0.0
-	if vy > 0.0 and resolved_y < requested_y - 0.00001: return 0.0
+static func settled_vertical_velocity(vy: float, requested_y: float, resolved_y: float, grounded: bool) -> float:
+	if vy < 0.0 and grounded: return 0.0
+	if vy > 0.0 and resolved_y < requested_y - 0.001: return 0.0
 	return vy
 
 
@@ -237,15 +261,14 @@ static func _triangle_bounds_overlap(triangle_index: int, minimum: Vector3, maxi
 
 
 ## Gather exact vertex-AABB candidates once for the full movement envelope.
-## Returning false means the set exceeded the small-cache limit and callers
-## should use the original per-ray BVH traversal instead.
-static func _prepare_move_candidates(from: Vector3, to: Vector3, radius: float, height: float) -> bool:
+## Bounds include the complete lower hemisphere, step and head clearance.
+static func _prepare_move_candidates(from: Vector3, to: Vector3, radius: float, height: float, step_height: float = 0.5) -> bool:
 	_move_candidate_triangles.clear()
 	_move_candidate_stack.clear()
 	if _nodes.is_empty():
 		return false
-	var bounds_min := Vector3(minf(from.x, to.x) - radius - SWEEP_EPSILON, minf(from.y, to.y) + 0.08 - SWEEP_EPSILON, minf(from.z, to.z) - radius - SWEEP_EPSILON)
-	var bounds_max := Vector3(maxf(from.x, to.x) + radius + SWEEP_EPSILON, maxf(from.y, to.y) + 0.45 + minf(height, 1.72) + SWEEP_EPSILON, maxf(from.z, to.z) + radius + SWEEP_EPSILON)
+	var bounds_min := Vector3(minf(from.x, to.x) - radius - step_height - SWEEP_EPSILON, minf(from.y, to.y) - step_height - radius - SWEEP_EPSILON, minf(from.z, to.z) - radius - step_height - SWEEP_EPSILON)
+	var bounds_max := Vector3(maxf(from.x, to.x) + radius + step_height + SWEEP_EPSILON, maxf(from.y, to.y) + step_height + height + radius + SWEEP_EPSILON, maxf(from.z, to.z) + radius + step_height + SWEEP_EPSILON)
 	_move_candidate_stack.append(0)
 	while not _move_candidate_stack.is_empty():
 		var node_index: int = _move_candidate_stack.pop_back()
@@ -267,10 +290,6 @@ static func _prepare_move_candidates(from: Vector3, to: Vector3, radius: float, 
 				if not _triangle_bounds_overlap(triangle_index, bounds_min, bounds_max):
 					continue
 				_move_candidate_triangles.append(triangle_index)
-				if _move_candidate_triangles.size() > MOVE_CANDIDATE_LIMIT:
-					_move_candidate_triangles.clear()
-					_move_candidate_stack.clear()
-					return false
 		else:
 			# Same traversal order as _raycast: right child is popped first.
 			if left >= 0:
@@ -281,18 +300,28 @@ static func _prepare_move_candidates(from: Vector3, to: Vector3, radius: float, 
 	return true
 
 
-static func _raycast_move_candidates(from: Vector3, to: Vector3) -> Dictionary:
-	if not _finite_vector(from) or not _finite_vector(to):
-		return {}
-	var delta := to - from
-	var nearest := 2.0
-	var best_index := -1
-	for triangle_index in _move_candidate_triangles:
-		var fraction := _triangle_fraction(triangle_index, from, delta)
-		if fraction >= 0.0 and fraction < nearest:
-			nearest = fraction
-			best_index = triangle_index
-	return {} if best_index < 0 else {"fraction": nearest, "normal": _triangle_unit_normal[best_index]}
+## Return an owned candidate list because grounded/step-up queries reuse the traversal scratch.
+static func _capsule_candidates(from: Vector3, to: Vector3, radius: float, height: float, step_height: float) -> Array[int]:
+	_prepare_move_candidates(from, to, radius, height, step_height)
+	return _move_candidate_triangles.duplicate()
+
+
+static func _capsule_contacts(at: Vector3, radius: float, height: float, margin: float, candidates: Array[int]) -> Array[Dictionary]:
+	var contacts: Array[Dictionary] = []
+	for triangle_index in candidates:
+		var contact: Dictionary = _contact_triangle(at, radius, height, triangle_index, margin)
+		if not contact.is_empty(): contacts.append(contact)
+	return contacts
+
+
+## A walkable map surface must support the lower capsule hemisphere.
+static func is_grounded(at: Vector3, radius: float = 0.4, height: float = 1.8) -> bool:
+	_ensure_data()
+	if not _finite_vector(at) or _nodes.is_empty(): return false
+	var candidates := _capsule_candidates(at, at, radius + 0.06, height, 0.0)
+	for contact in _capsule_contacts(at, radius, height, 0.055, candidates):
+		if (Vector3(contact.normal).y >= 0.5 or (absf(float(contact.surface_normal_y)) >= 0.5 and Vector3(contact.normal).y > 0.05)) and float(contact.depth) <= 0.09: return true
+	return false
 
 
 static func ray_blocked(from: Vector3, to: Vector3) -> bool:
@@ -318,50 +347,15 @@ static func floor_height(x: float, z: float, from_y: float = 100.0) -> Variant:
 	return from_y + (-100.0 - from_y) * float(hit["fraction"])
 
 
-static func _capsule_offsets(radius: float, height: float) -> PackedVector3Array:
-	var key := [radius, height]
-	if _capsule_offsets_cache.has(key): return _capsule_offsets_cache[key]
-	var offsets := PackedVector3Array()
-	for y_offset in CAPSULE_LEVELS:
-		if y_offset > height:
-			continue
-		var ring_radius := radius
-		if y_offset < radius:
-			ring_radius = sqrt(maxf(0.0, radius * radius - pow(radius - y_offset, 2.0)))
-		elif y_offset > height - radius:
-			ring_radius = sqrt(maxf(0.0, radius * radius - pow(y_offset - (height - radius), 2.0)))
-		for spoke in range(SPOKES + 1):
-			var angle := 0.0 if spoke == SPOKES else (2.0 * PI * float(spoke)) / float(SPOKES)
-			var offset_x := 0.0 if spoke == SPOKES else cos(angle) * ring_radius
-			var offset_z := 0.0 if spoke == SPOKES else sin(angle) * ring_radius
-			var offset := Vector3(offset_x, y_offset, offset_z)
-			offsets.append(offset)
-	if _capsule_offsets_cache.size() >= 16: _capsule_offsets_cache.clear()
-	_capsule_offsets_cache[key] = offsets
-	return offsets
+## Feet-origin capsule contacts, sliding, and grounded stepping.
+static func resolve_flight_move(from: Vector3, to: Vector3, radius: float = 0.4, step_height: float = 0.0) -> Vector3:
+	var result := resolve_move(from - Vector3.UP*radius, to - Vector3.UP*radius, radius, radius * 2.0, true, step_height > 0.0, step_height, true)
+	return result + Vector3.UP*radius
 
+static func _canonical_move(p: Vector3) -> Vector3:
+	return Vector3(floorf(p.x*1000.0+0.5)/1000.0, floorf(p.y*1000.0+0.5)/1000.0, floorf(p.z*1000.0+0.5)/1000.0)
 
-static func _capsule_blocked(from: Vector3, to: Vector3, radius: float, height: float, horizontal_only: bool = false, use_move_candidates: bool = false) -> bool:
-	# A zero-length sweep cannot hit a triangle: the ray/triangle determinant is
-	# zero for every sample. Avoid constructing 7 x 13 degenerate rays on axes
-	# that did not move; this preserves the exact collision result.
-	if from == to:
-		return false
-	var delta_y := to.y - from.y
-	for offset in _capsule_offsets(radius, height):
-		var sample_from := from + offset
-		var sample_to := to + offset
-		var hit := _raycast_move_candidates(sample_from, sample_to) if use_move_candidates else _raycast(sample_from, sample_to)
-		if hit.is_empty() or float(hit["fraction"]) <= 0.0001:
-			continue
-		if horizontal_only and absf(delta_y) < 0.000001 and absf(hit["normal"].y) >= 0.5:
-			continue
-		return true
-	return false
-
-
-## Feet-origin capsule motion with axis sliding and a 0.45 m grounded step.
-static func resolve_move(from: Vector3, to: Vector3, radius: float = 0.4, height: float = 1.8, use_candidate_cache: bool = true) -> Vector3:
+static func resolve_move(from: Vector3, to: Vector3, radius: float = 0.4, height: float = 1.8, use_candidate_cache: bool = true, allow_step: bool = true, step_height: float = 0.45, drone_move: bool = false) -> Vector3:
 	_ensure_data()
 	if not _finite_vector(from):
 		return _spawns[0] if not _spawns.is_empty() else Vector3.ZERO
@@ -369,52 +363,71 @@ static func resolve_move(from: Vector3, to: Vector3, radius: float = 0.4, height
 		return from
 	radius = minf(radius, 1.5)
 	height = minf(height, 4.0)
-	var use_move_candidates := use_candidate_cache and _prepare_move_candidates(from, to, radius, height)
-	var position := from
-	var step_height := 0.45
-	var target_floor: Variant = floor_height(to.x, to.z, position.y + step_height)
-	if target_floor != null and float(target_floor) > position.y + 0.03 and float(target_floor) <= position.y + step_height:
-		var stepped_from := Vector3(position.x, float(target_floor), position.z)
-		var stepped_target := Vector3(to.x, float(target_floor), to.z)
-		if not _capsule_blocked(position, stepped_from, radius, height, false, use_move_candidates) and not _capsule_blocked(stepped_from, stepped_target, radius, height, true, use_move_candidates):
-			position = stepped_target
-
-	for axis in [0, 2]:
-		var current := position
-		var destination := Vector3(to.x, position.y, position.z) if axis == 0 else Vector3(position.x, position.y, to.z)
-		if not _capsule_blocked(current, destination, radius, height, true, use_move_candidates):
-			position = destination
-			continue
-		var safe := 0.0
-		var blocked := 1.0
-		for _iteration in range(10):
-			var middle := (safe + blocked) * 0.5
-			var candidate := Vector3(position.x + (destination.x - position.x) * middle, position.y, position.z) if axis == 0 else Vector3(position.x, position.y, position.z + (destination.z - position.z) * middle)
-			if _capsule_blocked(current, candidate, radius, height, true, use_move_candidates):
-				blocked = middle
-			else:
-				safe = middle
-		if axis == 0:
-			position.x += (destination.x - position.x) * safe
-		else:
-			position.z += (destination.z - position.z) * safe
-
-	var floor: Variant = floor_height(position.x, position.z, maxf(position.y, to.y) + step_height)
-	var target_y := to.y
-	if floor != null and target_y <= float(floor) and position.y >= float(floor) - step_height:
-		target_y = float(floor)
-	var vertical_target := Vector3(position.x, target_y, position.z)
-	if not _capsule_blocked(position, vertical_target, radius, height, false, use_move_candidates):
-		position = vertical_target
-	else:
-		var safe := 0.0
-		var blocked := 1.0
-		for _iteration in range(10):
-			var middle := (safe + blocked) * 0.5
-			var candidate := Vector3(position.x, position.y + (target_y - position.y) * middle, position.z)
-			if _capsule_blocked(position, candidate, radius, height, false, use_move_candidates):
-				blocked = middle
-			else:
-				safe = middle
-		position.y += (target_y - position.y) * safe
-	return position
+	var grounded := allow_step and is_grounded(from, radius, height)
+	# Candidate caching is deterministic and unbounded; the flag remains for call-site compatibility.
+	var candidates := _capsule_candidates(from, to, radius, height, maxf(0.5, step_height))
+	if not allow_step or drone_move:
+		for box in _flight_prop_bounds:
+			var lo: Vector3=box.min;var hi: Vector3=box.max
+			if hi.x<minf(from.x,to.x)-radius-0.5 or lo.x>maxf(from.x,to.x)+radius+0.5 or hi.y<minf(from.y,to.y)-0.5 or lo.y>maxf(from.y,to.y)+height+0.5 or hi.z<minf(from.z,to.z)-radius-0.5 or lo.z>maxf(from.z,to.z)+radius+0.5: continue
+			for index in 12: candidates.append(-(int(box.first)+index+1))
+	var skin := 0.008
+	var delta := to - from
+	var count := maxi(1, ceili(delta.length() / minf(radius * 0.25, 0.1)))
+	if count > 512: return from
+	var recover := func(start: Vector3) -> Vector3:
+		var position := start
+		for _iteration in range(4):
+			var corrected := false
+			for triangle_index in candidates:
+				var hit: Dictionary = _contact_triangle(position, radius, height, triangle_index, skin)
+				if hit.is_empty() or float(hit.depth) <= 0.000001: continue
+				position += Vector3(hit.normal) * float(hit.depth)
+				corrected = true
+			if not corrected: break
+		return position
+	var attempt := func(previous: Vector3, desired: Vector3) -> Vector3:
+		var next: Vector3 = recover.call(desired)
+		if next.distance_to(desired) > 0.2: return previous
+		for contact in _capsule_contacts(next, radius, height, skin, candidates):
+			if float(contact.depth) > 0.001: return previous
+		return next
+	var advance := func(previous: Vector3, desired: Vector3) -> Vector3:
+		var next: Vector3 = attempt.call(previous, desired)
+		if _canonical_move(next) != _canonical_move(previous): return next
+		var result := previous
+		for axis in [1,0,2]:
+			var amount: float = desired[axis] - previous[axis]
+			if amount == 0.0: continue
+			var target := result
+			target[axis] += amount
+			result = attempt.call(result, target)
+		return result
+	var position: Vector3 = advance.call(from, from)
+	for _substep in range(count):
+		position = advance.call(position, position + delta / float(count))
+	var horizontal := Vector2(delta.x, delta.z).length()
+	if grounded and horizontal == 0.0 and delta.y <= 0.0: return _canonical_move(advance.call(from, from))
+	var step_tolerance := minf(0.01, horizontal * 0.25) if drone_move else 0.01
+	if grounded and delta.y <= 0.0 and horizontal > 0.000001 and Vector2(position.x - from.x, position.z - from.z).dot(Vector2(delta.x,delta.z)) / horizontal < horizontal - step_tolerance:
+		var up := Vector3(from.x, from.y + step_height, from.z)
+		if _capsule_contacts(up, radius, height, skin, candidates).is_empty():
+			var step := up
+			for _substep in range(count):
+				step = advance.call(step, step + Vector3(delta.x, 0.0, delta.z) / float(count))
+			var clear := true
+			var lift := 0.1
+			while lift < step_height:
+				var contacts := _capsule_contacts(Vector3(from.x, from.y + lift, from.z), radius, height, 0.0, candidates)
+				for contact in contacts:
+					if Vector3(contact.normal).y < -0.5:
+						clear = false
+						break
+				if not clear: break
+				lift += 0.1
+			if clear:
+				for _lower_step in range(6):
+					step = advance.call(step, step + Vector3.DOWN * (step_height / 6.0))
+				if Vector2(step.x - position.x, step.z - position.z).dot(Vector2(delta.x,delta.z)) / horizontal > 0.001 and is_grounded(step, radius, height):
+					position = step
+	return _canonical_move(position)

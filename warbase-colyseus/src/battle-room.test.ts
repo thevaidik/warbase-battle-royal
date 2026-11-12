@@ -101,6 +101,7 @@ test('BattleRoom admission, combat authority, ammo and lifecycle', async (t) => 
     await assert.rejects(async () => room.onJoin({ sessionId: 'invalid-name' } as any, { username: '<script>' }), /valid username required/, 'unsafe names cannot enter live room state');
     const joinStarted = performance.now();
     const alice = await testing.connectTo(room, { username: 'alice', room: 'industrial-public' });
+    assert.ok(Math.abs(room.state.players.get('alice')!.y - (room as any).geometry.spawns[0][1] - 0.9) < 0.01, 'human state begins at the drone center above its authored spawn');
     await waitFor(() => room.state.players.has('alice'));
     (room as any).selectWeapon(alice.sessionId, 'constructor');
     (room as any).selectWeapon(alice.sessionId, '__proto__');
@@ -112,6 +113,25 @@ test('BattleRoom admission, combat authority, ammo and lifecycle', async (t) => 
     assert.equal(metrics.rateLimitedMessages, 1);
     assert.equal((room as any).sessionByUsername.get('alice'), alice.sessionId);
     await waitFor(() => [...room.state.players.values()].filter((player) => player.is_bot).length === 7);
+    const drone = room.state.players.get('alice')!;
+    const flightInput = alice.input<any>({ mode: 'reliable' });
+    const altitudeBefore = drone.y;
+    flightInput.data.move_y = 1;
+    let sequence = 0;
+    for (let tick = 0; tick < 15; tick++) {
+      sequence = flightInput.send();
+      await new Promise((resolve) => setTimeout(resolve, 20));
+    }
+    await waitFor(() => drone.ack_input_sequence >= sequence);
+    assert.ok(drone.y > altitudeBefore + 0.1, 'authoritative move_y input makes a drone climb');
+    const highPoint = drone.y;
+    flightInput.data.move_y = -1;
+    for (let tick = 0; tick < 15; tick++) {
+      sequence = flightInput.send();
+      await new Promise((resolve) => setTimeout(resolve, 20));
+    }
+    await waitFor(() => drone.ack_input_sequence >= sequence);
+    assert.ok(drone.y < highPoint - 0.1, 'negative move_y input makes a drone descend');
     await waitFor(() => processTimingSnapshot().ticks_total > processTicksBefore);
     assert.ok(processTimingSnapshot().ticks_total > processTicksBefore, 'active match ticks reach process metrics');
     t.diagnostic(`first Industrial player+bot admission: ${(performance.now() - joinStarted).toFixed(1)} ms`);
@@ -201,127 +221,84 @@ test('BattleRoom admission, combat authority, ammo and lifecycle', async (t) => 
     const [vx, vy, vz] = [...vehicle.pos];
     player.x = vx; player.y = vy; player.z = vz;
     const receivedGrenade = new Promise((resolve) => client.onMessage('grenade', resolve));
-    client.send('grenade', { pos: [vx, vy + 1.2, vz], vel: [0, 2, 0], throwable: 'frag', request_id: 123 });
+    client.send('grenade', { pos: [vx, vy, vz], vel: [0, 2, 0], throwable: 'frag', request_id: 123 });
     await waitFor(() => player.grenades === 1);
     const accepted = await Promise.race([receivedGrenade, new Promise((resolve) => setTimeout(() => resolve(null), 1000))]) as any;
     assert.ok(accepted);
     assert.equal(accepted.request_id, 123, 'accepted throw echoes the optimistic request key');
     const duplicateRejection = new Promise<any>((resolve) => client.onMessage('grenade_rejected', resolve));
-    client.send('grenade', { pos: [vx, vy + 1.2, vz], vel: [0, 2, 0], throwable: 'frag', request_id: 123 });
+    client.send('grenade', { pos: [vx, vy, vz], vel: [0, 2, 0], throwable: 'frag', request_id: 123 });
     const duplicate = await Promise.race([duplicateRejection, new Promise((resolve) => setTimeout(() => resolve(null), 1000))]) as any;
     assert.ok(duplicate);
     assert.equal(duplicate.request_id, 123, 'duplicate request keys are rejected');
     assert.equal(player.grenades, 1, 'duplicate request does not consume a second grenade');
     const rejectedGrenade = new Promise<any>((resolve) => client.onMessage('grenade_rejected', resolve));
-    client.send('grenade', { pos: [vx, vy + 1.2, vz], vel: [0, 2, 0], throwable: 'frag', request_id: 124 });
+    client.send('grenade', { pos: [vx, vy, vz], vel: [0, 2, 0], throwable: 'frag', request_id: 124 });
     const rejected = await Promise.race([rejectedGrenade, new Promise((resolve) => setTimeout(() => resolve(null), 1000))]) as any;
     assert.ok(rejected);
     assert.equal(rejected.request_id, 124, 'server validation rejection settles the matching prediction');
     assert.equal(player.grenades, 1, 'rejected throw does not consume server inventory');
     client.send('vehicle_seat', { id: 'CAR_0', enter: true });
-    await waitFor(() => player.driving_vehicle === 'CAR_0' && vehicle.driver === 'module-smoke');
+    await new Promise((resolve) => setTimeout(resolve, 50));
     const startX = vehicle.pos[0], startZ = vehicle.pos[2];
     const vehicleInput = client.input<any>({ mode: 'reliable' });
-    for (let tick = 0; tick < 60 && Math.hypot(vehicle.pos[0] - startX, vehicle.pos[2] - startZ) <= 0.02; tick++) {
-      Object.assign(vehicleInput.data, {
-        vehicle_throttle: 1, vehicle_steer: 0, vehicle_brake: 0, vehicle_gear: 1,
-        vehicle_index: player.vehicle_index, vehicle_generation: player.vehicle_generation,
-      });
-      vehicleInput.send();
-      await new Promise((resolve) => setTimeout(resolve, 1000 / 60));
-    }
-    assert.ok(vehicle.speed > 0.1, 'server applies buffered vehicle input');
-    assert.ok(Math.hypot(vehicle.pos[0] - startX, vehicle.pos[2] - startZ) > 0.02, 'buffered input moves the authoritative vehicle');
-    assert.equal(player.animation_code, 5);
+    Object.assign(vehicleInput.data, { vehicle_throttle: 1, vehicle_index: 0, vehicle_generation: 0 });
+    vehicleInput.send();
+    await waitFor(() => player.ack_input_sequence > 0);
+    assert.equal(player.driving_vehicle, '', 'drone seat requests are rejected');
+    assert.equal(vehicle.driver, '', 'vehicles remain unoccupied world props');
+    assert.equal(vehicle.speed, 0, 'vehicle controls cannot move an unoccupied prop');
+    assert.ok(Math.hypot(vehicle.pos[0] - startX, vehicle.pos[2] - startZ) <= 0.02);
     await client.leave();
   });
 
-  await t.test('death and dropped connections forcibly release vehicle seats and invalidate old inputs', async () => {
+  await t.test('drone seat requests are rejected while vehicle lifecycle remains server owned', async () => {
     const room = await testing.createRoom<BattleRoom>('battle', { room: 'industrial-public' });
     const client = await testing.connectTo(room, { username: 'seat-lifecycle', room: 'industrial-public' });
     const player = room.state.players.get('seat-lifecycle')!;
     const vehicle = room.state.vehicles.get('CAR_0')!;
-    player.x = vehicle.pos[0]; player.y = vehicle.pos[1]; player.z = vehicle.pos[2];
     (room as any).vehicleSeat(client, { id: vehicle.id, enter: true });
-    assert.equal(player.driving_vehicle, vehicle.id);
+    assert.equal(player.driving_vehicle, '');
+    assert.equal(vehicle.driver, '');
     const oldIndex = player.vehicle_index, oldGeneration = player.vehicle_generation;
     (room as any).killPlayer(undefined, player);
     assert.equal(vehicle.driver, '');
     assert.equal(player.driving_vehicle, '');
     assert.equal(player.vehicle_index, -1);
-    assert.ok(player.vehicle_generation > oldGeneration);
     assert.equal((room as any).vehicleSimulation.input((room as any).vehiclePlayer(player), {
       throttle: 1, steer: 0, brake: false, gear: 2, vehicleIndex: oldIndex, vehicleGeneration: oldGeneration,
     }, Date.now()), false);
-
-    player.is_dead = false; player.health = 100;
-    player.x = vehicle.pos[0]; player.y = vehicle.pos[1]; player.z = vehicle.pos[2];
-    (room as any).vehicleSeat(client, { id: vehicle.id, enter: true });
-    assert.equal(player.driving_vehicle, vehicle.id);
-    const reconnectIndex = player.vehicle_index, reconnectGeneration = player.vehicle_generation;
     (room as any).allowReconnection = async () => { throw new Error('test drop window ended'); };
     await (room as any).onDrop(client);
     assert.equal(vehicle.driver, '');
     assert.equal(player.driving_vehicle, '');
     assert.equal(player.vehicle_index, -1);
-    assert.ok(player.vehicle_generation > reconnectGeneration);
-    assert.equal((room as any).vehicleSimulation.input((room as any).vehiclePlayer(player), {
-      throttle: 1, steer: 0, brake: false, gear: 2, vehicleIndex: reconnectIndex, vehicleGeneration: reconnectGeneration,
-    }, Date.now()), false);
     await client.leave();
   });
 
-  await t.test('SDK reconnect releases the old vehicle epoch and accepts fresh inputs after re-entry', async () => {
+  await t.test('SDK reconnect preserves drone state and does not enter world vehicles', async () => {
     const room = await testing.createRoom<BattleRoom>('battle', { room: 'industrial-public' });
     const client = await testing.connectTo(room, { username: 'vehicle-reconnect', room: 'industrial-public' });
     client.onMessage('identity', () => {});
     const player = room.state.players.get('vehicle-reconnect')!;
     const vehicle = room.state.vehicles.get('CAR_0')!;
-    player.x = vehicle.pos[0]; player.y = vehicle.pos[1]; player.z = vehicle.pos[2];
     client.send('vehicle_seat', { id: vehicle.id, enter: true });
-    await waitFor(() => player.driving_vehicle === vehicle.id && vehicle.driver === player.username);
-    const oldIndex = player.vehicle_index, oldGeneration = player.vehicle_generation;
-    const input = client.input<any>({ mode: 'reliable' });
-    const sendControl = (index: number, generation: number, throttle: number) => {
-      Object.assign(input.data, { vehicle_throttle: throttle, vehicle_steer: 0, vehicle_brake: 0, vehicle_gear: 1, vehicle_index: index, vehicle_generation: generation });
-      input.send();
-    };
-    const startZ = vehicle.pos[2];
-    for (let tick = 0; tick < 30 && Math.abs(vehicle.pos[2] - startZ) < 0.08; tick++) {
-      sendControl(oldIndex, oldGeneration, 1);
-      await new Promise((resolve) => setTimeout(resolve, 1000 / 60));
-    }
-    assert.ok(Math.abs(vehicle.pos[2] - startZ) >= 0.08, 'vehicle had active nonzero input before transport loss');
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    assert.equal(player.driving_vehicle, '');
+    assert.equal(vehicle.driver, '');
 
     client.reconnection.minUptime = 0;
     const reconnected = new Promise<void>((resolve) => client.onReconnect.once(resolve));
     client.connection.close();
-    await waitFor(() => player.driving_vehicle === '' && vehicle.driver === '');
-    assert.ok(player.vehicle_generation > oldGeneration);
     await Promise.race([reconnected, new Promise((_, reject) => setTimeout(() => reject(new Error('SDK vehicle reconnect timed out')), 5000))]);
-
-    const stoppedAt = vehicle.pos[2];
-    sendControl(oldIndex, oldGeneration, 1);
-    await waitFor(() => player.ack_input_sequence > 0);
-    await new Promise((resolve) => setTimeout(resolve, 150));
-    assert.ok(Math.abs(vehicle.pos[2] - stoppedAt) < 0.1, 'stale pre-drop input does not resume vehicle motion');
-
     client.send('vehicle_seat', { id: vehicle.id, enter: true });
-    await waitFor(() => player.driving_vehicle === vehicle.id && vehicle.driver === player.username);
-    const freshGeneration = player.vehicle_generation;
-    assert.ok(freshGeneration > oldGeneration);
-    const reentryStart = vehicle.pos[2];
-    const priorAck = player.ack_input_sequence;
-    for (let tick = 0; tick < 30 && Math.abs(vehicle.pos[2] - reentryStart) < 0.08; tick++) {
-      sendControl(player.vehicle_index, freshGeneration, 1);
-      await new Promise((resolve) => setTimeout(resolve, 1000 / 60));
-    }
-    await waitFor(() => player.ack_input_sequence > priorAck);
-    assert.ok(Math.abs(vehicle.pos[2] - reentryStart) >= 0.08, 'fresh seat epoch resumes acknowledged authoritative motion');
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    assert.equal(player.driving_vehicle, '');
+    assert.equal(vehicle.driver, '');
     await client.leave();
   });
 
-  await t.test('preserves weapon magazines across switches and completes reloads', async () => {
+  await t.test('preserves ammunition across switches and reloads only from reserve', async () => {
     const room = await testing.createRoom<BattleRoom>('battle', { room: 'industrial-public' });
     const client = await testing.connectTo(room, { username: 'ammo', room: 'industrial-public' });
     const player = room.state.players.get('ammo')!;
@@ -329,17 +306,54 @@ test('BattleRoom admission, combat authority, ammo and lifecycle', async (t) => 
     player.ammo = 7; internal.ammoByWeapon.ak47 = 7;
     (room as any).selectWeapon(client.sessionId, 'pistol');
     assert.equal(player.ammo, 12);
+    assert.equal(player.reserve_ammo, 36);
     player.ammo = 3; internal.ammoByWeapon.pistol = 3;
+    player.reserve_ammo = 4;
     (room as any).selectWeapon(client.sessionId, 'ak47');
     assert.equal(player.ammo, 7);
+    assert.equal(player.reserve_ammo, 90);
     (room as any).selectWeapon(client.sessionId, 'pistol');
     assert.equal(player.ammo, 3);
+    assert.equal(player.reserve_ammo, 4);
     (room as any).reload({ sessionId: client.sessionId });
     assert.equal((room as any).internal.get(client.sessionId).reloadUntil > Date.now(), true);
     (room as any).selectWeapon(client.sessionId, 'ak47');
-    assert.equal(player.weapon_id, 'pistol', 'cannot switch during reload');
+    assert.equal(player.weapon_id, 'ak47', 'switching cancels the reload');
+    (room as any).selectWeapon(client.sessionId, 'pistol');
+    assert.equal(player.ammo, 3);
+    assert.equal(player.reserve_ammo, 4);
+    (room as any).reload({ sessionId: client.sessionId });
     await new Promise((resolve) => setTimeout(resolve, 1550));
-    assert.equal(player.ammo, 12);
+    assert.equal(player.ammo, 7);
+    assert.equal(player.reserve_ammo, 0);
+    (room as any).reload({ sessionId: client.sessionId });
+    assert.equal(internal.reloadUntil, 0, 'empty reserve cannot start a reload');
+    await client.leave();
+  });
+
+  await t.test('dual payloads preserve independent cadence, authoritative ammo and reload', async () => {
+    const room = await testing.createRoom<BattleRoom>('battle', { room: 'industrial-public' });
+    const client = await testing.connectTo(room, { username: 'dual-payload', room: 'industrial-public' });
+    const player = room.state.players.get('dual-payload')!;
+    const runtime = (room as any).internal.get(client.sessionId);
+    client.send('loadout', { primary: 'ak47', secondary: 'pistol' });
+    await waitFor(() => player.secondary_payload === 'pistol');
+    const snapshots: Array<{ weapon: string; ammo: number; reserve_ammo: number; last_shot_id: number; reloading: boolean }> = [];
+    client.onMessage('payload_ammo', data => snapshots.push(data));
+    client.send('fire', { shot_id: 1, weapon: 'ak47', yaw: 0, pitch: -1 });
+    client.send('fire', { shot_id: 2, weapon: 'pistol', yaw: 0, pitch: -1 });
+    client.send('fire', { shot_id: 3, weapon: 'pistol', yaw: 0, pitch: -1 });
+    client.send('fire', { shot_id: 4, weapon: 'aim9', yaw: 0, pitch: -1 });
+    await waitFor(() => player.last_shot_id === 4 && snapshots.length === 2);
+    assert.equal(player.weapon_id, 'ak47');
+    assert.equal(player.ammo, 29);
+    assert.equal(runtime.ammoByWeapon.pistol, 11);
+    assert.equal(runtime.ammoByWeapon.aim9, 2);
+    assert.deepEqual(snapshots.map(({ weapon, ammo, last_shot_id }) => [weapon, ammo, last_shot_id]), [['pistol', 11, 2], ['pistol', 11, 3]]);
+    client.send('reload', { weapon: 'pistol' });
+    await waitFor(() => snapshots.some(snapshot => snapshot.reloading));
+    await waitFor(() => snapshots.some(snapshot => snapshot.ammo === 12 && snapshot.reserve_ammo === 35), 2200);
+    assert.equal(player.ammo, 29);
     await client.leave();
   });
 
@@ -374,17 +388,17 @@ test('BattleRoom admission, combat authority, ammo and lifecycle', async (t) => 
     const p1 = room.state.players.get('shooter')!, p2 = room.state.players.get('victim')!;
     const a = INDUSTRIAL_SPAWNS[0], b = INDUSTRIAL_SPAWNS[10];
     const fireYaw = Math.atan2(-(b[0] - a[0]), -(b[2] - a[2]));
-    p1.x = a[0]; p1.y = a[1]; p1.z = a[2]; p1.team = 'A'; p1.yaw = 0; p1.pitch = 0; // stale consumed movement aim
-    p2.x = b[0]; p2.y = b[1]; p2.z = b[2]; p2.team = 'B';
+    p1.x = a[0]; p1.y = a[1] + 0.9; p1.z = a[2]; p1.team = 'A'; p1.yaw = 0; p1.pitch = 0; // stale consumed movement aim
+    p2.x = b[0]; p2.y = b[1] + 0.9; p2.z = b[2]; p2.team = 'B';
     for (const bot of room.state.players.values()) if (bot.is_bot) { bot.health = 0; bot.is_dead = true; }
     (room as any).rewind.record(Date.now());
     (room as any).internal.get(shooter.sessionId).protectedUntil = 0;
     (room as any).internal.get(victim.sessionId).protectedUntil = 0;
     const serverShooter = room.clients.find((client: Client) => client.sessionId === shooter.sessionId)!;
-    const origin: [number, number, number] = [p1.x, p1.y + 1.2, p1.z];
+    const origin: [number, number, number] = [p1.x, p1.y, p1.z];
     const fire = (room as any).fire.bind(room);
     const hit = (room as any).hit.bind(room);
-    const firstHitPoint: [number, number, number] = [p2.x, p2.y + 1.2, p2.z];
+    const firstHitPoint: [number, number, number] = [p2.x, p2.y, p2.z];
     assert.equal(rayBlocked(origin, firstHitPoint), false, 'fixture spawns have an open ray');
     fire(serverShooter, { shot_id: 1, origin, hit: firstHitPoint, yaw: fireYaw, pitch: p1.pitch });
     assert.equal(p1.ammo, 29);
@@ -403,16 +417,19 @@ test('BattleRoom admission, combat authority, ammo and lifecycle', async (t) => 
     fire(serverShooter, { shot_id: 1, origin, hit: firstHitPoint });
     assert.equal(p1.ammo, afterAmmo, 'a replayed shot id is rejected');
     fire(serverShooter, { shot_id: 2, origin, hit: firstHitPoint });
-    assert.equal(p1.ammo, afterAmmo, 'weapon cadence rejects an immediate next shot');
+    assert.equal(p1.ammo, afterAmmo - 1, 'switching allows a separate weapon to fire');
+    fire(serverShooter, { shot_id: 3, origin, hit: firstHitPoint });
+    assert.equal(p1.ammo, afterAmmo - 1, 'same-weapon cadence rejects an immediate next shot');
+    assert.equal(p1.last_shot_id, 3, 'rejected shot still clears the client prediction');
     await shooter.leave(); await victim.leave();
   });
 
-  await t.test('framework rewind preserves run→firing→jump clip, phase and quaternion at each shot', async () => {
+  await t.test('framework rewind retains SDK pose metadata while drone hits use the rewound center', async () => {
     const room = await testing.createRoom<BattleRoom>('battle', { room: 'industrial-public' });
     const shooter = await testing.connectTo(room, { username: 'timeline-shooter', room: 'industrial-public' });
     await testing.connectTo(room, { username: 'timeline-target', room: 'industrial-public' });
     const source = room.state.players.get('timeline-shooter')!, target = room.state.players.get('timeline-target')!;
-    const from: [number, number, number] = [-22, 0, -10], to: [number, number, number] = [-22, 0, 0];
+    const from: [number, number, number] = [-22, 1.3, -10], to: [number, number, number] = [-22, 1.3, 0];
     source.x = from[0]; source.y = from[1]; source.z = from[2]; source.team = 'A';
     target.x = to[0]; target.y = to[1]; target.z = to[2]; target.team = 'B'; target.health = 100;
     for (const bot of room.state.players.values()) if (bot.is_bot) { bot.health = 0; bot.is_dead = true; }
@@ -434,8 +451,8 @@ test('BattleRoom admission, combat authority, ammo and lifecycle', async (t) => 
       target.animation_code = state.code; target.animation_time = state.phase;
       target.qx = 0; target.qy = Math.sin(state.yaw / 2); target.qz = 0; target.qw = Math.cos(state.yaw / 2);
       const stamp = baseStamp + index * 100; stamps.push(stamp); (room as any).rewind.record(stamp);
-      runtime.lastShot = Date.now() - 1000;
-      (room as any).fire(serverShooter, { shot_id: shotId++, origin: [from[0], from[1] + 1.2, from[2]], yaw, pitch: 0 });
+      runtime.lastShotByWeapon = {};
+      (room as any).fire(serverShooter, { shot_id: shotId++, origin: from, yaw, pitch: 0 });
       const seen = runtime.fireSegment.seen;
       assert.equal(seen.value(target, 'animation_code'), state.code);
       assert.ok(Math.abs(seen.value(target, 'animation_time') - state.phase) < 1e-9);
@@ -456,8 +473,8 @@ test('BattleRoom admission, combat authority, ammo and lifecycle', async (t) => 
     const friend = await testing.connectTo(room, { username: 'guard-friend', room: 'industrial-public' });
     const victim = await testing.connectTo(room, { username: 'guard-victim', room: 'industrial-public' });
     const p1 = room.state.players.get('guard-shooter')!, ally = room.state.players.get('guard-friend')!, p2 = room.state.players.get('guard-victim')!;
-    const start = INDUSTRIAL_SPAWNS[0], middle: [number, number, number] = [-22, 1.3, -10], end: [number, number, number] = [-22, 1.3, 0];
-    p1.x = start[0]; p1.y = start[1]; p1.z = start[2]; p1.team = 'A'; p1.yaw = 0; p1.pitch = 0;
+    const start = INDUSTRIAL_SPAWNS[0], middle: [number, number, number] = [-22, 2.2, -10], end: [number, number, number] = [-22, 2.2, 0];
+    p1.x = start[0]; p1.y = start[1] + 0.9; p1.z = start[2]; p1.team = 'A'; p1.yaw = 0; p1.pitch = 0;
     ally.x = middle[0]; ally.y = middle[1]; ally.z = middle[2]; ally.team = 'A';
     p2.x = end[0]; p2.y = end[1]; p2.z = end[2]; p2.team = 'B';
     for (const bot of room.state.players.values()) if (bot.is_bot) { bot.health = 0; bot.is_dead = true; }
@@ -466,12 +483,12 @@ test('BattleRoom admission, combat authority, ammo and lifecycle', async (t) => 
     internal.get(shooter.sessionId).protectedUntil = 0;
     internal.get(victim.sessionId).protectedUntil = Date.now() + 2500;
     const serverShooter = room.clients.find((client: Client) => client.sessionId === shooter.sessionId)!;
-    const origin: [number, number, number] = [p1.x, p1.y + 1.2, p1.z];
+    const origin: [number, number, number] = [p1.x, p1.y, p1.z];
     (room as any).fire(serverShooter, { shot_id: 1, origin, hit: end, yaw: Math.PI, pitch: 0 });
     (room as any).hit(serverShooter, { target: 'guard-victim', shot_id: 1 });
     assert.equal(p2.health, 100, 'spawn protection prevents damage');
     internal.get(victim.sessionId).protectedUntil = 0;
-    internal.get(shooter.sessionId).lastShot = Date.now() - 2000;
+    internal.get(shooter.sessionId).lastShotByWeapon = {};
     (room as any).fire(serverShooter, { shot_id: 2, origin, hit: end, yaw: Math.PI, pitch: 0 });
     (room as any).hit(serverShooter, { target: 'guard-victim', shot_id: 2 });
     assert.equal(p2.health, 100, 'a teammate in front blocks the hit');
@@ -492,6 +509,30 @@ test('BattleRoom admission, combat authority, ammo and lifecycle', async (t) => 
     (room as any).requestRespawn({ sessionId: client.sessionId });
     assert.equal(player.is_dead, false);
     assert.ok(internal.protectedUntil > Date.now());
+    await client.leave();
+  });
+
+  await t.test('manual redeployment waits for the pilot and applies a complete valid loadout', async () => {
+    const room = await testing.createRoom<BattleRoom>('battle', { room: 'industrial-public' });
+    const client = await testing.connectTo(room, { username: 'manual-redeploy', room: 'industrial-public' });
+    const player = room.state.players.get('manual-redeploy')!;
+    const runtime = (room as any).internal.get(client.sessionId);
+    client.send('loadout', { primary: 'ak47', secondary: 'pistol', throwable: 'frag', manual_redeploy: true });
+    await waitFor(() => runtime.manualRedeploy);
+    (room as any).killPlayer(undefined, player);
+    const payload = { primary: 'hmg', secondary: 'aim9', throwable: 'impact', chassis: 'tracked' };
+    client.send('respawn', payload);
+    await new Promise(resolve => setTimeout(resolve, 80));
+    assert.equal(player.is_dead, true, 'redeploy cannot bypass the cooldown');
+    runtime.spawnAt = Date.now() - 1;
+    client.send('respawn', { ...payload, secondary: 'hmg' });
+    await new Promise(resolve => setTimeout(resolve, 80));
+    assert.equal(player.is_dead, true, 'invalid payload keeps the pilot in the editor');
+    assert.equal(player.weapon_id, 'ak47');
+    client.send('respawn', payload);
+    await waitFor(() => !player.is_dead);
+    assert.deepEqual([player.weapon_id, player.primary_payload, player.secondary_payload, player.throwable, player.mobility_mode, player.ammo],
+      ['hmg', 'hmg', 'aim9', 'impact', 'tracked', 60]);
     await client.leave();
   });
 
@@ -520,8 +561,8 @@ test('BattleRoom admission, combat authority, ammo and lifecycle', async (t) => 
     const shooter = await testing.connectTo(room, { username: 'wall-shooter', room: 'industrial-public' });
     const victim = await testing.connectTo(room, { username: 'wall-victim', room: 'industrial-public' });
     const p1 = room.state.players.get('wall-shooter')!, p2 = room.state.players.get('wall-victim')!;
-    p1.x = -12; p1.y = 0; p1.z = -10; p1.team = 'A'; p1.yaw = Math.PI / 2; p1.pitch = 0;
-    p2.x = -8; p2.y = 0; p2.z = -10; p2.team = 'B';
+    p1.x = -12; p1.y = 0.9; p1.z = -10; p1.team = 'A'; p1.yaw = Math.PI / 2; p1.pitch = 0;
+    p2.x = -8; p2.y = 0.9; p2.z = -10; p2.team = 'B';
     p1.yaw = -Math.PI / 2;
     for (const bot of room.state.players.values()) if (bot.is_bot) { bot.health = 0; bot.is_dead = true; }
     (room as any).rewind.record(Date.now());
@@ -529,9 +570,9 @@ test('BattleRoom admission, combat authority, ammo and lifecycle', async (t) => 
     internal.get(shooter.sessionId).protectedUntil = 0;
     internal.get(victim.sessionId).protectedUntil = 0;
     const serverShooter = room.clients.find((client: Client) => client.sessionId === shooter.sessionId)!;
-    const origin: [number, number, number] = [p1.x, p1.y + 1.2, p1.z];
-    assert.equal(rayBlocked(origin, [p2.x, p2.y + 1.2, p2.z]), true);
-    (room as any).fire(serverShooter, { shot_id: 1, origin, hit: [p2.x, p2.y + 1.2, p2.z], yaw: p1.yaw, pitch: 0 });
+    const origin: [number, number, number] = [p1.x, p1.y, p1.z];
+    assert.equal(rayBlocked(origin, [p2.x, p2.y, p2.z]), true);
+    (room as any).fire(serverShooter, { shot_id: 1, origin, hit: [p2.x, p2.y, p2.z], yaw: p1.yaw, pitch: 0 });
     (room as any).hit(serverShooter, { target: 'wall-victim', shot_id: 1 });
     assert.equal(p2.health, 100, 'a static warehouse wall occludes the animated player hitbox');
     await shooter.leave(); await victim.leave();
@@ -557,4 +598,26 @@ test('BattleRoom installs the official singleton session plugin keyed by authent
   assert.ok(uniqueSession instanceof UniqueSessionPlugin);
   assert.equal((uniqueSession as any).max, 1);
   assert.equal((uniqueSession as any).mode, 'reject');
+});
+
+test('bot attack presentation survives locomotion writes and preserves its phase between shots', (t) => {
+  let now=1000,fire=true;
+  t.mock.method(Date,'now',()=>now);
+  const bot:any={username:'test-bot',is_bot:true,x:0,y:0,z:0,health:100,is_dead:false,animation:'idle',animation_time:0};
+  const players=new Map([['test-bot',bot]]);
+  const fake:any={
+    state:{players,room_mode:'TDM'},playerView:()=>players,
+    vehicleSimulation:{states:new Map()},botProtectedUntil:new Map(),botAnimationStartedAt:new Map(),botPresentationClip:new Map(),botFireUntil:new Map(),resolveBotShot:()=>{},
+    botSimulation:{step:(_players:any,_dt:number,_now:number,callbacks:any)=>{
+      bot.animation='run';bot.x+=.08;
+      if(fire)callbacks.onShot({shooter:'test-bot'});
+    }},
+  };
+  const step=()=> (BattleRoom.prototype as any).stepBots.call(fake,1/60);
+  step();assert.equal(bot.animation,'firing walk');assert.equal(bot.animation_time,0);
+  fire=false;
+  now+=100;step();assert.equal(bot.animation,'firing walk');assert.equal(bot.animation_time,.1);
+  fire=true;now+=100;step();assert.equal(bot.animation_time,.2,'another shot must not restart the full-body clip');
+  fire=false;now+=200;step();assert.equal(bot.animation,'firing walk');assert.equal(bot.animation_time,.4);
+  now+=150;step();assert.equal(bot.animation,'run','gesture ends after the shot hold window');
 });

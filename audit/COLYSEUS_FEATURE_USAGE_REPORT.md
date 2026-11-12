@@ -1,6 +1,10 @@
 # Colyseus gameplay and networking feature audit
 
-## Latest follow-up — all-map integrity release gate
+## Quick Match and projectile spawns
+
+The protocol 16 source integrates the official QueueRoom for authenticated Quick Match on the selected map. Reserved Conquest seats carry the server's team assignments. The Godot client uses `Predict.spawns` for grenades and missiles and reuses the visual when the authoritative projectile arrives. The native probe verified both handoffs. The pinned native SDK stalled with optional missile reckoning enabled, so confirmed visuals follow synchronized positions. Public deployment and packaged Web verification remain pending.
+
+## Previous follow-up — all-map integrity release gate
 
 The deployed `warbase-colyseus:all-map-guard-20261106` protocol-9 all-map repair removes remaining synthetic boundaries, corrects authored spawn markers, replaces misplaced Village prop proxies with visible scene geometry, and adds server-authoritative void recovery. Native/Web exports require the new physics/data/content gate. See [all-map verification and costs](all-map-integrity-2026-11-06/REPORT.md). Full-room FPS/network acceptance remains a separate open gate.
 
@@ -40,7 +44,8 @@ The cleanup release `warbase-colyseus:cleanup-20261105` is deployed and verified
 | Private beta admin and monitor | Deployed; persistent login and public-route blocking verified |
 | Playground | Local development only, intentionally disabled in production |
 | Smaller numeric encodings and further schema payload reduction | Partial; measure precision/bandwidth before further changes |
-| Predicted spawn API | Unused; grenade EventChannel is the current integration |
+| Predicted spawn API | Integrated for grenades and missiles in protocol 16 source. |
+| QueueRoom | Integrated for Quick Match in protocol 16 source. |
 | Redis multi-worker presence/driver | Configuration exists, disabled; live routing and distributed admission limits unfinished |
 | Alternate transports and streaming collections | Unused; no measured need or established cross-platform fit |
 

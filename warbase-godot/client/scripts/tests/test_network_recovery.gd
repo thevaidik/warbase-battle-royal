@@ -24,7 +24,7 @@ func run() -> void:
 	var current := baseline + Vector3(0,0,-5)
 	main.player.global_position = current
 	var me := {"x":baseline.x,"y":baseline.y,"z":baseline.z,"health":100,"ammo":30,"weapon":"ak47","team":"A"}
-	var snapshot := {"protocol_version":11,"map_name":"industrial","players":{state.username:me},"vehicles":{},"time_of_day":"noon"}
+	var snapshot := {"protocol_version":state.GAME_PROTOCOL_VERSION,"map_name":"industrial","players":{state.username:me},"vehicles":{},"time_of_day":"noon"}
 	main.player.is_dead = true
 	main.player.health = 0
 	main.phase = main.Phase.DEAD
@@ -39,13 +39,18 @@ func run() -> void:
 	check(not main.player.is_dead and main.phase == main.Phase.PLAYING and main.player.health == 100,"authoritative living snapshot recovers a latched respawn screen")
 	check(not main.player.get_meta("respawn_requested",true),"respawn recovery clears the outstanding request")
 	var remote_script = load("res://scripts/net/RemotePlayer.gd")
-	var first_weapon: Node3D = remote_script._shared_weapon("ak47")
-	var second_weapon: Node3D = remote_script._shared_weapon("ak47")
-	var meshes_a := first_weapon.find_children("*","MeshInstance3D",true,false)
-	var meshes_b := second_weapon.find_children("*","MeshInstance3D",true,false)
-	check(first_weapon!=second_weapon and not meshes_a.is_empty() and meshes_a[0].mesh==meshes_b[0].mesh,"remote weapons share immutable mesh resources with independent nodes")
-	first_weapon.free()
-	second_weapon.free()
+	var first_remote: Node = remote_script.create("payload_a", {"team":"B", "weapon":"ak47", "x":-20.0, "y":1.0, "z":-10.0})
+	var second_remote: Node = remote_script.create("payload_b", {"team":"B", "weapon":"ak47", "x":-18.0, "y":1.0, "z":-10.0})
+	main.world.add_child(first_remote)
+	main.world.add_child(second_remote)
+	await process_frame
+	first_remote.push_state({"team":"B", "weapon":"m4", "x":-20.0, "y":1.0, "z":-10.0})
+	var first_visual: Node = first_remote.get("drone")
+	var second_visual: Node = second_remote.get("drone")
+	check(first_visual.get("weapon_id") == "m4" and second_visual.get("weapon_id") == "ak47" and first_visual.call("get_payload") != second_visual.call("get_payload"),
+		"remote payload changes update one drone without mutating another actor")
+	first_remote.free()
+	second_remote.free()
 	main.mp.set_process(false)
 	main.mp.clear()
 	var peers := {}
@@ -63,7 +68,7 @@ func run() -> void:
 	main.weapons._decals.clear()
 	for index in main.weapons.MAX_DECALS: main.weapons._decals.append(weak)
 	main.weapons._spawn_impact(Vector3(-20,1,-10),Vector3.UP)
-	check(main.weapons._decals.size()==1 and main.weapons._decals[0].get_ref()!=null,"expired blood stains cannot break later bullet impacts")
+	check(main.weapons._decals.size()==1 and main.weapons._decals[0].get_ref()!=null,"expired impact decals cannot break later metallic hit effects")
 	main._on_conn(false)
 	check(not state.online_ready and main.hud._connection_status.visible,"connection interruption has a persistent synchronization banner")
 	main._return_after_connection_error("Test room expired")

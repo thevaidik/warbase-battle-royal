@@ -11,6 +11,11 @@ func run() -> void:
 	var actor=packed.instantiate();actor.player_id="[BOT] VIPER-01"
 	actor.set_meta("init_state",{"health":100,"team":"B","weapon":"ak47","x":0,"y":0,"z":-10})
 	actor.use_server_authoritative_remote_pose();root.add_child(actor);actor.set_process(false);actor.global_position=Vector3(0,0,-10)
+	var root_spheres := 0
+	for child in actor.get_children():
+		if child is MeshInstance3D and child.mesh is SphereMesh: root_spheres += 1
+	check(actor.physics_interpolation_mode == Node.PHYSICS_INTERPOLATION_MODE_OFF,"render-owned actor does not receive a second physics interpolation pass")
+	check(root_spheres == 0,"identity uses the nameplate without shoulder marker spheres")
 	check(actor.name_label.text=="VIPER-01  / AI","bot ID becomes a compact callsign and AI tag")
 	check(actor.name_label.font==WarUI.DISPLAY_FONT and actor.name_label.outline_size==6,"3D label uses HUD font and restrained outline")
 	check(not actor.name_label.no_depth_test,"nameplates retain wall occlusion")

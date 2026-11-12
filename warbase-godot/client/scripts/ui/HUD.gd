@@ -5,6 +5,7 @@ extends CanvasLayer
 ## Custom-drawn military sniper reticle, directional damage indicators, pulsing low-health vignette,
 ## dynamic crosshairs, animated hitmarkers, killfeed, responsive scoreboard, and pause settings.
 
+signal redeploy_pressed
 signal deploy_pressed
 signal resume_pressed
 signal quit_pressed
@@ -29,17 +30,30 @@ var hitmarker: Label
 var hitmarker_scale: float = 1.0
 var health_bar: ProgressBar
 var health_label: Label
-var ammo_label: Label
 var equipment_label: Label
-var weapon_label: Label
 var killfeed_box: VBoxContainer
 var score_label: Label
 var objective_strip: HBoxContainer
 var objective_labels: Array[Label] = []
-var scope_overlay: Control
+var _sensor_reticle: DroneSensorReticle
+var _thermal_feed: ColorRect
+var _payload_cards: Array[Dictionary] = []
+var _fire_mode_label: Label
+var _thumbnail_material := CanvasItemMaterial.new()
 var death_panel: PanelContainer
 var death_label: Label
+var killer_card: HBoxContainer
+var killer_detail: Label
+var killer_viewport: SubViewport
+var killer_drone: Node3D
 var respawn_label: Label
+var _redeploy_actions: HBoxContainer
+var _redeploy_button: Button
+var _editor_deploy_button: Button
+var _drone_editor: PanelContainer
+var _editor_preview: Control
+var _redeploy_seconds := 3
+var _redeploy_pending := false
 var pause_panel: PanelContainer
 var board_panel: PanelContainer
 var board_list: VBoxContainer
@@ -54,91 +68,60 @@ var _current_ping := 0
 var _audit_timer := 0.0
 var ping_label: Label
 var fps_label: Label
-var reload_label: Label
 var optic_label: Label
 var player_header_label: Label
 var match_info_label: Label
+var drone_telemetry_label: Label
 var low_hp_vignette: ColorRect
 var damage_overlay: Control
 
-var vehicle_prompt_panel: PanelContainer
-var vehicle_hud_panel: PanelContainer
-var _veh_speed_label: Label
-var _veh_gear_label: Label
-var _veh_armor_label: Label
-var _veh_armor_bar: ProgressBar
-var _veh_prompt_label: Label
 
 var _hit_t := 0.0
 var _feed: Array = []
 var _damage_arcs: Array = []
-var _damage_blood: Array = []
-const BloodTexture = preload("res://scripts/weapons/BloodTexture.gd")
 var _hurt_flash_t := 0.0
 var _low_hp_pulse := 0.0
 var _fps_timer := 0.0
 
-class ScopeReticle extends Control:
-	var is_steady := false
-	var stamina := 1.0
-	var compass_deg := 0.0
-	var magnification := 4
-	var field_of_view := 22.0
-	var sniper := false
+class DroneSensorReticle extends Control:
+	var readout := ""
+	var sensor_mode := ""
+	var thermal := false
+	var on_target := false
 
 	func _ready() -> void:
-		mouse_filter = Control.MOUSE_FILTER_IGNORE
-		set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-		get_viewport().size_changed.connect(queue_redraw)
+		resized.connect(queue_redraw)
 
 	func _draw() -> void:
-		var vp := get_viewport_rect().size
-		var center := vp * 0.5
-		var unit := clampf(vp.y / 720.0, 0.75, 2.0)
-		var accent := Color(0.95, 0.25, 0.16, 0.95)
-		if magnification <= 2:
-			# The physical sight supplies its housing; a small collimated dot stays on the shot axis.
-			draw_circle(center, 3.0 * unit, Color(0.0, 0.0, 0.0, 0.6))
-			draw_circle(center, 1.35 * unit, accent)
-			return
-		var radius := minf(vp.x, vp.y) * 0.43
-		# A continuous circular aperture, including all four corners of the screen.
-		var outside := vp.length()
-		for i in 128:
-			var v0 := Vector2.from_angle(TAU * float(i) / 128.0)
-			var v1 := Vector2.from_angle(TAU * float(i + 1) / 128.0)
-			draw_colored_polygon(PackedVector2Array([center + v0 * radius, center + v0 * outside, center + v1 * outside, center + v1 * radius]), Color(0.015, 0.018, 0.022))
-		draw_arc(center, radius, 0.0, TAU, 128, Color(0.09, 0.10, 0.12), 7.0 * unit, true)
-		for i in 10:
-			draw_arc(center, radius - float(i) * 2.0 * unit, 0.0, TAU, 128, Color(0, 0, 0, 0.22 * (1.0 - float(i) / 10.0)), 2.5 * unit, true)
-		var ink := Color(0.025, 0.028, 0.03, 0.95)
-		var gap := 5.0 * unit
-		for axis in [Vector2.RIGHT, Vector2.DOWN]:
-			for sign_value in [-1.0, 1.0]:
-				draw_line(center + axis * gap * sign_value, center + axis * (radius - 18.0 * unit) * sign_value, Color(1, 1, 1, 0.30), 2.2 * unit, true)
-				draw_line(center + axis * gap * sign_value, center + axis * (radius - 18.0 * unit) * sign_value, ink, 1.0 * unit, true)
-		# Angular marks: each short division is 2 mrad, independent of resolution and zoom.
-		var mil := vp.y * 0.001 / (2.0 * tan(deg_to_rad(field_of_view) * 0.5))
-		for i in range(-12, 13):
-			if i == 0 or absf(float(i * 2) * mil) >= radius - 24.0 * unit:
-				continue
-			var tick := (4.5 if i % 5 == 0 else 2.0) * unit
-			for axis in [Vector2.RIGHT, Vector2.DOWN]:
-				var at: Vector2 = center + axis * float(i * 2) * mil
-				var normal := Vector2(-axis.y, axis.x)
-				draw_line(at - normal * tick, at + normal * tick, ink, 1.0 * unit, true)
-		draw_circle(center, 1.4 * unit, accent)
-		var font := ThemeDB.fallback_font
-		var caption := "%d×  •  [V] ZOOM" % magnification
-		var caption_size := font.get_string_size(caption, HORIZONTAL_ALIGNMENT_LEFT, -1, int(13 * unit))
-		draw_string(font, Vector2(center.x - caption_size.x * 0.5, center.y + radius + 29.0 * unit), caption, HORIZONTAL_ALIGNMENT_LEFT, -1, int(13 * unit), Color(0.72, 0.77, 0.80))
-		if sniper:
-			var bar := Rect2(center + Vector2(-70.0, radius - 38.0) * unit, Vector2(140.0, 3.0) * unit)
-			draw_rect(bar, Color(0.08, 0.10, 0.12, 0.65))
-			bar.size.x *= clampf(stamina, 0.0, 1.0)
-			draw_rect(bar, Color(0.42, 0.8, 0.66) if is_steady else Color(0.68, 0.72, 0.75))
-			var hint := "STEADY" if is_steady else "[SHIFT] STEADY AIM"
-			draw_string(font, center + Vector2(-65, radius - 48) * unit, hint, HORIZONTAL_ALIGNMENT_LEFT, -1, int(11 * unit), Color(0.7, 0.75, 0.78))
+		var center := size * 0.5
+		var extent := Vector2(minf(236.0, size.x * 0.28), minf(144.0, size.y * 0.25))
+		var ink := Color("d8f3ed") if thermal else Color("b9f5e7")
+		var edge := Color(0.025, 0.07, 0.07, 0.85)
+		for side in [-1.0, 1.0]:
+			for vertical in [-1.0, 1.0]:
+				var corner := center + extent * Vector2(side, vertical)
+				var horizontal_end := corner - Vector2(side * 22.0, 0.0)
+				var vertical_end := corner - Vector2(0.0, vertical * 22.0)
+				draw_line(corner, horizontal_end, edge, 4.0, true)
+				draw_line(corner, vertical_end, edge, 4.0, true)
+				draw_line(corner, horizontal_end, ink, 1.3, true)
+				draw_line(corner, vertical_end, ink, 1.3, true)
+			var axis := Vector2(side, 0)
+			draw_line(center + axis * 8.0, center + axis * 33.0, edge, 4.0, true)
+			draw_line(center + axis * 8.0, center + axis * 33.0, ink, 1.3, true)
+			for step in [14.0, 21.0, 28.0]:
+				var tick := center + axis * float(step)
+				draw_line(tick, tick + Vector2(0, 4), ink, 1.2, true)
+		draw_line(center + Vector2(0, 9), center + Vector2(0, 24), edge, 4.0, true)
+		draw_line(center + Vector2(0, 9), center + Vector2(0, 24), ink, 1.3, true)
+		draw_circle(center, 3.5, edge, true, -1.0, true)
+		draw_circle(center, 1.9, Color("ff9e67") if on_target else ink, true, -1.0, true)
+		var font := get_theme_default_font()
+		var title_pos := center + Vector2(-extent.x + 8.0, -extent.y + 22.0)
+		var info_pos := center + Vector2(-extent.x + 8.0, extent.y - 12.0)
+		for line in [[title_pos, sensor_mode], [info_pos, readout]]:
+			draw_string_outline(font, line[0], line[1], HORIZONTAL_ALIGNMENT_LEFT, -1, 13, 4, edge)
+			draw_string(font, line[0], line[1], HORIZONTAL_ALIGNMENT_LEFT, -1, 13, ink)
 
 class DamageIndicator extends Control:
 	var hud_ref: WarHUD
@@ -156,16 +139,13 @@ class DamageIndicator extends Control:
 			vp = size if (size.x > 0.0 and size.y > 0.0) else Vector2(1280.0, 720.0)
 		var flash := clampf(hud_ref._hurt_flash_t / 0.28, 0.0, 1.0)
 		if flash > 0:
-			draw_rect(Rect2(Vector2.ZERO, vp), Color(0.45, 0.005, 0.002, flash * 0.07))
-		for stain in hud_ref._damage_blood:
-			var extent: Vector2 = Vector2.ONE * float(stain.radius) * minf(vp.x,vp.y) * 3.0
-			draw_texture_rect(BloodTexture.get_texture(), Rect2(stain.position * vp - extent * 0.5, extent), false, Color(0.35, 0.005, 0.004, minf(1.0, stain.life) * stain.opacity))
+			draw_rect(Rect2(Vector2.ZERO, vp), Color(0.015, 0.22, 0.28, flash * 0.08))
 		var center := vp * 0.5
 		var radius := minf(vp.x, vp.y) * 0.38
 		for arc in hud_ref._damage_arcs:
 			var ang: float = float(arc["angle"])
 			var alpha: float = float(arc["life"]) / 1.5
-			var col := Color(0.9, 0.15, 0.15, clampf(alpha, 0.0, 0.8))
+			var col := Color(0.35, 0.88, 1.0, clampf(alpha, 0.0, 0.8))
 			draw_arc(center, radius, ang - 0.35, ang + 0.35, 16, col, 8.0)
 
 func _ready() -> void:
@@ -187,6 +167,15 @@ func _mk_label(text: String, size: int, color: Color) -> Label:
 	return l
 
 func build() -> void:
+	_thermal_feed = ColorRect.new()
+	_thermal_feed.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_thermal_feed.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_thermal_feed.z_index = -10
+	_thermal_feed.visible = false
+	var filter := ShaderMaterial.new()
+	filter.shader = preload("res://scripts/ui/DroneThermal.gdshader")
+	_thermal_feed.material = filter
+	add_child(_thermal_feed)
 	_connection_status = _mk_label("", 20, WarUI.ACCENT)
 	_connection_status.set_anchors_preset(Control.PRESET_CENTER_TOP)
 	_connection_status.position = Vector2(-320,100)
@@ -198,7 +187,7 @@ func build() -> void:
 	# Low Health Vignette
 	low_hp_vignette = ColorRect.new()
 	low_hp_vignette.set_anchors_preset(Control.PRESET_FULL_RECT)
-	low_hp_vignette.color = Color(0.7, 0.0, 0.0, 0.0)
+	low_hp_vignette.color = Color(0.0, 0.28, 0.38, 0.0)
 	low_hp_vignette.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(low_hp_vignette)
 	
@@ -255,7 +244,7 @@ func build() -> void:
 	hb.add_theme_constant_override("separation", 4)
 	hb.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	health_card.add_child(hb)
-	hb.add_child(_mk_label("+  VITAL STATUS", 12, WarUI.CYAN))
+	hb.add_child(_mk_label("+  DRONE HULL", 12, WarUI.CYAN))
 	
 	health_label = _mk_label("100", 46, Color.WHITE)
 	hb.add_child(health_label)
@@ -271,7 +260,7 @@ func build() -> void:
 	# Tactical Bottom-Right HUD: Weapon & Ammo
 	var ammo_card := PanelContainer.new()
 	ammo_card.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
-	ammo_card.offset_left = -302
+	ammo_card.offset_left = -316
 	ammo_card.offset_right = -28
 	ammo_card.offset_top = -224
 	ammo_card.offset_bottom = -28
@@ -290,16 +279,10 @@ func build() -> void:
 	
 	equipment_label = _mk_label("", 11, WarUI.ACCENT)
 	ab.add_child(equipment_label)
-	weapon_label = _mk_label("AK-47", 20, WarUI.TEXT)
-	ab.add_child(weapon_label)
-	
-	ammo_label = _mk_label("30 / 30", 46, Color.WHITE)
-	ab.add_child(ammo_label)
-	
-	reload_label = _mk_label("RELOADING  /  STAND BY", 13, WarUI.ACCENT)
-	reload_label.visible = false
-	ab.add_child(reload_label)
-	
+	_payload_cards.append(_build_payload_card(ab, "1", "PRIMARY"))
+	_payload_cards.append(_build_payload_card(ab, "2", "SECONDARY"))
+	_fire_mode_label = _mk_label("3  BOTH", 11, WarUI.MUTED)
+	ab.add_child(_fire_mode_label)
 	ping_label = _mk_label("", 12, Color(0.65, 0.65, 0.65))
 	ab.add_child(ping_label)
 	
@@ -307,7 +290,7 @@ func build() -> void:
 	fps_label.visible = false
 	ab.add_child(fps_label)
 	
-	optic_label = _mk_label("[V] 2X OPTIC  /  [R] RELOAD", 11, WarUI.ACCENT)
+	optic_label = _mk_label("RMB OPTIC   V ZOOM   T THERMAL   R RELOAD", 11, WarUI.ACCENT)
 	ab.add_child(optic_label)
 	
 	var identity := PanelContainer.new()
@@ -345,6 +328,12 @@ func build() -> void:
 		objective_strip.add_child(item)
 	objective_strip.visible = false
 	add_child(objective_strip)
+	drone_telemetry_label = _mk_label("ALT  0.0 m    /    SPD  0 m/s", 14, WarUI.CYAN)
+	drone_telemetry_label.set_anchors_preset(Control.PRESET_TOP_RIGHT)
+	drone_telemetry_label.position = Vector2(-330, 256)
+	drone_telemetry_label.custom_minimum_size = Vector2(300, 24)
+	drone_telemetry_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	add_child(drone_telemetry_label)
 	killfeed_box = VBoxContainer.new()
 	killfeed_box.set_anchors_preset(Control.PRESET_TOP_RIGHT)
 	killfeed_box.position = Vector2(-328, 134)
@@ -352,39 +341,85 @@ func build() -> void:
 	killfeed_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	killfeed_box.add_theme_constant_override("separation", 6)
 	add_child(killfeed_box)
-	_controls_hint = _mk_label("M  MAP     TAB  SCOREBOARD     ESC  MENU", 11, Color(0.8, 0.85, 0.83, 0.65))
+	_controls_hint = _mk_label("WASD FLIGHT   SPACE ASCEND   CTRL DESCEND   SHIFT BOOST   M MAP   TAB BOARD   ESC MENU", 11, Color(0.8, 0.85, 0.83, 0.65))
 	_controls_hint.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
-	_controls_hint.position = Vector2(-190, -34)
-	_controls_hint.custom_minimum_size.x = 380
+	_controls_hint.position = Vector2(-440, -34)
+	_controls_hint.custom_minimum_size.x = 880
 	_controls_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_controls_hint.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_controls_hint)
-	# High-Fidelity Custom Sniper Scope Overlay
-	scope_overlay = ScopeReticle.new()
-	scope_overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	scope_overlay.visible = false
-	add_child(scope_overlay)
-	
+	_sensor_reticle = DroneSensorReticle.new()
+	_sensor_reticle.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_sensor_reticle.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_sensor_reticle.visible = false
+	add_child(_sensor_reticle)
+
 	# Death Screen
 	death_panel = PanelContainer.new()
 	death_panel.set_anchors_preset(Control.PRESET_FULL_RECT)
 	death_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	death_panel.visible = false
-	death_panel.add_theme_stylebox_override("panel", WarUI.panel(Color(0.03, 0.035, 0.04, 0.72), Color.TRANSPARENT))
+	death_panel.add_theme_stylebox_override("panel", WarUI.panel(Color(0.03, 0.035, 0.04, 0.17), Color.TRANSPARENT))
 	add_child(death_panel)
 	
 	var dv := VBoxContainer.new()
 	dv.alignment = BoxContainer.ALIGNMENT_CENTER
 	death_panel.add_child(dv)
-	
-	death_label = _mk_label("OPERATOR DOWN", 58, WarUI.DANGER)
+	dv.size_flags_vertical = Control.SIZE_SHRINK_END
+	dv.add_theme_constant_override("separation", 5)
+
+	death_label = _mk_label("DRONE LOST", 40, WarUI.DANGER)
 	death_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	dv.add_child(death_label)
 	
+	killer_card = HBoxContainer.new()
+	killer_card.alignment = BoxContainer.ALIGNMENT_CENTER
+	killer_card.add_theme_constant_override("separation", 14)
+	dv.add_child(killer_card)
+	var picture := TextureRect.new()
+	picture.custom_minimum_size = Vector2(132, 82)
+	picture.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	killer_viewport = SubViewport.new()
+	killer_viewport.size = Vector2i(264, 164)
+	killer_viewport.own_world_3d = true
+	killer_viewport.transparent_bg = true
+	killer_viewport.render_target_update_mode = SubViewport.UPDATE_DISABLED
+	killer_card.add_child(picture)
+	picture.texture = killer_viewport.get_texture()
+	var camera := Camera3D.new()
+	camera.position = Vector3(0.75, 0.43, 1.15)
+	camera.look_at(Vector3.ZERO)
+	killer_viewport.add_child(camera)
+	killer_drone = load("res://scripts/drones/DroneVisual.gd").new()
+	killer_viewport.add_child(killer_drone)
+	killer_drone.configure(false, "ak47", "quad")
+	killer_detail = _mk_label("", 17, WarUI.TEXT)
+	killer_detail.custom_minimum_size.x = 300
+	killer_card.add_child(killer_detail)
+	killer_card.visible = false
 	respawn_label = _mk_label("Re-deploying in 3s...", 18, Color(0.8, 0.8, 0.8))
 	respawn_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	dv.add_child(respawn_label)
-	
+	_redeploy_actions = HBoxContainer.new()
+	_redeploy_actions.alignment = BoxContainer.ALIGNMENT_CENTER
+	_redeploy_actions.add_theme_constant_override("separation", 12)
+	dv.add_child(_redeploy_actions)
+	var edit := Button.new()
+	edit.text = "EDIT DRONE"
+	edit.pressed.connect(_open_drone_editor)
+	_redeploy_actions.add_child(edit)
+	_redeploy_button = Button.new()
+	_redeploy_button.text = "REDEPLOY"
+	WarUI.primary(_redeploy_button)
+	_redeploy_button.pressed.connect(func() -> void: redeploy_pressed.emit())
+	_redeploy_actions.add_child(_redeploy_button)
+	for label in [death_label, respawn_label]:
+		label.add_theme_color_override("font_outline_color", Color("151d21"))
+		label.add_theme_constant_override("outline_size", 5)
+	var bottom_margin := Control.new()
+	bottom_margin.custom_minimum_size.y = 54
+	dv.add_child(bottom_margin)
+
 	_menu_scrim = ColorRect.new()
 	_menu_scrim.color = Color(0.015, 0.025, 0.03, 0.8)
 	_menu_scrim.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -444,7 +479,7 @@ func build() -> void:
 		if GameState.bot_damage_enabled:
 			feed(" Combat Mode: Bot Damage Enabled", Color(1.0, 0.45, 0.25))
 		else:
-			feed(" Peaceful Mode: Bot Damage OFF — Walk in Peace!", Color(0.3, 0.95, 0.4))
+			feed(" Peaceful Mode: Bot Damage OFF — Fly in Peace!", Color(0.3, 0.95, 0.4))
 	)
 	pv.add_child(pause_bot_btn)
 	
@@ -538,7 +573,7 @@ func build() -> void:
 		if GameState.bot_damage_enabled:
 			feed(" Combat Mode: Bot Damage Enabled", Color(1.0, 0.45, 0.25))
 		else:
-			feed(" Peaceful Mode: Bot Damage OFF — Walk & Drive in Peace!", Color(0.3, 0.95, 0.4))
+			feed(" Peaceful Mode: Bot Damage OFF — Fly in Peace!", Color(0.3, 0.95, 0.4))
 	)
 	pb_hbox.add_child(bot_dmg_btn)
 
@@ -571,7 +606,7 @@ func build() -> void:
 	left_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	cols.add_child(left_vbox)
 
-	var sc_title := _mk_label("OPERATORS", 12, Color(0.7, 0.82, 0.95))
+	var sc_title := _mk_label("PILOTS", 12, Color(0.7, 0.82, 0.95))
 	left_vbox.add_child(sc_title)
 
 	var sc_scroll := ScrollContainer.new()
@@ -619,106 +654,9 @@ func build() -> void:
 	# ==========================================================
 	# TACTICAL COMBAT JEEP / VEHICLE HUD OVERLAY
 	# ==========================================================
-	# 1. Proximity Enter Prompt (Centered lower-mid screen)
-	var prompt_ctr := CenterContainer.new()
-	prompt_ctr.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
-	prompt_ctr.position = Vector2(-250, -210)
-	prompt_ctr.custom_minimum_size = Vector2(500, 50)
-	prompt_ctr.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(prompt_ctr)
-
-	vehicle_prompt_panel = PanelContainer.new()
-	var vp_style := StyleBoxFlat.new()
-	vp_style.bg_color = Color(0.05, 0.07, 0.10, 0.88)
-	vp_style.border_color = Color(0.25, 0.85, 1.0, 0.9)
-	vp_style.set_border_width_all(2)
-	vp_style.set_corner_radius_all(6)
-	vp_style.content_margin_left = 18
-	vp_style.content_margin_right = 18
-	vp_style.content_margin_top = 8
-	vp_style.content_margin_bottom = 8
-	vehicle_prompt_panel.add_theme_stylebox_override("panel", vp_style)
-	vehicle_prompt_panel.visible = false
-	prompt_ctr.add_child(vehicle_prompt_panel)
-
-	_veh_prompt_label = _mk_label(" PRESS [E] TO DRIVE COMBAT JEEP ", 14, Color(0.3, 0.95, 1.0))
-	vehicle_prompt_panel.add_child(_veh_prompt_label)
-
-	# 2. In-Vehicle Speedometer & Turret Dashboard (Bottom Center)
-	var vhud_ctr := CenterContainer.new()
-	vhud_ctr.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
-	vhud_ctr.position = Vector2(-320, -118)
-	vhud_ctr.custom_minimum_size = Vector2(640, 100)
-	vhud_ctr.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(vhud_ctr)
-
-	vehicle_hud_panel = PanelContainer.new()
-	var vh_style := StyleBoxFlat.new()
-	vh_style.bg_color = Color(0.04, 0.05, 0.07, 0.92)
-	vh_style.border_color = Color(0.25, 0.55, 0.95, 0.8)
-	vh_style.set_border_width_all(2)
-	vh_style.set_corner_radius_all(8)
-	vh_style.content_margin_left = 22
-	vh_style.content_margin_right = 22
-	vh_style.content_margin_top = 10
-	vh_style.content_margin_bottom = 10
-	vehicle_hud_panel.add_theme_stylebox_override("panel", vh_style)
-	vehicle_hud_panel.visible = false
-	vhud_ctr.add_child(vehicle_hud_panel)
-
-	var vh_box := VBoxContainer.new()
-	vh_box.add_theme_constant_override("separation", 6)
-	vehicle_hud_panel.add_child(vh_box)
-
-	var vh_row := HBoxContainer.new()
-	vh_row.add_theme_constant_override("separation", 24)
-	vh_box.add_child(vh_row)
-
-	# Left: Speed & Transmission
-	var spd_box := VBoxContainer.new()
-	spd_box.add_theme_constant_override("separation", 2)
-	vh_row.add_child(spd_box)
-
-	_veh_speed_label = _mk_label("0 KM/H", 26, Color(0.35, 0.95, 1.0))
-	spd_box.add_child(_veh_speed_label)
-
-	_veh_gear_label = _mk_label("GEAR: 1", 12, Color(0.7, 0.85, 0.95))
-	spd_box.add_child(_veh_gear_label)
-
-	# Center: Armor Gauge & Turret Status
-	var arm_box := VBoxContainer.new()
-	arm_box.custom_minimum_size = Vector2(260, 0)
-	arm_box.add_theme_constant_override("separation", 4)
-	vh_row.add_child(arm_box)
-
-	_veh_armor_label = _mk_label("ARMOR: 800 / 800", 13, Color(0.35, 1.0, 0.5))
-	arm_box.add_child(_veh_armor_label)
-
-	_veh_armor_bar = ProgressBar.new()
-	_veh_armor_bar.min_value = 0.0
-	_veh_armor_bar.max_value = 800.0
-	_veh_armor_bar.value = 800.0
-	_veh_armor_bar.custom_minimum_size = Vector2(260, 8)
-	_veh_armor_bar.show_percentage = false
-	arm_box.add_child(_veh_armor_bar)
-
-	var turr_lbl := _mk_label("ARMORED TRANSPORT  •  [E] EXIT", 11, Color(1.0, 0.85, 0.2))
-	arm_box.add_child(turr_lbl)
-
-	# Bottom hint line
-	var ctrl_hint := _mk_label("[W/S] DRIVE/BRAKE  •  [1] GEAR 1 (CLIMB)  •  [2] GEAR 2 (SPEED)  •  [SPACE] DRIFT  •  [C] VIEW  •  [E] EXIT", 10, Color(0.65, 0.72, 0.8))
-	ctrl_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	vh_box.add_child(ctrl_hint)
-
-func show_damage_blood(amount: float) -> void:
+func flash_hull_damage() -> void:
 	_hurt_flash_t = 0.28
-	for i in 5:
-		var left := randf() > 0.5
-		var position := Vector2(randf_range(0.01, 0.12) if left else randf_range(0.88, 0.99), randf_range(0.1, 0.9))
-		var radius := randf_range(0.02, 0.04) * clampf(amount / 25.0, 0.7, 1.5)
-		_damage_blood.append({"position":position,"radius":radius,"life":1.8,"opacity":randf_range(0.25,0.45)})
-	while _damage_blood.size() > 20: _damage_blood.pop_front()
-	if is_instance_valid(damage_overlay): damage_overlay.queue_redraw()
+	damage_overlay.queue_redraw()
 
 func add_damage_indicator(rel_dir: Vector3) -> void:
 	# Calculate 2D screen angle for incoming fire
@@ -727,7 +665,7 @@ func add_damage_indicator(rel_dir: Vector3) -> void:
 	if is_instance_valid(damage_overlay):
 		damage_overlay.queue_redraw()
 
-func set_crosshair(spread_px: float, ads: float) -> void:
+func set_crosshair(spread_px: float, ads: float, on_enemy: bool = false) -> void:
 	var gap: float = 6.0 + spread_px * 2.5
 	gap *= (1.0 - ads * 0.7)
 	cross_lines[0].position = Vector2(-1, -gap - 10)
@@ -735,14 +673,16 @@ func set_crosshair(spread_px: float, ads: float) -> void:
 	cross_lines[2].position = Vector2(-gap - 10, -1)
 	cross_lines[3].position = Vector2(gap, -1)
 	# Smoothly fade out hipfire crosshair as weapon raises to sight (zero pop)
-	var alpha := clampf(1.0 - ads * 2.2, 0.0, 1.0)
+	var alpha := clampf(1.0 - ads * 1.5, 0.0, 1.0)
 	var vis := alpha > 0.01
+	var tint := WarUI.DANGER if on_enemy else Color.WHITE
+	tint.a = alpha
 	for l in cross_lines:
 		l.visible = vis
-		l.modulate.a = alpha
+		l.modulate = tint
 	if cross_dot:
 		cross_dot.visible = vis
-		cross_dot.modulate.a = alpha
+		cross_dot.modulate = tint
 
 func flash_hitmarker(kill: bool, is_headshot: bool = false) -> void:
 	hitmarker.text = "KILL" if kill else ("X" if not is_headshot else "+")
@@ -755,11 +695,101 @@ func set_health(h: int) -> void:
 	health_bar.value = h
 	health_label.add_theme_color_override("font_color", Color.WHITE if h > 30 else Color(1.0, 0.3, 0.3))
 
-func set_ammo(a: int, mag: int, wname: String, reloading: bool) -> void:
-	ammo_label.text = "%02d / %02d" % [a, mag]
-	ammo_label.add_theme_color_override("font_color", WarUI.DANGER if a == 0 else (WarUI.ACCENT if a <= mag / 4 else WarUI.TEXT))
-	weapon_label.text = wname
-	reload_label.visible = reloading
+func set_drone_mobility(chassis: String) -> void:
+	var movement_hint := "WASD DRIVE" if chassis in ["wheels", "tracked"] else "WASD FLIGHT   SPACE ASCEND   CTRL DESCEND   SHIFT BOOST"
+	_controls_hint.text = movement_hint + "   M MAP   TAB BOARD   ESC MENU"
+
+func set_drone_telemetry(speed_mps: float, altitude: float) -> void:
+	if not is_instance_valid(drone_telemetry_label): return
+	drone_telemetry_label.text = "ALT  %4.1f m    /    SPD  %2.0f m/s" % [maxf(0.0, altitude), maxf(0.0, speed_mps)]
+
+func _build_payload_card(parent: VBoxContainer, key: String, slot_name: String) -> Dictionary:
+	var panel := PanelContainer.new()
+	parent.add_child(panel)
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 8)
+	panel.add_child(row)
+	var identity := VBoxContainer.new()
+	identity.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	identity.add_theme_constant_override("separation", 0)
+	row.add_child(identity)
+	var slot := _mk_label("%s  %s" % [key, slot_name], 11, WarUI.MUTED)
+	identity.add_child(slot)
+	var thumbnail := TextureRect.new()
+	thumbnail.custom_minimum_size = Vector2(112, 38)
+	thumbnail.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	thumbnail.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	thumbnail.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	thumbnail.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	thumbnail.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+	thumbnail.material = _thumbnail_material
+	thumbnail.z_index = 1
+	identity.add_child(thumbnail)
+	var title := _mk_label("", 12, WarUI.TEXT)
+	identity.add_child(title)
+	var values := VBoxContainer.new()
+	values.alignment = BoxContainer.ALIGNMENT_CENTER
+	values.add_theme_constant_override("separation", 0)
+	row.add_child(values)
+	var loaded := _mk_label("", 27, WarUI.TEXT)
+	loaded.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	loaded.custom_minimum_size.x = 76
+	values.add_child(loaded)
+	var reserve := _mk_label("", 11, WarUI.MUTED)
+	reserve.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	values.add_child(reserve)
+	return {"panel": panel, "slot": slot, "title": title, "thumbnail": thumbnail, "loaded": loaded,
+		"reserve": reserve, "id": "", "selected": null, "status": Vector3i(-1, -1, -1),
+		"lit_style": WarUI.panel(Color("202c2b"), Color("61764c"), 6),
+		"dim_style": WarUI.panel(Color("10191d"), Color("2f3b42"), 6)}
+
+func update_payload_cards(system: WarWeaponSystem) -> void:
+	var equipped := GameState.equipped_indices()
+	var both := system.dual_fire and system.can_dual_fire()
+	for slot in _payload_cards.size():
+		var card := _payload_cards[slot]
+		var index := equipped[slot]
+		var config: Dictionary = GameState.WEAPONS[index]
+		var id := String(config["id"])
+		if card.id != id:
+			card.id = id
+			card.title.text = String(config["name"])
+			card.thumbnail.texture = load("res://assets/ui/payloads/%s.png" % id)
+			card.status = Vector3i(-1, -1, -1)
+		var selected := both or system.active_index == index
+		if card.selected != selected:
+			card.selected = selected
+			card.panel.add_theme_stylebox_override("panel", card.lit_style if selected else card.dim_style)
+			card.slot.add_theme_color_override("font_color", WarUI.ACCENT if selected else WarUI.MUTED)
+		var status := system.payload_status(index)
+		if card.status == status: continue
+		card.status = status
+		card.loaded.text = "%02d" % status.x
+		card.loaded.add_theme_color_override("font_color", WarUI.DANGER if status.x == 0 else WarUI.TEXT)
+		card.reserve.text = "%02d RESERVE" % status.y if status.z == 0 else "RELOADING"
+		card.reserve.add_theme_color_override("font_color", WarUI.MUTED if status.z == 0 else WarUI.ACCENT)
+	_fire_mode_label.visible = system.can_dual_fire()
+	var fire_mode := "3  BOTH ACTIVE" if both else "3  BOTH"
+	if _fire_mode_label.text != fire_mode:
+		_fire_mode_label.text = fire_mode
+		_fire_mode_label.add_theme_color_override("font_color", WarUI.ACCENT if both else WarUI.MUTED)
+
+func set_drone_sensor(on: bool, thermal: bool = false, zoom: int = 2, meters: float = 300.0, on_target: bool = false) -> void:
+	if not is_instance_valid(_sensor_reticle): return
+	_sensor_reticle.visible = on
+	_thermal_feed.visible = on and thermal
+	if not on: return
+	for line in cross_lines: line.visible = false
+	if is_instance_valid(cross_dot): cross_dot.visible = false
+	var mode := "%s  /  %d×" % ["THERMAL" if thermal else "OPTICAL", zoom]
+	var readout := ("RNG  %03d m" % roundi(meters) if meters < 299.0 else "RNG  —") + "     V ZOOM   T THERMAL"
+	if _sensor_reticle.on_target != on_target or _sensor_reticle.sensor_mode != mode or _sensor_reticle.readout != readout:
+		_sensor_reticle.on_target = on_target
+		_sensor_reticle.thermal = thermal
+		_sensor_reticle.sensor_mode = mode
+		_sensor_reticle.readout = readout
+		_sensor_reticle.queue_redraw()
+
 
 func update_player_header(p_name: String = "", team: String = "", mode: String = "") -> void:
 	if is_instance_valid(player_header_label):
@@ -770,45 +800,17 @@ func update_player_header(p_name: String = "", team: String = "", mode: String =
 		var md := mode if not mode.is_empty() else GameState.selected_mode
 		match_info_label.text = ("OFFLINE" if GameState.practice_mode else ("%s / %s" % [md, tm])) + "  •  " + GameState.time_label(GameState.selected_time)
 
-func set_vehicle_prompt(vis: bool, text: String = " PRESS [E] TO DRIVE COMBAT JEEP ") -> void:
-	if is_instance_valid(vehicle_prompt_panel):
-		vehicle_prompt_panel.visible = vis
-	if is_instance_valid(_veh_prompt_label):
-		_veh_prompt_label.text = text
+func show_elimination(killer: String, victim: String, weapon: String) -> void:
+	var verb := "ELIMINATED" if killer == GameState.username else "ELIMINATED"
+	feed("%s  [%s]  %s  %s" % [killer, weapon.to_upper(), verb, victim], Color("ff746b") if victim == GameState.username else Color("c4d5dc"))
 
-func set_vehicle_active(active: bool) -> void:
-	if is_instance_valid(vehicle_hud_panel):
-		vehicle_hud_panel.visible = active
-
-func set_vehicle_stats(speed_kmh: float, gear: int, armor: float, max_armor: float, is_rev: bool) -> void:
-	if not is_instance_valid(vehicle_hud_panel):
-		return
-	if is_instance_valid(_veh_speed_label):
-		_veh_speed_label.text = "%3.0f KM/H" % absf(speed_kmh)
-	if is_instance_valid(_veh_gear_label):
-		if is_rev:
-			_veh_gear_label.text = "GEAR: R"
-			_veh_gear_label.modulate = Color(1.0, 0.4, 0.3)
-		elif speed_kmh < 1.0:
-			_veh_gear_label.text = "GEAR: N [G%d]" % gear
-			_veh_gear_label.modulate = Color(0.8, 0.8, 0.8)
-		elif gear == 1:
-			_veh_gear_label.text = "GEAR: 1 [CLIMB]"
-			_veh_gear_label.modulate = Color(1.0, 0.85, 0.2)
-		elif gear == 2:
-			_veh_gear_label.text = "GEAR: 2 [SPEED]"
-			_veh_gear_label.modulate = Color(0.25, 0.95, 1.0)
-	if is_instance_valid(_veh_armor_bar):
-		_veh_armor_bar.max_value = max_armor
-		_veh_armor_bar.value = armor
-	if is_instance_valid(_veh_armor_label):
-		_veh_armor_label.text = "ARMOR: %d / %d" % [int(armor), int(max_armor)]
-		if armor < 250.0:
-			_veh_armor_label.modulate = Color(1.0, 0.25, 0.25)
-		elif armor < 500.0:
-			_veh_armor_label.modulate = Color(1.0, 0.8, 0.2)
-		else:
-			_veh_armor_label.modulate = Color(0.35, 1.0, 0.5)
+func show_killer_card(killer: String, weapon: String, chassis: String) -> void:
+	if not is_instance_valid(killer_card): return
+	killer_detail.text = "ELIMINATED BY  " + killer.to_upper() + "\n" + weapon.to_upper() + "  /  " + chassis.to_upper()
+	var valid_chassis := chassis if chassis in ["quad", "wheels", "tracked", "heli", "wing"] else "quad"
+	killer_drone.configure(false, weapon, valid_chassis)
+	killer_card.visible = true
+	killer_viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
 
 func feed(text: String, color: Color = Color.WHITE) -> void:
 	var l := _mk_label(text, 14, color)
@@ -858,36 +860,76 @@ func set_conquest_objectives(points: Array) -> void:
 		label.text = "%s  ·  %s%s" % [code, "CONTESTED" if contested else ("TEAM " + owner if not owner.is_empty() else "NEUTRAL"), "  %d%%" % roundi(progress * 100.0) if progress > 0.01 else ""]
 		label.add_theme_color_override("font_color", Color("ffad61") if contested else team_color)
 
-func set_scope(on: bool, weight: float = 1.0) -> void:
-	var vis := on and weight > 0.005
-	scope_overlay.visible = vis
-	scope_overlay.modulate.a = clampf(weight, 0.0, 1.0)
+func configure_redeploy(available: bool) -> void:
+	close_drone_editor()
+	_redeploy_actions.visible = available
+	_redeploy_seconds = -1
+	update_redeploy(3, false)
 
-func set_scope_magnification(mag: int, reflex: bool = false) -> void:
-	if scope_overlay is ScopeReticle:
-		var sr := scope_overlay as ScopeReticle
-		if sr.magnification != mag:
-			sr.magnification = mag
-			sr.queue_redraw()
-	if is_instance_valid(optic_label):
-		optic_label.text = "[V] %dX OPTIC  /  [R] RELOAD" % mag if mag > 1 else ("1X REFLEX  /  [R] RELOAD" if reflex else "IRON SIGHTS  /  [R] RELOAD")
+func is_editing_drone() -> bool:
+	return is_instance_valid(_drone_editor) and _drone_editor.visible
 
-func update_scope_steady(steady: bool, stam: float, heading: float) -> void:
-	if scope_overlay is ScopeReticle:
-		var sr := scope_overlay as ScopeReticle
-		sr.is_steady = steady
-		sr.stamina = stam
-		sr.compass_deg = heading
-		sr.queue_redraw()
+func close_drone_editor() -> void:
+	if is_instance_valid(_drone_editor): _drone_editor.hide()
 
-func set_dead(dead: bool, secs: int) -> void:
+func _open_drone_editor() -> void:
+	if not death_panel.visible or _redeploy_pending: return
+	if not is_instance_valid(_drone_editor):
+		_drone_editor = PanelContainer.new()
+		_drone_editor.z_index = 12
+		_drone_editor.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		_drone_editor.add_theme_stylebox_override("panel", WarUI.panel(WarUI.BACKGROUND, WarUI.LINE, 28))
+		add_child(_drone_editor)
+		var content := VBoxContainer.new()
+		content.add_theme_constant_override("separation", 16)
+		_drone_editor.add_child(content)
+		var title := _mk_label("REDEPLOYMENT", 27, WarUI.TEXT)
+		content.add_child(title)
+		_editor_preview = preload("res://scripts/ui/OperatorMenu.gd").new()
+		_editor_preview.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		content.add_child(_editor_preview)
+		var actions := HBoxContainer.new()
+		actions.add_theme_constant_override("separation", 12)
+		actions.alignment = BoxContainer.ALIGNMENT_END
+		content.add_child(actions)
+		var back := Button.new()
+		back.text = "BACK"
+		back.pressed.connect(close_drone_editor)
+		actions.add_child(back)
+		_editor_deploy_button = Button.new()
+		WarUI.primary(_editor_deploy_button)
+		_editor_deploy_button.pressed.connect(func() -> void: redeploy_pressed.emit())
+		actions.add_child(_editor_deploy_button)
+		_drone_editor.theme = WarUI.theme()
+	_drone_editor.show()
+	_editor_preview.refresh()
+	_update_redeploy_buttons()
+
+func update_redeploy(seconds: int, pending: bool) -> void:
+	if seconds == _redeploy_seconds and pending == _redeploy_pending: return
+	_redeploy_seconds = seconds
+	_redeploy_pending = pending
+	respawn_label.text = "Deploying…" if pending else (
+		("Ready to redeploy" if seconds == 0 else "Redeploy available in %ds" % seconds)
+		if _redeploy_actions.visible else "Re-deploying in %ds…" % seconds)
+	_update_redeploy_buttons()
+
+func _update_redeploy_buttons() -> void:
+	var text := "REDEPLOY  ·  %ds" % _redeploy_seconds if _redeploy_seconds > 0 else "REDEPLOY"
+	for button in [_redeploy_button, _editor_deploy_button]:
+		if not is_instance_valid(button): continue
+		button.text = text
+		button.disabled = _redeploy_seconds > 0 or _redeploy_pending
+
+func set_dead(dead: bool, _secs: int) -> void:
 	if not dead:
-		_damage_blood.clear()
+		close_drone_editor()
 		_hurt_flash_t = 0.0
 		if is_instance_valid(damage_overlay): damage_overlay.queue_redraw()
 	death_panel.visible = dead
 	if dead:
-		respawn_label.text = "Re-deploying in %ds..." % secs
+		for line in cross_lines: line.hide()
+		if is_instance_valid(cross_dot): cross_dot.hide()
 
 func _format_num(n: int) -> String:
 	if n >= 1000000:
@@ -903,16 +945,16 @@ func _refresh_scoreboard(players: Dictionary, me: String) -> void:
 	
 	# Header Row
 	var hdr := HBoxContainer.new()
-	var h_op := _mk_label("OPERATOR", 11, Color(0.65, 0.7, 0.75))
+	var h_op := _mk_label("PILOT", 11, Color(0.65, 0.7, 0.75))
 	h_op.custom_minimum_size = Vector2(290, 0)
 	hdr.add_child(h_op)
 	var h_k := _mk_label("ELIMS", 11, Color(0.65, 0.7, 0.75))
 	h_k.custom_minimum_size = Vector2(82, 0)
 	hdr.add_child(h_k)
-	var h_d := _mk_label("DEATHS", 11, Color(0.65, 0.7, 0.75))
+	var h_d := _mk_label("LOSSES", 11, Color(0.65, 0.7, 0.75))
 	h_d.custom_minimum_size = Vector2(82, 0)
 	hdr.add_child(h_d)
-	var h_hp := _mk_label("HEALTH", 11, Color(0.65, 0.7, 0.75))
+	var h_hp := _mk_label("HULL", 11, Color(0.65, 0.7, 0.75))
 	h_hp.custom_minimum_size = Vector2(88, 0)
 	hdr.add_child(h_hp)
 	var h_tm := _mk_label("TEAM", 11, Color(0.65, 0.7, 0.75))
@@ -1064,7 +1106,7 @@ func set_ping(ms: int) -> void:
 func _process(delta: float) -> void:
 	update_player_header()
 	equipment_label.text = "[G] HOLD AIM · RELEASE THROW\n%s ×%d" % [GameState.THROWABLES[GameState.selected_throwable]["name"], GameState.throwables_remaining]
-	_controls_hint.visible = not scope_overlay.visible
+	_controls_hint.visible = not death_panel.visible and (not is_instance_valid(_sensor_reticle) or not _sensor_reticle.visible)
 	# Real-time hardware and engine audit telemetry + live combat roster refresh while TAB is held
 	if is_instance_valid(board_panel) and board_panel.visible:
 		_audit_timer -= delta
@@ -1095,10 +1137,8 @@ func _process(delta: float) -> void:
 		if _hit_t <= 0.0:
 			hitmarker.modulate.a = 0.0
 			
-	var had_damage_feedback := _hurt_flash_t > 0.0 or not _damage_blood.is_empty() or not _damage_arcs.is_empty()
+	var had_damage_feedback := _hurt_flash_t > 0.0 or not _damage_arcs.is_empty()
 	_hurt_flash_t = maxf(0.0, _hurt_flash_t - delta)
-	for stain in _damage_blood: stain.life -= delta
-	_damage_blood = _damage_blood.filter(func(stain: Dictionary) -> bool: return stain.life > 0)
 	if had_damage_feedback and is_instance_valid(damage_overlay): damage_overlay.queue_redraw()
 
 	# Update damage arc indicators

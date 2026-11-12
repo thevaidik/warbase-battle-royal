@@ -1,4 +1,5 @@
 extends SceneTree
+const DroneFlight := preload("res://scripts/drones/DroneFlight.gd")
 var failures := 0
 func _initialize() -> void: call_deferred("run")
 func check(ok: bool, message: String) -> void:
@@ -13,18 +14,17 @@ func run() -> void:
 	check(spawns.size() == 12, "stadium has 12 authored spawns")
 	check(builder.find_children("PerimeterWall_*", "StaticBody3D", true, false).is_empty(), "no artificial invisible boundaries")
 	var space = root.get_world_3d().direct_space_state
-	var capsule := CapsuleShape3D.new()
-	capsule.radius = 0.4
-	capsule.height = 1.8
+	var drone := SphereShape3D.new()
+	drone.radius = DroneFlight.RADIUS
 	for i in spawns.size():
 		var point: Vector3 = spawns[i]
 		var ray := PhysicsRayQueryParameters3D.create(point + Vector3.UP * 0.1, point + Vector3.DOWN * 0.4, 1)
 		check(not space.intersect_ray(ray).is_empty(), "spawn %d has solid ground" % i)
 		var query := PhysicsShapeQueryParameters3D.new()
-		query.shape = capsule
-		query.transform.origin = point + Vector3.UP * 0.9
+		query.shape = drone
+		query.transform.origin = point + Vector3.UP * DroneFlight.SPAWN_OFFSET
 		query.collision_mask = 1
-		check(space.intersect_shape(query).is_empty(), "spawn %d clears a player capsule" % i)
+		check(space.intersect_shape(query).is_empty(), "spawn %d clears the centered drone collision sphere" % i)
 	var map_root = builder.find_child("GLBMap",true,false)
 	var meshes: Array = map_root.find_children("*", "MeshInstance3D", true, false)
 	check(meshes.size() == 2, "uses the supplied stadium plus repaired rear surfaces")

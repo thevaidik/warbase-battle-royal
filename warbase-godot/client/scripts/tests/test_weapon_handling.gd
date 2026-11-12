@@ -37,14 +37,10 @@ func run() -> void:
 	check(not weapon.is_reloading and weapon.ammo == 29, "switch cancels reload without free ammo")
 	root.get_node("GameState").selected_secondary = "m2010"
 	weapon.switch_weapon(2)
-	weapon.scope_idx = 1
-	var fov: float = weapon.get_current_ads_fov()
+	weapon.drone_zoom_index = 2
+	var fov: float = weapon.drone_optic_fov()
 	var zoom: float = tan(deg_to_rad(75.0) * 0.5) / tan(deg_to_rad(fov) * 0.5)
-	check(absf(zoom - 8.0) < 0.001, "8x zoom uses optical FOV ratio")
-	check(weapon.is_scoped(), "sniper uses scope aperture")
-	var spring := Vector2(0.4, 3.0)
-	for i in 100: spring = weapon._spring(spring.x, spring.y, 0.1)
-	check(spring.is_finite() and spring.length() < 0.001, "recoil spring settles through frame spikes")
+	check(absf(zoom - 8.0) < 0.001, "8x drone zoom uses optical FOV ratio")
 	await create_timer(2.0).timeout
 	var finite: bool = main.player.global_transform.is_finite()
 	for bot in main.bots.bots:
@@ -60,18 +56,17 @@ func run() -> void:
 	for index in range(4, root.get_node("GameState").WEAPONS.size()):
 		root.get_node("GameState").selected_secondary = root.get_node("GameState").weapon_id_for_index(index)
 		weapon.switch_weapon(index)
-		await create_timer(0.3).timeout
 		var config: Dictionary = weapon.current_config()
+		await create_timer(maxf(0.3, 60.0 / float(config["fire_rate"]) + 0.02)).timeout
 		var before: int = weapon.ammo
 		if config["id"] == "dmr": Input.action_press("fire")
 		weapon.try_fire()
 		check(weapon.ammo == before - 1, String(config["name"]) + " fires and consumes ammo")
 		check(root.get_node("GameState").weapon_index_for_id(config["id"]) == index, "weapon ID roundtrip")
-		check(weapon._views[index].has_node("Muzzle") and weapon._views[index].has_node("magazine"), "new weapon has muzzle and animated magazine")
+		var mounted: Node3D = main.player._drone_visual.get_payload()
+		check(mounted.find_child("Muzzle", true, false) != null and String(mounted.get_meta("weapon_id")) == config["id"], "selected aircraft payload has a physical muzzle")
 		if config["id"] == "dmr":
-			check(weapon.is_scoped() and weapon.get_current_scope_zoom() == 4, "DMR starts at 4x")
-			weapon.cycle_scope_magnification()
-			check(weapon.get_current_scope_zoom() == 6, "DMR supports 6x")
+			check(weapon.drone_zoom() == 8, "drone optic zoom persists across payload changes")
 			await create_timer(0.3).timeout
 			weapon.try_fire()
 			check(weapon.ammo == before - 1, "DMR requires trigger release between shots")
@@ -79,7 +74,7 @@ func run() -> void:
 			# Headless display cannot capture the mouse; drive the completed ADS state.
 			weapon.ads_amount = 1.0
 			main._process(0.0)
-			check(main.hud.scope_overlay.visible, "DMR ADS displays the scope reticle")
+			check(main.hud._sensor_reticle.visible, "drone ADS displays the sensor reticle")
 			weapon.ads_amount = 0.0
 	var previous_index: int = weapon.active_index
 	weapon.switch_weapon(3)
@@ -89,15 +84,15 @@ func run() -> void:
 	check(absf(float(tracer["dur"]) - 100.0/900.0) < 0.001, "tracer uses rifle muzzle velocity")
 	var sniper: Dictionary = root.get_node("GameState").WEAPONS[2]
 	check(root.get_node("GameState").damage_at_range(sniper, 300) >= 100, "sniper retains lethal damage at maximum range")
-	weapon.spawn_blood(Vector3(0, 2, 0), Vector3.FORWARD)
-	var active_blood := 0
-	for slot in weapon._bloods:
-		if slot["active"]: active_blood += 1
-	check(active_blood == 8, "hit feedback uses the bounded blood pool")
+	weapon.spawn_hull_hit(Vector3(0, 2, 0), Vector3.FORWARD)
+	var active_sparks := 0
+	for slot in weapon._sparks:
+		if slot["active"]: active_sparks += 1
+	check(active_sparks == 4, "drone hit feedback uses a bounded metallic spark pool")
 	await create_timer(0.65).timeout
-	var blood_cleared := true
-	for slot in weapon._bloods: blood_cleared = blood_cleared and not slot["active"]
-	check(blood_cleared, "blood effect expires and particles are reused")
+	var sparks_cleared := true
+	for slot in weapon._sparks: sparks_cleared = sparks_cleared and not slot["active"]
+	check(sparks_cleared, "metallic hit sparks expire and particles are reused")
 	main._quit_to_menu()
 	await process_frame
 	await process_frame

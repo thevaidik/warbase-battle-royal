@@ -26,6 +26,7 @@ func run() -> void:
 			for replay_round in 2:
 				var traces: Array = [{"steps": map_data.steps}]
 				if map_data.has("collision_case"): traces.append(map_data.collision_case)
+				if map_data.has("collision_cases"): traces.append_array(map_data.collision_cases)
 				for trace: Dictionary in traces:
 					var world := {"player": {"vehicle_index": int(map_data.driver.vehicle_index), "vehicle_generation": int(map_data.driver.vehicle_generation), "x": 0.0, "y": 0.0, "z": 0.0, "vx": 0.0, "vy": 0.0, "vz": 0.0}}
 					var names: Array[String] = []

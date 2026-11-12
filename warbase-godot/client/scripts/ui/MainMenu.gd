@@ -2,8 +2,9 @@ class_name WarMenu
 extends CanvasLayer
 ## Map-led lobby with a shared theme and explicit online/practice states.
 signal deploy_requested
+signal quick_match_ready(reservation: Dictionary, map: String)
 
-enum FeatureTab { HOME, LOADOUT, OPERATOR, SETTINGS, MULTIPLAYER }
+enum FeatureTab { HOME, SETTINGS, MULTIPLAYER }
 var current_tab := FeatureTab.HOME
 var root: Control
 var main_layout: VBoxContainer
@@ -15,7 +16,6 @@ var selected_server_label: Label
 var join_btn: Button
 var drawer_content: VBoxContainer
 var tab_buttons: Dictionary = {}
-var loadout_menu: Control
 var create_modal: PanelContainer
 var create_name_edit: LineEdit
 var create_map_id := "industrial"
@@ -31,6 +31,9 @@ var _probe_t := 0.0
 var _server_online := false
 var _refreshing := false
 var _lobby_adapter: Node
+var _match_queue: Node
+var _queue_button: Button
+var _queue_status: Label
 var _live_room_cache: Dictionary = {}
 var _room_count: Label
 var _workspace: HBoxContainer
@@ -52,6 +55,10 @@ func _ready() -> void:
 		if host != null: GameState.server_host = String(host)
 		JavaScriptBridge.eval("{ const u = new URL(window.location.href); if (u.searchParams.has('release')) { u.searchParams.delete('release'); window.history.replaceState(null, '', u.pathname + u.search + u.hash); } }")
 	build_lobby()
+	_match_queue = preload("res://scripts/net/MatchQueue.gd").new()
+	_match_queue.status_changed.connect(_on_queue_status)
+	_match_queue.seat_ready.connect(func(seat: Dictionary, map: String) -> void: quick_match_ready.emit(seat, map))
+	add_child(_match_queue)
 	get_viewport().size_changed.connect(_on_window_resized)
 	_probe_server()
 	if true:
@@ -144,9 +151,13 @@ func build_lobby() -> void:
 	_home_page.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_home_page.add_theme_constant_override("separation", 18)
 	_pages.add_child(_home_page)
-	_home_page.add_child(_mk_label("READY FOR DEPLOYMENT", 28, WarUI.TEXT))
-	_home_page.add_child(_mk_label("Choose a match in Multiplayer, prepare your loadout, and deploy.", 16, WarUI.MUTED))
-	_home_page.add_child(_button("MULTIPLAYER", func() -> void: _switch_tab(FeatureTab.MULTIPLAYER)))
+	_operator_page = preload("res://scripts/ui/OperatorMenu.gd").new()
+	_operator_page.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_home_page.add_child(_operator_page)
+	_home_page.add_child(_button("DEPLOY DRONE  ›", func() -> void:
+		GameState.practice_mode = false
+		deploy_requested.emit()
+	))
 	_multiplayer_page = VBoxContainer.new()
 	_multiplayer_page.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_multiplayer_page.add_theme_constant_override("separation", 18)
@@ -157,10 +168,6 @@ func build_lobby() -> void:
 	_multiplayer_page.add_child(_workspace)
 	_build_center_servers(_workspace)
 	_build_bottom_bar(_multiplayer_page)
-	loadout_menu = preload("res://scripts/ui/LoadoutMenu.gd").new()
-	_pages.add_child(loadout_menu)
-	_operator_page = preload("res://scripts/ui/OperatorMenu.gd").new()
-	_pages.add_child(_operator_page)
 	_settings_page = PanelContainer.new()
 	_settings_page.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_settings_page.add_theme_stylebox_override("panel", WarUI.panel(WarUI.PANEL, WarUI.LINE, 24))
@@ -198,15 +205,15 @@ func _build_header(parent: VBoxContainer) -> void:
 
 func _build_navigation(parent: HBoxContainer) -> void:
 	var rail := VBoxContainer.new()
-	rail.custom_minimum_size.x = 162
+	rail.custom_minimum_size.x = 196
 	rail.add_theme_constant_override("separation", 8)
 	parent.add_child(rail)
 	rail.add_child(_mk_label("OPERATIONS", 11, WarUI.CYAN))
-	for item in [[FeatureTab.HOME,"HOME"], [FeatureTab.MULTIPLAYER,"MULTIPLAYER"], [FeatureTab.LOADOUT,"LOADOUT"], [FeatureTab.OPERATOR,"OPERATOR"], [FeatureTab.SETTINGS,"SETTINGS"]]:
+	for item in [[FeatureTab.HOME,"HANGAR"], [FeatureTab.MULTIPLAYER,"MULTIPLAYER"], [FeatureTab.SETTINGS,"SETTINGS"]]:
 		var tab: int = item[0]
 		var button := _button(item[1], func() -> void: _switch_tab(tab))
 		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
-		button.custom_minimum_size = Vector2(162, 52)
+		button.custom_minimum_size = Vector2(196, 52)
 		rail.add_child(button)
 		tab_buttons[tab] = button
 	rail.add_spacer(false)
@@ -226,6 +233,14 @@ func _build_center_servers(parent: HBoxContainer) -> void:
 	refresh_btn.custom_minimum_size = Vector2(86, 34)
 	room_header.add_child(refresh_btn)
 	column.add_child(room_header)
+	var quick_match := HBoxContainer.new()
+	_queue_button = _button("QUICK MATCH", _toggle_quick_match)
+	quick_match.add_child(_queue_button)
+	_queue_status = _mk_label("", 14, WarUI.MUTED)
+	_queue_status.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_queue_status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	quick_match.add_child(_queue_status)
+	column.add_child(quick_match)
 	var scroll := ScrollContainer.new()
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
@@ -235,19 +250,33 @@ func _build_center_servers(parent: HBoxContainer) -> void:
 	rooms_box.add_theme_constant_override("separation", 8)
 	scroll.add_child(rooms_box)
 
+func _toggle_quick_match() -> void:
+	if _match_queue == null or _lobby_adapter == null: return
+	if _match_queue.active:
+		_match_queue.stop()
+		return
+	_match_queue.start(_lobby_adapter._endpoint(), GameState.selected_map, GameState.username)
+
+func _on_queue_status(message: String, active: bool) -> void:
+	_queue_button.text = "CANCEL QUEUE" if active else "QUICK MATCH"
+	_queue_status.text = message
+
+func stop_quick_match() -> void:
+	if is_instance_valid(_match_queue): _match_queue.stop()
+
+func confirm_quick_match() -> void:
+	if is_instance_valid(_match_queue) and _match_queue.active: _match_queue.confirm()
+
 func _switch_tab(tab: int) -> void:
 	current_tab = tab
 	_home_page.visible = tab == FeatureTab.HOME
 	_multiplayer_page.visible = tab == FeatureTab.MULTIPLAYER
-	loadout_menu.visible = tab == FeatureTab.LOADOUT
-	_operator_page.visible = tab == FeatureTab.OPERATOR
 	_settings_page.visible = tab == FeatureTab.SETTINGS
 	for key in tab_buttons:
 		var button: Button = tab_buttons[key]
 		button.add_theme_stylebox_override("normal", WarUI.panel(WarUI.RAISED if key == tab else WarUI.BACKGROUND, WarUI.ACCENT if key == tab else WarUI.BACKGROUND, 12))
 		button.add_theme_color_override("font_color", WarUI.ACCENT if key == tab else WarUI.MUTED)
-	if tab == FeatureTab.LOADOUT: loadout_menu.open()
-	if tab == FeatureTab.OPERATOR: _operator_page.refresh()
+	if tab == FeatureTab.HOME: _operator_page.refresh()
 	if tab == FeatureTab.SETTINGS:
 		for child in _settings_page.get_children(): _settings_page.remove_child(child); child.queue_free()
 		var settings := VBoxContainer.new()
@@ -285,7 +314,7 @@ func _build_settings_content() -> void:
 	_service_status_label = _mk_label(status_pill.text, 16, WarUI.TEXT)
 	drawer_content.add_child(_service_status_label)
 	drawer_content.add_child(HSeparator.new())
-	for text in ["WASD  Move    SPACE  Jump", "RMB  Aim    V  Magnification", "R  Reload    G  Grenade", "TAB  Scoreboard    ESC  Pause"]:
+	for text in ["WASD  FLIGHT    SPACE  ASCEND    CTRL  DESCEND", "SHIFT  BOOST    RMB  AIM    V  MAGNIFICATION", "R  RELOAD    G  GRENADE", "TAB  SCOREBOARD    ESC  PAUSE"]:
 		drawer_content.add_child(_mk_label(text, 13, WarUI.MUTED))
 
 func _build_bottom_bar(parent: VBoxContainer) -> void:
@@ -301,7 +330,7 @@ func _build_bottom_bar(parent: VBoxContainer) -> void:
 	selection.add_child(selected_server_label)
 	selection.add_child(_mk_label("Online servers include AI and human players", 12, WarUI.MUTED))
 	footer.add_child(selection)
-	join_btn = _button("DEPLOY  ›", func() -> void:
+	join_btn = _button("DEPLOY DRONE  ›", func() -> void:
 		GameState.practice_mode = false
 		deploy_requested.emit()
 	)
@@ -372,7 +401,7 @@ func _update_footer_selection() -> void:
 	var map_id := GameState.selected_map
 	selected_server_label.text = String(MAP_NAMES.get(map_id, map_id)) + "  /  " + GameState.selected_mode
 	join_btn.disabled = not _server_online and not (_lobby_adapter != null and _lobby_adapter.available)
-	join_btn.text = "DEPLOY  ›"
+	join_btn.text = "DEPLOY DRONE  ›"
 	join_btn.tooltip_text = "Waiting for the online service." if not _server_online else "Join the selected match"
 
 func _api_request(path: String, callback: Callable, method: int = HTTPClient.METHOD_GET, payload: String = "", auth_token: String = "") -> void:

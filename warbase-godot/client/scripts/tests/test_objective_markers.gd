@@ -27,6 +27,11 @@ func _ready() -> void:
 	assert(overlay.markers[1]["color"] == Color("ff6659"))
 	assert(overlay.markers[2]["color"] == Color("ffad61"))
 	assert(overlay.markers[3]["progress"] == 0.5)
+	assert(overlay._beacons.get_child_count() == 4)
+	var floor: Variant = ColyseusWorldGeometry.floor_height(0, -30, 0.25)
+	assert(overlay._beacons.get_child(0).global_position.is_equal_approx(Vector3(0, float(floor) if floor != null else 0.0, -30)))
+	assert(is_equal_approx(overlay._beacons.get_child(0).get_child(0).position.y, 2.0))
+	assert(overlay._beacons.get_child(2).get_child(0).material_override.albedo_color.is_equal_approx(Color(Color("ffad61"), 0.27)))
 	for marker in overlay.markers:
 		assert(Rect2(Vector2.ZERO, overlay.size).has_point(marker["position"]))
 	# Exact camera-plane objectives used to log a projection error every refresh.
@@ -41,5 +46,6 @@ func _ready() -> void:
 	overlay.suppressed = true
 	overlay.refresh()
 	assert(overlay.markers.is_empty())
+	assert(not overlay._beacons.visible)
 	print("OBJECTIVE_MARKERS_OK four badges; forward/edge/behind projection; ownership; distance; capture; map suppression")
 	get_tree().quit()

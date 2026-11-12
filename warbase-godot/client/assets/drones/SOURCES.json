@@ -1,0 +1,23 @@
+{
+  "license": "CC0-1.0",
+  "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "models": [
+    {
+      "role": "friendly",
+      "name": "Quadcopter Camera",
+      "local": "vanguard.glb",
+      "source": "https://3dassets.dev/assets/robots-and-drones-kit-quadcopter-camera-16e693ab",
+      "download": "https://cdn.3dassets.dev/assets/38997/v1/model.glb",
+      "original_sha256": "40aee753b9359b3e3c6f73c4d65f01ad43b539631b2267086e9b97d8cd6c2294"
+    },
+    {
+      "role": "rival",
+      "name": "Quadcopter Inspection",
+      "local": "raider.glb",
+      "source": "https://3dassets.dev/assets/robots-and-drones-kit-quadcopter-inspection-bd37c477",
+      "download": "https://cdn.3dassets.dev/assets/38999/v1/model.glb",
+      "original_sha256": "bfadf521ef68dfd6ebb3eab867b57c45e86e94b7549b7b879438b9434752d596"
+    }
+  ],
+  "conversion": "glTF Transform dequantize: remove KHR_mesh_quantization; preserve meshes/materials/rotor animation"
+}

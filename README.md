@@ -35,20 +35,19 @@ The public game URL [https://war.vaidik.blog/](https://war.vaidik.blog/) redirec
 
 | Action | Input |
 | --- | --- |
-| Move / jump / crouch | WASD / Space / C |
+| Fly horizontally | WASD |
+| Ascend / descend | Space / Ctrl or C |
+| Flight boost | Shift |
 | Fire / aim | Left / right mouse button |
 | Reload | R |
 | Optic magnification | V on weapons with variable optics |
-| Steady scoped aim | Hold Shift while stationary and aimed |
 | Primary / secondary | 1 / 2; mouse wheel swaps between them |
 | Equipped throwable | G |
 | Inspect | I |
 | Scoreboard / pause | Tab / Esc |
 | Conquest tactical map | M; M or Esc closes it |
-| Vehicle enter / exit | E near an unoccupied car |
-| Drive / brake / camera | WASD / Space / mouse; C changes chase view |
 
-Choose equipment from **Loadout** on the home screen. The game includes selectable weapons, optics, grenades, vehicles, and offline bots. Current online feature coverage and known gaps are documented in the [Colyseus feature usage report](audit/COLYSEUS_FEATURE_USAGE_REPORT.md); do not assume every legacy Go feature has migrated.
+Choose primary and secondary weapons and throwables in **Drone Hangar** on Home. Wheels and tracks are grounded movement modes, while helicopter rotors and quad profiles fly. In grounded modes, Space and Ctrl do not change altitude. The game includes selectable mounted weapons, optics, grenades, and bots. Cars are parked obstacles in drone mode. Current online feature coverage and known gaps are documented in the [Colyseus feature usage report](audit/COLYSEUS_FEATURE_USAGE_REPORT.md); do not assume every legacy Go feature has migrated.
 
 ## Conquest
 
@@ -80,8 +79,20 @@ The [rugged cyberpunk UI update](audit/cyber-ui-2026-11-06/README.md) documents 
 
 The [map collision and lobby correction](audit/map-lobby-repair-2026-11-06/REPORT.md) removes Desert Oasis hidden boundaries and embedded spawns, replaces Canyon’s Industrial alias, and simplifies the online lobby with left navigation and separate match/map labels. Matched map-data clients use protocol 8.
 
-Native and Web export commands now require the [all-map integrity gate](audit/all-map-integrity-2026-11-06/REPORT.md): source collision must match shipped geometry, all 120 spawn capsules must be clear, and packaged map scenes/previews must be present. Identical verified inputs reuse a cached physics result. The geometry release used protocol 9. Current original-map compatibility is protocol 11; update server and clients together.
+Native and Web export commands now require the [all-map integrity gate](audit/all-map-integrity-2026-11-06/REPORT.md): source collision must match shipped geometry, all 132 spawn capsules must be clear, and packaged map scenes/previews must be present. Identical verified inputs reuse a cached physics result. The geometry release used protocol 9. Quick Match and projectile state use protocol 16. Update the server and clients together.
 
 The [client controls and map-download repair](audit/client-controls-2026-11-06/REPORT.md) moves matches under Multiplayer, makes service status read-only, prevents held inputs surviving focus loss, and aligns vehicle steering/camera updates. Web exports now build and verify the separate Stadium download, and packaging includes its manifest, resource pack and compressed assets. The normal public URL redirects to `/colyseus/` without a release query marker.
 
 The [original map restoration](audit/original-map-restoration-2026-11-06/REPORT.md) replaces the Industrial duplicates with real Dust II/Nuketown models, restores original Devil’s Canyon, Military Base and Ghost City, and enables 11 complete maps. Loft 17 assets are deleted. Military Outpost/Desert Oasis prop sheets and the Desert Road diorama remain out of matches by request. Restored Web maps download on demand.
+
+The [grounding and bot-aim report](audit/grounding-bot-aim-2026-11-06/REPORT.md) explains the shared capsule contact controller, persistent bot firing/weapon aim, server hitbox matching and Nuketown original-size restoration. That release added walking/jumping contact and aimed-pose parity checks. Current drone exports instead require flight parity and native sphere collision checks from every spawn.
+
+## Drone Conquest
+
+Combatants use free flight with stabilized braking, a 0.4 m movement collision radius, a 0.45 m damage hit radius, and server-authoritative movement. Wheels and tracks can step over low curbs up to 0.22 m. Vanguard identifies allies; Raider identifies rivals. Space ascends, Ctrl/C descends, Shift boosts. Conquest shows ground beacons for A–D objectives and retains the M tactical map; capture requires flying within 6 m vertically of the objective. Flight altitude is capped at 120 m. Payloads are mounted on the airframe; damage uses hull sparks. Audio remains disabled.
+
+The client generates the airframe and mounted weapons from mesh geometry. The common hull renders the selected mobility kit: wheels, tracks, rotors, or wings. The HUD shows loaded rounds and reserve ammo. Reloading transfers rounds from the active weapon’s reserve. Respawning restocks both weapons. The hangar saves both payloads and mounts the primary on the left and the secondary on the right. The arsenal includes aircraft-inspired cannon pods and unguided arcade missiles. The server simulates missile flight and resolves impacts. The third-person camera follows the drone and retracts near obstacles; firing and grenade launches originate at the drone rather than the chase camera.
+
+The earlier imported CC0 models' provenance remains in [asset sources](warbase-godot/client/assets/drones/SOURCES.json). The [drone conversion report](audit/drone-conquest-2026-11-07/REPORT.md) records the original conversion. Local protocol-16 clients require the matching server.
+
+**Quick Match** in Online Conquest groups up to four human players on the selected map and reserves balanced team seats. A short wait allows the match to start with fewer humans and bot fill. Grenades and missiles use Colyseus predicted spawns for immediate local visuals and hand off to synchronized projectile state. The server resolves impacts and damage.

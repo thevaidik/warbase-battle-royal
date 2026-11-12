@@ -65,10 +65,15 @@ static func ground_at(at: Vector3) -> Variant:
 	return from.y + (to.y - from.y) * float(hit.fraction) + 0.08
 
 static func _blocked(from: Vector3, to: Vector3) -> bool:
+	return not _movement_contact(from, to).is_empty()
+
+static func _movement_contact(from: Vector3, to: Vector3) -> Dictionary:
+	var nearest: Dictionary = {}
 	for offset: Vector3 in RAYS:
 		var hit: Dictionary = _raycast(from + offset, to + offset)
-		if not hit.is_empty() and float(hit.fraction) > 0.0001: return true
-	return false
+		if not hit.is_empty() and float(hit.fraction) > 0.0001 and (nearest.is_empty() or float(hit.fraction) < float(nearest.fraction)):
+			nearest = hit
+	return nearest
 
 static func _inside_car(other: Variant, point: Vector3) -> bool:
 	var c := cos(float(other.yaw))
@@ -77,6 +82,20 @@ static func _inside_car(other: Variant, point: Vector3) -> bool:
 	var dz := point.z - float(other.z)
 	var local := Vector3(c * dx - s * dz, point.y - float(other.y), s * dx + c * dz)
 	return local.x >= -1.2 and local.x <= 1.2 and local.y >= 0.15 and local.y <= 2.5 and local.z >= -2.6 and local.z <= 2.6
+
+static func _chassis_contact(world: Variant, id: String, from: Vector3, to: Vector3, from_yaw: float, to_yaw: float, car_names: Array[String]) -> Dictionary:
+	for offset: Vector3 in CHASSIS:
+		var start_rotated := Vector3(cos(from_yaw) * offset.x + sin(from_yaw) * offset.z, 0.0, -sin(from_yaw) * offset.x + cos(from_yaw) * offset.z)
+		var end_rotated := Vector3(cos(to_yaw) * offset.x + sin(to_yaw) * offset.z, 0.0, -sin(to_yaw) * offset.x + cos(to_yaw) * offset.z)
+		var a := from + start_rotated
+		var b := to + end_rotated
+		for other_id in car_names:
+			if other_id != id and _inside_car(world.get(other_id), b + Vector3.UP * 0.9):
+				return {"blocked": true, "normal": Vector3.ZERO}
+		var contact := _movement_contact(a, b)
+		if not contact.is_empty():
+			return {"blocked": true, "normal": Vector3(contact.normal)}
+	return {"blocked": false, "normal": Vector3.ZERO}
 
 static func step(world: Variant, command: Variant, dt: float, car_names: Array[String]) -> void:
 	var player: Variant = world.get("player")
@@ -100,18 +119,9 @@ static func step(world: Variant, command: Variant, dt: float, car_names: Array[S
 	var yaw := float(car.yaw) - clampf(requested_yaw_rate, -max_yaw_rate, max_yaw_rate) * elapsed
 	var from := Vector3(car.x, car.y, car.z)
 	var to := from + Vector3(-sin(yaw), 0, -cos(yaw)) * speed * elapsed
-	var blocked := false
-	for offset: Vector3 in CHASSIS:
-		var rotated := Vector3(cos(yaw) * offset.x + sin(yaw) * offset.z, 0, -sin(yaw) * offset.x + cos(yaw) * offset.z)
-		var a := from + rotated
-		var b := to + rotated
-		for other_id in car_names:
-			if other_id != id and _inside_car(world.get(other_id), b + Vector3.UP * 0.9):
-				blocked = true
-				break
-		if blocked or _blocked(a, b):
-			blocked = true
-			break
+	var contact := _chassis_contact(world, id, from, to, float(car.yaw), yaw, car_names)
+	var blocked: bool = contact.blocked
+	var wall_normal: Vector3 = contact.normal
 	var ground: Variant = ground_at(to)
 	if not blocked and ground != null and absf(float(ground) - from.y) < 0.6:
 		car.x = to.x
@@ -119,6 +129,33 @@ static func step(world: Variant, command: Variant, dt: float, car_names: Array[S
 		car.z = to.z
 		car.yaw = yaw
 		car.speed = speed
+	elif blocked and wall_normal != Vector3.ZERO and ground != null and absf(float(ground) - from.y) < 0.6:
+		# Remove the wall-normal component and retain a damped tangential
+		# slide. The scalar speed remains the forward component so repeated
+		# contact cannot build an unbounded sideways launch.
+		var normal := Vector3(wall_normal.x, 0.0, wall_normal.z)
+		if normal.length_squared() > 0.000001:
+			normal = normal.normalized()
+			var velocity := (to - from) / elapsed
+			var into_wall := velocity.dot(normal)
+			if into_wall > 0.0:
+				normal = -normal
+				into_wall = -into_wall
+			var tangent := (velocity - normal * into_wall) * 0.8
+			var forward := Vector3(-sin(yaw), 0.0, -cos(yaw))
+			var slide_candidate := from + Vector3(tangent.x, 0.0, tangent.z) * elapsed
+			var slide_contact := _chassis_contact(world, id, from, slide_candidate, float(car.yaw), yaw, car_names)
+			var slide_ground: Variant = ground_at(slide_candidate)
+			if not slide_contact.blocked and slide_ground != null and absf(float(slide_ground) - from.y) < 0.6:
+				car.x = slide_candidate.x
+				car.y = float(slide_ground)
+				car.z = slide_candidate.z
+				car.yaw = yaw
+				car.speed = clampf(tangent.dot(forward), -6.0, 22.0 if int(car.gear) == 2 else 14.4)
+			else:
+				car.speed = 0.0
+		else:
+			car.speed = 0.0
 	else:
 		car.speed = 0.0
 	player.x = car.x

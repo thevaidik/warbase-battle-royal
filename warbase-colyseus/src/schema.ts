@@ -1,6 +1,6 @@
 import { MapSchema, Schema, defineTypes, schema, t } from '@colyseus/schema';
 
-export const GAME_PROTOCOL_VERSION = 11;
+export const GAME_PROTOCOL_VERSION = 16;
 export const PRESENTATION_VIEW_TAG = 1;
 export const PRIVATE_VIEW_TAG = 2;
 
@@ -38,6 +38,11 @@ export class PlayerState extends schema({
   throwable: t.string().default("frag").view(PRIVATE_VIEW_TAG),
   vehicle_index: t.number().default(-1),
   vehicle_generation: t.number().default(0),
+  mobility_mode: t.string().default("heli"),
+  primary_payload: t.string().default("").view(PRESENTATION_VIEW_TAG),
+  secondary_payload: t.string().default("").view(PRESENTATION_VIEW_TAG),
+  reserve_ammo: t.number().default(90).view(PRIVATE_VIEW_TAG),
+  last_shot_id: t.number().default(0).view(PRIVATE_VIEW_TAG),
 }, 'PlayerStateBase') {}
 
 export class VehicleState extends Schema {
@@ -51,6 +56,14 @@ export class ObjectiveState extends Schema {
 }
 defineTypes(ObjectiveState, { id: 'string', x: 'float32', y: 'float32', z: 'float32', owner: 'string', capturing_team: 'string', progress: 'float32', contested: 'boolean', radius: 'float32' });
 
+export class ProjectileState extends schema({
+  id: t.string(), owner: t.string(), kind: t.string(),
+  request_id: t.number(),
+  x: t.float32(), y: t.float32(), z: t.float32(),
+  vx: t.float32(), vy: t.float32(), vz: t.float32(),
+  active: t.number().default(1),
+}, 'ProjectileStateBase') {}
+
 export class BattleState extends Schema {
   players = new MapSchema<PlayerState>();
   protocol_version = GAME_PROTOCOL_VERSION; map_name = 'industrial'; time_of_day = 'noon';
@@ -58,5 +71,7 @@ export class BattleState extends Schema {
   vehicles = new MapSchema<VehicleState>();
   objectives = new MapSchema<ObjectiveState>();
   tickets_a = 500; tickets_b = 500; room_state = 'active';
+  grenade_projectiles = new MapSchema<ProjectileState>();
+  missile_projectiles = new MapSchema<ProjectileState>();
 }
-defineTypes(BattleState, { players: { map: PlayerState }, protocol_version: 'number', map_name: 'string', time_of_day: 'string', room_mode: 'string', score_a: 'number', score_b: 'number', winner: 'string', vehicles: { map: VehicleState }, objectives: { map: ObjectiveState }, tickets_a: 'number', tickets_b: 'number', room_state: 'string' });
+defineTypes(BattleState, { players: { map: PlayerState }, protocol_version: 'number', map_name: 'string', time_of_day: 'string', room_mode: 'string', score_a: 'number', score_b: 'number', winner: 'string', vehicles: { map: VehicleState }, objectives: { map: ObjectiveState }, tickets_a: 'number', tickets_b: 'number', room_state: 'string', grenade_projectiles: { map: ProjectileState }, missile_projectiles: { map: ProjectileState } });

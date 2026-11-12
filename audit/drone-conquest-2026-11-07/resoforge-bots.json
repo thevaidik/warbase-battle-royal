@@ -1,0 +1,28 @@
+{
+  "origin": "http://127.0.0.1:18301",
+  "protocol": 13,
+  "protocol12_rejected": true,
+  "isolateCombat": false,
+  "directory": {
+    "maps": 11,
+    "publicConquestRooms": 11,
+    "onlinePlayers": 0
+  },
+  "optionalPacks": null,
+  "maps": [
+    {
+      "map": "resoforge",
+      "roomMode": "CONQUEST",
+      "objectives": 4,
+      "ascentMetres": 1.392,
+      "descentMetres": 2.034,
+      "settledSpeed": 0,
+      "driftMetres": 0,
+      "vehicleSeatRejected": true,
+      "cohortPlayers": 1,
+      "botsAfterJoin": 7
+    }
+  ],
+  "failures": [],
+  "ok": true
+}

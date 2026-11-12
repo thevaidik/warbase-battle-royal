@@ -7,8 +7,20 @@ func check(ok: bool, message: String) -> void:
   failures += 1
   push_error("CHECK FAIL: " + message)
 func run() -> void:
+ var steer_angles: Array[float] = []
+ for steer_input in [-0.35, 0.35]:
+  var forward_travel := 0.2
+  var forward_yaw := -forward_travel * tan(steer_input) / 3.99
+  var reverse_travel := -forward_travel
+  var reverse_yaw := -reverse_travel * tan(steer_input) / 3.99
+  var forward_angle: float = load("res://scripts/vehicles/CombatJeep.gd")._network_steer_from_motion(forward_yaw, forward_travel)
+  var reverse_angle: float = load("res://scripts/vehicles/CombatJeep.gd")._network_steer_from_motion(reverse_yaw, reverse_travel)
+  check(is_equal_approx(forward_angle, reverse_angle), "front tyres keep steering orientation when travel reverses")
+  steer_angles.append(forward_angle)
+ check(steer_angles[0] * steer_angles[1] < 0.0, "left and right front tyre orientation stay opposite")
  var car = load("res://scenes/CombatJeep.tscn").instantiate()
  car.network_controlled = true
+ check(car.physics_interpolation_mode == Node.PHYSICS_INTERPOLATION_MODE_OFF, "online render-owned jeep disables physics interpolation for its inherited branch")
  car.position = Vector3(30, 1, 40)
  car.network_position = car.position
  root.add_child(car)
@@ -33,6 +45,7 @@ func run() -> void:
  for i in 10: await physics_frame
  check(is_equal_approx(car._network_wheel_roll, previous_roll), "parked tyres stop rotating")
  car.network_controlled = false
+ check(car.physics_interpolation_mode == Node.PHYSICS_INTERPOLATION_MODE_INHERIT, "offline jeep restores inherited physics interpolation")
  for i in 5: await physics_frame
  for i in 4:
   check(car._wheel_visual_mounts[i].transform.is_equal_approx(car._wheels[i].transform), "offline visuals follow actual suspension")

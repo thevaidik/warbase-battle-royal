@@ -12,7 +12,8 @@ extends CharacterBody3D
 signal died(bot_name: String, killer: String, is_headshot: bool, source: String)
 
 const SCENE: PackedScene = preload("res://scenes/Bot.tscn")
-const SkeletalHitboxesScript: Script = preload("res://scripts/core/skeletal_hitboxes.gd")
+const DroneFlight = preload("res://scripts/drones/DroneFlight.gd")
+const HIT_RADIUS := WarGameState.DRONE_HIT_RADIUS
 
 enum AIState {
 	PATROL,
@@ -41,7 +42,6 @@ var _wander_target := Vector3.ZERO
 var _cover_target := Vector3.ZERO
 var _flank_side := 1.0
 var _flank_timer := 0.0
-var _jump_cooldown := 0.0
 
 # Sensory & Memory
 var _last_known_pos := Vector3.ZERO
@@ -59,121 +59,76 @@ var _burst_cooldown := 0.0
 var _burst_recoil_climb := 0.0
 
 # Visuals & Components
-var _current_anim := ""
 var _hitbox_areas: Array[Area3D] = []
-var _hitbox_helper: Node
 var _weapon_model: Node3D
-var _bone_attachment: BoneAttachment3D
 var _nameplate: Label3D
 var _los_query: PhysicsRayQueryParameters3D = null
+var _floor_probe_timer := 0.0
+var _hover_altitude := 0.8
+var _aim_pitch := 0.0
 
-@onready var soldier: Node3D = $Soldier
-@onready var anim: AnimationPlayer = $Soldier/AnimationPlayer
+@onready var drone: DroneVisual = $DroneVisual
+var anim: AnimationPlayer
 
 static func create_bot(bname: String, _pos: Vector3, bteam: String = "B") -> WarBot:
 	var b := SCENE.instantiate() as WarBot
 	b.bot_name = bname
 	b.team = bteam
 	b.name = "bot_%s" % bname
+	b.position = _pos
 	return b
 
 func _ready() -> void:
 	collision_layer = 2 # Soldier / Combatant layer (matches Player.gd)
 	collision_mask = 1 | 4 # Collide with World (1) and Vehicles (4)
-	floor_snap_length = 0.4
-	floor_max_angle = deg_to_rad(46.0)
-	floor_constant_speed = true
 	_flank_side = 1.0 if (randf() > 0.5) else -1.0
-	_jump_cooldown = randf_range(1.5, 3.5)
 	
 	# Pre-allocated ray query for zero-allocation AI vision checks
 	_los_query = PhysicsRayQueryParameters3D.new()
 	_los_query.collision_mask = 1 | 4
 	_los_query.exclude = [get_rid()]
 	
-	if anim:
-		for anim_name in ["Rifle Idle", "Rifle Run", "Firing walk Rifle", "Strafe Left", "Strafe Right", "Walking Backwards"]:
-			if anim.has_animation(anim_name):
-				anim.get_animation(anim_name).loop_mode = Animation.LOOP_LINEAR
-		if anim.has_animation("Rifle Jump"):
-			anim.get_animation("Rifle Jump").loop_mode = Animation.LOOP_NONE
-				
-	_setup_team_visuals()
-	_sanitize_soldier_materials(soldier)
 	_setup_weapon()
+	var initial_floor = ColyseusWorldGeometry.floor_height(global_position.x, global_position.z, global_position.y + 8.0)
+	if initial_floor != null:
+		_hover_altitude = float(initial_floor) + 0.9
 	
 	_nameplate = Label3D.new()
 	WarUI.configure_nameplate(_nameplate)
-	_nameplate.position = Vector3(0, 2.0, 0)
+	_nameplate.position = Vector3(0, 0.65, 0)
 	WarUI.refresh_nameplate(_nameplate, bot_name, GameState.selected_mode != "FFA" and team == GameState.local_team, true)
 	add_child(_nameplate)
 	
-	var hit_skeleton := soldier.get_node_or_null("Armature/Skeleton3D") as Skeleton3D
-	_hitbox_helper = SkeletalHitboxesScript.new()
-	_hitbox_areas = _hitbox_helper.setup(self, hit_skeleton, bot_name)
-	
-	_play("Rifle Idle")
+	_setup_drone_hitbox()
+
 
 func _setup_weapon() -> void:
-	var skel: Skeleton3D = soldier.get_node_or_null("Armature/Skeleton3D") as Skeleton3D
-	_weapon_model = WeaponView.build("ak47")
-	_weapon_model.name = "BotWeapon"
-	
-	if skel and skel.find_bone("mixamorig_RightHand") != -1:
-		_bone_attachment = BoneAttachment3D.new()
-		_bone_attachment.bone_name = "mixamorig_RightHand"
-		_bone_attachment.name = "RightHandSocket"
-		skel.add_child(_bone_attachment)
-		# Armature in AnimatedSoldier has a scale of (0.01, 0.01, 0.01)
-		# Scaling by 72.0 inside Skeleton3D produces a nicely proportioned military rifle in the hand
-		_weapon_model.scale = Vector3(72.0, 72.0, 72.0)
-		_weapon_model.position = Vector3(2.0, -4.0, 1.0)
-		_weapon_model.rotation_degrees = Vector3(90.0, 106.0, 0.0)
-		_bone_attachment.add_child(_weapon_model)
-	else:
-		_weapon_model.scale = Vector3(0.85, 0.85, 0.85)
-		_weapon_model.position = Vector3(0.22, 1.22, -0.32)
-		add_child(_weapon_model)
+	drone.configure(GameState.selected_mode != "FFA" and team == GameState.local_team, "ak47")
+	_weapon_model = drone.get_payload()
 
-func _setup_team_visuals() -> void:
-	var beacon_color := WarUI.CYAN if GameState.selected_mode != "FFA" and team == GameState.local_team else WarUI.DANGER
-	var beacon_mat := StandardMaterial3D.new()
-	beacon_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	beacon_mat.albedo_color = beacon_color
-	
-	for offset in [Vector3(-0.25, 1.45, 0.0), Vector3(0.25, 1.45, 0.0)]:
-		var beacon := MeshInstance3D.new()
-		var bm := SphereMesh.new()
-		bm.radius = 0.035
-		bm.height = 0.07
-		beacon.mesh = bm
-		beacon.position = offset
-		beacon.material_override = beacon_mat
-		add_child(beacon)
-
-func _sanitize_soldier_materials(n: Node) -> void:
-	if n is MeshInstance3D:
-		var mi := n as MeshInstance3D
-		if mi.mesh:
-			for s in mi.mesh.get_surface_count():
-				var mat = mi.get_surface_override_material(s)
-				if not mat:
-					mat = mi.mesh.surface_get_material(s)
-				if mat is StandardMaterial3D:
-					var m: StandardMaterial3D = mat.duplicate()
-					m.roughness = clampf(m.roughness, 0.88, 0.98)
-					m.metallic_specular = 0.05
-					m.metallic = 0.0
-					mi.set_surface_override_material(s, m)
-	for c in n.get_children():
-		_sanitize_soldier_materials(c)
-
-func _play(anim_name: String) -> void:
-	if _current_anim == anim_name or (dead and anim_name != "Dying"):
-		return
-	_current_anim = anim_name
-	if anim and anim.has_animation(anim_name):
-		anim.play(anim_name, 0.22)
+func _setup_drone_hitbox() -> void:
+	var area := Area3D.new()
+	area.name = "BotDroneHitbox"
+	area.set_meta("hitbox", true)
+	area.set_meta("player_id", bot_name)
+	area.set_meta("zone", "torso")
+	area.set_meta("mult", 1.0)
+	area.set_meta("from_bone", "coarse_body")
+	area.set_meta("to_bone", "coarse_body")
+	area.set_meta("radius", HIT_RADIUS)
+	area.collision_layer = 4
+	area.collision_mask = 0
+	area.monitorable = true
+	area.monitoring = false
+	var shape := CollisionShape3D.new()
+	var sphere := SphereShape3D.new()
+	sphere.radius = HIT_RADIUS
+	shape.shape = sphere
+	area.add_child(shape)
+	add_child(area)
+	_hitbox_areas = [area]
+	if is_instance_valid(_los_query):
+		_los_query.exclude = [get_rid(), area.get_rid()]
 
 func set_target(t: Node3D) -> void:
 	_target = t
@@ -194,8 +149,8 @@ func _has_sensory_detection() -> bool:
 		return _cached_los
 		
 	_los_timer = randf_range(0.10, 0.14)
-	var from := global_position + Vector3(0, 1.5, 0)
-	var to: Vector3 = _target.global_position + Vector3(0, 1.2, 0)
+	var from := global_position
+	var to: Vector3 = _target.global_position
 	var dist := from.distance_to(to)
 	
 	# Beyond max sensory range
@@ -281,38 +236,31 @@ func _find_best_cover() -> Vector3:
 	if not w or not is_instance_valid(_target):
 		return global_position
 		
-	var target_eye: Vector3 = _target.global_position + Vector3(0, 1.4, 0)
+	var target_center := _target.global_position
 	var best_pos := global_position
 	var best_score := -9999.0
 	
-	# Test 6 candidate sample points (6 radial directions at 7.0m)
+	# Test six same-altitude flight positions behind nearby map geometry.
 	# High-performance tactical sampling: 6 queries instead of 32 queries
 	var sample_dist := 7.0
 	for i in 6:
 		var ang := (TAU / 6.0) * float(i)
 		var offset: Vector3 = Vector3(cos(ang), 0.0, sin(ang)) * sample_dist
 		var candidate: Vector3 = global_position + offset
-		
-		# Ensure candidate is over solid ground
-		var ground_q := PhysicsRayQueryParameters3D.create(candidate + Vector3(0, 1.0, 0), candidate - Vector3(0, 2.0, 0))
-		ground_q.collision_mask = 1
-		ground_q.exclude = [get_rid()]
-		var g_hit := w.direct_space_state.intersect_ray(ground_q)
-		if g_hit.is_empty():
+		var resolved_candidate := ColyseusWorldGeometry.resolve_flight_move(global_position, candidate, GameState.DRONE_RADIUS)
+		if resolved_candidate.distance_to(candidate) > 0.5:
 			continue
-		candidate.y = float(g_hit.get("position", candidate).y)
-		
-		# Check line of sight from candidate to target
-		var test_eye: Vector3 = candidate + Vector3(0, 1.3, 0)
-		var los_q := PhysicsRayQueryParameters3D.create(test_eye, target_eye)
+		# Check the drone-center ray to the target drone's center.
+		var los_q := PhysicsRayQueryParameters3D.create(candidate, target_center)
 		los_q.collision_mask = 1
 		los_q.exclude = [get_rid()]
 		var los_hit := w.direct_space_state.intersect_ray(los_q)
 		
 		# A point is valid cover IF geometry blocks line of sight to target
-		var provides_cover: bool = not los_hit.is_empty() and float(los_hit.get("position", target_eye).distance_to(test_eye)) < test_eye.distance_to(target_eye) - 0.5
+		var provides_cover: bool = not los_hit.is_empty() and float(los_hit.get("position", target_center).distance_to(candidate)) < candidate.distance_to(target_center) - 0.5
 		if provides_cover:
 			# Score: prefers closer cover that maintains reasonable tactical distance from target
+			candidate = resolved_candidate
 			var dist_to_bot: float = global_position.distance_to(candidate)
 			var dist_to_target: float = candidate.distance_to(_target.global_position)
 			var score: float = 100.0 - dist_to_bot * 2.0 + clampf(dist_to_target, 8.0, 25.0)
@@ -343,12 +291,6 @@ func take_damage(dmg: float, zone: String = "torso", killer: String = "", source
 		if mgr and mgr.has_method("squad_alert"):
 			mgr.squad_alert(_last_known_pos, self)
 			
-	# Evasive reaction bunny-hop when taking fire
-	if is_on_floor() and _jump_cooldown <= 0.4 and randf() < 0.55:
-		velocity.y = 5.2
-		_jump_cooldown = randf_range(2.0, 3.8)
-		_play("Rifle Jump")
-			
 	# Tactical retreat: when health drops below 45, prioritize cover
 	if health < 45.0 and _state != AIState.COVER:
 		if _cover_target == Vector3.ZERO or global_position.distance_to(_cover_target) < 1.5:
@@ -374,12 +316,11 @@ func take_damage(dmg: float, zone: String = "torso", killer: String = "", source
 			main_col.set_deferred("disabled", true)
 		if is_instance_valid(_nameplate):
 			_nameplate.visible = false
+		if is_instance_valid(drone):
+			drone.begin_crash(velocity)
 		if is_instance_valid(_weapon_model):
 			_weapon_model.visible = false
-			
-		var main = get_tree().current_scene
-		if main and main.has_method("spawn_death_blood"): main.spawn_death_blood(global_position)
-		_play("Dying")
+
 		var tw := get_tree().create_tween()
 		tw.tween_interval(3.0)
 		tw.tween_callback(func() -> void:
@@ -390,7 +331,7 @@ func take_damage(dmg: float, zone: String = "torso", killer: String = "", source
 		)
 
 func respawn_at(pos: Vector3) -> void:
-	global_position = pos + Vector3(0, 0.2, 0)
+	global_position = pos + Vector3(0, 0.9, 0)
 	velocity = Vector3.ZERO
 	health = 100.0
 	dead = false
@@ -413,7 +354,11 @@ func respawn_at(pos: Vector3) -> void:
 		_nameplate.visible = true
 	if is_instance_valid(_weapon_model):
 		_weapon_model.visible = true
-	_play("Rifle Idle")
+	if is_instance_valid(drone):
+		drone.configure(GameState.selected_mode != "FFA" and team == GameState.local_team, "ak47")
+		drone.set_crash_hidden(false)
+		_weapon_model = drone.get_payload()
+
 
 func take_explosion(dmg: float) -> void:
 	var gs := _get_gs()
@@ -434,7 +379,6 @@ func _physics_process(delta: float) -> void:
 	_memory_timer -= delta
 	_burst_shot_interval -= delta
 	_burst_cooldown -= delta
-	_jump_cooldown -= delta
 	
 	var has_direct_los := _has_sensory_detection()
 	
@@ -501,14 +445,11 @@ func _physics_process(delta: float) -> void:
 					target_vel = facing.normalized() * (speed * 0.55)
 					if absf(diff) > deg_to_rad(40.0):
 						target_vel *= 0.3
-					_play("Rifle Run")
+
 				else:
 					_is_wandering = false
 					_state_timer = randf_range(1.5, 3.0)
-					_play("Rifle Idle")
-			else:
-				_play("Rifle Idle")
-				
+
 		AIState.INVESTIGATE:
 			var to_lkp := _last_known_pos - global_position
 			to_lkp.y = 0.0
@@ -522,11 +463,11 @@ func _physics_process(delta: float) -> void:
 				var facing := -global_transform.basis.z
 				facing.y = 0.0
 				target_vel = facing.normalized() * (speed * 0.8)
-				_play("Firing walk Rifle")
+
 			else:
 				# Arrived at last known position: hold and scan 360
 				rotation.y += delta * 1.5
-				_play("Rifle Idle")
+
 				if _state_timer <= 0.0:
 					_state = AIState.PATROL
 					
@@ -552,22 +493,14 @@ func _physics_process(delta: float) -> void:
 				if dist < 6.0:
 					# Close-range defense: backpedal rapidly while shooting
 					target_vel = -facing * (speed * 0.85)
-					_play("Walking Backwards")
+
 				elif dist > 24.0:
 					# Long range: advance in bounding sprint
 					target_vel = (facing * 0.8 + strafe_right * (_flank_side * 0.4)).normalized() * speed
-					_play("Firing walk Rifle")
+
 				else:
 					# Mid-range: erratic tactical strafe
 					target_vel = strafe_right * (_flank_side * speed * 0.75)
-					if _flank_side > 0.0:
-						_play("Strafe Right")
-					else:
-						_play("Strafe Left")
-						
-				# Execute disciplined burst fire
-				_process_burst_fire(delta)
-				
 		AIState.FLANK:
 			if is_instance_valid(_target):
 				var to_target := _target.global_position - global_position
@@ -583,7 +516,7 @@ func _physics_process(delta: float) -> void:
 				rotation.y += diff * minf(1.0, 10.0 * delta)
 				
 				target_vel = flank_wish * speed
-				_play("Rifle Run")
+
 				
 				if has_direct_los and dist < 20.0:
 					_state = AIState.ENGAGE
@@ -599,14 +532,14 @@ func _physics_process(delta: float) -> void:
 				rotation.y += diff * minf(1.0, 10.0 * delta)
 				
 				target_vel = wish_dir * (speed * 1.1) # Sprint to cover
-				_play("Rifle Run")
+
 			else:
 				# In cover: face outward towards last known target position and hold
 				if is_instance_valid(_target):
 					var to_t := _last_known_pos - global_position
 					to_t.y = 0.0
 					rotation.y = atan2(-to_t.normalized().x, -to_t.normalized().z)
-				_play("Rifle Idle")
+
 				if _state_timer <= 0.0:
 					# Re-engage once regrouped
 					_state = AIState.ENGAGE
@@ -619,78 +552,85 @@ func _physics_process(delta: float) -> void:
 			var diff := wrapf(target_yaw - rotation.y, -PI, PI)
 			rotation.y += diff * minf(1.0, 10.0 * delta)
 			target_vel = wish_dir * speed
-			_play("Rifle Run")
+
 			if has_direct_los:
 				_state = AIState.ENGAGE
 				
-	# Physics velocity integration
-	var accel := 16.0 if target_vel.length() > 0.1 else 24.0
-	velocity.x = move_toward(velocity.x, target_vel.x, accel * delta)
-	velocity.z = move_toward(velocity.z, target_vel.z, accel * delta)
-	
-	# Dynamic Athletic Jump Triggers:
-	if is_on_floor() and _jump_cooldown <= 0.0:
-		# 1. Obstacle Vaulting: when moving forward and encountering a wall or curb (never vehicles)
-		if is_on_wall() and target_vel.length() > 0.8:
-			var hit_vehicle := false
-			for i in get_slide_collision_count():
-				var col := get_slide_collision(i)
-				var c := col.get_collider()
-				if c and (c.is_in_group("combat_jeeps") or ("collision_layer" in c and c.collision_layer & 4 != 0)):
-					hit_vehicle = true
-					break
-			if not hit_vehicle:
-				velocity.y = 5.4
-				_jump_cooldown = 1.6
-				_play("Rifle Jump")
-		# 2. Combat Evasive Strafe / Bunny-Hop: during intense firefight
-		elif (_state == AIState.ENGAGE or _state == AIState.FLANK):
-			if randf() < 0.45:
-				velocity.y = 5.2
-				_jump_cooldown = randf_range(2.4, 4.5)
-				_play("Rifle Jump")
-			else:
-				_jump_cooldown = 1.0
-		# 3. Patrol / Observation Hopping: athletic terrain traversal
-		elif target_vel.length() > 1.2 and randf() < 0.20:
-			velocity.y = 4.8
-			_jump_cooldown = randf_range(5.0, 8.5)
-			_play("Rifle Jump")
-
-	if not is_on_floor():
-		velocity.y -= 18.0 * delta
-		if velocity.y > -2.0:
-			_play("Rifle Jump")
+	# Free flight uses the same map mesh collision resolver and 0.4 m radius as
+	# player drones. Hover just above the floor when idle; during combat maintain
+	# a modest vertical offset from the target instead of walking or jumping.
+	var desired := target_vel
+	if is_instance_valid(_target) and (_state == AIState.ENGAGE or _state == AIState.FLANK):
+		desired.y = clampf((_target.global_position.y + 0.4 - global_position.y) * 1.5, -3.0, 3.0)
 	else:
-		if velocity.y < 0.0:
-			velocity.y = -0.5
-			
-	move_and_slide()
-	
-	for i in get_slide_collision_count():
-		var col := get_slide_collision(i)
-		var collider := col.get_collider()
-		if collider and (collider.is_in_group("combat_jeeps") or ("collision_layer" in collider and collider.collision_layer & 4 != 0)):
-			var normal := col.get_normal()
-			if velocity.dot(-normal) > 0.0:
-				velocity -= normal * velocity.dot(normal)
-	
-	var horiz_speed := Vector2(velocity.x, velocity.z).length()
-	if _current_anim in ["Rifle Run", "Firing walk Rifle", "Strafe Left", "Strafe Right", "Walking Backwards"]:
-		anim.speed_scale = clampf(horiz_speed / maxf(0.1, speed * 0.7), 0.7, 1.3)
-	elif _current_anim == "Rifle Jump":
-		anim.speed_scale = 1.1
-	else:
-		anim.speed_scale = 1.0
-		
-	if global_position.y < -5.0:
-		take_damage(999.0, "torso")
+		_floor_probe_timer -= delta
+		if _floor_probe_timer <= 0.0:
+			_floor_probe_timer = 0.5
+			var floor_value = ColyseusWorldGeometry.floor_height(global_position.x, global_position.z, global_position.y + 8.0)
+			if floor_value != null:
+				_hover_altitude = float(floor_value) + 0.9
+		desired.y = clampf((_hover_altitude - global_position.y) * 2.0, -3.0, 3.0)
+	_update_weapon_aim(delta, has_direct_los)
+	var c := cos(rotation.y)
+	var s := sin(rotation.y)
+	var command := {
+		"move_x": desired.x * c - desired.z * s,
+		"move_y": desired.y / 6.0,
+		"move_z": -desired.x * s - desired.z * c,
+		"yaw": rotation.y,
+		"sprint": 0.0
+	}
+	var flight: Dictionary = DroneFlight.step(global_position, velocity, command, delta)
+	global_position = flight.position
+	velocity = flight.velocity
+	if is_instance_valid(drone):
+		drone.apply_motion(velocity, rotation.y, _aim_pitch, false)
+	if _state == AIState.ENGAGE and has_direct_los:
+		_process_burst_fire(delta)
 
 # ==============================================================================
 # BALLISTIC PREDICTIVE BURST FIRE SYSTEM
 # ==============================================================================
+func _predicted_target_position(from_position: Vector3) -> Vector3:
+	if not is_instance_valid(_target):
+		return from_position
+	var target_velocity: Vector3 = _target.velocity if "velocity" in _target else Vector3.ZERO
+	var distance := from_position.distance_to(_target.global_position)
+	return _target.global_position + target_velocity * (distance / 280.0)
+
+func _update_weapon_aim(delta: float, has_direct_los: bool) -> void:
+	if not is_instance_valid(_target):
+		_aim_pitch = move_toward(_aim_pitch, 0.0, delta * 2.0)
+		return
+	var origin := drone.get_muzzle_global() if is_instance_valid(drone) else global_position
+	var target_position := _predicted_target_position(origin)
+	var aim_vector := target_position - origin
+	var horizontal_distance := Vector2(aim_vector.x, aim_vector.z).length()
+	if horizontal_distance < 0.001 and absf(aim_vector.y) < 0.001:
+		return
+	var target_yaw := atan2(-aim_vector.x, -aim_vector.z)
+	var yaw_error := wrapf(target_yaw - rotation.y, -PI, PI)
+	var yaw_rate := 10.0 if has_direct_los else 6.0
+	rotation.y += yaw_error * minf(1.0, yaw_rate * delta)
+	var target_pitch := clampf(atan2(aim_vector.y, maxf(horizontal_distance, 0.001)), -1.50, 1.50)
+	var pitch_rate := 9.0 if has_direct_los else 5.0
+	_aim_pitch = move_toward(_aim_pitch, target_pitch, pitch_rate * delta)
+
+func _has_weapon_solution(max_error_degrees: float = 6.0) -> bool:
+	if not is_instance_valid(_target) or not is_instance_valid(drone):
+		return false
+	var payload := drone.get_payload()
+	if not is_instance_valid(payload):
+		return false
+	var origin := drone.get_muzzle_global()
+	var target_vector := _predicted_target_position(origin) - origin
+	if target_vector.length_squared() < 0.0001:
+		return false
+	var muzzle_forward := -payload.global_transform.basis.z.normalized()
+	return muzzle_forward.angle_to(target_vector.normalized()) <= deg_to_rad(max_error_degrees)
+
 func _process_burst_fire(_delta: float) -> void:
-	if not is_instance_valid(_target) or dead or not _has_sensory_detection():
+	if not is_instance_valid(_target) or dead or not _has_sensory_detection() or not _has_weapon_solution():
 		_burst_rounds_left = 0
 		return
 		
@@ -711,27 +651,23 @@ func _process_burst_fire(_delta: float) -> void:
 
 func _fire_single_bullet() -> void:
 	var gs := _get_gs()
-	if (gs and not gs.bot_damage_enabled) or not is_instance_valid(_target) or dead:
+	if (gs and not gs.bot_damage_enabled) or not is_instance_valid(_target) or dead or not _has_weapon_solution():
 		return
-		
-	var from := global_position + Vector3(0, 1.25, 0)
-	if is_instance_valid(_weapon_model):
-		var mz := _weapon_model.get_node_or_null("Muzzle")
-		if mz:
-			from = (mz as Node3D).global_position
-			
-	var target_chest := _target.global_position + Vector3(0, 1.15, 0)
-	var dist := from.distance_to(target_chest)
-	
-	# Predictive aim: calculate player velocity and lead the target
-	var player_vel: Vector3 = _target.velocity if "velocity" in _target else Vector3.ZERO
-	var bullet_flight_time: float = dist / 280.0
-	var predicted_lead := player_vel * bullet_flight_time
-	
-	# Aim dispersion with authentic recoil climb
-	var bloom := randf_range(0.12, 0.28)
-	var dispersion := Vector3(randf_range(-bloom, bloom), randf_range(-bloom * 0.5, bloom * 0.5) + _burst_recoil_climb, randf_range(-bloom, bloom))
-	var to: Vector3 = target_chest + predicted_lead + dispersion
+	var from := drone.get_muzzle_global()
+	var target_point := _predicted_target_position(from)
+	var dist := from.distance_to(target_point)
+	var muzzle_forward := -drone.get_payload().global_transform.basis.z.normalized()
+	# Spread bends the actual muzzle direction by a small angle, so the tracer
+	# follows the gimballed payload instead of inventing a separate rifle ray.
+	var right := muzzle_forward.cross(Vector3.UP).normalized()
+	if right.length_squared() < 0.0001:
+		right = muzzle_forward.cross(Vector3.RIGHT).normalized()
+	var up := right.cross(muzzle_forward).normalized()
+	var bloom := randf_range(0.002, 0.008)
+	var spread_right := randf_range(-bloom, bloom)
+	var spread_up := randf_range(-bloom * 0.5, bloom * 0.5) + _burst_recoil_climb * 0.005
+	var shot_direction := (muzzle_forward + right * spread_right + up * spread_up).normalized()
+	var to: Vector3 = from + shot_direction * maxf(dist, 1.0)
 	
 	var main := get_tree().current_scene
 	if main and main.has_method("bot_shoot_fx"):

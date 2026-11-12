@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { gunzipSync } from 'node:zlib';
+import { capsuleTriangle, type CapsuleContact } from './capsule-contact.js';
 
 // These IDs exactly match MainMenu.PLAYABLE_MAPS in the Godot client. Keep the
 // list explicit so unsupported maps fail closed instead of receiving fake floors.
@@ -7,11 +8,10 @@ export const PLAYABLE_MAPS = Object.freeze(['football', 'resoforge', 'industrial
 export type PlayableMap = typeof PLAYABLE_MAPS[number];
 export type Vec3 = readonly [x: number, y: number, z: number];
 
-/** Stop the vertical integrator on capsule contact, including edge/ceiling
- * contacts that a single floor ray beneath the capsule centre cannot see. */
-export function settledVerticalVelocity(vy: number, requestedY: number, resolvedY: number, floor: number | undefined): number {
-  if (vy < 0 && (resolvedY > requestedY + 0.00001 || (floor !== undefined && resolvedY <= floor + 0.03))) return 0;
-  if (vy > 0 && resolvedY < requestedY - 0.00001) return 0;
+/** Settlement uses capsule support; quantizing a free-flight pose is not contact. */
+export function settledVerticalVelocity(vy: number, requestedY: number, resolvedY: number, grounded: boolean): number {
+  if (vy < 0 && grounded) return 0;
+  if (vy > 0 && resolvedY < requestedY - 0.001) return 0;
   return vy;
 }
 
@@ -28,12 +28,7 @@ type CollisionScratch = { stack: number[]; candidateTriangles: number[]; fractio
 type CollisionCandidates = readonly number[] | null;
 
 const geometryCache = new Map<PlayableMap, WorldGeometry>();
-const CAPSULE_LEVELS = [0.08, 0.24, 0.4, 0.9, 1.4, 1.56, 1.72] as const;
-const CAPSULE_SPOKES = Array.from({ length: 13 }, (_, spoke) => {
-  if (spoke === 12) return [0, 0] as const;
-  const angle = (2 * Math.PI * spoke) / 12;
-  return [Math.cos(angle), Math.sin(angle)] as const;
-});
+function canonicalMove(p: Vec3): Vec3 { return p.map(value => Math.floor(value * 1000 + 0.5) / 1000) as unknown as Vec3; }
 
 function finiteVec(value: Vec3): boolean { return value.length === 3 && value.every(Number.isFinite); }
 
@@ -149,6 +144,8 @@ export class WorldGeometry {
   readonly name: PlayableMap;
   readonly navStep: number;
   readonly spawns: readonly Vec3[];
+  private flightPropVertices = new Float32Array();
+  private flightPropBounds: Array<{min: Vec3;max: Vec3;first: number}> = [];
   readonly vehicleSpawns: readonly (readonly [number, number, number, number])[];
   private readonly buffers: GeometryBuffers;
   // World queries are synchronous in the room loop. Reusing this traversal
@@ -174,6 +171,29 @@ export class WorldGeometry {
       if (spawn.length !== 4 || !spawn.every(Number.isFinite)) throw new Error(`Invalid authored ${name} vehicle spawn`);
       return Object.freeze([spawn[0], spawn[1], spawn[2], spawn[3]]) as readonly [number, number, number, number];
     }));
+    this.buildFlightProps();
+  }
+
+  /** Stationary vehicle chassis/cabin shapes remain world obstacles in drone
+   * mode. Reuse the same sphere/triangle solver, not a separate collision rule. */
+  private buildFlightProps(): void {
+    const vertices:number[]=[];
+    const faces=[[0,2,1],[0,3,2],[4,5,6],[4,6,7],[0,1,5],[0,5,4],[3,7,6],[3,6,2],[0,4,7],[0,7,3],[1,2,6],[1,6,5]];
+    for(const spawn of this.vehicleSpawns) {
+      const hit=this.trace([spawn[0],spawn[1]+2.5,spawn[2]],[spawn[0],spawn[1]-5,spawn[2]]);
+      const baseY=hit&&Math.abs(hit.normal[1])>=.65?hit.point[1]+.08:spawn[1];
+      for(const [lo,hi] of [[[-1.15,.4,-2.5],[1.15,1.5,2.5]],[[-1.1,1.475,-1.8],[1.1,2.425,2.2]]] as const) {
+        const c=Math.cos(spawn[3]),ss=Math.sin(spawn[3]);
+        const points:Vec3[]=[[lo[0],lo[1],lo[2]],[hi[0],lo[1],lo[2]],[hi[0],hi[1],lo[2]],[lo[0],hi[1],lo[2]],[lo[0],lo[1],hi[2]],[hi[0],lo[1],hi[2]],[hi[0],hi[1],hi[2]],[lo[0],hi[1],hi[2]]].map(p=>[Math.fround(spawn[0]+c*p[0]+ss*p[2]),Math.fround(baseY+p[1]),Math.fround(spawn[2]-ss*p[0]+c*p[2])]);
+        this.flightPropBounds.push({min:[Math.min(...points.map(p=>p[0])),Math.min(...points.map(p=>p[1])),Math.min(...points.map(p=>p[2]))],max:[Math.max(...points.map(p=>p[0])),Math.max(...points.map(p=>p[1])),Math.max(...points.map(p=>p[2]))],first:vertices.length/9});
+        for(const face of faces)for(const index of face)vertices.push(...points[index]);
+      }
+    }
+    this.flightPropVertices=Float32Array.from(vertices);
+  }
+
+  private contactTriangle(at:Vec3,radius:number,height:number,triangle:number,margin:number):CapsuleContact|null {
+    return capsuleTriangle(at,radius,height,triangle<0?this.flightPropVertices:this.buffers.vertices,triangle<0?-triangle-1:triangle,margin);
   }
 
   trace(from: Vec3, to: Vec3): (RayHit & { point: Vec3 }) | null {
@@ -227,15 +247,14 @@ export class WorldGeometry {
     const { stack, candidateTriangles } = this.collisionScratch;
     candidateTriangles.length = 0; stack.length = 0; stack.push(0);
     const pad = 1e-4;
-    const minX = Math.min(from[0], to[0]) - radius - pad, maxX = Math.max(from[0], to[0]) + radius + pad;
-    const minY = Math.min(from[1], to[1]) + CAPSULE_LEVELS[0] - pad;
-    const maxY = Math.max(from[1], to[1]) + Math.min(stepHeight, 0.45) + Math.min(height, CAPSULE_LEVELS[CAPSULE_LEVELS.length - 1]) + pad;
-    const minZ = Math.min(from[2], to[2]) - radius - pad, maxZ = Math.max(from[2], to[2]) + radius + pad;
+    const minX = Math.min(from[0], to[0]) - radius - stepHeight - pad, maxX = Math.max(from[0], to[0]) + radius + stepHeight + pad;
+    const minY = Math.min(from[1], to[1]) - stepHeight - radius - pad;
+    const maxY = Math.max(from[1], to[1]) + stepHeight + height + radius + pad;
+    const minZ = Math.min(from[2], to[2]) - radius - stepHeight - pad, maxZ = Math.max(from[2], to[2]) + radius + stepHeight + pad;
     const { nodes, order, vertices } = this.buffers;
-    // Reuse moderately dense local triangle sets instead of falling back to a
-    // full BVH traversal for every capsule spoke. A 128-triangle cap preserves
-    // the exact collision result while avoiding that fallback on busy maps.
-    const maximumReusableTriangles = 128;
+    // Keep the complete local contact set: dropping dense-map triangles would
+    // make collision depend on asset complexity.
+
     while (stack.length) {
       const node = nodes[stack.pop()!];
       if (!node || node.maxX < minX || node.minX > maxX || node.maxY < minY || node.minY > maxY || node.maxZ < minZ || node.minZ > maxZ) continue;
@@ -251,7 +270,7 @@ export class WorldGeometry {
         const cx = vertices[offset + 6], cy = vertices[offset + 7], cz = vertices[offset + 8];
         if (Math.max(ax, bx, cx) < minX || Math.min(ax, bx, cx) > maxX || Math.max(ay, by, cy) < minY || Math.min(ay, by, cy) > maxY || Math.max(az, bz, cz) < minZ || Math.min(az, bz, cz) > maxZ) continue;
         candidateTriangles.push(order[index]);
-        if (candidateTriangles.length > maximumReusableTriangles) { candidateTriangles.length = 0; return null; }
+
       }
     }
     return candidateTriangles;
@@ -273,75 +292,109 @@ export class WorldGeometry {
     return fromY + (-100 - fromY) * hit.fraction;
   }
 
-  private capsuleBlocked(from: Vec3, to: Vec3, radius: number, height: number, horizontalOnly = false, candidates?: CollisionCandidates): boolean {
-    // A zero-length query cannot intersect a triangle in the existing ray model.
-    if (from[0] === to[0] && from[1] === to[1] && from[2] === to[2]) return false;
-    const deltaY = to[1] - from[1];
-    for (const yOffset of CAPSULE_LEVELS) {
-      if (yOffset > height) continue;
-      let ringRadius = radius;
-      if (yOffset < radius) ringRadius = Math.sqrt(Math.max(0, radius * radius - (radius - yOffset) ** 2));
-      else if (yOffset > height - radius) ringRadius = Math.sqrt(Math.max(0, radius * radius - (yOffset - (height - radius)) ** 2));
-      for (let spoke = 0; spoke < CAPSULE_SPOKES.length; spoke++) {
-        const ox = CAPSULE_SPOKES[spoke][0] * ringRadius, oz = CAPSULE_SPOKES[spoke][1] * ringRadius;
-        const hit = this.collisionRaycast(from[0] + ox, from[1] + yOffset, from[2] + oz, to[0] + ox, to[1] + yOffset, to[2] + oz, candidates);
-        if (hit.fraction > 1 || hit.fraction <= 1e-4) continue;
-        if (horizontalOnly && Math.abs(deltaY) < 1e-6 && Math.abs(hit.normalY) >= 0.5) continue;
-        return true;
-      }
+  private contacts(at: Vec3, radius: number, height: number, margin: number, candidates: readonly number[]): CapsuleContact[] {
+    const contacts: CapsuleContact[] = [];
+    for (const triangle of candidates) {
+      const hit = this.contactTriangle(at, radius, height, triangle, margin);
+      if (hit) contacts.push(hit);
     }
-    return false;
+    return contacts;
   }
 
-  /** Capsule move with axis sliding and the existing 0.45 m grounded step. */
-  resolveMove(from: Vec3, to: Vec3, radius = 0.4, height = 1.8): Vec3 {
-    if (!finiteVec(from)) return this.spawns[0];
-    if (!finiteVec(to)) return from;
-    if (![radius, height].every(Number.isFinite) || radius <= 0 || height < 2 * radius) return from;
-    radius = Math.min(radius, 1.5); height = Math.min(height, 4);
-    let x = from[0], y = from[1], z = from[2];
-    const stepHeight = 0.45;
-    const targetFloor = this.floorHeight(to[0], to[2], y + stepHeight);
-    // Exact static fixed point: horizontal sweeps and the clamped vertical
-    // sweep all have zero length. Keep requested X/Z (including signed zero).
-    if (to[0] === x && to[2] === z && to[1] <= y && targetFloor === y) {
-      return [to[0], targetFloor, to[2]];
-    }
-    const candidates = this.capsuleCandidates(from, to, radius, height, stepHeight);
-    if (targetFloor !== undefined && targetFloor > y + 0.03 && targetFloor <= y + stepHeight) {
-      const steppedFrom: Vec3 = [x, targetFloor, z], steppedTarget: Vec3 = [to[0], targetFloor, to[2]];
-      if (!this.capsuleBlocked(from, steppedFrom, radius, height, false, candidates) && !this.capsuleBlocked(steppedFrom, steppedTarget, radius, height, true, candidates)) { x = to[0]; y = targetFloor; z = to[2]; }
-    }
-    const moveAxis = (axis: 0 | 2, target: number): number => {
-      const current: Vec3 = [x, y, z], destination: Vec3 = axis === 0 ? [target, y, z] : [x, y, target];
-      if (!this.capsuleBlocked(current, destination, radius, height, true, candidates)) return target;
-      let safe = 0, blocked = 1;
-      for (let iteration = 0; iteration < 10; iteration++) {
-        const middle = (safe + blocked) * 0.5;
-        const candidate: Vec3 = axis === 0 ? [x + (target - x) * middle, y, z] : [x, y, z + (target - z) * middle];
-        if (this.capsuleBlocked(current, candidate, radius, height, true, candidates)) blocked = middle; else safe = middle;
-      }
-      return axis === 0 ? x + (target - x) * safe : z + (target - z) * safe;
-    };
-    x = moveAxis(0, to[0]); z = moveAxis(2, to[2]);
-    // Axis sliding can change X/Z; reuse only when both the location and
-    // ray origin are exactly the same as the target-floor query above.
-    const floor = x === to[0] && z === to[2] && y === from[1] && to[1] <= y
-      ? targetFloor : this.floorHeight(x, z, Math.max(y, to[1]) + stepHeight);
-    let targetY = to[1];
-    if (floor !== undefined && targetY <= floor && y >= floor - stepHeight) targetY = floor;
-    const verticalFrom: Vec3 = [x, y, z], verticalTo: Vec3 = [x, targetY, z];
-    if (!this.capsuleBlocked(verticalFrom, verticalTo, radius, height, false, candidates)) y = targetY;
-    else {
-      let safe = 0, blocked = 1;
-      for (let iteration = 0; iteration < 10; iteration++) {
-        const middle = (safe + blocked) * 0.5, candidate: Vec3 = [x, y + (targetY - y) * middle, z];
-        if (this.capsuleBlocked(verticalFrom, candidate, radius, height, false, candidates)) blocked = middle; else safe = middle;
-      }
-      y += (targetY - y) * safe;
-    }
-    return [x, y, z];
+  /** The actual lower hemisphere must touch a walkable surface. A centre ray
+   * cannot describe support at a ledge, on stairs, or on sloping terrain. */
+  isGrounded(at: Vec3, radius = 0.4, height = 1.8): boolean {
+    if (!finiteVec(at)) return false;
+    const candidates = this.capsuleCandidates(at, at, radius + 0.06, height, 0)!;
+    return this.contacts(at, radius, height, 0.055, candidates).some(hit => (hit.normal[1] >= 0.5 || (Math.abs(hit.surfaceNormalY) >= 0.5 && hit.normal[1] > 0.05)) && hit.depth <= 0.09);
   }
+
+  /** Drone state is its centre; the shared contact primitive uses feet origin.
+   * Ground profiles may request a short step using the same swept contact solver. */
+  resolveFlightMove(from: Vec3, to: Vec3, radius = 0.4, stepHeight = 0): Vec3 {
+    const feet: Vec3=[from[0],from[1]-radius,from[2]];
+    const target: Vec3=[to[0],to[1]-radius,to[2]];
+    const result=this.resolveMove(feet, target, radius, radius * 2, stepHeight > 0, stepHeight, true);
+    return [result[0],result[1]+radius,result[2]];
+  }
+
+  /** Substepped swept-volume collision with contact-plane sliding. The same
+   * capsule dimensions, skin, iterations and stepping rule run in Godot. */
+  resolveMove(from: Vec3, to: Vec3, radius = 0.4, height = 1.8, allowStep = true, stepHeight = 0.45, droneMove = false): Vec3 {
+    if (!finiteVec(from)) return this.spawns[0];
+    if (!finiteVec(to) || ![radius, height].every(Number.isFinite) || radius <= 0 || height < 2 * radius) return from;
+    radius = Math.min(radius, 1.5); height = Math.min(height, 4);
+    const grounded = allowStep && this.isGrounded(from, radius, height);
+    const candidates = [...this.capsuleCandidates(from, to, radius, height, Math.max(0.5, stepHeight))!];
+    if (!allowStep || droneMove) for (const box of this.flightPropBounds) {
+      if(box.max[0]<Math.min(from[0],to[0])-radius-.5 || box.min[0]>Math.max(from[0],to[0])+radius+.5 || box.max[1]<Math.min(from[1],to[1])-.5 || box.min[1]>Math.max(from[1],to[1])+height+.5 || box.max[2]<Math.min(from[2],to[2])-radius-.5 || box.min[2]>Math.max(from[2],to[2])+radius+.5)continue;
+      for(let i=0;i<12;i++)candidates.push(-(box.first+i+1));
+    }
+    const skin = 0.008;
+    const recover = (start: Vec3): Vec3 => {
+      let p: Vec3 = start;
+      for (let iteration = 0; iteration < 4; iteration++) {
+        let corrected = false;
+        // Recompute each contact after previous corrections; applying stale
+        // depths twice at a shared triangle edge would launch the capsule.
+        for (const triangle of candidates) {
+          const hit = this.contactTriangle(p, radius, height, triangle, skin);
+          if (!hit || hit.depth <= 0.000001) continue;
+          p = [p[0] + hit.normal[0] * hit.depth, p[1] + hit.normal[1] * hit.depth, p[2] + hit.normal[2] * hit.depth];
+          corrected = true;
+        }
+        if (!corrected) break;
+      }
+      return p;
+    };
+    const attempt = (previous: Vec3, desired: Vec3): Vec3 => {
+      const next = recover(desired);
+      if (Math.hypot(next[0]-desired[0],next[1]-desired[1],next[2]-desired[2]) > 0.2) return previous;
+      return this.contacts(next,radius,height,skin,candidates).some(hit=>hit.depth>0.001) ? previous : next;
+    };
+    const advance = (previous: Vec3, desired: Vec3): Vec3 => {
+      const next=attempt(previous,desired);
+      const nextCell=canonicalMove(next),previousCell=canonicalMove(previous);
+      if(nextCell.some((value,axis)=>value!==previousCell[axis]))return next;
+      // An impossible horizontal gap must not cancel gravity or tangential
+      // movement. Resolve the unblocked components from the last clear pose.
+      let result=previous;
+      for(const axis of [1,0,2] as const) {
+        const amount=desired[axis]-previous[axis];
+        if(amount===0)continue;
+        const target: [number,number,number]=[...result];target[axis]+=amount;
+        result=attempt(result,target);
+      }
+      return result;
+    };
+    const delta: Vec3 = [to[0]-from[0],to[1]-from[1],to[2]-from[2]];
+    const count = Math.max(1, Math.ceil(Math.hypot(...delta) / Math.min(radius * 0.25, 0.1)));
+    // Reject malicious/unbounded teleports; normal fixed-tick movement is 1–3 steps.
+    if (count > 512) return from;
+    let p = advance(from,from);
+    for (let i=0;i<count;i++) p = advance(p,[p[0]+delta[0]/count,p[1]+delta[1]/count,p[2]+delta[2]/count]);
+    const horizontal = Math.hypot(delta[0],delta[2]);
+    // Grounded standing must not turn gravity into sideways slope motion.
+    if (grounded && horizontal === 0 && delta[1] <= 0) return canonicalMove(advance(from,from));
+    // Up/forward/down stepping only starts from support, never during a jump.
+    const stepTolerance = droneMove ? Math.min(0.01, horizontal * 0.25) : 0.01;
+    if (grounded && delta[1] <= 0 && horizontal > 0.000001 && ((p[0]-from[0])*delta[0]+(p[2]-from[2])*delta[2])/horizontal < horizontal - stepTolerance) {
+      const up: Vec3 = [from[0],from[1]+stepHeight,from[2]];
+      if (!this.contacts(up,radius,height,skin,candidates).length) {
+        let step = up;
+        for(let i=0;i<count;i++) step=advance(step,[step[0]+delta[0]/count,step[1],step[2]+delta[2]/count]);
+        // A step must not teleport through a ceiling on its way up.
+        let clear=true;
+        for(let lift=0.1;lift<stepHeight;lift+=0.1) if(this.contacts([from[0],from[1]+lift,from[2]],radius,height,0,candidates).some(hit=>hit.normal[1]<-0.5)){clear=false;break;}
+        if(clear) {
+          for(let i=0;i<6;i++) step=advance(step,[step[0],step[1]-stepHeight/6,step[2]]);
+          if (((step[0]-p[0])*delta[0]+(step[2]-p[2])*delta[2])/horizontal > 0.001 && this.isGrounded(step,radius,height)) p=step;
+        }
+      }
+    }
+    return canonicalMove(p);
+  }
+
 }
 
 export function normalizeMapId(value: unknown): PlayableMap | null {

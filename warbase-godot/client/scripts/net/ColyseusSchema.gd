@@ -37,6 +37,11 @@ class PlayerState extends Colyseus.Schema:
 		Colyseus.Schema.Field.new("throwable", Colyseus.Schema.STRING),
 		Colyseus.Schema.Field.new("vehicle_index", Colyseus.Schema.NUMBER),
 		Colyseus.Schema.Field.new("vehicle_generation", Colyseus.Schema.NUMBER),
+		Colyseus.Schema.Field.new("mobility_mode", Colyseus.Schema.STRING),
+		Colyseus.Schema.Field.new("primary_payload", Colyseus.Schema.STRING),
+		Colyseus.Schema.Field.new("secondary_payload", Colyseus.Schema.STRING),
+		Colyseus.Schema.Field.new("reserve_ammo", Colyseus.Schema.NUMBER),
+		Colyseus.Schema.Field.new("last_shot_id", Colyseus.Schema.NUMBER),
 	]
 		_definition.make_read_only()
 		return _definition
@@ -78,6 +83,26 @@ class ObjectiveState extends Colyseus.Schema:
 		_definition.make_read_only()
 		return _definition
 
+class ProjectileState extends Colyseus.Schema:
+	static var _definition: Array = []
+	static func definition() -> Array:
+		if not _definition.is_empty(): return _definition
+		_definition = [
+			Colyseus.Schema.Field.new("id", Colyseus.Schema.STRING),
+			Colyseus.Schema.Field.new("owner", Colyseus.Schema.STRING),
+			Colyseus.Schema.Field.new("kind", Colyseus.Schema.STRING),
+			Colyseus.Schema.Field.new("request_id", Colyseus.Schema.NUMBER),
+			Colyseus.Schema.Field.new("x", Colyseus.Schema.FLOAT32),
+			Colyseus.Schema.Field.new("y", Colyseus.Schema.FLOAT32),
+			Colyseus.Schema.Field.new("z", Colyseus.Schema.FLOAT32),
+			Colyseus.Schema.Field.new("vx", Colyseus.Schema.FLOAT32),
+			Colyseus.Schema.Field.new("vy", Colyseus.Schema.FLOAT32),
+			Colyseus.Schema.Field.new("vz", Colyseus.Schema.FLOAT32),
+			Colyseus.Schema.Field.new("active", Colyseus.Schema.NUMBER),
+		]
+		_definition.make_read_only()
+		return _definition
+
 class RoomState extends Colyseus.Schema:
 	static var _definition: Array = []
 	static func definition() -> Array:
@@ -96,6 +121,8 @@ class RoomState extends Colyseus.Schema:
 		Colyseus.Schema.Field.new("tickets_a", Colyseus.Schema.NUMBER),
 		Colyseus.Schema.Field.new("tickets_b", Colyseus.Schema.NUMBER),
 		Colyseus.Schema.Field.new("room_state", Colyseus.Schema.STRING),
+		Colyseus.Schema.Field.new("grenade_projectiles", Colyseus.Schema.MAP, ProjectileState),
+		Colyseus.Schema.Field.new("missile_projectiles", Colyseus.Schema.MAP, ProjectileState),
 	]
 		_definition.make_read_only()
 		return _definition

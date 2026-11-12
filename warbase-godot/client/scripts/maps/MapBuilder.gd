@@ -1,9 +1,6 @@
 class_name WarMapBuilder
 extends Node3D
-## Tactical FPS map orchestrator with Bullet Force inspired warm daylight.
-## Ultra-optimized: zero heavy procedural geometry outside map boundaries.
-## 100% matte PBR materials: dry weathered concrete, matte tarmac, zero plastic shine.
-## Warm golden sunlight with earth-bounce ambient fill (no cold/blue wash).
+## Map assembly and shared daylight profiles for drone combat.
 
 var spawn_points: Array[Vector3] = []
 
@@ -418,7 +415,14 @@ func _build_sky(root: Node3D, map_name: String = "industrial") -> void:
 	env.tonemap_white = 5.4
 	
 	# Screen Space Ambient Occlusion (Disabled for 120Hz e-sports frame rate & zero fillrate penalty)
-	env.ssao_enabled = false
+	# Bounded contact shading for the Industrial visual reference map.
+	# Godot 4.7 Compatibility supports SSAO on both native and WebGL.
+	env.ssao_enabled = map_name == "industrial"
+	env.ssao_radius = 0.8
+	env.ssao_intensity = 0.65
+	if map_name == "industrial":
+		env.ambient_light_source = Environment.AMBIENT_SOURCE_SKY
+		env.ambient_light_sky_contribution = 0.65
 	
 	# Subtle Tactical Evening Bloom (Sun specular glints, vehicle headlights, muzzle flashes)
 	# On Web: disable multi-pass glow to eliminate WebGL 2.0 blit/framebuffer overhead

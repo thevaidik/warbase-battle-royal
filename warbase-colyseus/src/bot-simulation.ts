@@ -1,4 +1,5 @@
 import { INDUSTRIAL_GEOMETRY, type Vec3, type WorldGeometry } from './world-geometry.js';
+import { DRONE_SPAWN_OFFSET, stepDroneFlight } from './drone-flight.js';
 
 export type BotPlayer = {
   username: string;
@@ -55,11 +56,7 @@ const dot = (a: Vec3, b: Vec3): number => a[0] * b[0] + a[1] * b[1] + a[2] * b[2
 const finite = (n: number): boolean => Number.isFinite(n);
 
 function movementBlocked(geometry: WorldGeometry, from: Vec3, to: Vec3): boolean {
-  for (const offset of [[0, 0.9, 0], [-0.25, 0.9, 0], [0.25, 0.9, 0], [0, 0.9, -0.25], [0, 0.9, 0.25]] as const) {
-    const hit = geometry.trace([from[0] + offset[0], from[1] + offset[1], from[2] + offset[2]], [to[0] + offset[0], to[1] + offset[1], to[2] + offset[2]]);
-    if (hit && hit.fraction > 0.0001) return true;
-  }
-  return false;
+  return dist(to, geometry.resolveFlightMove(from, to)) > 0.08;
 }
 
 function buildNavigation(geometry: WorldGeometry): NavNode[] {
@@ -85,7 +82,7 @@ function buildNavigation(geometry: WorldGeometry): NavNode[] {
       const y = origin[1] + (endY - origin[1]) * hit.fraction;
       origin = [origin[0], y - 0.08, origin[2]];
       if (Math.abs(hit.normal[1]) < 0.7) continue;
-      const position: Vec3 = [x * step, y + 0.05, z * step];
+      const position: Vec3 = [x * step, y + DRONE_SPAWN_OFFSET, z * step];
       let clear = true;
       for (const offset of [[0, 0], [0.32, 0], [-0.32, 0], [0, 0.32], [0, -0.32]] as const) {
         if (geometry.trace([position[0] + offset[0], y + 0.15, position[2] + offset[1]], [position[0] + offset[0], y + 1.8, position[2] + offset[1]])) { clear = false; break; }
@@ -104,7 +101,7 @@ function buildNavigation(geometry: WorldGeometry): NavNode[] {
         const a = nodes[i].position, b = nodes[j].position;
         if (Math.abs(a[1] - b[1]) > 0.6 || movementBlocked(geometry, a, b)) continue;
         const mid: Vec3 = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2, (a[2] + b[2]) / 2];
-        const support = geometry.trace([mid[0], mid[1] + 0.3, mid[2]], [mid[0], mid[1] - 0.65, mid[2]]);
+        const support = geometry.trace([mid[0], mid[1] + 0.3, mid[2]], [mid[0], mid[1] - DRONE_SPAWN_OFFSET - 0.65, mid[2]]);
         if (support) nodes[i].edges.push(j);
       }
     }
@@ -174,7 +171,8 @@ export class BotSimulation {
     while (this.brains.size < desired) {
       const n = ++this.sequence;
       const name = `[BOT] ${BOT_NAMES[(n - 1) % BOT_NAMES.length]}-${String(n).padStart(2, '0')}`;
-      const spawn = this.geometry.spawns[(n - 1) % this.geometry.spawns.length];
+      const groundSpawn = this.geometry.spawns[(n - 1) % this.geometry.spawns.length];
+      const spawn: Vec3 = [groundSpawn[0], groundSpawn[1] + DRONE_SPAWN_OFFSET, groundSpawn[2]];
       const weapon = BOT_WEAPONS[(n - 1) % BOT_WEAPONS.length];
       let team = 'NONE';
       if (mode === 'TDM') {
@@ -219,7 +217,13 @@ export class BotSimulation {
       this.move(bot, brain, nodes, elapsed, nowMs, callbacks.vehicleBlocked);
       if (brain.reloadUntil === 0 && brain.visible && nowMs >= brain.reactAt && nowMs >= brain.nextShotAt && nowMs >= brain.burstUntil) {
         const target = players.get(brain.target);
-        if (target && this.enemy(bot, target)) this.fire(bot, target, brain, nowMs, callbacks.onShot);
+        if (target && this.enemy(bot, target) && !this.geometry.rayBlocked(this.eye(bot), this.eye(target))) {
+          // Use the freshly observed position only while the target remains visible.
+          brain.lastKnown = vector(target);
+          if (this.aimAligned(bot, brain.lastKnown)) this.fire(bot, target, brain, nowMs, callbacks.onShot);
+        } else {
+          brain.visible = false;
+        }
       }
     }
   }
@@ -232,7 +236,7 @@ export class BotSimulation {
   }
   private normal(brain: Brain): number { return Math.sqrt(-2 * Math.log(Math.max(1e-9, this.random(brain)))) * Math.cos(2 * Math.PI * this.random(brain)); }
   private enemy(a: BotPlayer, b: BotPlayer): boolean { return a.username !== b.username && !b.is_dead && (!a.team || a.team === 'NONE' || a.team !== b.team); }
-  private eye(p: BotPlayer): Vec3 { return [p.x, p.y + 1.35, p.z]; }
+  private eye(p: BotPlayer): Vec3 { return [p.x, p.y, p.z]; }
 
   private perceive(bot: BotPlayer, brain: Brain, players: ReadonlyMap<string, BotPlayer>, nowMs: number): void {
     brain.perceiveAt = nowMs + 140 + Math.floor(this.random(brain) * 80);
@@ -264,14 +268,20 @@ export class BotSimulation {
   }
 
   private nearest(nodes: readonly NavNode[], point: Vec3): number {
-    let nearest = -1, bestSquared = 81;
-    for (let i = 0; i < nodes.length; i++) {
-      const position = nodes[i].position;
-      if (Math.abs(point[1] - position[1]) >= 1) continue;
-      const dSquared = distSquared(point, position);
-      if (dSquared < bestSquared && !movementBlocked(this.geometry, point, position)) { bestSquared = dSquared; nearest = i; }
+    const candidates: { index: number; distance: number }[] = [];
+    for (let index = 0; index < nodes.length; index++) {
+      const distance = distSquared(point, nodes[index].position);
+      if (distance < 81 && Math.abs(point[1] - nodes[index].position[1]) < 7) {
+        candidates.push({ index, distance });
+      }
     }
-    return nearest;
+    candidates.sort((a, b) => a.distance - b.distance);
+    // The collision sweep is the expensive part. Try the closest links first
+    // and keep a blocked spawn or target from consuming a whole server tick.
+    for (const { index } of candidates.slice(0, 8)) {
+      if (!movementBlocked(this.geometry, point, nodes[index].position)) return index;
+    }
+    return -1;
   }
 
   private path(nodes: readonly NavNode[], start: number, goal: number, blocked?: (position: Vec3) => boolean): number[] {
@@ -303,7 +313,8 @@ export class BotSimulation {
     let goal: Vec3;
     if (nowMs > brain.seenUntil || !brain.visible) {
       const objective = objectiveGoal?.(bot);
-      goal = objective ?? this.geometry.spawns[Math.floor(this.random(brain) * this.geometry.spawns.length)];
+      const spawn = this.geometry.spawns[Math.floor(this.random(brain) * this.geometry.spawns.length)];
+      goal = objective ?? [spawn[0], spawn[1] + DRONE_SPAWN_OFFSET, spawn[2]];
     } else {
       const dx = brain.lastKnown[0] - bot.x, dz = brain.lastKnown[2] - bot.z;
       const d = Math.max(Math.hypot(dx, dz), 1);
@@ -314,7 +325,7 @@ export class BotSimulation {
         for (const node of nodes) {
           const costSquared = distSquared(botPosition, node.position);
           if (costSquared < 9 || costSquared > 144 || costSquared >= bestSquared) continue;
-          if (this.geometry.rayBlocked([brain.lastKnown[0], brain.lastKnown[1] + 1.35, brain.lastKnown[2]], [node.position[0], node.position[1] + 1.35, node.position[2]])) {
+          if (this.geometry.rayBlocked(brain.lastKnown, node.position)) {
             goal = node.position; bestSquared = costSquared;
           }
         }
@@ -330,32 +341,54 @@ export class BotSimulation {
     brain.waypoint = Math.min(1, brain.path.length);
   }
 
-  private face(bot: BotPlayer, target: Vec3): void {
-    const yaw = Math.atan2(bot.x - target[0], bot.z - target[2]);
-    bot.yaw = yaw; bot.pitch = 0; bot.qy = Math.sin(yaw / 2); bot.qw = Math.cos(yaw / 2);
+  private face(bot: BotPlayer, target: Vec3, dt: number): void {
+    const dx = target[0] - bot.x, dz = target[2] - bot.z;
+    const horizontal = Math.max(Math.hypot(dx, dz), 0.001);
+    const desiredYaw = Math.atan2(-dx, -dz);
+    const desiredPitch = -Math.atan2(target[1] - bot.y, horizontal);
+    const turn = (current: number, desired: number, maxStep: number): number => {
+      const delta = Math.atan2(Math.sin(desired - current), Math.cos(desired - current));
+      return current + Math.max(-maxStep, Math.min(maxStep, delta));
+    };
+    const yaw = turn(finite(bot.yaw ?? 0) ? (bot.yaw ?? 0) : 0, desiredYaw, 2.8 * dt);
+    const pitch = turn(finite(bot.pitch ?? 0) ? (bot.pitch ?? 0) : 0, desiredPitch, 1.8 * dt);
+    bot.yaw = yaw; bot.pitch = pitch; bot.qy = Math.sin(yaw / 2); bot.qw = Math.cos(yaw / 2);
+  }
+
+  private aimAligned(bot: BotPlayer, target: Vec3): boolean {
+    const dx = target[0] - bot.x, dz = target[2] - bot.z;
+    const horizontal = Math.max(Math.hypot(dx, dz), 0.001);
+    const desiredYaw = Math.atan2(-dx, -dz);
+    const desiredPitch = -Math.atan2(target[1] - bot.y, horizontal);
+    const yawError = Math.abs(Math.atan2(Math.sin(desiredYaw - (bot.yaw ?? 0)), Math.cos(desiredYaw - (bot.yaw ?? 0))));
+    const pitchError = Math.abs(desiredPitch - (bot.pitch ?? 0));
+    return yawError < 0.12 && pitchError < 0.10;
   }
 
   private move(bot: BotPlayer, brain: Brain, nodes: readonly NavNode[], dt: number, nowMs: number, vehicleBlocked?: (p: Vec3) => boolean): void {
     if (dist(vector(bot), brain.progressPoint) > 0.35) { brain.lastProgressAt = nowMs; brain.progressPoint = vector(bot); }
-    if (brain.waypoint < brain.path.length && nowMs - brain.lastProgressAt > 1500) { brain.planAt = 0; brain.lastProgressAt = nowMs; }
+    if (brain.waypoint < brain.path.length && nowMs - brain.lastProgressAt > 1500) { brain.planAt = Math.min(brain.planAt, nowMs + 150); brain.lastProgressAt = nowMs; }
+    let goal: Vec3 | undefined;
     if (brain.waypoint < brain.path.length) {
-      const goal = nodes[brain.path[brain.waypoint]].position, from = vector(bot), d = dist(from, goal);
-      if (d < 0.18) brain.waypoint++;
-      else {
-        const speed = brain.reloadUntil > nowMs ? 3.2 : 4.8, amount = Math.min(1, speed * dt / d);
-        const destination: Vec3 = [from[0] + (goal[0] - from[0]) * amount, from[1] + (goal[1] - from[1]) * amount, from[2] + (goal[2] - from[2]) * amount];
-        if (!vehicleBlocked?.(destination)) {
-          const resolved = this.geometry.resolveMove(from, destination);
-          const moved = dist(from, resolved);
-          bot.x = resolved[0]; bot.y = resolved[1]; bot.z = resolved[2];
-          bot.vx = (resolved[0] - from[0]) / dt; bot.vy = (resolved[1] - from[1]) / dt; bot.vz = (resolved[2] - from[2]) / dt;
-          bot.animation = moved > 0.02 ? 'run' : 'idle';
-          if (moved < 0.02 && d > 0.5) { brain.planAt = 0; brain.path = []; brain.waypoint = 0; }
-          else if (moved > 0.02) this.face(bot, goal);
-        } else { brain.planAt = 0; brain.path = []; brain.waypoint = 0; }
-      }
+      goal = nodes[brain.path[brain.waypoint]].position;
+      if (dist(vector(bot), goal) < 0.45) { brain.waypoint++; goal = brain.path[brain.waypoint] === undefined ? undefined : nodes[brain.path[brain.waypoint]].position; }
     }
-    if (brain.visible) this.face(bot, brain.lastKnown);
+    const from = vector(bot), yaw = finite(bot.yaw ?? 0) ? bot.yaw ?? 0 : 0;
+    let moveX = 0, moveY = 0, moveZ = 0;
+    if (goal && !vehicleBlocked?.(goal)) {
+      const dx = goal[0] - from[0], dy = goal[1] - from[1], dz = goal[2] - from[2], d = Math.max(Math.hypot(dx, dy, dz), 0.001);
+      moveZ = (-Math.sin(yaw) * dx - Math.cos(yaw) * dz) / d;
+      moveX = (Math.cos(yaw) * dx - Math.sin(yaw) * dz) / d;
+      moveY = dy / d;
+      if (!brain.visible) this.face(bot, goal, dt);
+    }
+    const flight = stepDroneFlight(this.geometry, from, [bot.vx ?? 0, bot.vy ?? 0, bot.vz ?? 0], { move_x: moveX, move_y: moveY, move_z: moveZ, yaw, sprint: 0 }, dt);
+    const moved = dist(from, flight.position);
+    bot.x = flight.position[0]; bot.y = flight.position[1]; bot.z = flight.position[2];
+    bot.vx = flight.velocity[0]; bot.vy = flight.velocity[1]; bot.vz = flight.velocity[2];
+    bot.animation = moved > 0.02 ? 'run' : 'idle';
+    // Orientation has its own turn rate, so moving and aiming can happen together.
+    if (brain.visible) this.face(bot, brain.lastKnown, dt);
   }
 
   private fire(bot: BotPlayer, target: BotPlayer, brain: Brain, nowMs: number, onShot: (shot: BotShot) => void): void {
@@ -363,7 +396,7 @@ export class BotSimulation {
     if (brain.ammo <= 0) return;
     const origin = this.eye(bot), d = dist(origin, this.eye(target));
     const error = 0.24 + d * 0.022;
-    const endpoint: Vec3 = [brain.lastKnown[0] + this.normal(brain) * error, brain.lastKnown[1] + 1.05 + this.normal(brain) * error, brain.lastKnown[2] + this.normal(brain) * error];
+    const endpoint: Vec3 = [brain.lastKnown[0] + this.normal(brain) * error, brain.lastKnown[1] + this.normal(brain) * error, brain.lastKnown[2] + this.normal(brain) * error];
     const delta: Vec3 = [endpoint[0] - origin[0], endpoint[1] - origin[1], endpoint[2] - origin[2]];
     const length = Math.hypot(...delta);
     if (length < 0.1) return;
@@ -374,13 +407,21 @@ export class BotSimulation {
     brain.shotId++; brain.ammo--; bot.ammo = brain.ammo;
     brain.nextShotAt = nowMs + 60_000 / BOT_RPM[weapon];
     brain.shotsInBurst++;
-    if (brain.shotsInBurst >= 2 + brain.role) { brain.shotsInBurst = 0; brain.burstUntil = nowMs + 450 + Math.floor(this.random(brain) * 350); }
+    const range = d;
+    const baseBurst = weapon === 'dmr' ? 1 : weapon === 'mp5' ? 4 : 3;
+    const rangePenalty = range > 24 ? 2 : range > 14 ? 1 : 0;
+    const burstLength = Math.max(1, baseBurst + (brain.role === 1 ? 1 : 0) - rangePenalty);
+    if (brain.shotsInBurst >= burstLength) {
+      brain.shotsInBurst = 0;
+      const pauseBase = weapon === 'dmr' ? 650 : weapon === 'mp5' ? 300 : 420;
+      brain.burstUntil = nowMs + pauseBase + Math.floor(this.random(brain) * 280);
+    }
     onShot({ shooter: bot.username, target: target.username, weapon, origin, endpoint: hitPoint, shotId: brain.shotId });
   }
 
   private respawn(bot: BotPlayer, brain: Brain, nowMs: number): void {
     const spawn = this.geometry.spawns[bot.deaths % this.geometry.spawns.length];
-    bot.x = spawn[0]; bot.y = spawn[1]; bot.z = spawn[2]; bot.vx = 0; bot.vy = 0; bot.vz = 0;
+    bot.x = spawn[0]; bot.y = spawn[1] + DRONE_SPAWN_OFFSET; bot.z = spawn[2]; bot.vx = 0; bot.vy = 0; bot.vz = 0;
     bot.health = 100; bot.is_dead = false; bot.ammo = BOT_MAGAZINES[bot.weapon_id] ?? 30; bot.animation = 'idle';
     brain.ammo = bot.ammo; brain.deathAt = 0; brain.target = ''; brain.visible = false;
     brain.path = []; brain.waypoint = 0; brain.reactAt = nowMs + 600; brain.protectedUntil = nowMs + 2500; brain.reloadUntil = 0;

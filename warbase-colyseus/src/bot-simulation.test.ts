@@ -1,10 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { BotSimulation, type BotPlayer } from './bot-simulation.js';
-import { INDUSTRIAL_SPAWNS } from './world-geometry.js';
+import { INDUSTRIAL_SPAWNS, loadWorldGeometry } from './world-geometry.js';
 
 function human(username: string, spawn: readonly number[], team = 'B'): BotPlayer {
-  return { username, x: spawn[0], y: spawn[1], z: spawn[2], health: 100, kills: 0, deaths: 0, team, is_dead: false, weapon_id: 'ak47', ammo: 30, driving_vehicle: '' };
+  return { username, x: spawn[0], y: spawn[1] + 0.9, z: spawn[2], health: 100, kills: 0, deaths: 0, team, is_dead: false, weapon_id: 'ak47', ammo: 30, driving_vehicle: '' };
 }
 
 test('server bot roster yields capacity to humans and assigns balanced TDM teams', () => {
@@ -14,6 +14,7 @@ test('server bot roster yields capacity to humans and assigns balanced TDM teams
   assert.equal(roster.joined.length, 7);
   assert.equal(roster.joined.every((bot) => bot.is_bot), true);
   assert.equal(roster.joined.every((bot) => bot.username.startsWith('[BOT] ')), true);
+  assert.ok(Math.abs(roster.joined[0].y - (INDUSTRIAL_SPAWNS[0][1] + 0.9)) < 1e-6, 'bot state stores its center above its authored ground spawn');
   const teamA = roster.joined.filter((bot) => bot.team === 'A').length;
   const teamB = roster.joined.filter((bot) => bot.team === 'B').length;
   assert.ok(Math.abs((teamA + 1) - teamB) <= 1);
@@ -34,7 +35,7 @@ test('bot combat waits for reaction time, uses the real Industrial line of sight
   const created = sim.sync(humans, 1000, 'FFA');
   assert.equal(created.joined.length, 1);
   const bot = created.joined[0];
-  bot.x = INDUSTRIAL_SPAWNS[0][0]; bot.y = INDUSTRIAL_SPAWNS[0][1]; bot.z = INDUSTRIAL_SPAWNS[0][2];
+  bot.x = INDUSTRIAL_SPAWNS[0][0]; bot.y = INDUSTRIAL_SPAWNS[0][1] + 0.9; bot.z = INDUSTRIAL_SPAWNS[0][2];
   bot.yaw = Math.atan2(bot.x - target.x, bot.z - target.z);
   const players = new Map<string, BotPlayer>([[bot.username, bot], [target.username, target]]);
   const shots: unknown[] = [];
@@ -50,6 +51,46 @@ test('bot combat waits for reaction time, uses the real Industrial line of sight
   sim.step(players, 1 / 30, 6000, { onShot: () => {} });
   assert.equal(bot.is_dead, false);
   assert.equal(bot.health, 100);
+});
+
+test('bots turn toward observed targets at a bounded rate before firing', () => {
+  const sim = new BotSimulation();
+  const humans = Array.from({ length: 7 }, (_, i) => human(`turn-human-${i}`, INDUSTRIAL_SPAWNS[i], 'B'));
+  const bot = sim.sync(humans, 10_000, 'FFA').joined[0];
+  const target = human('turn-target', [-12, 1.3, -12], 'A');
+  bot.x = -12; bot.y = 0.9; bot.z = -10;
+  const desiredYaw = Math.atan2(bot.x - target.x, bot.z - target.z);
+  bot.yaw = desiredYaw + Math.PI;
+  const players = new Map<string, BotPlayer>([[bot.username, bot], [target.username, target]]);
+  const shots: number[] = [];
+
+  sim.step(players, 0.1, 10_000, { onShot: () => shots.push(10_000) });
+  for (let now = 10_100; now <= 10_900; now += 100) {
+    sim.step(players, 0.1, now, { onShot: () => shots.push(now) });
+  }
+  assert.equal(shots.length, 0, 'the bot cannot snap around and fire while its aim is still turning');
+
+  for (let now = 11_000; now <= 13_000 && shots.length === 0; now += 100) {
+    sim.step(players, 0.1, now, { onShot: () => shots.push(now) });
+  }
+  assert.ok(shots.length > 0, 'the bot fires after its bounded turn reaches the target');
+});
+
+test('DMR fire cadence uses deliberate single shots with longer pauses', () => {
+  const sim = new BotSimulation();
+  const humans = Array.from({ length: 7 }, (_, i) => human(`cadence-human-${i}`, INDUSTRIAL_SPAWNS[i], 'B'));
+  const bot = sim.sync(humans, 20_000, 'FFA').joined[0];
+  bot.x = INDUSTRIAL_SPAWNS[0][0]; bot.y = INDUSTRIAL_SPAWNS[0][1] + 0.9; bot.z = INDUSTRIAL_SPAWNS[0][2];
+  bot.weapon_id = 'dmr';
+  const target = human('cadence-target', INDUSTRIAL_SPAWNS[1], 'A');
+  bot.yaw = Math.atan2(bot.x - target.x, bot.z - target.z);
+  const players = new Map<string, BotPlayer>([[bot.username, bot], [target.username, target]]);
+  const shotTimes: number[] = [];
+  for (let now = 20_000; now <= 28_000; now += 100) {
+    sim.step(players, 0.1, now, { onShot: () => shotTimes.push(now) });
+  }
+  assert.ok(shotTimes.length >= 2, 'the visible target receives repeated DMR shots');
+  assert.ok(shotTimes.slice(1).every((time, i) => time - shotTimes[i] >= 700), 'DMR shots are separated by the RPM interval and a single-shot pause');
 });
 
 test('bots do not acquire or shoot targets through the authored warehouse wall', () => {
@@ -80,4 +121,18 @@ test('Conquest objective goals replace idle patrol goals when no enemy is visibl
   sim.step(players, 1 / 30, 10_000, { onShot: () => {}, objectiveGoal: (current) => { assert.equal(current.username, bot.username); goals++; return goal; } });
   assert.equal(goals, 1, 'idle bots ask the mode for their objective destination');
   assert.ok(bot.x !== goal[0] || bot.z !== goal[2], 'the bot begins navigating toward its objective');
+});
+
+test('Resoforge bots accelerate away from their spawns at the live tick rate', () => {
+  const geometry = loadWorldGeometry('resoforge')!;
+  const sim = new BotSimulation(geometry);
+  const pilot = human('resoforge-pilot', geometry.spawns[0], 'A');
+  const { joined } = sim.sync([pilot], 1000, 'TDM');
+  const players = new Map([pilot, ...joined].map((actor) => [actor.username, actor]));
+  const starts = joined.map(({ x, z }) => ({ x, z }));
+  for (let tick = 0; tick < 360; tick++) {
+    sim.step(players, 1 / 60, 1000 + tick * 1000 / 60, { onShot: () => {} });
+  }
+  const moved = joined.filter((bot, i) => Math.hypot(bot.x - starts[i].x, bot.z - starts[i].z) > 0.5);
+  assert.ok(moved.length >= 4, 'most of the bot roster should travel beyond its spawn');
 });

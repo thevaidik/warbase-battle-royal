@@ -5,69 +5,82 @@ extends Node
 
 const WEAPONS: Array = [
 	{
-		"id": "ak47", "name": "AK-47", "damage": 34.0, "headshot_mult": 1.8,
+		"id": "ak47", "name": "M61 Vulcan", "damage": 34.0, "headshot_mult": 1.8,
 		"fire_rate": 600.0, "mag_size": 30, "reload_time": 2.5,
 		"base_spread": 1.2, "bloom_per_shot": 0.4, "max_spread": 5.0, "bloom_recovery": 8.0,
 		"recoil_vertical": 0.02, "recoil_horizontal": 0.008, "recoil_recovery": 6.0,
-		"ads_fov": 52.0, "ads_time": 0.16, "ads_spread_mult": 0.08, "ads_recoil_mult": 0.7,
-		"hip_pos": Vector3(0.16, -0.14, -0.28), "ads_pos": Vector3(0.0, -0.119, -0.27),
+		"ads_time": 0.16, "ads_spread_mult": 0.08, "ads_recoil_mult": 0.7,
 		"is_auto": true,
 	},
 	{
-		"id": "pistol", "name": "Pistol .50", "damage": 34.0, "headshot_mult": 1.8,
+		"id": "pistol", "name": "M197 Cannon", "damage": 34.0, "headshot_mult": 1.8,
 		"fire_rate": 400.0, "mag_size": 12, "reload_time": 1.5,
 		"base_spread": 1.0, "bloom_per_shot": 0.8, "max_spread": 6.0, "bloom_recovery": 12.0,
 		"recoil_vertical": 0.04, "recoil_horizontal": 0.005, "recoil_recovery": 10.0,
-		"ads_fov": 65.0, "ads_time": 0.10, "ads_spread_mult": 0.12, "ads_recoil_mult": 0.5,
-		"hip_pos": Vector3(0.12, -0.11, -0.21), "ads_pos": Vector3(0.0, -0.064, -0.24),
+		"ads_time": 0.10, "ads_spread_mult": 0.12, "ads_recoil_mult": 0.5,
 		"is_auto": false,
 	},
 	{
-		"id": "m2010", "name": "M2010", "damage": 100.0, "headshot_mult": 1.8,
+		"id": "m2010", "name": "GAU-8/A Avenger", "damage": 100.0, "headshot_mult": 1.8,
 		"fire_rate": 45.0, "mag_size": 5, "reload_time": 3.2,
 		"base_spread": 0.06, "bloom_per_shot": 2.0, "max_spread": 8.0, "bloom_recovery": 5.0,
 		"recoil_vertical": 0.08, "recoil_horizontal": 0.015, "recoil_recovery": 4.0,
-		"ads_fov": 25.0, "ads_time": 0.20, "ads_spread_mult": 0.02, "ads_recoil_mult": 0.3,
-		"hip_pos": Vector3(0.16, -0.14, -0.31), "ads_pos": Vector3(0.0, -0.121, -0.187),
+		"ads_time": 0.20, "ads_spread_mult": 0.02, "ads_recoil_mult": 0.3,
 		"is_auto": false,
 	},
 	{
-		"id": "hmg", "name": "WB-46 LMG", "damage": 34.0, "headshot_mult": 1.8,
+		"id": "hmg", "name": "GAU-12/U Equalizer", "damage": 34.0, "headshot_mult": 1.8,
 		"fire_rate": 520.0, "mag_size": 60, "reload_time": 3.4,
 		"base_spread": 2.2, "bloom_per_shot": 0.45, "max_spread": 6.8, "bloom_recovery": 7.5,
 		"recoil_vertical": 0.032, "recoil_horizontal": 0.010, "recoil_recovery": 5.5,
-		"ads_fov": 55.0, "ads_time": 0.20, "ads_spread_mult": 0.18, "ads_recoil_mult": 0.65,
-		"hip_pos": Vector3(0.16, -0.13, -0.28), "ads_pos": Vector3(0.0, -0.082, -0.187),
+		"ads_time": 0.20, "ads_spread_mult": 0.18, "ads_recoil_mult": 0.65,
 		"is_auto": true,
 	},
 	{
-		"id": "m4", "name": "M4 Carbine", "damage": 25.0, "headshot_mult": 1.8,
+		"id": "m4", "name": "M39 Cannon", "damage": 25.0, "headshot_mult": 1.8,
 		"fire_rate": 750.0, "mag_size": 30, "reload_time": 2.2,
 		"base_spread": 0.85, "bloom_per_shot": 0.28, "max_spread": 4.2, "bloom_recovery": 10.0,
 		"recoil_vertical": 0.014, "recoil_horizontal": 0.005, "recoil_recovery": 8.0,
-		"ads_fov": 58.0, "ads_time": 0.14, "ads_spread_mult": 0.08, "ads_recoil_mult": 0.65,
-		"hip_pos": Vector3(0.16, -0.14, -0.28), "ads_pos": Vector3(0, -0.119, -0.27),
-		"is_auto": true, "zoom_levels": [1, 2],
+		"ads_time": 0.14, "ads_spread_mult": 0.08, "ads_recoil_mult": 0.65,
+		"is_auto": true,
 	},
 	{
-		"id": "mp5", "name": "MP5 SMG", "damage": 25.0, "headshot_mult": 1.6,
+		"id": "mp5", "name": "GAU-22/A Cannon", "damage": 25.0, "headshot_mult": 1.6,
 		"fire_rate": 850.0, "mag_size": 30, "reload_time": 1.8,
 		"base_spread": 1.4, "bloom_per_shot": 0.32, "max_spread": 5.0, "bloom_recovery": 12.0,
 		"recoil_vertical": 0.01, "recoil_horizontal": 0.006, "recoil_recovery": 8.0,
-		"ads_fov": 62.0, "ads_time": 0.11, "ads_spread_mult": 0.08, "ads_recoil_mult": 0.6,
-		"hip_pos": Vector3(0.16, -0.14, -0.28), "ads_pos": Vector3(0, -0.119, -0.27),
-		"is_auto": true, "zoom_levels": [1],
+		"ads_time": 0.11, "ads_spread_mult": 0.08, "ads_recoil_mult": 0.6,
+		"is_auto": true,
 	},
 	{
-		"id": "dmr", "name": "DMR-52", "damage": 50.0, "headshot_mult": 1.7,
+		"id": "dmr", "name": "M230 Chain Gun", "damage": 50.0, "headshot_mult": 1.7,
 		"fire_rate": 240.0, "mag_size": 20, "reload_time": 2.6,
 		"base_spread": 0.35, "bloom_per_shot": 0.65, "max_spread": 3.5, "bloom_recovery": 7.0,
 		"recoil_vertical": 0.028, "recoil_horizontal": 0.004, "recoil_recovery": 8.0,
-		"ads_fov": 35.0, "ads_time": 0.19, "ads_spread_mult": 0.08, "ads_recoil_mult": 0.72,
-		"hip_pos": Vector3(0.16, -0.14, -0.28), "ads_pos": Vector3(0, -0.119, -0.27),
-		"is_auto": false, "zoom_levels": [4, 6],
+		"ads_time": 0.19, "ads_spread_mult": 0.08, "ads_recoil_mult": 0.72,
+		"is_auto": false,
+	},
+	{
+		"id": "aim9", "name": "AIM-9 Sidewinder", "damage": 82.0, "headshot_mult": 1.0,
+		"fire_rate": 75.0, "mag_size": 2, "reload_time": 4.0,
+		"base_spread": 0.0, "bloom_per_shot": 0.0, "max_spread": 0.0, "bloom_recovery": 8.0,
+		"recoil_vertical": 0.005, "recoil_horizontal": 0.0, "recoil_recovery": 8.0,
+		"ads_time": 0.16, "ads_spread_mult": 0.0, "ads_recoil_mult": 0.5,
+		"is_auto": false,
+		"missile_speed": 78.0, "missile_range": 170.0,
+	},
+	{
+		"id": "agm114", "name": "AGM-114 Hellfire", "damage": 95.0, "headshot_mult": 1.0,
+		"fire_rate": 55.0, "mag_size": 1, "reload_time": 4.0,
+		"base_spread": 0.0, "bloom_per_shot": 0.0, "max_spread": 0.0, "bloom_recovery": 8.0,
+		"recoil_vertical": 0.005, "recoil_horizontal": 0.0, "recoil_recovery": 8.0,
+		"ads_time": 0.16, "ads_spread_mult": 0.0, "ads_recoil_mult": 0.5,
+		"is_auto": false,
+		"missile_speed": 62.0, "missile_range": 140.0,
 	},
 ]
+
+const GAME_PROTOCOL_VERSION := 16
 
 const WALK_SPEED := 6.2
 const SPRINT_SPEED := 8.8
@@ -75,10 +88,17 @@ const CROUCH_SPEED := 2.5
 const JUMP_IMPULSE := 6.2
 const BASE_FOV := 75.0
 const SPRINT_FOV_BOOST := 5.0
+## Drone combat profile consumed by the flight controller and presentation.
+const DRONE_RADIUS := 0.4
+const DRONE_HIT_RADIUS := 0.45
+const DRONE_SPAWN_OFFSET := 0.9
+const DRONE_ASCEND_KEY := KEY_SPACE
+const DRONE_DESCEND_KEY := KEY_CTRL
+const DRONE_BOOST_KEY := KEY_SHIFT
 var BASE_SENSITIVITY := 0.002
 
 # Session (set by MainMenu, read by Main)
-var username := "OPERATOR"
+var username := "PILOT"
 var room_id := "industrial-public"
 # Remote production server by default (war.vaidik.blog via Cloudflare Tunnel).
 # Override at runtime with `-- host=<hostname:port>` or in Settings dialog if needed.
@@ -91,6 +111,8 @@ const TIMES := {"dawn":"DAWN", "noon":"NOON", "dusk":"DUSK", "overcast":"OVERCAS
 func time_label(id: String) -> String:
 	return String(TIMES.get("overcast" if id == "night" else id, TIMES["noon"]))
 var selected_primary := "ak47"
+var selected_drone_chassis := "heli"
+var selected_drone_payload := "ak47"
 var selected_secondary := "pistol"
 var selected_throwable := "frag"
 const THROWABLES := {
@@ -99,6 +121,7 @@ const THROWABLES := {
 }
 var practice_mode := false
 var online_ready := false
+var thermal_view := false
 var throwables_remaining := 2
 
 # Match state (mirrors server GameState for HUD)
@@ -136,12 +159,15 @@ func _ready() -> void:
 	if preferences.load("user://settings.cfg") == OK:
 		BASE_SENSITIVITY = clampf(float(preferences.get_value("controls", "sensitivity", BASE_SENSITIVITY)), 0.0005, 0.006)
 		selected_primary = String(preferences.get_value("loadout", "primary", "ak47"))
+		selected_drone_chassis = String(preferences.get_value("loadout", "drone_chassis", "heli"))
 		selected_secondary = String(preferences.get_value("loadout", "secondary", "pistol"))
 		selected_throwable = String(preferences.get_value("loadout", "throwable", "frag"))
 	validate_loadout()
+	if not ["wheels", "tracked", "heli", "wing"].has(selected_drone_chassis): selected_drone_chassis = "heli"
+	selected_drone_payload = selected_primary
 	randomize()
-	if username == "OPERATOR":
-		username = "OPERATOR_%03d" % (randi() % 900 + 100)
+	if username == "PILOT":
+		username = "PILOT_%03d" % (randi() % 900 + 100)
 
 func reset_match_stats() -> void:
 	throwables_remaining = 2
@@ -195,6 +221,7 @@ func equip(slot: String, id: String) -> void:
 		selected_secondary = id
 	else: selected_throwable = id
 	validate_loadout()
+	selected_drone_payload = selected_primary
 	save_settings()
 
 func damage_at_range(config: Dictionary, metres: float) -> float:
@@ -220,6 +247,7 @@ func damage_for_zone(config: Dictionary, metres: float, zone: String) -> int:
 func save_settings() -> void:
 	var preferences := ConfigFile.new()
 	preferences.set_value("loadout", "primary", selected_primary)
+	preferences.set_value("loadout", "drone_chassis", selected_drone_chassis)
 	preferences.set_value("loadout", "secondary", selected_secondary)
 	preferences.set_value("loadout", "throwable", selected_throwable)
 	preferences.set_value("controls", "sensitivity", BASE_SENSITIVITY)

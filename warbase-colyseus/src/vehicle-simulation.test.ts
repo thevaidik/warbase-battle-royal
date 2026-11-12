@@ -196,6 +196,75 @@ test('vehicle chassis stops at the authored Industrial warehouse and speeding ro
   assert.ok(events.some((event) => event.driver === roadDriver.username && event.target === target.username && event.vehicle === roadCar.id));
 });
 
+test('oblique wall contact removes the normal component and settles without jitter', () => {
+  const sim = new VehicleSimulation();
+  const car = sim.states.get('CAR_0')!;
+  car.pos = [-16, 0.9221, -10];
+  car.yaw = -1.35;
+  const driver = player('oblique-wall-driver', ...car.pos);
+  assert.equal(sim.enter(driver, car.id, 1000), true);
+  const players = new Map([[driver.username, driver]]);
+  const positions: [number, number, number][] = [];
+  for (let tick = 1; tick <= 120; tick++) {
+    sim.input(driver, { throttle: 1, steer: 0, brake: false, gear: 1, vehicleIndex: driver.vehicle_index, vehicleGeneration: driver.vehicle_generation }, 1000 + tick * 16.67);
+    sim.step(1 / 60, 1000 + tick * 16.67, players);
+    positions.push([...car.pos]);
+    assert.ok(Math.abs(car.speed) <= 14.4, 'wall response stays within the controller speed limit');
+  }
+  assert.ok(car.pos[0] <= -12.5, `chassis remains outside the wall (x=${car.pos[0]})`);
+  assert.ok(car.pos[2] < -10.05, 'oblique contact retains a bounded tangential slide');
+  const tail = positions.slice(-10);
+  const jitter = Math.max(...tail.map((position, index) => index === 0 ? 0 : Math.hypot(position[0] - tail[index - 1][0], position[2] - tail[index - 1][2])));
+  assert.ok(jitter < 0.002, `continued throttle settles without wall jitter (max step=${jitter})`);
+  const impacts = sim.takeImpacts();
+  assert.ok(impacts.length >= 1 && impacts.length <= 2, 'a substantial wall impact is emitted and rate limited');
+  assert.equal(impacts[0].id, car.id);
+  assert.ok(impacts[0].speed >= 2);
+  assert.ok(Math.abs(impacts[0].normal[1]) < 1e-9);
+  assert.deepEqual(sim.takeImpacts(), [], 'taking impacts drains the reusable event queue');
+});
+
+test('wall slide is rejected when its rotated corner reaches a second wall', () => {
+  const floorAndCorner = {
+    vehicleSpawns: [[-6, 0, -5, -1.35]],
+    rayBlocked: () => false,
+    trace(from: readonly number[], to: readonly number[]) {
+      const hits: { fraction: number; normal: readonly [number, number, number]; point: readonly [number, number, number] }[] = [];
+      const plane = (axis: 0 | 2, value: number, normal: readonly [number, number, number], inRange: (p: readonly number[]) => boolean) => {
+        const delta = to[axis] - from[axis];
+        if (Math.abs(delta) < 1e-9) return;
+        const fraction = (value - from[axis]) / delta;
+        if (fraction < 0 || fraction > 1) return;
+        const point = [from[0] + (to[0] - from[0]) * fraction, from[1] + (to[1] - from[1]) * fraction, from[2] + (to[2] - from[2]) * fraction] as const;
+        if (inRange(point)) hits.push({ fraction, normal, point });
+      };
+      plane(0, -3, [1, 0, 0], (p) => p[2] >= -9 && p[2] <= -4);
+      plane(2, -8, [0, 0, 1], (p) => p[0] >= -5.5 && p[0] <= -2.5);
+      const dy = to[1] - from[1];
+      if (Math.abs(dy) > 1e-9) {
+        const fraction = -from[1] / dy;
+        if (fraction >= 0 && fraction <= 1) {
+          const point = [from[0] + (to[0] - from[0]) * fraction, 0, from[2] + (to[2] - from[2]) * fraction] as const;
+          hits.push({ fraction, normal: [0, 1, 0], point });
+        }
+      }
+      return hits.sort((a, b) => a.fraction - b.fraction)[0] ?? null;
+    },
+  };
+  const sim = new VehicleSimulation(floorAndCorner as never);
+  const car = sim.states.get('CAR_0')!;
+  const driver = player('corner-driver', ...car.pos);
+  assert.equal(sim.enter(driver, car.id, 1000), true);
+  const players = new Map([[driver.username, driver]]);
+  for (let tick = 1; tick <= 120; tick++) {
+    sim.input(driver, { throttle: 1, steer: 0, brake: false, gear: 1, vehicleIndex: driver.vehicle_index, vehicleGeneration: driver.vehicle_generation }, 1000 + tick * 16.67);
+    sim.step(1 / 60, 1000 + tick * 16.67, players);
+  }
+  assert.ok(car.pos[0] <= -5.4, `vehicle stays outside first wall (x=${car.pos[0]})`);
+  assert.ok(car.pos[2] >= -5.1, `unsafe tangent candidate cannot cross the second wall (z=${car.pos[2]})`);
+  assert.equal(car.yaw, -1.35, 'rejected slide does not rotate into the corner');
+});
+
 test('high-speed steering stays within lateral acceleration limits and reverse steering stays signed', () => {
   for (const initialSpeed of [4, 14.4, 22, -6]) {
     const state = { pos: [0, 0, 0] as [number, number, number], yaw: 0, speed: initialSpeed, gear: 2 as const };

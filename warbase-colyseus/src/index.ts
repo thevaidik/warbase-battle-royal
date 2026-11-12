@@ -16,6 +16,7 @@ import { processOperationsMetrics, processTimingSnapshot, roomOperationsMetrics,
 import { createOperationsMetricsHandler } from './metrics-handler.js';
 import { configureBattleAdmission, loadAdmissionGatewaySecret, loadAdmissionSecret } from './admission.js';
 import { configureRealtimeLobby } from './lobby.js';
+import { ConquestQueue } from './conquest-queue.js';
 import { createRoomInfrastructure } from './room-infrastructure.js';
 import { buildRoomDirectory, listLiveBattleRooms } from './room-directory.js';
 import { assetCacheControl } from './static-cache.js';
@@ -197,6 +198,7 @@ const gameServer = new Server({
 
 const battleHandler = gameServer.define('battle', BattleRoom).filterBy(['room']);
 configureRealtimeLobby(gameServer, battleHandler);
+gameServer.define('conquest_queue', ConquestQueue).filterBy(['map']);
 let shuttingDown = false;
 async function shutdown(exitCode = 0): Promise<void> {
   if (shuttingDown) return;

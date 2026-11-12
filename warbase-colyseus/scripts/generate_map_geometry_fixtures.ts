@@ -20,3 +20,13 @@ for (const id of PLAYABLE_MAPS) {
 const payload = `${JSON.stringify(fixtures, null, 2)}\n`;
 writeFileSync(file, payload);
 writeFileSync(godotFile, payload);
+
+// Shared Industrial ray/movement cases are also consumed by native regressions.
+// Re-extraction must not restore expected poses from the retired ray controller.
+const industrial=loadWorldGeometry('industrial')!;
+const commonFile=new URL('../src/data/geometry-fixtures.json',import.meta.url);
+const common=JSON.parse(readFileSync(commonFile,'utf8'));
+for(const move of common.moves)move.expected=industrial.resolveMove(move.from,move.to);
+const commonPayload=JSON.stringify(common,null,2)+'\n';
+writeFileSync(commonFile,commonPayload);
+writeFileSync(new URL('../../warbase-godot/client/assets/data/geometry-fixtures.json',import.meta.url),commonPayload);

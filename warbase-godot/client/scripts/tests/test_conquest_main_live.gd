@@ -38,7 +38,7 @@ func _start() -> void:
 	get_tree().current_scene = _main
 	_main.menu.visible = false
 	_main.net.connection_error.connect(func(reason: String) -> void: _fail("connection error: " + reason))
-	_main.net.fire_received.connect(func(shooter: String, _origin: Vector3, _hit: Vector3, _normal: Vector3, _wall: bool) -> void:
+	_main.net.fire_received.connect(func(shooter: String, _origin: Vector3, _hit: Vector3, _normal: Vector3, _wall: bool, _weapon: String) -> void:
 		if shooter == _username: _local_fire_events += 1
 	)
 	_main.net.state_received.connect(_on_room_state)

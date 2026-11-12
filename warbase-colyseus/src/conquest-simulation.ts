@@ -31,7 +31,7 @@ export function stepConquest(state: ConquestState, players: Iterable<ConquestPla
     if (player.is_dead || player.driving_vehicle || (player.team !== 'A' && player.team !== 'B')) continue;
     for (const item of nearby) {
       const dx = player.x - item.objective.x, dy = player.y - item.objective.y, dz = player.z - item.objective.z;
-      if (dx * dx + dy * dy + dz * dz <= item.objective.radius ** 2) item[player.team as 'A' | 'B']++;
+      if (Math.abs(dy) <= 6 && dx * dx + dz * dz <= item.objective.radius ** 2) item[player.team as 'A' | 'B']++;
     }
   }
   for (const { objective, A, B } of nearby) {

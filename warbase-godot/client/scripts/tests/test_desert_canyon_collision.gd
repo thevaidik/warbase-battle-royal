@@ -1,4 +1,5 @@
 extends SceneTree
+const DroneFlight := preload("res://scripts/drones/DroneFlight.gd")
 var failures := 0
 func _initialize() -> void: call_deferred("run")
 func check(ok: bool, message: String) -> void:
@@ -19,15 +20,14 @@ func run() -> void:
 			if not collider.get_parent() is StaticBody3D or collider.get_parent().name == "SafetyFloor": continue
 			var mesh = collider.get_parent().get_parent()
 			check(mesh is MeshInstance3D and mesh.is_visible_in_tree(), id + " static collider has visible mesh")
-		var capsule := CapsuleShape3D.new()
-		capsule.radius = 0.4
-		capsule.height = 1.8
+		var drone_sphere := SphereShape3D.new()
+		drone_sphere.radius = DroneFlight.RADIUS
 		for point: Vector3 in spawns:
 			var query := PhysicsShapeQueryParameters3D.new()
-			query.shape = capsule
+			query.shape = drone_sphere
 			query.collision_mask = 1
-			query.transform.origin = point + Vector3.UP * 0.9
-			check(space.intersect_shape(query).is_empty(), "%s spawn capsule is not embedded: %s" % [id,point])
+			query.transform.origin = point + Vector3.UP * DroneFlight.SPAWN_OFFSET
+			check(space.intersect_shape(query).is_empty(), "%s spawn drone sphere is not embedded: %s" % [id,point])
 		builder.free()
 		await physics_frame
 	print("DESERT CANYON COLLISION TEST: %d failures" % failures)

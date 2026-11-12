@@ -20,6 +20,9 @@ def ensure_map_integrity(root: pathlib.Path, godot: pathlib.Path) -> dict:
             raise RuntimeError(f'Map release blocked: server/client geometry differs for {name}')
         digest.update(name.encode())
         digest.update(server.read_bytes())
+    for relative in ('src/world-geometry.ts','src/capsule-contact.ts','src/drone-flight.ts','src/drone-hitboxes.ts','src/presentation-animation.ts','src/battle-room.ts',
+                     'scripts/export-drone-prediction-fixtures.ts'):
+        digest.update((root / 'warbase-colyseus' / relative).read_bytes())
     version = subprocess.check_output([str(godot),'--headless','--version'], text=True, timeout=10).strip()
     inputs = {'client':client_fingerprint(client),'server':digest.hexdigest(),'engine':version,
               'gate':hashlib.sha256(pathlib.Path(__file__).read_bytes()).hexdigest()}
@@ -37,6 +40,20 @@ def ensure_map_integrity(root: pathlib.Path, godot: pathlib.Path) -> dict:
         output = process.stdout + process.stderr
         if process.returncode or 'SCRIPT ERROR' in output or not report.exists():
             raise RuntimeError('Map release blocked: physics audit failed\n'+output[-4000:])
+        for exporter, test, argument, marker in (
+            ('export-drone-prediction-fixtures.ts','test_drone_prediction_parity.gd','fixtures=', 'DRONE_PREDICTION_PARITY comparisons=792'),
+        ):
+            fixture = pathlib.Path(directory) / (exporter + '.json')
+            generated = subprocess.run(['node','--import','tsx','scripts/'+exporter,'--out',str(fixture)],
+                cwd=root/'warbase-colyseus',capture_output=True,text=True,timeout=30)
+            if generated.returncode:
+                raise RuntimeError('Map release blocked: fixture generation failed\n'+generated.stdout+generated.stderr)
+            parity = subprocess.run([str(godot),'--headless','--path',str(client),'--log-file',str(pathlib.Path(directory)/(test+'.log')),
+                '--script','res://scripts/tests/'+test,'--',argument+str(fixture)],capture_output=True,text=True,timeout=90)
+            parity_output = parity.stdout + parity.stderr
+            if parity.returncode or 'SCRIPT ERROR' in parity_output or marker not in parity_output:
+                raise RuntimeError('Map release blocked: client/server parity failed\n'+parity_output[-6000:])
+            print(marker)
         result = json.loads(report.read_text())
         if result.get('failures') or len(result.get('maps',[])) != len(MAPS):
             raise RuntimeError('Map release blocked: '+json.dumps(result))
@@ -51,9 +68,12 @@ def ensure_map_integrity(root: pathlib.Path, godot: pathlib.Path) -> dict:
 
 def verify_map_pack(paths: set[str], *, include_football: bool) -> None:
     """Collision without its scene or thumbnail must never ship."""
+    if any('AnimatedSoldier' in path or 'soldier_hit_poses' in path for path in paths):
+        raise RuntimeError('Retired humanoid resources cannot ship in the drone client')
     if any('loft' in path.lower() for path in paths):
         raise RuntimeError('Removed Loft 17 content cannot ship')
-    required = {f'assets/data/maps/{name}.json.gz' for name in MAPS}
+    required = {'assets/drones/vanguard.glb.import','assets/drones/raider.glb.import'}
+    required.update({f'assets/data/maps/{name}.json.gz' for name in MAPS})
     required.update(f'assets/ui/maps/{name}.png.import' for name in MAPS)
     assets = ['low_poly_industrial_zone.glb','resoforge_tdm.glb','village_lowres.glb',
               'fps_shooter_game_arena_map_v3.glb','shipment.glb']
@@ -65,7 +85,7 @@ def verify_map_pack(paths: set[str], *, include_football: bool) -> None:
     for name in MAPS:
         if not any(p.startswith('.godot/imported/'+name+'.png-') and p.endswith('.ctex') for p in paths):
             missing.add('imported preview texture for '+name)
-    for name in assets:
+    for name in ('vanguard.glb','raider.glb',*assets):
         if not any(p.startswith('.godot/imported/'+name+'-') and p.endswith('.scn') for p in paths):
             missing.add('imported scene for '+name)
     if missing:

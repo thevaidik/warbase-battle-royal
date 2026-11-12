@@ -45,29 +45,33 @@ const maps = PLAYABLE_MAPS.map((map) => {
       yaw: round(car.yaw), speed: round(car.speed), gear: car.gear,
     };
   });
-  let collisionCase: { start: number[]; yaw: number; steps: object[] } | null = null;
+  let collisionCases: { start: number[]; yaw: number; steps: object[] }[] = [];
   if (map === 'industrial') {
-    const wallSimulation = new VehicleSimulation(geometry);
-    const wallCar = wallSimulation.states.get('CAR_0')!;
-    wallCar.pos = [-16, 0.9221, -10]; wallCar.yaw = -Math.PI / 2;
-    const wallDriver: VehiclePlayer = { ...player, x: wallCar.pos[0], y: wallCar.pos[1], z: wallCar.pos[2], driving_vehicle: '', vehicle_index: -1, vehicle_generation: 0 };
-    if (!wallSimulation.enter(wallDriver, wallCar.id, 20_000)) throw new Error('Industrial wall collision fixture seat entry failed');
-    const wallSteps = Array.from({ length: 60 }, (_, tick) => {
-      const before = [...wallCar.pos] as [number, number, number];
-      const beforeSpeed = wallCar.speed;
-      wallSimulation.input(wallDriver, { throttle: 1, steer: 0, brake: false, gear: 1, vehicleIndex: wallDriver.vehicle_index, vehicleGeneration: wallDriver.vehicle_generation }, 20_000 + tick * (1000 / 60));
-      wallSimulation.step(1 / 60, 20_000 + tick * (1000 / 60), new Map([[wallDriver.username, wallDriver]]));
-      const distance = Math.hypot(wallCar.pos[0] - before[0], wallCar.pos[1] - before[1], wallCar.pos[2] - before[2]);
-      return { tick, throttle: 1, steer: 0, brake: false, gear: 1, collision_blocked: beforeSpeed > 0.1 && distance < beforeSpeed / 60 * 0.25, x: round(wallCar.pos[0]), y: round(wallCar.pos[1]), z: round(wallCar.pos[2]), yaw: round(wallCar.yaw), speed: round(wallCar.speed), gear_actual: wallCar.gear };
+    collisionCases = [-1.35, -Math.PI / 2].map((yaw) => {
+      const wallSimulation = new VehicleSimulation(geometry);
+      const wallCar = wallSimulation.states.get('CAR_0')!;
+      // These approaches both reach the Industrial warehouse wall: one at an
+      // oblique angle for tangent response, one head-on for normal removal.
+      wallCar.pos = [-16, 0.9221, -10]; wallCar.yaw = yaw;
+      const wallDriver: VehiclePlayer = { ...player, x: wallCar.pos[0], y: wallCar.pos[1], z: wallCar.pos[2], driving_vehicle: '', vehicle_index: -1, vehicle_generation: 0 };
+      if (!wallSimulation.enter(wallDriver, wallCar.id, 20_000)) throw new Error('Industrial wall collision fixture seat entry failed');
+      const wallSteps = Array.from({ length: 60 }, (_, tick) => {
+        const before = [...wallCar.pos] as [number, number, number];
+        const beforeSpeed = wallCar.speed;
+        wallSimulation.input(wallDriver, { throttle: 1, steer: 0, brake: false, gear: 1, vehicleIndex: wallDriver.vehicle_index, vehicleGeneration: wallDriver.vehicle_generation }, 20_000 + tick * (1000 / 60));
+        wallSimulation.step(1 / 60, 20_000 + tick * (1000 / 60), new Map([[wallDriver.username, wallDriver]]));
+        const distance = Math.hypot(wallCar.pos[0] - before[0], wallCar.pos[1] - before[1], wallCar.pos[2] - before[2]);
+        return { tick, throttle: 1, steer: 0, brake: false, gear: 1, collision_blocked: beforeSpeed > 0.1 && distance < beforeSpeed / 60 * 0.25, x: round(wallCar.pos[0]), y: round(wallCar.pos[1]), z: round(wallCar.pos[2]), yaw: round(wallCar.yaw), speed: round(wallCar.speed), gear_actual: wallCar.gear };
+      });
+      return { start: [-16, 0.9221, -10], yaw: round(yaw), steps: wallSteps };
     });
-    collisionCase = { start: [-16, 0.9221, -10], yaw: round(-Math.PI / 2), steps: wallSteps };
   }
   return {
     map,
     initialVehicles,
     driver: { username: player.username, vehicle_index: player.vehicle_index, vehicle_generation: player.vehicle_generation },
     steps,
-    ...(collisionCase ? { collision_case: collisionCase } : {}),
+    ...(collisionCases.length ? { collision_cases: collisionCases } : {}),
   };
 });
 

@@ -11,19 +11,19 @@ func _ready() -> void:
 	await run()
 
 func run() -> void:
-	if not await until(func(): return adapter.connected and adapter.local_reconciler != null and adapter.grenade_events != null): return
+	if not await until(func(): return adapter.connected and adapter.local_reconciler != null and adapter.uses_projectile_spawns("grenade_projectiles")): return
 	adapter.send_vehicle_seat("CAR_0", true)
 	if not await until(func(): return me().get("driving_vehicle", "") == "CAR_0"): return
 	var generation := int(me().vehicle_generation)
 	Input.action_press("move_forward")
 	await get_tree().create_timer(0.6).timeout
 	Input.action_release("move_forward")
-	if not check(adapter.predict_grenade(9101), "pre-drop event was not created"): return
+	if not check(predict_grenade(9101), "pre-drop event was not created"): return
 	adapter.room.drop()
 	if not await until(func(): return adapter._drop_count == 1): return
-	if not await until(func(): return adapter.connected and adapter._reconnect_count == 1 and adapter.local_reconciler != null and adapter.grenade_events != null): return
+	if not await until(func(): return adapter.connected and adapter._reconnect_count == 1 and adapter.local_reconciler != null and adapter.uses_projectile_spawns("grenade_projectiles")): return
 	if not check(me().get("driving_vehicle", "") == "" and int(me().vehicle_index) == -1 and int(me().vehicle_generation) > generation, "reconnect retained old seat"): return
-	if not check(adapter.grenade_events.pending_count == 0, "reconnect retained old grenade event"): return
+	if not check(adapter.projectile_views().is_empty(), "reconnect retained old predicted grenade"): return
 	adapter.send_vehicle_seat("CAR_0", true)
 	if not await until(func(): return me().get("driving_vehicle", "") == "CAR_0"): return
 	var ack_before := int(adapter.input_handle.last_processed)
@@ -34,13 +34,16 @@ func run() -> void:
 	adapter.room.send_message("qa_kill_driver", {})
 	if not await until(func(): return bool(me().get("is_dead", false)) and me().get("driving_vehicle", "") == ""): return
 	if not check(int(me().vehicle_index) == -1 and String(adapter._last_normalized_state.vehicles.CAR_0.driver).is_empty(), "death retained occupied seat"): return
-	# An unresolved event after a reconnect exercises the replacement channel
+	# An unresolved spawn after a reconnect exercises the replacement collection
 	# and predictor through its complete production expiry, while dead.
-	if not check(adapter.predict_grenade(9102), "post-reconnect channel missing"): return
-	if not await until(func(): return adapter.grenade_events.pending_count == 0, 7500): return
-	print("NATIVE_VEHICLE_RECONNECT_OK drive; drop; fresh seat generation; input ACK resumed; death cleared seat; replacement grenade channel expired safely")
+	if not check(predict_grenade(9102), "post-reconnect channel missing"): return
+	if not await until(func(): return adapter.projectile_views().is_empty(), 7500): return
+	print("NATIVE_VEHICLE_RECONNECT_OK drive; drop; fresh seat generation; input ACK resumed; death cleared seat; replacement grenade collection expired safely")
 	adapter.disconnect_from()
 	get_tree().quit()
+
+func predict_grenade(request_id: int) -> bool:
+	return adapter._projectile_prediction.spawn("grenade_projectiles", request_id, "frag", Vector3(0, 5, 0), Vector3.UP)
 
 func me() -> Dictionary:
 	return adapter._last_normalized_state.get("players", {}).get(username, {})

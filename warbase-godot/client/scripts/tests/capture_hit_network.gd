@@ -3,7 +3,7 @@ extends "res://scripts/net/NetworkManager.gd"
 
 var sent_events: Array[Dictionary] = []
 
-func send_fire(origin: Vector3, hit: Vector3, normal: Vector3, wall: bool, shot_id: int = 0, yaw: float = 0.0, pitch: float = 0.0) -> void:
+func send_fire(origin: Vector3, hit: Vector3, normal: Vector3, wall: bool, shot_id: int = 0, yaw: float = 0.0, pitch: float = 0.0, _weapon: String = "") -> void:
 	sent_events.append({"type": "fire", "origin": origin, "hit": hit, "normal": normal, "wall": wall, "shot_id": shot_id, "yaw": yaw, "pitch": pitch})
 
 func send_hit(target: String, damage: int, shot_id: int = 0, view_time_ms: int = 0) -> void:

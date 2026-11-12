@@ -5,21 +5,19 @@ extends WarNetwork
 
 const SchemaTypes := preload("res://scripts/net/ColyseusSchema.gd")
 const AdmissionSession := preload("res://scripts/net/AdmissionSession.gd")
+const DroneFlight := preload("res://scripts/drones/DroneFlight.gd")
 const WorldGeometry := preload("res://scripts/net/ColyseusWorldGeometry.gd")
 const RemotePoseTiming := preload("res://scripts/qa/RemotePoseTiming.gd")
 const VehiclePrediction := preload("res://scripts/net/ColyseusVehiclePrediction.gd")
+const ProjectilePrediction := preload("res://scripts/net/ProjectilePrediction.gd")
+signal elimination_received(event: Dictionary)
 # Leave one second of margin before the server's 15-second seat-reconnection expiry.
 const CLIENT_RECONNECT_GRACE_MS := 14000
 const PREDICTION_MOVE_CACHE_LIMIT := 4096
-# Prediction is initialized only after the decoded state/controller. Both
-# runtime targets passed short, default and production-TTL expiry checks.
-const GRENADE_EVENT_PREDICTION_ENABLED := true
-const GRENADE_WEB_EVENT_PREDICTION_VERIFIED := true
-
 var client
 var room
 var predictor
-var grenade_events
+var _projectile_prediction: RefCounted
 var input_handle
 var local_reconciler
 var _reconciled_instance
@@ -92,12 +90,11 @@ var _host := "localhost:8081"
 var _admission_endpoint := ""
 var _admission_token := ""
 
-func connect_to(username: String, room_name: String, host: String) -> void:
+func connect_to(username: String, room_name: String, host: String, reservation: Dictionary = {}) -> void:
 	disconnect_from()
 	_gameplay_input_enabled = true
 	_sent_animation = ""
 	_sent_weapon = ""
-	grenade_events = null
 	_qa_timing = _qa_timing or "qa_official" in OS.get_cmdline_user_args()
 	_qa_step_us = 0
 	_qa_step_count = 0
@@ -147,6 +144,9 @@ func connect_to(username: String, room_name: String, host: String) -> void:
 	_admission_endpoint = AdmissionSession.canonical_endpoint(endpoint)
 	_admission_token = ""
 	client = Colyseus.Client.new(endpoint)
+	if not reservation.is_empty():
+		_bind_battle_room(client.consume_seat_reservation(reservation), generation)
+		return
 	AdmissionSession.ensure(client, _admission_endpoint, _on_admission_ready.bind(username, room_name, generation))
 
 func _on_admission_ready(token: String, error: Variant, username: String, room_name: String, generation: int) -> void:
@@ -163,14 +163,17 @@ func _on_admission_ready(token: String, error: Variant, username: String, room_n
 			connection_error.emit("Unable to obtain Colyseus admission ticket" + (": " + detail if not detail.is_empty() else ""))
 			return
 	_admission_token = token
-	room = client.join_or_create("battle", {
+	_bind_battle_room(client.join_or_create("battle", {
 		"username": username,
-		"protocol_version": 11,
+		"protocol_version": WarGameState.GAME_PROTOCOL_VERSION,
 		"room": room_name,
 		"map": GameState.selected_map,
 		"mode": GameState.selected_mode,
 		"time_of_day": GameState.selected_time,
-	})
+	}), generation)
+
+func _bind_battle_room(joining_room: Variant, generation: int) -> void:
+	room = joining_room
 	if room == null:
 		_want_connection = false
 		connection_error.emit("Unable to create Colyseus room connection")
@@ -215,8 +218,7 @@ func _on_room_left(_code: int, reason: String, source_room: Variant, generation:
 
 func _on_room_dropped(_code: int, _reason: String, source_room: Variant, generation: int) -> void:
 	if not _is_current_room(source_room, generation): return
-	if grenade_events != null: grenade_events.clear()
-	grenade_events = null
+	_clear_projectile_prediction()
 	_clear_incremental_state_cache()
 	_drop_started_ms = maxi(Time.get_ticks_msec(), 1)
 	_drop_count += 1
@@ -229,8 +231,7 @@ func _on_room_dropped(_code: int, _reason: String, source_room: Variant, generat
 
 func _fail_current_room(reason: String, source_room: Variant, generation: int, event: String, should_leave := true) -> void:
 	if not _is_current_room(source_room, generation): return
-	if grenade_events != null: grenade_events.clear()
-	grenade_events = null
+	_clear_projectile_prediction()
 	_clear_incremental_state_cache()
 	_disconnect_room_signals()
 	# Invalidate callbacks before leave(), which can synchronously emit `left`.
@@ -290,6 +291,7 @@ func _on_joined(source_room: Variant, generation: int) -> void:
 		"y": Colyseus.Predict.LERP,
 		"z": Colyseus.Predict.LERP,
 		"yaw": {"mode": Colyseus.Predict.LERP, "angle": true},
+		"pitch": Colyseus.Predict.LERP,
 	}, _username)
 	local_reconciler = null
 	_reconciled_instance = null
@@ -465,10 +467,12 @@ func _on_state_changed(source_room: Variant, generation: int) -> void:
 	if state is Dictionary:
 		if not _has_initial_state:
 			var players: Dictionary = state.get("players", {})
-			if int(state.get("protocol_version", 0)) != 11:
+			if int(state.get("protocol_version", 0)) != WarGameState.GAME_PROTOCOL_VERSION:
 				_fail_current_room("Server and client versions differ. Update the game and server together.", source_room, generation, "version")
 				return
 			if not players.has(_username): return
+			if predictor != null:
+				_projectile_prediction = ProjectilePrediction.new(predictor, room.get_session_id(), get_viewport())
 			_has_initial_state = true
 			if _awaiting_fresh_state:
 				_awaiting_fresh_state = false
@@ -493,6 +497,7 @@ func _on_state_changed(source_room: Variant, generation: int) -> void:
 			player_state["rw"] = pose_rotation.w
 			player_state["anim"] = player_state.get("animation", "idle")
 			player_state["weapon"] = player_state.get("weapon_id", "ak47")
+			player_state["mobility_mode"] = player_state.get("mobility_mode", "heli")
 			if predictor != null and instances.has(player_id):
 				var instance = instances[player_id]
 				if public_id == _username and input_handle != null and (instance != _reconciled_instance or _composite_prediction != (int(player_state.get("vehicle_index", -1)) >= 0)):
@@ -513,8 +518,6 @@ func _on_state_changed(source_room: Variant, generation: int) -> void:
 						local_reconciler = predictor.reconciler(instance, {"input": input_handle, "fields": ["x", "y", "z", "vx", "vy", "vz", "health"], "step": Callable(self, "_predict_infantry_step"), "smooth_ms": 80.0, "snap": 1.5})
 					# A room may report joined before its first state/controller is
 					# available. Bind event lifetime to the initialized prediction epoch.
-					if _grenade_prediction_enabled() and local_reconciler != null and grenade_events == null:
-						grenade_events = predictor.define_event({"ttl_ms": 5000.0, "on_reject": _on_grenade_event_rejected})
 				if public_id != _username:
 					for field in ["x", "y", "z"]:
 						var predicted: float = predictor.value(instance, field)
@@ -563,14 +566,14 @@ func get_sdk_remote_poses() -> Dictionary:
 		var source: Dictionary = players[username]
 		var pose := {
 			"x": source.get("x", 0.0), "y": source.get("y", 0.0), "z": source.get("z", 0.0),
-			"yaw": source.get("yaw", 0.0), "anim": source.get("anim", "idle"),
+			"pitch": source.get("pitch", 0.0), "yaw": source.get("yaw", 0.0), "anim": source.get("anim", "idle"),
 			"animation_time": source.get("animation_time", 0.0),
 			"pose_time_ms": source.get("pose_time_ms", render_time_ms),
 			"is_dead": source.get("is_dead", false),
 		}
 		if room != null and predictor != null and instances.has(username):
 			var instance = instances[username]
-			for field in ["x", "y", "z", "yaw"]:
+			for field in ["x", "y", "z", "yaw", "pitch"]:
 				var value: float = predictor.value(instance, field)
 				if is_finite(value): pose[field] = value
 			var snapshot_time_ms := float(pose.get("pose_time_ms", render_time_ms))
@@ -702,42 +705,10 @@ func _resolve_prediction_move(from: Vector3, to: Vector3) -> Vector3:
 	return result
 
 func _predict_server_step(ctx: Variant, state: Variant, command: Variant) -> void:
-	if state.health <= 0.0: return
-	var move_x := float(command.move_x)
-	var move_z := float(command.move_z)
-	var magnitude := maxf(sqrt(move_x * move_x + move_z * move_z), 1.0)
-	var speed := 8.8 if float(command.sprint) > 0.5 else (2.5 if float(command.crouch) > 0.5 else 6.2)
-	var yaw := float(command.yaw)
-	var from := Vector3(state.x, state.y, state.z)
-	state.vx = (move_x * cos(yaw) - move_z * sin(yaw)) / magnitude * speed
-	state.vz = (-move_x * sin(yaw) - move_z * cos(yaw)) / magnitude * speed
-	var jump_requested := float(command.jump) > 0.5
-	var idle_candidate := move_x == 0.0 and move_z == 0.0 and not jump_requested and absf(state.vy) <= 0.000001
-	var current_floor: Variant = WorldGeometry.floor_height(state.x, state.z, state.y + 0.1) if jump_requested or idle_candidate else null
-	var has_floor := current_floor != null
-	var grounded_height: float = state.y if current_floor == null else float(current_floor)
-	# The server's fixed step resolves the stationary capsule and clears velocity
-	# when it starts exactly on the walkable floor with zero vertical speed. Only
-	# that exact fixed point may skip the sweep: small height/velocity differences
-	# still produce a distinct authoritative vertical result and use full physics.
-	if idle_candidate and has_floor and absf(state.y - grounded_height) <= 0.000001:
-		state.vx = 0.0
-		state.vy = 0.0
-		state.vz = 0.0
-		return
-	if jump_requested and has_floor and absf(state.vy) < 0.001 and state.y >= grounded_height - 0.06 and state.y <= grounded_height + 0.3:
-		state.vy = 6.2
-	state.vy -= 18.0 * ctx.dt
-	var requested: Vector3 = from + Vector3(state.vx, state.vy, state.vz) * ctx.dt
-	var resolved: Vector3 = _resolve_prediction_move(from, requested)
-	state.x = resolved.x
-	state.y = resolved.y
-	state.z = resolved.z
-	state.vx = (state.x - from.x) / ctx.dt
-	state.vz = (state.z - from.z) / ctx.dt
-	# Only the unclamped downward branch of settlement reads the floor.
-	var resolved_floor: Variant = WorldGeometry.floor_height(state.x, state.z, state.y + 0.1) if state.vy < 0.0 and resolved.y <= requested.y + 0.00001 else null
-	state.vy = WorldGeometry.settled_vertical_velocity(float(state.vy), requested.y, resolved.y, resolved_floor)
+	if state.health<=0.0: return
+	var result := DroneFlight.step(Vector3(state.x,state.y,state.z),Vector3(state.vx,state.vy,state.vz),command,float(ctx.dt))
+	state.x=result.position.x;state.y=result.position.y;state.z=result.position.z
+	state.vx=result.velocity.x;state.vy=result.velocity.y;state.vz=result.velocity.z
 
 func _predict_composite_step(ctx: Variant, world: Variant, command: Variant) -> void:
 	var state: Variant = world.get("player")
@@ -756,7 +727,7 @@ func _predict_composite_step(ctx: Variant, world: Variant, command: Variant) -> 
 func _predict_infantry_step(ctx: Variant, state: Variant, command: Variant) -> void:
 	var infantry_command: Variant = command
 	if int(command.vehicle_index) >= 0:
-		infantry_command = {"move_x": 0.0, "move_z": 0.0, "jump": 0.0, "sprint": 0.0, "crouch": 0.0, "yaw": float(command.yaw)}
+		infantry_command = {"move_x": 0.0, "move_z": 0.0, "move_y": 0.0, "jump": 0.0, "sprint": 0.0, "crouch": 0.0, "yaw": float(command.yaw)}
 	if _qa_timing: _profiled_predict_server_step(ctx, state, infantry_command)
 	else: _predict_server_step(ctx, state, infantry_command)
 
@@ -799,20 +770,16 @@ func _apply_local_reconciler() -> void:
 	var predicted_state: Variant = local_reconciler.world.get("player") if _composite_prediction else local_reconciler.state
 	if predicted_state != null:
 		var predicted_velocity := Vector3(predicted_state.vx, predicted_state.vy, predicted_state.vz)
-		# CharacterBody.is_on_floor() is not refreshed by authoritative pose writes.
-		# Use the same authored floor as prediction to drive local body feedback.
-		var floor_value: Variant = WorldGeometry.floor_height(predicted_state.x, predicted_state.z, predicted_state.y + 0.1)
-		var ground_gap: float = predicted_state.y - float(floor_value) if floor_value != null else INF
-		var grounded := ground_gap >= -0.06 and ground_gap <= 0.3 and absf(predicted_velocity.y) <= 0.1
-		var crouching := Input.is_action_pressed("crouch")
-		var sprinting := Input.is_action_pressed("sprint") and grounded and Vector2(predicted_velocity.x, predicted_velocity.z).length() > 0.5
-		player.apply_authoritative_motion(predicted_velocity, grounded, crouching, sprinting)
+		var sprinting := Input.is_action_pressed("sprint") and predicted_velocity.length() > 0.5
+		player.apply_authoritative_motion(predicted_velocity, sprinting)
 
 func _on_message(kind: Variant, payload: Variant, source_room: Variant, generation: int) -> void:
 	if not _is_current_room(source_room, generation): return
 	if not payload is Dictionary: return
 	var msg: Dictionary = payload
 	if String(kind) == "identity":
+		supports_dual_payload = bool(msg.get("dual_payload", false))
+		supports_manual_redeploy = bool(msg.get("manual_redeploy", false))
 		# The server normalizes display names before using them as player keys.
 		# Apply its identity before waiting for the matching state entry.
 		var canonical_name := String(msg.get("username", ""))
@@ -822,12 +789,26 @@ func _on_message(kind: Variant, payload: Variant, source_room: Variant, generati
 			if scene != null and "net" in scene and scene.net == self:
 				GameState.username = canonical_name
 		return
+	if String(kind) == "payload_ammo":
+		payload_ammo_received.emit(msg)
+		return
 	if not connected: return
 	match String(kind):
 		"fire":
-			fire_received.emit(String(msg.get("shooter", "")), _vec(msg.get("origin", [])), _vec(msg.get("hit", [])), _vec(msg.get("normal", [])), bool(msg.get("wall", false)))
+			fire_received.emit(String(msg.get("shooter", "")), _vec(msg.get("origin", [])), _vec(msg.get("hit", [])), _vec(msg.get("normal", [])), bool(msg.get("wall", false)), String(msg.get("weapon", "")))
+		"missile_launch":
+			missile_launched.emit(int(msg.get("id", 0)), String(msg.get("weapon", "")), _vec(msg.get("position", [])), _vec(msg.get("direction", [])), float(msg.get("speed", 0.0)), float(msg.get("duration", 0.0)))
+		"missile_impact":
+			missile_impacted.emit(int(msg.get("id", 0)), _vec(msg.get("position", [])))
+		"vehicle_impact":
+			var impact_normal := _vec(msg.get("normal", []))
+			var impact_speed := float(msg.get("speed", 0.0))
+			if impact_normal.is_finite() and is_finite(impact_speed):
+				vehicle_impact_received.emit(String(msg.get("id", "")), impact_normal, clampf(impact_speed, 0.0, 40.0))
 		"hit_confirmed": hit_confirmed.emit()
 		"kill_confirmed": kill_confirmed.emit()
+		"elimination":
+			elimination_received.emit(msg.duplicate(true))
 		"damage": damage_received.emit(String(msg.get("target", "")), _vec(msg.get("pos", [])), _vec(msg.get("direction", [])), int(msg.get("amount", 0)))
 		"respawn": respawn_received.emit(_vec(msg.get("pos", msg)))
 		"grenade": _on_grenade_message(msg)
@@ -843,14 +824,13 @@ func _vec(value: Variant) -> Vector3:
 func _on_grenade_message(msg: Dictionary) -> void:
 	var shooter := String(msg.get("shooter", ""))
 	var request_id := int(msg.get("request_id", 0))
-	if request_id > 0 and shooter == _username and grenade_events != null:
-		grenade_events.confirm(str(request_id))
 	grenade_received.emit(shooter, _vec(msg.get("pos", [])), _vec(msg.get("vel", [])), int(msg.get("id", 0)), String(msg.get("throwable", "frag")), request_id)
 
 func disconnect_from() -> void:
+	supports_dual_payload = false
+	supports_manual_redeploy = false
 	_want_connection = false
-	if grenade_events != null: grenade_events.clear()
-	grenade_events = null
+	_clear_projectile_prediction()
 	# Invalidate bound signal callbacks before leaving: leave() may emit `left`
 	# immediately, and an SDK reconnect callback may already be queued.
 	_connection_generation += 1
@@ -911,9 +891,12 @@ func _process(delta: float) -> void:
 func _send_input_step() -> void:
 	var enabled := _gameplay_input_enabled and _window_focused
 	var data = input_handle.data
-	data.move_x = Input.get_axis("move_left", "move_right") if enabled else 0.0
+	data.move_x = Input.get_axis("move_left", "move_right") if enabled and GameState.selected_drone_chassis != "tracked" else 0.0
 	data.move_z = Input.get_axis("move_back", "move_forward") if enabled else 0.0
-	data.yaw = _desired_quat.get_euler().y
+	var main_node := get_parent()
+	var control_player = main_node.player if main_node != null and "player" in main_node and is_instance_valid(main_node.player) else null
+	data.move_y = DroneFlight.climb_input(GameState.selected_drone_chassis, float(data.move_z), control_player.flight_pitch if control_player else -_desired_pitch) if enabled else 0.0
+	data.yaw = control_player.body_yaw if control_player else _desired_quat.get_euler().y
 	data.pitch = _desired_pitch
 	data.jump = 1.0 if _jump_pending and enabled else 0.0
 	data.sprint = 1.0 if Input.is_action_pressed("sprint") and enabled else 0.0
@@ -921,6 +904,7 @@ func _send_input_step() -> void:
 	var me: Dictionary = _last_normalized_state.get("players", {}).get(_username, {})
 	data.vehicle_index = float(me.get("vehicle_index", -1))
 	data.vehicle_generation = float(me.get("vehicle_generation", 0))
+	data.mobility_index = DroneFlight.MOBILITY_MODES.find(GameState.selected_drone_chassis)
 	data.vehicle_throttle = Input.get_axis("move_back", "move_forward") if _local_driving_vehicle and enabled else 0.0
 	data.vehicle_steer = Input.get_axis("move_left", "move_right") if _local_driving_vehicle and enabled else 0.0
 	data.vehicle_brake = 1.0 if Input.is_action_pressed("jump") or not _local_driving_vehicle or not enabled else 0.0
@@ -952,8 +936,9 @@ func send_state(pos: Vector3, quat: Quaternion, anim: String, weapon: String) ->
 func send_aim_pitch(value: float) -> void:
 	if is_finite(value): _desired_pitch = clampf(value, -1.55, 1.55)
 
-func send_fire(origin: Vector3, hit: Vector3, normal: Vector3, wall: bool, shot_id: int = 0, yaw: float = 0.0, pitch: float = 0.0) -> void:
-	if room != null and _gameplay_input_enabled: room.send_message("fire", {"origin": _arr(origin), "hit": _arr(hit), "normal": _arr(normal), "wall": wall, "shot_id": shot_id, "yaw": yaw, "pitch": pitch})
+func send_fire(origin: Vector3, hit: Vector3, normal: Vector3, wall: bool, shot_id: int = 0, yaw: float = 0.0, pitch: float = 0.0, weapon: String = "") -> void:
+	if room != null and _gameplay_input_enabled:
+		room.send_message("fire", {"origin": _arr(origin), "hit": _arr(hit), "normal": _arr(normal), "wall": wall, "shot_id": shot_id, "yaw": yaw, "pitch": pitch, "weapon": weapon})
 
 func send_fire_with_aim(origin: Vector3, hit: Vector3, normal: Vector3, wall: bool, shot_id: int, yaw: float, pitch: float) -> void:
 	send_fire(origin, hit, normal, wall, shot_id, yaw, pitch)
@@ -961,44 +946,47 @@ func send_fire_with_aim(origin: Vector3, hit: Vector3, normal: Vector3, wall: bo
 func send_hit(target: String, damage: int, shot_id: int = 0, view_time_ms: int = 0) -> void:
 	if room != null: room.send_message("hit", {"target": target, "damage": damage, "shot_id": shot_id, "view_time_ms": view_time_ms})
 
-func send_reload() -> void:
-	if room != null: room.send_message("reload", {})
+func send_reload(weapon: String = "") -> void:
+	if room != null: room.send_message("reload", {"weapon": weapon})
 
 func send_switch(wid: String) -> void:
 	_desired_weapon = wid
 	if room != null: room.send_message("switch", {"weapon": wid})
 
 func send_loadout(primary: String, secondary: String, throwable: String) -> void:
-	if room != null: room.send_message("loadout", {"primary": primary, "secondary": secondary, "throwable": throwable})
+	if room != null: room.send_message("loadout", {"primary": primary, "secondary": secondary, "throwable": throwable, "manual_redeploy": true})
 
-func send_respawn() -> void:
-	if room != null: room.send_message("respawn", {})
-
-func predict_grenade(request_id: int) -> bool:
-	return _grenade_prediction_enabled() and grenade_events != null and grenade_events.predict(str(request_id))
-
-func _grenade_prediction_enabled() -> bool:
-	return GRENADE_EVENT_PREDICTION_ENABLED and (not OS.has_feature("web") or GRENADE_WEB_EVENT_PREDICTION_VERIFIED)
+func send_respawn(loadout: Dictionary = {}) -> void:
+	if room != null: room.send_message("respawn", loadout)
 
 func _settle_grenade_rejection(request_id: int) -> void:
-	if grenade_events != null and request_id > 0:
-		grenade_events.reject(str(request_id))
-	else:
-		grenade_rejected.emit(request_id)
-
-func _on_grenade_event_rejected(key: String) -> void:
-	grenade_rejected.emit(int(key))
+	if uses_projectile_spawns(ProjectilePrediction.GRENADES):
+		_projectile_prediction.reject(ProjectilePrediction.GRENADES, request_id)
+	grenade_rejected.emit(request_id)
 
 func send_grenade(pos: Vector3, velocity: Vector3, kind: String = "frag") -> int:
 	if room == null or not _gameplay_input_enabled: return 0
 	_next_grenade_request_id += 1
 	var request_id := _next_grenade_request_id
-	if not predict_grenade(request_id):
-		# Let the reliable authoritative broadcast create the visible grenade.
-		room.send_message("grenade", {"pos": _arr(pos), "vel": _arr(velocity), "throwable": kind, "request_id": 0})
-		return 0
+	if uses_projectile_spawns(ProjectilePrediction.GRENADES):
+		_projectile_prediction.spawn(ProjectilePrediction.GRENADES, request_id, kind, pos, velocity)
 	room.send_message("grenade", {"pos": _arr(pos), "vel": _arr(velocity), "throwable": kind, "request_id": request_id})
 	return request_id
+
+func predict_missile(request_id: int, kind: String, origin: Vector3, velocity: Vector3) -> void:
+	if _gameplay_input_enabled and uses_projectile_spawns(ProjectilePrediction.MISSILES):
+		_projectile_prediction.spawn(ProjectilePrediction.MISSILES, request_id, kind, origin, velocity)
+
+func uses_projectile_spawns(collection: String) -> bool:
+	return _projectile_prediction != null and _projectile_prediction.has_store(collection)
+
+func projectile_views() -> Array:
+	return _projectile_prediction.views() if _projectile_prediction != null else []
+
+func _clear_projectile_prediction() -> void:
+	if _projectile_prediction != null:
+		_projectile_prediction.clear()
+		_projectile_prediction = null
 
 func send_vehicle_seat(id: String, enter: bool) -> void:
 	if room != null and _gameplay_input_enabled: room.send_message("vehicle_seat", {"id": id, "enter": enter})

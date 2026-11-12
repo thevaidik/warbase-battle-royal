@@ -40,6 +40,15 @@ test('uncontested capture advances and contested presence freezes progress', () 
   assert.equal(state.objectives[0].progress, 0);
 });
 
+test('drones can capture within six vertical metres of an objective center', () => {
+  const state = createConquestState(spawns);
+  const point = state.objectives[0];
+  stepConquest(state, [player('A', point.x, { y: point.y + 5.9, z: point.z })], 6);
+  assert.equal(point.progress, 0.5);
+  stepConquest(state, [player('A', point.x, { y: point.y + 6.01, z: point.z })], 6);
+  assert.equal(point.progress, 0.5, 'presence beyond the vertical capture limit does not add capture progress');
+});
+
 test('enemy ownership must be neutralized before the objective can be captured', () => {
   const state = createConquestState(spawns);
   const point = state.objectives[0], atPoint = player('B', point.x, { y: point.y, z: point.z });
