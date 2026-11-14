@@ -39,6 +39,7 @@ var objective_strip: HBoxContainer
 var objective_labels: Array[Label] = []
 var _sensor_reticle: DroneSensorReticle
 var _thermal_feed: ColorRect
+var _cinematic_lens: ColorRect
 var _payload_cards: Array[Dictionary] = []
 var _fire_mode_label: Label
 var _thumbnail_material := CanvasItemMaterial.new()
@@ -410,6 +411,15 @@ func build() -> void:
 	filter.shader = preload("res://scripts/ui/DroneThermal.gdshader")
 	_thermal_feed.material = filter
 	add_child(_thermal_feed)
+
+	_cinematic_lens = ColorRect.new()
+	_cinematic_lens.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_cinematic_lens.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_cinematic_lens.z_index = -9
+	var lens_filter := ShaderMaterial.new()
+	lens_filter.shader = preload("res://scripts/ui/CinematicLens.gdshader")
+	_cinematic_lens.material = lens_filter
+	add_child(_cinematic_lens)
 	_connection_status = _mk_label("", 20, WarUI.ACCENT)
 	_connection_status.set_anchors_preset(Control.PRESET_CENTER_TOP)
 	_connection_status.position = Vector2(-320,100)
@@ -1151,6 +1161,8 @@ func set_drone_sensor(on: bool, thermal: bool = false, zoom: int = 2, meters: fl
 	if not is_instance_valid(_sensor_reticle): return
 	_sensor_reticle.visible = on
 	_thermal_feed.visible = on and thermal
+	if is_instance_valid(_cinematic_lens):
+		_cinematic_lens.visible = not (on and thermal)
 	if not on: return
 	for line in cross_lines: line.visible = false
 	if is_instance_valid(cross_dot): cross_dot.visible = false

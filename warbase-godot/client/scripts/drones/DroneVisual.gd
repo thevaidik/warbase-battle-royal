@@ -171,10 +171,10 @@ func _rebuild_body() -> void:
 	_steer_parts.clear()
 	_wheel_struts.clear()
 	_motion_yaw_initialized = false
-	var armor := _mat(Color("596a77") if friendly else Color("847b73"), 0.74, 0.36)
-	var dark := _mat(Color("28323b"), 0.42, 0.57)
-	var armor_panel := _mat(Color("8b9ba7") if friendly else Color("a29787"), 0.79, 0.31)
-	var accent := Color("61d6d1") if friendly else Color("e77770")
+	var armor := _mat(Color("4d5a64") if friendly else Color("6e655c"), 0.74, 0.38)
+	var dark := _mat(Color("222a30"), 0.45, 0.60)
+	var armor_panel := _mat(Color("63727d") if friendly else Color("7f7466"), 0.78, 0.34)
+	var accent := Color("4a7282") if friendly else Color("8a6b58")
 	# Common protected centerline and camera/sensor nose.
 	var hull := MeshInstance3D.new()
 	hull.name = "ArmoredHull"
@@ -318,12 +318,12 @@ func _build_tracked(armor: Material, dark: Material) -> void:
 
 func _build_wheels(armor: Material, dark: Material) -> void:
 	var modules: Array[Node] = []
-	var tire_rubber := _mat(Color("181c20"), 0.04, 0.94)
-	var rim_alloy := _mat(Color("4a5560"), 0.85, 0.30)
-	var beadlock_ring := _mat(Color("7ca2b8") if friendly else Color("b88670"), 0.88, 0.24)
-	var caliper_red := _mat(Color("c82828"), 0.5, 0.35)
-	var rotor_steel := _mat(Color("a2abb2"), 0.94, 0.18)
-	var spring_color := _mat(Color("e89b25") if friendly else Color("d43b2a"), 0.75, 0.35)
+	var tire_rubber := _mat(Color("16191c"), 0.04, 0.94)
+	var rim_alloy := _mat(Color("3a4248"), 0.85, 0.32)
+	var beadlock_ring := _mat(Color("464e56"), 0.82, 0.28)
+	var caliper_gunmetal := _mat(Color("282d32"), 0.72, 0.36)
+	var rotor_steel := _mat(Color("8a939a"), 0.92, 0.22)
+	var spring_color := _mat(Color("202428"), 0.45, 0.55)
 	for fore in [-1.0, 1.0]:
 		for side in [-1.0, 1.0]:
 			var hub := Vector3(side * 0.235, WHEEL_HUB_Y, fore * 0.165)
@@ -373,9 +373,9 @@ func _build_wheels(armor: Material, dark: Material) -> void:
 				var l_angle: float = TAU * float(l) / 6.0
 				var l_pos := Vector3(side * (TIRE_WIDTH * 0.40), sin(l_angle) * 0.022, cos(l_angle) * 0.022)
 				_cylinder(wheel, "LugNut", 0.004, 0.008, l_pos, dark, Vector3(0, 0, PI / 2))
-			_cylinder(wheel, "LockingDial", 0.014, 0.010, Vector3(side * (TIRE_WIDTH * 0.42), 0, 0), _mat(Color("c43b35") if friendly else Color("e89b38"), 0.6, 0.4), Vector3(0, 0, PI / 2))
+			_cylinder(wheel, "LockingDial", 0.014, 0.010, Vector3(side * (TIRE_WIDTH * 0.42), 0, 0), _mat(Color("3c444a") if friendly else Color("48453e"), 0.7, 0.35), Vector3(0, 0, PI / 2))
 			_cylinder(steer_node, "BrakeRotor", 0.065, 0.008, Vector3(side * (TIRE_WIDTH * 0.14), 0, 0), rotor_steel, Vector3(0, 0, PI / 2))
-			_box(steer_node, "BrakeCaliper", Vector3(0.026, 0.032, 0.044), Vector3(side * (TIRE_WIDTH * 0.14), 0.048, 0.018), caliper_red)
+			_box(steer_node, "BrakeCaliper", Vector3(0.026, 0.032, 0.044), Vector3(side * (TIRE_WIDTH * 0.14), 0.048, 0.018), caliper_gunmetal)
 			var upper_mount := Vector3(side * 0.12, _ground_gear_drop(WHEEL_HUB_Y - TIRE_RADIUS) + 0.05, fore * 0.14)
 			modules.append(_rod_between(_body, "ShockBody", upper_mount, hub, 0.015, dark))
 			modules.append(_rod_between(_body, "ShockShaft", upper_mount.lerp(hub, 0.5), hub, 0.009, _mat(Color("e8ecef"), 0.98, 0.1)))

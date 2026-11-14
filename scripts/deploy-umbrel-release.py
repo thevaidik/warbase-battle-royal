@@ -1,7 +1,7 @@
 import subprocess, sys, time, json, urllib.request, urllib.error
 
 D = ['docker', 'exec', 'portainer_docker_1', 'docker', '-H', 'unix:///data/docker.sock']
-IMAGE = 'warbase-colyseus:release-20261114'
+IMAGE = 'warbase-colyseus:release-20261114-cinematic'
 CONTAINER_NAME = 'warbase-colyseus-candidate'
 BACKUP_NAME = 'warbase-colyseus-backup-pre-release-20261114'
 STAGE_NAME = 'warbase-colyseus-stage-20261114'

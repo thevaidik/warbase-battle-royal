@@ -355,137 +355,141 @@ func _build_sky(root: Node3D, map_name: String = "industrial") -> void:
 	sky.process_mode = Sky.PROCESS_MODE_QUALITY
 	
 	if map_name == "village":
-		# Alpine Golden Hour / Alpenglow (Warm rose-gold sun, coral horizon, deep twilight zenith)
-		pm.sky_top_color = Color(0.12, 0.20, 0.44)
-		pm.sky_horizon_color = Color(0.98, 0.60, 0.34)
-		pm.ground_horizon_color = Color(0.48, 0.34, 0.26)
-		pm.ground_bottom_color = Color(0.10, 0.08, 0.10)
+		# Alpine Natural Daylight
+		pm.sky_top_color = Color(0.24, 0.34, 0.46)
+		pm.sky_horizon_color = Color(0.70, 0.74, 0.78)
+		pm.ground_horizon_color = Color(0.40, 0.42, 0.40)
+		pm.ground_bottom_color = Color(0.12, 0.12, 0.10)
 		pm.sun_angle_max = 32.0
 		pm.sun_curve = 0.08
 	elif map_name == "arena":
-		# Tactical Stadium Dusk (Dramatic amber dusk, deep indigo zenith)
-		pm.sky_top_color = Color(0.10, 0.14, 0.32)
-		pm.sky_horizon_color = Color(0.92, 0.52, 0.28)
-		pm.ground_horizon_color = Color(0.40, 0.26, 0.22)
-		pm.ground_bottom_color = Color(0.08, 0.07, 0.08)
+		# Tactical Stadium Overcast
+		pm.sky_top_color = Color(0.26, 0.32, 0.40)
+		pm.sky_horizon_color = Color(0.68, 0.71, 0.74)
+		pm.ground_horizon_color = Color(0.36, 0.37, 0.38)
+		pm.ground_bottom_color = Color(0.10, 0.10, 0.11)
 		pm.sun_angle_max = 28.0
 		pm.sun_curve = 0.10
 	elif map_name in ["dust2", "warzone", "desert_road", "canyon", "desert_oasis"]:
-		# Fiery Desert Sunset (Burning amber-gold horizon, deep desert twilight sapphire zenith)
-		pm.sky_top_color = Color(0.14, 0.20, 0.42)
-		pm.sky_horizon_color = Color(1.0, 0.56, 0.24)
-		pm.ground_horizon_color = Color(0.54, 0.32, 0.20)
-		pm.ground_bottom_color = Color(0.12, 0.08, 0.08)
+		# Arid Cinematic Desert (Muted sand haze, desaturated sky)
+		pm.sky_top_color = Color(0.25, 0.36, 0.48)
+		pm.sky_horizon_color = Color(0.76, 0.73, 0.68)
+		pm.ground_horizon_color = Color(0.50, 0.46, 0.40)
+		pm.ground_bottom_color = Color(0.14, 0.12, 0.10)
 		pm.sun_angle_max = 36.0
 		pm.sun_curve = 0.07
 	elif map_name == "shipment":
-		# Harbor Dusk (Gritty coastal twilight, warm copper glow reflecting on wet asphalt & steel)
-		pm.sky_top_color = Color(0.12, 0.16, 0.34)
-		pm.sky_horizon_color = Color(0.92, 0.54, 0.30)
-		pm.ground_horizon_color = Color(0.38, 0.28, 0.24)
-		pm.ground_bottom_color = Color(0.09, 0.08, 0.10)
+		# Coastal Harbor Slate Overcast
+		pm.sky_top_color = Color(0.25, 0.31, 0.38)
+		pm.sky_horizon_color = Color(0.66, 0.70, 0.73)
+		pm.ground_horizon_color = Color(0.34, 0.35, 0.36)
+		pm.ground_bottom_color = Color(0.10, 0.10, 0.11)
 		pm.sun_angle_max = 28.0
 		pm.sun_curve = 0.10
 	elif map_name == "nuketown":
-		# 1950s Suburban Golden Sunset (Nostalgic warm honey gold & peach horizon, cobalt twilight)
-		pm.sky_top_color = Color(0.12, 0.22, 0.46)
-		pm.sky_horizon_color = Color(0.98, 0.65, 0.36)
-		pm.ground_horizon_color = Color(0.50, 0.36, 0.26)
-		pm.ground_bottom_color = Color(0.10, 0.09, 0.10)
+		# Subdued Suburban Daylight
+		pm.sky_top_color = Color(0.26, 0.36, 0.48)
+		pm.sky_horizon_color = Color(0.72, 0.75, 0.76)
+		pm.ground_horizon_color = Color(0.44, 0.43, 0.40)
+		pm.ground_bottom_color = Color(0.11, 0.11, 0.10)
 		pm.sun_angle_max = 32.0
 		pm.sun_curve = 0.08
 	else:
-		# Metropolis Golden Hour (Warm golden amber avenues, long skyscraper shadows, twilight navy)
-		pm.sky_top_color = Color(0.12, 0.18, 0.40)
-		pm.sky_horizon_color = Color(0.96, 0.60, 0.34)
-		pm.ground_horizon_color = Color(0.46, 0.32, 0.26)
-		pm.ground_bottom_color = Color(0.10, 0.08, 0.10)
+		# Industrial & Default Metropolis
+		pm.sky_top_color = Color(0.25, 0.34, 0.45)
+		pm.sky_horizon_color = Color(0.71, 0.74, 0.77)
+		pm.ground_horizon_color = Color(0.38, 0.39, 0.39)
+		pm.ground_bottom_color = Color(0.11, 0.11, 0.12)
 		pm.sun_angle_max = 32.0
 		pm.sun_curve = 0.08
 		
 	sky.sky_material = pm
 	env.sky = sky
 	
-	# Warm Earth-Bounce & Twilight Sky Ambient Fill (Preserves competitive clarity with rich evening mood)
-	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	env.ambient_light_color = Color(0.48, 0.38, 0.34) if map_name == "arena" else Color(0.68, 0.54, 0.48)
-	env.ambient_light_energy = 0.62
+	# Film-grade Ambient Lighting: Natural sky bounce fill
+	env.ambient_light_source = Environment.AMBIENT_SOURCE_SKY
+	env.ambient_light_sky_contribution = 0.65
+	env.ambient_light_color = Color(0.55, 0.58, 0.62)
+	env.ambient_light_energy = 0.65
 	
 	# Sky reflections for authentic metallic surfaces (guns, steel silos, vehicle panels)
 	env.reflected_light_source = Environment.REFLECTION_SOURCE_SKY
 	
 	# Film-grade ACES Tonemapper with warm cinematic contrast
 	env.tonemap_mode = Environment.TONE_MAPPER_ACES
-	env.tonemap_exposure = 1.05
-	env.tonemap_white = 5.4
+	env.tonemap_exposure = 1.02
+	env.tonemap_white = 5.8
 	
-	# Screen Space Ambient Occlusion (Disabled for 120Hz e-sports frame rate & zero fillrate penalty)
-	# Bounded contact shading for the Industrial visual reference map.
-	# Godot 4.7 Compatibility supports SSAO on both native and WebGL.
-	env.ssao_enabled = map_name == "industrial" and not OS.has_feature("web")
+	# Cinema Color Grading Adjustments (Harmonized, desaturated film stock)
+	env.adjustment_enabled = true
+	env.adjustment_saturation = 0.88
+	env.adjustment_contrast = 1.10
+	env.adjustment_brightness = 1.02
+	
+	# Screen Space Ambient Occlusion for grounded contact shadows
+	env.ssao_enabled = not OS.has_feature("web")
 	env.ssao_radius = 0.8
 	env.ssao_intensity = 0.65
-	if map_name == "industrial":
-		env.ambient_light_source = Environment.AMBIENT_SOURCE_SKY
-		env.ambient_light_sky_contribution = 0.65
 	
 	# Subtle Tactical Evening Bloom (Sun specular glints, vehicle headlights, muzzle flashes)
-	# On Web: disable multi-pass glow to eliminate WebGL 2.0 blit/framebuffer overhead
 	env.glow_enabled = not OS.has_feature("web")
 	env.glow_normalized = true
-	env.glow_intensity = 0.26
-	env.glow_bloom = 0.07
+	env.glow_intensity = 0.18
+	env.glow_bloom = 0.04
 	env.glow_blend_mode = Environment.GLOW_BLEND_MODE_SOFTLIGHT
-	env.glow_hdr_threshold = 0.95
+	env.glow_hdr_threshold = 1.05
 	
-	# Radiant Golden Hour Atmospheric Haze
+	# Cohesive Natural Atmospheric Fog (Matches horizon sky color)
 	env.fog_enabled = true
 	if map_name in ["dust2", "warzone", "desert_road", "canyon", "desert_oasis"]:
-		env.fog_light_color = Color(0.95, 0.58, 0.30)
-		env.fog_density = 0.0006 if map_name == "canyon" else 0.0010
+		env.fog_light_color = Color(0.74, 0.72, 0.68)
+		env.fog_density = 0.0005 if map_name == "canyon" else 0.00075
 	elif map_name == "arena":
-		env.fog_light_color = Color(0.78, 0.46, 0.28)
-		env.fog_density = 0.0012
+		env.fog_light_color = Color(0.68, 0.71, 0.74)
+		env.fog_density = 0.0008
+	elif map_name == "shipment":
+		env.fog_light_color = Color(0.66, 0.70, 0.73)
+		env.fog_density = 0.0008
 	else:
-		env.fog_light_color = Color(0.92, 0.60, 0.36)
-		env.fog_density = 0.0010
-	env.fog_light_energy = 0.50
-	env.fog_aerial_perspective = 0.65
+		env.fog_light_color = Color(0.71, 0.74, 0.77)
+		env.fog_density = 0.00065
+	env.fog_light_energy = 0.55
+	env.fog_aerial_perspective = 0.70
 	
 	var hemi := WorldEnvironment.new()
 	hemi.environment = env
 	root.add_child(hemi)
 	
-	# Directional Evening Sun: Low horizon angle (-15° pitch), casting dramatic long golden shadows
+	# Directional Sunlight: Natural daylight (5600K-5800K), soft balanced warm white
 	var sun := DirectionalLight3D.new()
 	if map_name == "village":
-		sun.rotation = Vector3(deg_to_rad(-14.0), deg_to_rad(52.0), 0)
-		sun.light_energy = 1.65
-		sun.light_color = Color(1.0, 0.78, 0.50)
+		sun.rotation = Vector3(deg_to_rad(-18.0), deg_to_rad(52.0), 0)
+		sun.light_energy = 1.45
+		sun.light_color = Color(1.0, 0.97, 0.92)
 	elif map_name == "arena":
-		sun.rotation = Vector3(deg_to_rad(-18.0), deg_to_rad(-120.0), 0)
-		sun.light_energy = 1.55
-		sun.light_color = Color(1.0, 0.72, 0.44)
+		sun.rotation = Vector3(deg_to_rad(-24.0), deg_to_rad(-120.0), 0)
+		sun.light_energy = 1.35
+		sun.light_color = Color(0.98, 0.98, 1.0)
 	elif map_name == "city":
-		sun.rotation = Vector3(deg_to_rad(-15.0), deg_to_rad(-55.0), 0)
-		sun.light_energy = 1.70
-		sun.light_color = Color(1.0, 0.76, 0.48)
+		sun.rotation = Vector3(deg_to_rad(-20.0), deg_to_rad(-55.0), 0)
+		sun.light_energy = 1.45
+		sun.light_color = Color(1.0, 0.97, 0.92)
 	elif map_name == "dust2":
-		sun.rotation = Vector3(deg_to_rad(-15.0), deg_to_rad(-48.0), 0)
-		sun.light_energy = 1.65
-		sun.light_color = Color(1.0, 0.76, 0.46)
+		sun.rotation = Vector3(deg_to_rad(-22.0), deg_to_rad(-48.0), 0)
+		sun.light_energy = 1.50
+		sun.light_color = Color(1.0, 0.96, 0.90)
 	elif map_name == "nuketown":
-		sun.rotation = Vector3(deg_to_rad(-15.0), deg_to_rad(38.0), 0)
-		sun.light_energy = 1.65
-		sun.light_color = Color(1.0, 0.80, 0.52)
+		sun.rotation = Vector3(deg_to_rad(-20.0), deg_to_rad(38.0), 0)
+		sun.light_energy = 1.45
+		sun.light_color = Color(1.0, 0.97, 0.92)
 	elif map_name in ["canyon", "warzone", "desert_road", "desert_oasis"]:
-		sun.rotation = Vector3(deg_to_rad(-13.0), deg_to_rad(-35.0), 0)
-		sun.light_energy = 1.75
-		sun.light_color = Color(1.0, 0.72, 0.38)
+		sun.rotation = Vector3(deg_to_rad(-20.0), deg_to_rad(-35.0), 0)
+		sun.light_energy = 1.50
+		sun.light_color = Color(1.0, 0.96, 0.90)
 	else: # industrial and default
-		sun.rotation = Vector3(deg_to_rad(-16.0), deg_to_rad(-42.0), 0)
-		sun.light_energy = 1.65
-		sun.light_color = Color(1.0, 0.76, 0.48)
+		sun.rotation = Vector3(deg_to_rad(-22.0), deg_to_rad(-42.0), 0)
+		sun.light_energy = 1.45
+		sun.light_color = Color(1.0, 0.97, 0.92)
 		
 	# Native shadow experiment is opt-in until capture review confirms stable edges.
 	sun.shadow_enabled = OS.get_environment("WARBASE_SHADOW_EXPERIMENT") == "1" and not OS.has_feature("web") and map_name != "football"
@@ -501,8 +505,8 @@ func _build_sky(root: Node3D, map_name: String = "industrial") -> void:
 
 func _add_arena_accents(root: Node3D) -> void:
 	var center_light := OmniLight3D.new()
-	center_light.light_color = Color(1.0, 0.85, 0.6)
-	center_light.light_energy = 2.5
+	center_light.light_color = Color(1.0, 0.96, 0.90)
+	center_light.light_energy = 2.0
 	center_light.omni_range = 22.0
 	center_light.position = Vector3(0, 3.8, 0)
 	root.add_child(center_light)
@@ -514,8 +518,8 @@ func _add_arena_accents(root: Node3D) -> void:
 	]
 	for i in lamp_points.size():
 		var l := OmniLight3D.new()
-		l.light_color = Color(1.0, 0.82, 0.6) if i % 2 == 0 else Color(0.85, 0.88, 1.0)
-		l.light_energy = 1.6
+		l.light_color = Color(0.96, 0.98, 1.0)
+		l.light_energy = 1.2
 		l.omni_range = 14.0
 		l.position = lamp_points[i]
 		root.add_child(l)
@@ -523,10 +527,10 @@ func _add_arena_accents(root: Node3D) -> void:
 
 func apply_time_of_day(preset: String) -> void:
 	var profiles := {
-		"dawn": [Color("536c96"), Color("deb598"), Color("ffd6ae"), -12.0, 1.1, 0.42],
-		"noon": [Color("4f97d2"), Color("c7deeb"), Color("fff7e8"), -62.0, 1.35, 0.5],
-		"dusk": [Color("344b76"), Color("d9a27a"), Color("ffc78e"), -16.0, 1.15, 0.38],
-		"overcast": [Color("718395"), Color("cad1d8"), Color("e4e9ee"), -48.0, 0.95, 0.7]
+		"dawn": [Color(0.28, 0.35, 0.45), Color(0.72, 0.71, 0.69), Color(0.98, 0.94, 0.88), -14.0, 1.20, 0.50],
+		"noon": [Color(0.26, 0.38, 0.52), Color(0.72, 0.77, 0.81), Color(1.0, 0.98, 0.94), -58.0, 1.40, 0.55],
+		"dusk": [Color(0.22, 0.26, 0.36), Color(0.76, 0.62, 0.50), Color(1.0, 0.90, 0.78), -16.0, 1.25, 0.48],
+		"overcast": [Color(0.40, 0.46, 0.52), Color(0.70, 0.74, 0.78), Color(0.95, 0.97, 0.99), -46.0, 1.10, 0.72]
 	}
 	var profile: Array = profiles.get("overcast" if preset == "night" else preset, profiles["noon"])
 	for node in find_children("*", "WorldEnvironment", true, false):
@@ -543,15 +547,21 @@ func apply_time_of_day(preset: String) -> void:
 		environment.ambient_light_energy = profile[5]
 		var arid := _active_map in ["dust2", "canyon"]
 		var haze_color: Color = profile[1]
-		if arid: haze_color = haze_color.lerp(Color("d3b99a"), 0.16)
+		if arid: haze_color = haze_color.lerp(Color("7a7368"), 0.16)
 		environment.fog_light_color = haze_color
 		# Distance haze follows weather while preserving foreground target contrast.
-		environment.fog_density = 0.0010 if preset == "overcast" else (0.00075 if preset in ["dawn", "dusk"] else 0.00035)
-		environment.fog_density *= 1.35 if arid else (0.7 if _active_map == "football" else 1.0)
-		environment.fog_sun_scatter = 0.12 if preset == "overcast" else 0.35
-		environment.fog_light_energy = 0.65
-		environment.tonemap_exposure = 1.0
-		environment.glow_hdr_threshold = 1.4
+		environment.fog_density = 0.0008 if preset == "overcast" else (0.0006 if preset in ["dawn", "dusk"] else 0.00030)
+		environment.fog_density *= 1.25 if arid else (0.7 if _active_map == "football" else 1.0)
+		environment.fog_sun_scatter = 0.12 if preset == "overcast" else 0.30
+		environment.fog_light_energy = 0.60
+		environment.tonemap_mode = Environment.TONE_MAPPER_ACES
+		environment.tonemap_exposure = 1.02
+		environment.tonemap_white = 5.8
+		environment.adjustment_enabled = true
+		environment.adjustment_saturation = 0.88
+		environment.adjustment_contrast = 1.10
+		environment.adjustment_brightness = 1.02
+		environment.glow_hdr_threshold = 1.1
 	for node in find_children("*", "DirectionalLight3D", true, false):
 		node.rotation_degrees.x = profile[3]
 		node.light_color = profile[2]
