@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { BotSimulation, type BotPlayer, insertNearestCandidate } from './bot-simulation.js';
+import { createConquestState, stepConquest } from './conquest-simulation.js';
 import { INDUSTRIAL_SPAWNS, loadWorldGeometry } from './world-geometry.js';
 
 function human(username: string, spawn: readonly number[], team = 'B'): BotPlayer {
@@ -121,6 +122,45 @@ test('Conquest objective goals replace idle patrol goals when no enemy is visibl
   sim.step(players, 1 / 30, 10_000, { onShot: () => {}, objectiveGoal: (current) => { assert.equal(current.username, bot.username); goals++; return goal; } });
   assert.equal(goals, 1, 'idle bots ask the mode for their objective destination');
   assert.ok(bot.x !== goal[0] || bot.z !== goal[2], 'the bot begins navigating toward its objective');
+});
+
+test('bots anchor to conquest objectives and capture points while defending against threats', () => {
+  const geometry = loadWorldGeometry('industrial')!;
+  const sim = new BotSimulation(geometry);
+  const conquest = createConquestState(geometry.spawns);
+  const targetObj = conquest.objectives[0];
+  const humanPilot = human('pilot-1', geometry.spawns[2], 'A');
+  const { joined } = sim.sync([humanPilot], 1000, 'TDM');
+  const botA = joined.find((b) => b.team === 'A')!;
+  const botB = joined.find((b) => b.team === 'B')!;
+
+  // Place botA inside objective 0
+  botA.x = targetObj.x;
+  botA.y = targetObj.y + 0.9;
+  botA.z = targetObj.z;
+
+  // Place enemy botB 28m away
+  botB.x = targetObj.x + 28;
+  botB.y = targetObj.y + 0.9;
+  botB.z = targetObj.z;
+
+  const players = new Map([humanPilot, botA, botB].map((actor) => [actor.username, actor]));
+
+  // Step simulation for 6 seconds (180 ticks at 30Hz)
+  for (let tick = 0; tick < 180; tick++) {
+    const nowMs = 1000 + tick * (1000 / 30);
+    sim.step(players, 1 / 30, nowMs, {
+      onShot: () => {},
+      objectiveGoal: () => ({ position: [targetObj.x, targetObj.y + 0.9, targetObj.z], radius: targetObj.radius })
+    });
+    stepConquest(conquest, players.values(), 1 / 30);
+  }
+
+  // BotA must have remained within objective radius the entire time
+  const dBotA = Math.hypot(botA.x - targetObj.x, botA.z - targetObj.z);
+  assert.ok(dBotA <= targetObj.radius, `botA remained anchored in capture zone: ${dBotA} <= ${targetObj.radius}`);
+  // Point 0 should have accumulated progress or been captured by team A
+  assert.ok(targetObj.progress > 0 || targetObj.owner === 'A', 'anchored bot generated capture progress');
 });
 
 test('Resoforge bots accelerate away from their spawns at the live tick rate', () => {

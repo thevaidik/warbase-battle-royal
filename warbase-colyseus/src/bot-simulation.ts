@@ -18,11 +18,12 @@ export type BotPlayer = {
 };
 export type BotShot = { shooter: string; target: string; weapon: string; origin: Vec3; endpoint: Vec3; shotId: number };
 export type BotRosterChange = { joined: BotPlayer[]; removed: string[] };
+export type BotObjectiveGoal = { position: Vec3; radius?: number };
 export type BotUpdateCallbacks = {
   onShot: (shot: BotShot) => void;
   onSmoke?: (bot: BotPlayer) => void;
   vehicleBlocked?: (position: Vec3) => boolean;
-  objectiveGoal?: (bot: BotPlayer) => Vec3 | undefined;
+  objectiveGoal?: (bot: BotPlayer) => BotObjectiveGoal | Vec3 | undefined;
 };
 
 export type TacticalState = 'PATROL' | 'ATTACK' | 'FLANK' | 'TAKE_COVER' | 'SEARCH';
@@ -471,14 +472,15 @@ export class BotSimulation {
     return [];
   }
 
-  private findTacticalCover(botPos: Vec3, threatPos: Vec3, nodes: readonly NavNode[]): Vec3 | undefined {
+  private findTacticalCover(botPos: Vec3, threatPos: Vec3, nodes: readonly NavNode[], anchorPos?: Vec3, anchorRadius?: number): Vec3 | undefined {
     let bestNode: Vec3 | undefined;
     let bestScore = Infinity;
     const currentDist = dist(botPos, threatPos);
     let count = 0;
     for (let i = 0; i < nodes.length; i++) {
       const dSq = distSquared(botPos, nodes[i].position);
-      if (dSq >= 9 && dSq <= 256) {
+      if (dSq >= 4 && dSq <= 256) {
+        if (anchorPos && anchorRadius && dist(nodes[i].position, anchorPos) > anchorRadius) continue;
         count = insertNearestCandidate(this.coverIndices, this.coverDistances, count, 16, i, dSq);
       }
     }
@@ -499,9 +501,14 @@ export class BotSimulation {
     return bestNode;
   }
 
-  private plan(bot: BotPlayer, brain: Brain, nodes: readonly NavNode[], nowMs: number, vehicleBlocked?: (p: Vec3) => boolean, objectiveGoal?: (bot: BotPlayer) => Vec3 | undefined, onSmoke?: (bot: BotPlayer) => void): void {
+  private plan(bot: BotPlayer, brain: Brain, nodes: readonly NavNode[], nowMs: number, vehicleBlocked?: (p: Vec3) => boolean, objectiveGoal?: (bot: BotPlayer) => BotObjectiveGoal | Vec3 | undefined, onSmoke?: (bot: BotPlayer) => void): void {
     brain.planAt = nowMs + 650 + Math.floor(this.random(brain) * 300);
-    const objective = !brain.visible ? objectiveGoal?.(bot) : undefined;
+    const rawObj = objectiveGoal?.(bot);
+    const isObj = rawObj !== undefined && 'position' in rawObj;
+    const objectivePos: Vec3 | undefined = isObj ? rawObj.position : (rawObj as Vec3 | undefined);
+    const objectiveRadius: number = isObj && typeof rawObj.radius === 'number' ? rawObj.radius : 12;
+    const distToObjective = objectivePos ? dist(vector(bot), objectivePos) : Infinity;
+    const isAtObjective = objectivePos !== undefined && distToObjective <= objectiveRadius;
 
     const d = dist(vector(bot), brain.lastKnown);
     const maxAmmo = BOT_MAGAZINES[bot.weapon_id] ?? 30;
@@ -520,20 +527,20 @@ export class BotSimulation {
           onSmoke?.(bot);
         }
       } else if (enemyInSight) {
-        if (brain.role === 2 || (brain.role === 1 && d > 16)) {
+        if (!isAtObjective && (brain.role === 2 || (brain.role === 1 && d > 16))) {
           brain.state = 'FLANK';
         } else {
           brain.state = 'ATTACK';
         }
       } else {
-        brain.state = 'SEARCH';
+        brain.state = isAtObjective ? 'ATTACK' : 'SEARCH';
       }
     } else {
       brain.state = 'PATROL';
     }
 
     // Keep a useful patrol route instead of choosing a random destination each plan tick.
-    if (brain.state === 'PATROL' && !objective && brain.waypoint < brain.path.length && nowMs - brain.lastProgressAt < 1500) {
+    if (brain.state === 'PATROL' && !objectivePos && brain.waypoint < brain.path.length && nowMs - brain.lastProgressAt < 1500) {
       return;
     }
 
@@ -542,10 +549,25 @@ export class BotSimulation {
 
     switch (brain.state) {
       case 'TAKE_COVER': {
-        const cover = this.findTacticalCover(vector(bot), brain.lastKnown, nodes);
+        const cover = this.findTacticalCover(
+          vector(bot),
+          brain.lastKnown,
+          nodes,
+          isAtObjective ? objectivePos : undefined,
+          isAtObjective ? objectiveRadius * 0.85 : undefined
+        );
         if (cover) {
           goal = cover;
           brain.coverPoint = cover;
+        } else if (isAtObjective && objectivePos) {
+          const dx = brain.lastKnown[0] - objectivePos[0], dz = brain.lastKnown[2] - objectivePos[2];
+          const dThreat = Math.max(Math.hypot(dx, dz), 1);
+          const rearOffset = Math.min(objectiveRadius * 0.6, 6.0);
+          goal = [
+            objectivePos[0] - (dx / dThreat) * rearOffset,
+            objectivePos[1],
+            objectivePos[2] - (dz / dThreat) * rearOffset,
+          ];
         } else {
           const dx = brain.lastKnown[0] - bot.x, dz = brain.lastKnown[2] - bot.z;
           const d = Math.max(Math.hypot(dx, dz), 1);
@@ -555,41 +577,86 @@ export class BotSimulation {
       }
 
       case 'ATTACK': {
-        const dx = brain.lastKnown[0] - bot.x, dz = brain.lastKnown[2] - bot.z;
-        const d = Math.max(Math.hypot(dx, dz), 1);
-        const preferredRange = bot.weapon_id === 'mp5' ? 7 : bot.weapon_id === 'dmr' ? 24 : 12;
-        const lateral = (brain.role - 1) * 5;
-        goal = [
-          brain.lastKnown[0] - (dx / d) * preferredRange - (dz / d) * lateral,
-          brain.lastKnown[1],
-          brain.lastKnown[2] - (dz / d) * preferredRange + (dx / d) * lateral,
-        ];
+        if (isAtObjective && objectivePos) {
+          const toThreatX = brain.lastKnown[0] - objectivePos[0];
+          const toThreatZ = brain.lastKnown[2] - objectivePos[2];
+          const threatD = Math.max(Math.hypot(toThreatX, toThreatZ), 0.001);
+          const holdRadius = Math.min(objectiveRadius * 0.60, 7.0);
+          const lateral = (brain.role - 1) * 2.2;
+          goal = [
+            objectivePos[0] + (toThreatX / threatD) * holdRadius - (toThreatZ / threatD) * lateral,
+            objectivePos[1],
+            objectivePos[2] + (toThreatZ / threatD) * holdRadius + (toThreatX / threatD) * lateral,
+          ];
+        } else if (objectivePos && d > 20) {
+          goal = objectivePos;
+        } else {
+          const dx = brain.lastKnown[0] - bot.x, dz = brain.lastKnown[2] - bot.z;
+          const d = Math.max(Math.hypot(dx, dz), 1);
+          const preferredRange = bot.weapon_id === 'mp5' ? 7 : bot.weapon_id === 'dmr' ? 24 : 12;
+          const lateral = (brain.role - 1) * 5;
+          goal = [
+            brain.lastKnown[0] - (dx / d) * preferredRange - (dz / d) * lateral,
+            brain.lastKnown[1],
+            brain.lastKnown[2] - (dz / d) * preferredRange + (dx / d) * lateral,
+          ];
+        }
         break;
       }
 
       case 'FLANK': {
-        const dx = brain.lastKnown[0] - bot.x, dz = brain.lastKnown[2] - bot.z;
-        const d = Math.max(Math.hypot(dx, dz), 1);
-        const preferredRange = bot.weapon_id === 'mp5' ? 8 : 14;
-        const flankSign = brain.role === 2 ? 1 : -1;
-        const flankOffset = flankSign * (preferredRange * 0.7);
-        goal = [
-          brain.lastKnown[0] - (dx / d) * preferredRange - (dz / d) * flankOffset,
-          brain.lastKnown[1],
-          brain.lastKnown[2] - (dz / d) * preferredRange + (dx / d) * flankOffset,
-        ];
+        if (isAtObjective && objectivePos) {
+          const toThreatX = brain.lastKnown[0] - objectivePos[0];
+          const toThreatZ = brain.lastKnown[2] - objectivePos[2];
+          const threatD = Math.max(Math.hypot(toThreatX, toThreatZ), 0.001);
+          const holdRadius = Math.min(objectiveRadius * 0.65, 7.5);
+          const flankSign = brain.role === 2 ? 1 : -1;
+          const flankOffset = flankSign * 3.0;
+          goal = [
+            objectivePos[0] + (toThreatX / threatD) * holdRadius - (toThreatZ / threatD) * flankOffset,
+            objectivePos[1],
+            objectivePos[2] + (toThreatZ / threatD) * holdRadius + (toThreatX / threatD) * flankOffset,
+          ];
+        } else if (objectivePos && d > 20) {
+          goal = objectivePos;
+        } else {
+          const dx = brain.lastKnown[0] - bot.x, dz = brain.lastKnown[2] - bot.z;
+          const d = Math.max(Math.hypot(dx, dz), 1);
+          const preferredRange = bot.weapon_id === 'mp5' ? 8 : 14;
+          const flankSign = brain.role === 2 ? 1 : -1;
+          const flankOffset = flankSign * (preferredRange * 0.7);
+          goal = [
+            brain.lastKnown[0] - (dx / d) * preferredRange - (dz / d) * flankOffset,
+            brain.lastKnown[1],
+            brain.lastKnown[2] - (dz / d) * preferredRange + (dx / d) * flankOffset,
+          ];
+        }
         break;
       }
 
       case 'SEARCH': {
-        goal = brain.lastKnown;
+        if (isAtObjective && objectivePos) {
+          goal = objectivePos;
+        } else {
+          goal = brain.lastKnown;
+        }
         break;
       }
 
       case 'PATROL':
       default: {
-        if (objective) {
-          goal = objective;
+        if (objectivePos) {
+          if (isAtObjective) {
+            const angle = (brain.role * (Math.PI * 2 / 3)) + ((nowMs % 12000) / 12000) * (Math.PI * 2);
+            const patrolOffset = Math.min(objectiveRadius * 0.40, 4.0);
+            goal = [
+              objectivePos[0] + Math.cos(angle) * patrolOffset,
+              objectivePos[1],
+              objectivePos[2] + Math.sin(angle) * patrolOffset,
+            ];
+          } else {
+            goal = objectivePos;
+          }
         } else {
           const spawn = this.geometry.spawns[Math.floor(this.random(brain) * this.geometry.spawns.length)];
           goal = [spawn[0], spawn[1] + DRONE_SPAWN_OFFSET, spawn[2]];

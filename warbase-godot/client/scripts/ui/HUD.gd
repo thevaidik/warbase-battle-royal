@@ -11,9 +11,6 @@ signal resume_pressed
 signal quit_pressed
 signal scoreboard_closed
 
-var _bot_damage_btn: Button
-var _pause_bot_btn: Button
-
 var _connection_status: Label
 
 func set_connection_status(message: String) -> void:
@@ -22,7 +19,6 @@ func set_connection_status(message: String) -> void:
 	_connection_status.visible = not message.is_empty()
 
 var _menu_scrim: ColorRect
-var _practice_bar: PanelContainer
 var _controls_hint: Label
 var cross_dot: ColorRect
 var cross_lines: Array[ColorRect] = []
@@ -387,10 +383,6 @@ func _ready() -> void:
 	layer = 10
 	build()
 	WarUI.apply(self)
-	GameState.bot_damage_toggled.connect(func(_enabled: bool) -> void:
-		_update_bot_damage_btn()
-		_update_pause_bot_btn()
-	)
 
 func _mk_label(text: String, size: int, color: Color) -> Label:
 	var l := Label.new()
@@ -773,22 +765,6 @@ func build() -> void:
 	
 	pv.add_child(_mk_label("AUDIO DISABLED", 12, Color.LIGHT_GRAY))
 	
-	var pause_bot_btn := Button.new()
-	pause_bot_btn.custom_minimum_size = Vector2(0, 36)
-	_pause_bot_btn = pause_bot_btn
-	_update_pause_bot_btn()
-	pause_bot_btn.pressed.connect(func() -> void:
-		Audio.ui_btn_click()
-		GameState.toggle_bot_damage()
-		_update_bot_damage_btn()
-		_update_pause_bot_btn()
-		if GameState.bot_damage_enabled:
-			feed(" Combat Mode: Bot Damage Enabled", Color(1.0, 0.45, 0.25))
-		else:
-			feed(" Peaceful Mode: Bot Damage OFF — Fly in Peace!", Color(0.3, 0.95, 0.4))
-	)
-	pv.add_child(pause_bot_btn)
-	
 	var resume_btn := Button.new()
 	resume_btn.text = "RESUME GAME   [ESC]"
 	WarUI.primary(resume_btn)
@@ -844,61 +820,15 @@ func build() -> void:
 	top_hdr.add_child(_audit_lbl_status)
 	_audit_lbl_status.visible = false
 
-	# Peaceful Mode & Bot Damage Control Bar
-	var peace_bar := PanelContainer.new()
-	_practice_bar = peace_bar
-	var pb_style := StyleBoxFlat.new()
-	pb_style.bg_color = Color(0.06, 0.08, 0.12, 0.95)
-	pb_style.border_color = Color(0.25, 0.38, 0.55, 0.75)
-	pb_style.set_border_width_all(1)
-	pb_style.set_corner_radius_all(5)
-	pb_style.content_margin_left = 14
-	pb_style.content_margin_right = 14
-	pb_style.content_margin_top = 8
-	pb_style.content_margin_bottom = 8
-	peace_bar.add_theme_stylebox_override("panel", pb_style)
-	main_vbox.add_child(peace_bar)
-
-	var pb_hbox := HBoxContainer.new()
-	pb_hbox.add_theme_constant_override("separation", 14)
-	peace_bar.add_child(pb_hbox)
-
-	var pb_lbl := _mk_label("BOT BEHAVIOR:", 12, Color(0.7, 0.75, 0.85))
-	pb_hbox.add_child(pb_lbl)
-
-	var bot_dmg_btn := Button.new()
-	bot_dmg_btn.custom_minimum_size = Vector2(290, 38)
-	bot_dmg_btn.mouse_filter = Control.MOUSE_FILTER_STOP
-	_bot_damage_btn = bot_dmg_btn
-	_update_bot_damage_btn()
-	bot_dmg_btn.pressed.connect(func() -> void:
-		Audio.ui_btn_click()
-		GameState.toggle_bot_damage()
-		_update_bot_damage_btn()
-		_update_pause_bot_btn()
-		if GameState.bot_damage_enabled:
-			feed(" Combat Mode: Bot Damage Enabled", Color(1.0, 0.45, 0.25))
-		else:
-			feed(" Peaceful Mode: Bot Damage OFF — Fly in Peace!", Color(0.3, 0.95, 0.4))
-	)
-	pb_hbox.add_child(bot_dmg_btn)
-
-	var pb_hint := _mk_label("Hotkey: [P]", 11, Color(0.55, 0.65, 0.75))
-	pb_hbox.add_child(pb_hint)
-
-	var pb_spacer := Control.new()
-	pb_spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	pb_hbox.add_child(pb_spacer)
-
 	var resume_board_btn := Button.new()
-	resume_board_btn.text = " RESUME GAME [TAB / ESC]"
-	resume_board_btn.custom_minimum_size = Vector2(180, 34)
+	resume_board_btn.text = "RESUME GAME [TAB / ESC]"
+	resume_board_btn.custom_minimum_size = Vector2(190, 34)
 	resume_board_btn.mouse_filter = Control.MOUSE_FILTER_STOP
 	resume_board_btn.pressed.connect(func() -> void:
 		Audio.ui_btn_click()
 		hide_board()
 	)
-	pb_hbox.add_child(resume_board_btn)
+	top_hdr.add_child(resume_board_btn)
 
 	# Dual Column Content Container
 	var cols := HBoxContainer.new()
@@ -1183,7 +1113,7 @@ func update_player_header(p_name: String = "", team: String = "", mode: String =
 	if is_instance_valid(match_info_label):
 		var tm := team if not team.is_empty() else GameState.local_team
 		var md := mode if not mode.is_empty() else GameState.selected_mode
-		match_info_label.text = ("OFFLINE" if GameState.practice_mode else ("%s / %s" % [md, tm])) + "  •  " + GameState.time_label(GameState.selected_time)
+		match_info_label.text = ("%s / %s" % [md, tm]) + "  •  " + GameState.time_label(GameState.selected_time)
 
 func show_elimination(killer: String, victim: String, weapon: String) -> void:
 	var weapon_tag := weapon.to_upper()
@@ -1490,8 +1420,6 @@ func _update_audit_telemetry() -> void:
 func show_board(players: Dictionary, me: String) -> void:
 	board_panel.visible = true
 	_menu_scrim.visible = true
-	_practice_bar.visible = GameState.practice_mode
-	_update_bot_damage_btn()
 	_refresh_scoreboard(players, me)
 	_update_audit_telemetry()
 
@@ -1503,21 +1431,9 @@ func hide_board() -> void:
 func is_board_visible() -> bool:
 	return is_instance_valid(board_panel) and board_panel.visible
 
-func _update_bot_damage_btn() -> void:
-	if not is_instance_valid(_bot_damage_btn): return
-	_bot_damage_btn.text = "Bot damage: on" if GameState.bot_damage_enabled else "Bot damage: off"
-	_bot_damage_btn.add_theme_stylebox_override("normal", WarUI.panel(WarUI.RAISED, WarUI.LINE, 10))
-	_bot_damage_btn.add_theme_color_override("font_color", WarUI.ACCENT if GameState.bot_damage_enabled else WarUI.MUTED)
-
-func _update_pause_bot_btn() -> void:
-	if not is_instance_valid(_pause_bot_btn): return
-	_pause_bot_btn.text = "Practice bot damage: on" if GameState.bot_damage_enabled else "Practice bot damage: off"
-	_pause_bot_btn.modulate = Color.WHITE
-
 func set_paused(paused: bool) -> void:
 	pause_panel.visible = paused
 	_menu_scrim.visible = paused or board_panel.visible
-	_pause_bot_btn.visible = GameState.practice_mode
 
 func set_ping(ms: int) -> void:
 	_current_ping = ms

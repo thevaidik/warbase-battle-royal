@@ -235,11 +235,11 @@ func _start_match(reservation: Dictionary = {}) -> void:
 	player.died.connect(_on_dead)
 	player.respawned.connect(func() -> void: hud.set_dead(false, 0))
 	
-	# Bots system (offline / mixed combatants)
+	# Bots system container (online matches use server-authoritative bots)
 	bots = BotMgrScript.new()
 	bots.name = "Bots"
 	world.add_child(bots)
-	bots.target_count = 7 if GameState.practice_mode else 0
+	bots.target_count = 0
 	bots.setup(player, spawns)
 	bots.bot_eliminated.connect(_on_bot_eliminated)
 	
@@ -301,14 +301,6 @@ func _input(event: InputEvent) -> void:
 
 	if event.is_action_pressed("scoreboard"):
 		_toggle_scoreboard()
-		return
-	if GameState.practice_mode and event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_P:
-		GameState.toggle_bot_damage()
-		Audio.ui_btn_click()
-		if GameState.bot_damage_enabled:
-			hud.feed(" Combat Mode: Bot Damage Enabled", Color(1.0, 0.45, 0.25))
-		else:
-			hud.feed(" Peaceful Mode: Bot Damage OFF — Flight test", Color(0.3, 0.95, 0.4))
 		return
 	if event is InputEventKey and event.pressed and not event.echo and (event.keycode == KEY_F3 or event.physical_keycode == KEY_F3):
 		var on = GameState.toggle_vsync()

@@ -10,6 +10,7 @@ func check(value: bool, description: String) -> void:
 func run() -> void:
 	root.get_node("GameState").server_host = "localhost:18091"
 	root.get_node("GameState").practice_mode = true
+	root.get_node("GameState").selected_drone_chassis = "heli"
 	root.get_node("GameState").selected_primary = "ak47"
 	root.get_node("GameState").selected_secondary = "pistol"
 	change_scene_to_file("res://scenes/Main.tscn")

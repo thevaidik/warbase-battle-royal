@@ -622,15 +622,18 @@ export class BattleRoom extends Room<{ state: BattleState; input: MoveInput }> {
     this.clock.setTimeout(() => collection.delete(key), 150);
   }
 
-  private conquestBotGoal(bot: BotPlayer): Vec3 | undefined {
+  private conquestBotGoal(bot: BotPlayer): { position: Vec3; radius: number } | undefined {
     if (!this.conquest?.objectives.length) return undefined;
     const team = bot.team === 'A' || bot.team === 'B' ? bot.team : 'A';
-    const unownedOrEnemy = this.conquest.objectives.filter((objective) => objective.owner !== team);
-    const candidates = unownedOrEnemy.length ? unownedOrEnemy : this.conquest.objectives;
+    // Priority 1: Friendly objectives currently being captured by enemy
+    const underAttack = this.conquest.objectives.filter((o) => o.owner === team && o.capturing_team !== '' && o.capturing_team !== team);
+    // Priority 2: Unowned or enemy-owned objectives
+    const unownedOrEnemy = this.conquest.objectives.filter((o) => o.owner !== team);
+    const candidates = underAttack.length ? underAttack : (unownedOrEnemy.length ? unownedOrEnemy : this.conquest.objectives);
     const teamBots = [...this.state.players.values()].filter((player) => player.is_bot && player.team === team).sort((a, b) => a.username.localeCompare(b.username));
     const index = Math.max(0, teamBots.findIndex((player) => player.username === bot.username));
     const goal = candidates[index % candidates.length];
-    return [goal.x, goal.y + DRONE_SPAWN_OFFSET, goal.z];
+    return { position: [goal.x, goal.y + DRONE_SPAWN_OFFSET, goal.z], radius: goal.radius };
   }
 
   private throwGrenade(client: Client, raw: any): void {
