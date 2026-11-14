@@ -38,4 +38,4 @@ for key,indices in groups.items():
    if overlap>1e-5:
     area+=overlap;pairs.append({'a':i,'b':indices[other],'area':round(overlap,6),'center':tri[i].mean(axis=0).round(3).tolist(),'plane_deviation':float(np.max(np.abs((tri[indices[other]]-tri[i,0])@(norm[i]/length[i]))))})
 result={'triangles':len(tri),'plane_groups':len(groups),'tested_pairs':tests,'positive_overlap_pairs':len(pairs),'projected_overlap_area':area,'examples':sorted(pairs,key=lambda x:-x['area'])[:30]}
-Path(sys.argv[2] if len(sys.argv)>2 else 'audit/stadium-edge-analysis/coplanar-overlaps.json').write_text(json.dumps(result,indent=2)+'\n');print(json.dumps({k:v for k,v in result.items() if k!='examples'},indent=2))
+Path(sys.argv[2] if len(sys.argv)>2 else 'coplanar-overlaps.json').write_text(json.dumps(result,indent=2)+'\n');print(json.dumps({k:v for k,v in result.items() if k!='examples'},indent=2))

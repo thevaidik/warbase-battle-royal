@@ -8,7 +8,7 @@ func run() -> void:
 	var qa_probe = load("res://scripts/qa/OfficialProbe.gd")
 	check(qa_probe.can_instantiate(),"native and Web release QA probe compiles")
 	var audio = root.get_node("Audio")
-	check(AudioServer.is_bus_mute(AudioServer.get_bus_index("Master")) and audio.get_child_count()==0,"audio disabled without synthesizing or allocating sound players")
+	check(audio.AUDIO_ENABLED and audio._streams.size() >= 10, "procedural audio engine online with synthesized sound bank")
 	var state = root.get_node("GameState")
 	state.practice_mode = true
 	state.selected_map = "industrial"
@@ -56,12 +56,12 @@ func run() -> void:
 	var peers := {}
 	for i in 20: peers["peer_%d"%i]={"x":float(i*2),"y":1.0,"z":-10.0,"health":100,"weapon":"ak47"}
 	main.mp._on_state({"players":peers})
-	check(main.mp.remotes.is_empty() and main.mp._pending_remotes.size()==20,"join bursts queue actor creation")
+	check(main.mp.remotes.size()==20 and main.mp._pending_build_jobs.size()==20,"join bursts queue visual builds with immediate hit representation")
 	main.mp._process(1.0/60)
-	check(main.mp.remotes.size()==1,"one frame builds at most one remote actor")
+	check(main.mp._pending_build_jobs.size() < 20,"frame budget drains queued visual builds")
 	var removed_id: String = main.mp.remotes.keys()[0]
 	main.mp._on_state({"players":{},"removed_players":[removed_id,"peer_19"]})
-	check(not main.mp.remotes.has(removed_id) and not main.mp._pending_remotes.has("peer_19") and not state.players.has(removed_id),"departed actors and queued bots disappear without a three-second ghost")
+	check(not main.mp.remotes.has(removed_id) and not main.mp._pending_build_jobs.has("peer_19") and not state.players.has(removed_id),"departed actors and queued bots disappear without a three-second ghost")
 	var expired := MeshInstance3D.new()
 	var weak: WeakRef = weakref(expired)
 	expired.free()

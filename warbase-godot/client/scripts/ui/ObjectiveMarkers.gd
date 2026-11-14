@@ -7,6 +7,7 @@ var player: Node3D
 var suppressed := false
 var markers: Array[Dictionary] = []
 var _elapsed := 0.0
+var _prev_ownership: Dictionary = {}
 var _beacons: Node3D
 var _beam_mesh: CylinderMesh
 var _ring_mesh: TorusMesh
@@ -115,6 +116,20 @@ func _sync_beacons() -> void:
 		var ring: StandardMaterial3D = beacon.get_child(1).material_override
 		beam.albedo_color = Color(color, 0.27)
 		ring.albedo_color = Color(color, 0.84)
+		var id := String(point.get("id", str(visible_count)))
+		var current_owner := String(point.get("owner", ""))
+		if _prev_ownership.has(id):
+			var prev_owner: String = _prev_ownership[id]
+			if prev_owner != current_owner:
+				var local_team := GameState.local_team if "local_team" in GameState else "A"
+				var captured_by_us := current_owner == local_team
+				Audio.objective_alert(captured_by_us)
+				var main = get_tree().current_scene
+				if main and main.has_node("HUD"):
+					var team_label := "TEAM " + current_owner if not current_owner.is_empty() else "NEUTRAL"
+					var chatter_col := "cyan" if current_owner == local_team else ("danger" if not current_owner.is_empty() else "muted")
+					main.get_node("HUD").call("post_radio_chatter", "HQ", "Objective %s secured by %s." % [id.to_upper(), team_label], chatter_col)
+		_prev_ownership[id] = current_owner
 	for index in range(visible_count, _beacons.get_child_count()):
 		_beacons.get_child(index).visible = false
 
@@ -135,7 +150,9 @@ func _draw() -> void:
 		var position: Vector2 = marker["position"]
 		var color: Color = marker["color"]
 		draw_circle(position, 19, Color(0.025, 0.045, 0.065, 0.9))
-		draw_arc(position, 19, 0, TAU, 32, color, 2, true)
+		var is_cont := bool(marker.get("contested", false))
+		var ring_color := Color(color, 0.55 + 0.45 * sin(Time.get_ticks_msec() * 0.012)) if is_cont else color
+		draw_arc(position, 19, 0, TAU, 32, ring_color, 2, true)
 		if float(marker["progress"]) > 0:
 			draw_arc(position, 23, -PI * 0.5, -PI * 0.5 + TAU * float(marker["progress"]), 32, Color("ffcd75"), 3, true)
 		var code: String = marker["id"]

@@ -26,6 +26,4 @@ func run() -> void:
 	camera.size = 190
 	camera.current = true
 	for i in 5: await process_frame
-	RenderingServer.force_draw(false)
-	root.get_texture().get_image().save_png(ProjectSettings.globalize_path("res://../../audit/map-collision-upgrade/industrial-before.png"))
 	quit()

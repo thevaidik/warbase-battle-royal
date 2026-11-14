@@ -1,9 +1,0 @@
-{
-  "platform": "native-release",
-  "host": "war.vaidik.blog/colyseus",
-  "release_export": true,
-  "walking_distance_m": 20.7051911696326,
-  "disconnects": 0,
-  "seconds": 8.00588300000001,
-  "sdk_ack_sequence_max": 463
-}

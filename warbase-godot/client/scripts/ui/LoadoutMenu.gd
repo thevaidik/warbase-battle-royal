@@ -29,7 +29,7 @@ func _ready() -> void:
 	var slots := HBoxContainer.new()
 	slots.add_theme_constant_override("separation", 12)
 	layout.add_child(slots)
-	for id in ["primary", "secondary", "throwable"]:
+	for id in ["primary", "secondary", "tertiary", "throwable"]:
 		var button := _button("", _select_slot.bind(id))
 		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		button.custom_minimum_size.y = 82
@@ -139,12 +139,18 @@ func choose(id: String) -> void:
 	_refresh()
 
 func _refresh() -> void:
+	var is_tank := GameState.selected_drone_chassis == "tracked"
+	if _slots.has("tertiary"):
+		_slots["tertiary"].visible = is_tank
+	if slot == "tertiary" and not is_tank:
+		slot = "primary"
 	var names := {}
 	for weapon in GameState.WEAPONS: names[weapon["id"]] = weapon["name"]
 	for id in _slots:
+		if id == "tertiary" and not is_tank: continue
 		var selected_id := _equipped(id)
-		var name_text := String(GameState.THROWABLES[selected_id]["name"]) if id == "throwable" else String(names[selected_id])
-		var slot_label := "THROWABLE" if id == "throwable" else ("PRIMARY PAYLOAD" if id == "primary" else "SECONDARY PAYLOAD")
+		var name_text := String(GameState.THROWABLES[selected_id]["name"]) if id == "throwable" else String(names.get(selected_id, "HMG"))
+		var slot_label := "GADGETS" if id == "throwable" else ("PRIMARY PAYLOAD" if id == "primary" else ("SECONDARY PAYLOAD" if id == "secondary" else "TERTIARY PAYLOAD"))
 		_slots[id].text = slot_label + "\n" + name_text
 		_slots[id].add_theme_stylebox_override("normal", WarUI.panel(WarUI.RAISED if slot == id else WarUI.PANEL, WarUI.ACCENT if slot == id else WarUI.LINE, 14))
 	for child in _catalog.get_children():
@@ -163,6 +169,7 @@ func _refresh() -> void:
 func _equipped(id: String) -> String:
 	if id == "primary": return GameState.selected_primary
 	if id == "secondary": return GameState.selected_secondary
+	if id == "tertiary": return GameState.selected_tertiary
 	return GameState.selected_throwable
 
 func _card(id: String, title: String, details: String, category: String) -> void:

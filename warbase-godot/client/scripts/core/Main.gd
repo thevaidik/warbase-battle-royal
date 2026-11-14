@@ -62,7 +62,7 @@ func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 
 	# Draw at the window's actual resolution; upscaling amplifies moving edges.
-	get_viewport().msaa_3d = Viewport.MSAA_4X
+	get_viewport().msaa_3d = Viewport.MSAA_2X if OS.has_feature("web") else Viewport.MSAA_4X
 	get_viewport().scaling_3d_scale = 1.0
 
 	for a in OS.get_cmdline_user_args():
@@ -106,6 +106,9 @@ func _ready() -> void:
 		if is_instance_valid(weapons): weapons.reconcile_offhand_ammo(state)
 	)
 	net.hit_confirmed.connect(_on_hit_confirmed)
+	net.missile_locked.connect(_on_missile_locked)
+	net.missile_lock_broken.connect(_on_missile_lock_broken)
+	net.smoke_screen_received.connect(_on_smoke_screen_received)
 	net.damage_received.connect(_on_damage_effect)
 	net.vehicle_impact_received.connect(_on_vehicle_impact)
 	net.kill_confirmed.connect(_on_kill_confirmed)
@@ -631,7 +634,7 @@ func _on_state(state: Dictionary) -> void:
 				player.health = remote_hp
 			elif player.is_dead:
 				player.health = 0
-		hud.set_health(int(player.health) if is_instance_valid(player) else 0)
+		hud.set_health(int(player.health) if is_instance_valid(player) else 0, GameState.max_health_for_chassis(GameState.selected_drone_chassis))
 		GameState.local_team = String(me.get("team", "A"))
 		hud.update_player_header(GameState.username, GameState.local_team, GameState.selected_mode)
 		if (bool(me.get("is_dead", false)) or (is_instance_valid(player) and player.health <= 0)) and is_instance_valid(player) and not player.is_dead:
@@ -700,9 +703,25 @@ func _on_damage_effect(target: String, pos: Vector3, direction: Vector3, amount:
 	elif mp and mp.remotes.has(target):
 		mp.remotes[target].react_to_hit()
 
-func _on_hit_confirmed() -> void:
-	hud.flash_hitmarker(false)
-	Audio.hitmarker(false)
+func _on_hit_confirmed(hit_type: String = "normal", _damage: int = 0) -> void:
+	hud.flash_hitmarker(hit_type, false)
+	Audio.hitmarker(hit_type)
+
+func _on_missile_locked(missile_id: int, distance: int, direction: Vector3) -> void:
+	if is_instance_valid(hud):
+		hud.show_missile_lock(missile_id, distance, direction)
+	Audio.missile_lock_warning()
+
+func _on_missile_lock_broken(missile_id: int) -> void:
+	if is_instance_valid(hud):
+		hud.clear_missile_lock(missile_id)
+
+func _on_smoke_screen_received(shooter: String, pos: Vector3) -> void:
+	if shooter != GameState.username:
+		var effects = get_tree().get_first_node_in_group("drone_combat_effects")
+		if effects and effects.has_method("deploy_smoke_screen"):
+			effects.call("deploy_smoke_screen", pos, 12)
+		Audio.ability_activate("smoke")
 
 func _on_elimination_received(event: Dictionary) -> void:
 	var killer := String(event.get("killer", ""))
@@ -772,7 +791,8 @@ func _do_respawn(pos: Vector3) -> void:
 
 	phase = Phase.PLAYING
 	hud.set_dead(false, 0)
-	hud.set_health(100)
+	var mh := GameState.max_health_for_chassis(GameState.selected_drone_chassis)
+	hud.set_health(mh, mh)
 	if _tactical_map_open:
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 		if net.has_method("set_gameplay_input_enabled"): net.set_gameplay_input_enabled(false)
@@ -826,7 +846,7 @@ func _process(delta: float) -> void:
 		return
 		
 	# HUD live values
-	hud.set_health(int(player.health))
+	hud.set_health(int(player.health), int(player.max_health))
 	hud.set_drone_telemetry(player.velocity.length(), player.global_position.y)
 	hud.set_crosshair(weapons.spread if weapons else 1.5, weapons.ads_amount if weapons else 0.0, player.crosshair_on_enemy)
 	var sensor_active := weapons.ads_amount > 0.68 and not _tactical_map_open

@@ -14,6 +14,8 @@ var _payload_label: Label
 var _chassis_buttons: HBoxContainer
 var _payload_picker: OptionButton
 var _secondary_picker: OptionButton
+var _tertiary_picker: OptionButton
+var _tertiary_heading: Label
 var _throwable_picker: OptionButton
 var _preview_t := 0.0
 var _orbit_yaw := 0.08
@@ -76,8 +78,19 @@ func _ready() -> void:
 		_secondary_picker.set_item_metadata(_secondary_picker.item_count - 1, weapon_id)
 	_secondary_picker.item_selected.connect(_select_secondary)
 	info.add_child(_secondary_picker)
+	_tertiary_heading = Label.new()
+	_tertiary_heading.text = "TERTIARY WEAPON  /  CENTER TURRET"
+	_tertiary_heading.add_theme_color_override("font_color", WarUI.ACCENT)
+	info.add_child(_tertiary_heading)
+	_tertiary_picker = OptionButton.new()
+	for config in GameState.WEAPONS:
+		var weapon_id := String(config["id"])
+		_tertiary_picker.add_item(String(config["name"]))
+		_tertiary_picker.set_item_metadata(_tertiary_picker.item_count - 1, weapon_id)
+	_tertiary_picker.item_selected.connect(_select_tertiary)
+	info.add_child(_tertiary_picker)
 	var throwable_heading := Label.new()
-	throwable_heading.text = "THROWABLE"
+	throwable_heading.text = "GADGETS"
 	throwable_heading.add_theme_color_override("font_color", WarUI.ACCENT)
 	info.add_child(throwable_heading)
 	_throwable_picker = OptionButton.new()
@@ -175,7 +188,7 @@ func _build_studio() -> void:
 	var sky_material := ShaderMaterial.new()
 	sky_material.shader = StudioSky
 	var sky := Sky.new()
-	sky.radiance_size = Sky.RADIANCE_SIZE_128
+	sky.radiance_size = Sky.RADIANCE_SIZE_128 if OS.has_feature("web") else Sky.RADIANCE_SIZE_256
 	sky.sky_material = sky_material
 	var environment := Environment.new()
 	environment.sky = sky
@@ -185,7 +198,9 @@ func _build_studio() -> void:
 	environment.ambient_light_color = Color("c1d8eb")
 	environment.ambient_light_energy = 0.26
 	environment.reflected_light_source = Environment.REFLECTION_SOURCE_SKY
-	environment.ssao_enabled = true
+	environment.tonemap_mode = Environment.TONE_MAPPER_ACES
+	environment.tonemap_exposure = 1.0
+	environment.ssao_enabled = not OS.has_feature("web")
 	environment.ssao_radius = 0.055
 	environment.ssao_intensity = 0.7
 	var world_environment := WorldEnvironment.new()
@@ -247,6 +262,10 @@ func _select_secondary(index: int) -> void:
 	GameState.equip("secondary", String(_secondary_picker.get_item_metadata(index)))
 	refresh()
 
+func _select_tertiary(index: int) -> void:
+	GameState.equip("tertiary", String(_tertiary_picker.get_item_metadata(index)))
+	refresh()
+
 func _select_throwable(index: int) -> void:
 	GameState.equip("throwable", String(_throwable_picker.get_item_metadata(index)))
 	refresh()
@@ -263,17 +282,36 @@ func refresh() -> void:
 			if String(_secondary_picker.get_item_metadata(index)) == GameState.selected_secondary:
 				_secondary_picker.select(index)
 				break
-	var label: String = {"quad":"VANGUARD / HELICOPTER ROTOR", "wheels":"VANGUARD / WHEELED GEAR", "tracked":"VANGUARD / TRACK DEPLOYMENT", "heli":"VANGUARD / HELICOPTER ROTOR", "wing":"VANGUARD / FIXED WING"}.get(GameState.selected_drone_chassis,"VANGUARD / HELICOPTER ROTOR")
+	var is_tank: bool = GameState.selected_drone_chassis == "tracked"
+	if is_instance_valid(_tertiary_heading): _tertiary_heading.visible = is_tank
+	if is_instance_valid(_tertiary_picker):
+		_tertiary_picker.visible = is_tank
+		if is_tank:
+			for index in _tertiary_picker.item_count:
+				if String(_tertiary_picker.get_item_metadata(index)) == GameState.selected_tertiary:
+					_tertiary_picker.select(index)
+					break
+	var chassis_labels := {
+		"tracked": "HEAVY TANK CHASSIS  •  220 HP (MAX ARMOR)",
+		"wheels": "MONSTER 4x4 TRUCK  •  170 HP (HEAVY ARMOR)",
+		"heli": "GUNSHIP HELICOPTER  •  100 HP (AERO ARMOR)",
+		"wing": "INTERCEPTOR JET  •  75 HP (LIGHT ARMOR)",
+	}
+	var label: String = chassis_labels.get(GameState.selected_drone_chassis, "VANGUARD / HELICOPTER ROTOR")
 	for index in _throwable_picker.item_count:
 		if String(_throwable_picker.get_item_metadata(index)) == GameState.selected_throwable:
 			_throwable_picker.select(index)
 			break
-	var ground_mode := GameState.selected_drone_chassis in ["wheels", "tracked"]
-	_payload_label.text = "WASD to drive. [1] Primary  [2] Secondary  [G] Throw" if ground_mode else "Hold W and aim up or down to fly. Space/Ctrl override climb."
-	if GameState.selected_drone_chassis == "heli":
-		_payload_label.text = "W moves forward. S descends slowly. Space/Ctrl adjust altitude."
-	if GameState.selected_drone_chassis == "tracked":
-		_payload_label.text = "W/S drive and reverse. A/D turn. [1] Primary  [2] Secondary  [G] Throw"
+	if GameState.selected_drone_chassis == "wheels":
+		_payload_label.text = "W/S drive and reverse. A/D turn monster wheels. 170 HP Heavy Armor."
+	elif GameState.selected_drone_chassis == "tracked":
+		_payload_label.text = "W/S drive and reverse. A/D turn tracks (opposite in reverse). 220 HP Max Armor."
+	elif GameState.selected_drone_chassis == "heli":
+		_payload_label.text = "W moves forward. S descends slowly. Space/Ctrl adjust altitude. 100 HP Balanced."
+	elif GameState.selected_drone_chassis == "wing":
+		_payload_label.text = "Hold W and pitch to fly. High speed, 75 HP Light Interceptor."
+	else:
+		_payload_label.text = "Hold W and aim up or down to fly. Space/Ctrl override climb."
 	var selected_weapon_index := GameState.weapon_index_for_id(GameState.selected_primary)
 	var selected_weapon: Dictionary = GameState.WEAPONS[selected_weapon_index]
 	if selected_weapon.has("missile_speed"):
@@ -294,7 +332,8 @@ func refresh() -> void:
 	_drone = Node3D.new()
 	_drone.set_script(visual_script)
 	_scene.add_child(_drone)
-	_drone.call("configure", true, GameState.selected_primary, GameState.selected_drone_chassis, "", GameState.selected_secondary)
+	_drone.call("configure", true, GameState.selected_primary, GameState.selected_drone_chassis, "", GameState.selected_secondary, GameState.selected_tertiary)
 	_drone.call("set_inspection_pose")
-	_stand.position.y = -0.412 if ground_mode else -0.345
+	var is_ground_mode: bool = GameState.selected_drone_chassis in ["wheels", "tracked"]
+	_stand.position.y = -0.412 if is_ground_mode else -0.345
 	_resize_preview()

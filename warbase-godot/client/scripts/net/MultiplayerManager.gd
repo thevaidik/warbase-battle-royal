@@ -5,10 +5,23 @@ extends Node3D
 
 var remotes: Dictionary = {}
 var _pending_remotes: Dictionary = {}
+const REMOTE_BUILD_BUDGET_US := 1000
+var _remote_build_queue: Array[Dictionary] = []
+var _queue_head_index: int = 0
+var _pending_build_jobs: Dictionary = {}
+var _connection_gen: int = 0
+var _qa_fallback_count: int = 0
+var _qa_completed_jobs: int = 0
+var _qa_completed_stages: int = 0
+var _qa_max_stage_us: int = 0
 const RemotePoseTiming := preload("res://scripts/qa/RemotePoseTiming.gd")
 const Missile := preload("res://scripts/drones/DroneMissile.gd")
 const ProjectilePrediction := preload("res://scripts/net/ProjectilePrediction.gd")
+const DroneVisualResourcesScript := preload("res://scripts/drones/DroneVisualResources.gd")
 var _qa_pose_application_timing
+
+func _ready() -> void:
+	DroneVisualResourcesScript.prewarm(self)
 var net: WarNetwork
 var world: Node3D
 var local_name := ""
@@ -73,7 +86,7 @@ func _render_projectiles(delta: float) -> void:
 		if id > 0 and ((_exploded_grenade_ids if grenade else _impacted_missiles).has(id)):
 			continue
 		live[key] = true
-		var node: Node3D = _projectile_nodes.get(key)
+		var node: Variant = _projectile_nodes.get(key)
 		if not is_instance_valid(node):
 			if id > 0:
 				if grenade:
@@ -99,7 +112,7 @@ func _render_projectiles(delta: float) -> void:
 			_missiles[id] = node
 	for key in _projectile_nodes.keys():
 		if live.has(key): continue
-		var node: Node3D = _projectile_nodes[key]
+		var node: Variant = _projectile_nodes.get(key)
 		_projectile_nodes.erase(key)
 		if not is_instance_valid(node): continue
 		var id := int(node.get_meta("server_id", 0))
@@ -115,6 +128,7 @@ func _clear_projectile_nodes() -> void:
 func _on_state(state: Dictionary) -> void:
 	for pid in state.get("removed_players",[]):
 		_pending_remotes.erase(pid)
+		_pending_build_jobs.erase(pid)
 		if remotes.has(pid):
 			if is_instance_valid(remotes[pid]): remotes[pid].queue_free()
 			remotes.erase(pid)
@@ -150,12 +164,21 @@ func _on_state(state: Dictionary) -> void:
 			continue
 		var st: Dictionary = players[pid]
 		if not remotes.has(pid):
-			_pending_remotes[pid] = {"state":st,"seen":now_ms}
+			var remote := WarRemote.create(pid, st, true)
+			if is_instance_valid(net) and net.has_method("get_sdk_remote_poses"):
+				remote.use_server_authoritative_remote_pose()
+			remote.set_meta("last_seen", now_ms)
+			remotes[pid] = remote
+			world.add_child(remote)
+			remote.global_position = Vector3(float(st.get("x", 0)), float(st.get("y", 0)), float(st.get("z", 0)))
+			_enqueue_remote_build(pid, st, now_ms)
 		else:
 			var r: WarRemote = remotes[pid]
 			r.set_meta("last_seen", now_ms)
 			r.push_state(st)
-			
+			if _pending_build_jobs.has(pid):
+				_pending_build_jobs[pid]["state"] = st
+
 	# Garbage collect remote players not seen for > 3.0 seconds
 	# (Grace period supports multi-tiered 15Hz and 4Hz spatial updates without despawn flicker)
 	var stale_pids: Array = []
@@ -164,12 +187,13 @@ func _on_state(state: Dictionary) -> void:
 		var last_seen: int = r.get_meta("last_seen", now_ms)
 		if now_ms - last_seen > 3000:
 			stale_pids.append(pid)
-			
+
 	for pid in stale_pids:
 		var r: WarRemote = remotes[pid]
 		if is_instance_valid(r):
 			r.queue_free()
 		remotes.erase(pid)
+		_pending_build_jobs.erase(pid)
 		if GameState.players.has(pid):
 			GameState.players.erase(pid)
 
@@ -181,25 +205,77 @@ func _on_state(state: Dictionary) -> void:
 		if me.has("deaths"):
 			GameState.local_deaths = int(me.get("deaths"))
 
+func _enqueue_remote_build(pid: String, st: Dictionary, seen_ms: int) -> void:
+	_qa_fallback_count += 1
+	var job := {
+		"pid": pid,
+		"state": st,
+		"seen": seen_ms,
+		"gen": _connection_gen,
+		"revision": int(_pending_build_jobs.get(pid, {}).get("revision", 0)) + 1,
+		"stage": 0
+	}
+	_pending_build_jobs[pid] = job
+	_remote_build_queue.append({"pid": pid, "gen": _connection_gen, "revision": job["revision"]})
+
+func _process_visual_build_queue() -> void:
+	if _pending_build_jobs.is_empty():
+		if _queue_head_index > 0:
+			_remote_build_queue.clear()
+			_queue_head_index = 0
+		return
+
+	var start_us := Time.get_ticks_usec()
+	while _queue_head_index < _remote_build_queue.size():
+		if Time.get_ticks_usec() - start_us >= REMOTE_BUILD_BUDGET_US:
+			break
+		var item: Dictionary = _remote_build_queue[_queue_head_index]
+		_queue_head_index += 1
+		var pid: String = item["pid"]
+		if not _pending_build_jobs.has(pid):
+			continue
+		var job: Dictionary = _pending_build_jobs[pid]
+		if job["revision"] != item["revision"] or job["gen"] != item["gen"]:
+			continue
+
+		var remote: WarRemote = remotes.get(pid)
+		if is_instance_valid(remote):
+			var stage: int = int(job.get("stage", 0))
+			while stage >= 0:
+				if Time.get_ticks_usec() - start_us >= REMOTE_BUILD_BUDGET_US and stage > 0:
+					job["stage"] = stage
+					_remote_build_queue.insert(_queue_head_index, {"pid": pid, "gen": item["gen"], "revision": item["revision"]})
+					break
+				var stage_start := Time.get_ticks_usec()
+				stage = remote.step_visual_upgrade(job["state"], stage)
+				var stage_us := Time.get_ticks_usec() - stage_start
+				_qa_max_stage_us = maxi(_qa_max_stage_us, stage_us)
+				_qa_completed_stages += 1
+			if stage < 0:
+				_pending_build_jobs.erase(pid)
+				_qa_completed_jobs += 1
+		else:
+			_pending_build_jobs.erase(pid)
+
+	if _queue_head_index > 64 and _queue_head_index >= _remote_build_queue.size() / 2:
+		_remote_build_queue = _remote_build_queue.slice(_queue_head_index)
+		_queue_head_index = 0
+
+func get_remote_queue_diagnostics() -> Dictionary:
+	return {
+		"pending_jobs": _pending_build_jobs.size(),
+		"completed_jobs": _qa_completed_jobs,
+		"completed_stages": _qa_completed_stages,
+		"fallback_count": _qa_fallback_count,
+		"max_stage_us": _qa_max_stage_us,
+		"soft_budget_us": REMOTE_BUILD_BUDGET_US,
+		"queue_size": _remote_build_queue.size() - _queue_head_index
+	}
+
 func _process(delta: float) -> void:
 	_render_projectiles(delta)
-	var sdk_remote_poses: Dictionary = net.get_sdk_remote_poses() if net.has_method("get_sdk_remote_poses") else {}
-	# Join bursts must not build dozens of skinned soldiers and guns in one frame.
-	var created := 0
-	for pid in _pending_remotes.keys():
-		if created >= 1: break
-		var pending: Dictionary = _pending_remotes[pid]
-		_pending_remotes.erase(pid)
-		if Time.get_ticks_msec() - int(pending.seen) > 3000: continue
-		var st: Dictionary = pending.state
-		var remote := WarRemote.create(pid,st)
-		if net.has_method("get_sdk_remote_poses"):
-			remote.use_server_authoritative_remote_pose()
-		remote.set_meta("last_seen",pending.seen)
-		remotes[pid] = remote
-		world.add_child(remote)
-		remote.global_position = Vector3(float(st.get("x",0)),float(st.get("y",0)),float(st.get("z",0)))
-		created += 1
+	var sdk_remote_poses: Dictionary = net.prepare_remote_poses_for_frame(Engine.get_process_frames()) if is_instance_valid(net) and net.has_method("prepare_remote_poses_for_frame") else (net.get_sdk_remote_poses() if is_instance_valid(net) and net.has_method("get_sdk_remote_poses") else {})
+	_process_visual_build_queue()
 	var apply_started := Time.get_ticks_usec() if _qa_pose_application_timing != null else 0
 	for r in remotes.values():
 		var remote := r as WarRemote
@@ -218,7 +294,7 @@ func get_remote_pose_application_diagnostics() -> Dictionary:
 	return _qa_pose_application_timing.summary() if _qa_pose_application_timing != null else {"enabled": false}
 
 func _on_fire(shooter: String, origin: Vector3, hit: Vector3, normal: Vector3, wall: bool, weapon: String) -> void:
-	if remotes.has(shooter) and is_instance_valid(remotes[shooter]): remotes[shooter].react_to_shot()
+	if remotes.has(shooter) and is_instance_valid(remotes[shooter]): remotes[shooter].react_to_shot(hit)
 	if shooter == local_name:
 		return
 	var main := get_tree().current_scene
@@ -246,6 +322,10 @@ func clear() -> void:
 	_exploded_grenade_ids.clear()
 	_exploded_grenade_order.clear()
 	_pending_remotes.clear()
+	_pending_build_jobs.clear()
+	_remote_build_queue.clear()
+	_queue_head_index = 0
+	_connection_gen += 1
 	for r in remotes.values():
 		if is_instance_valid(r):
 			(r as Node).queue_free()

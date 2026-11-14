@@ -4,7 +4,7 @@ const RADIUS := 0.4
 const SPAWN_OFFSET := 0.9
 const MAX_ALTITUDE := 120.0
 const GRAVITY := 18.0
-const GROUND_STEP_HEIGHT := 0.22
+const GROUND_STEP_HEIGHT := 0.52
 ## Ordered to match DRONE_MOBILITY_MODES on the server.
 const MOBILITY_MODES := ["quad", "wheels", "tracked", "heli", "wing"]
 
@@ -35,7 +35,7 @@ static func step(position: Vector3, velocity: Vector3, command: Variant, dt: flo
 			if index >= 0 and index < MOBILITY_MODES.size() and float(index) == float(mobility_index):
 				mode = MOBILITY_MODES[index]
 	if mode not in MOBILITY_MODES: mode = "quad"
-	if mode == "tracked": x = 0.0
+	if mode in ["tracked", "wheels"]: x = 0.0
 	var ground := mode == "tracked" or mode == "wheels"
 	var wing := mode == "wing"
 	var magnitude := maxf(1.0,sqrt(x*x+z*z) if ground or wing else sqrt(x*x+y*y+z*z))
@@ -51,13 +51,32 @@ static func step(position: Vector3, velocity: Vector3, command: Variant, dt: flo
 	var target := Vector3(horizontal_target_x, 0.0 if ground else y / magnitude * vertical, horizontal_target_z)
 	var response := 1.0-exp(-(12.0 if x==0.0 and y==0.0 and z==0.0 else (6.0 if ground else 9.0))*elapsed)
 	var next := velocity.lerp(target,response)
-	if mode == "tracked":
+	var uphill_assist := 0.0
+	if mode in ["tracked", "wheels"]:
 		var forward := Vector3(-s, 0.0, -c)
 		var current_speed := velocity.dot(forward)
-		var desired_speed := z * (2.4 if z < 0.0 else 4.5)
+		var sprint_mult := float(command.sprint) > 0.5
+		var desired_speed := 0.0
+		if mode == "wheels":
+			desired_speed = z * (5.5 if z < 0.0 else (14.5 if sprint_mult else 8.0))
+		else:
+			desired_speed = z * (3.8 if z < 0.0 else (8.5 if sprint_mult else 4.8))
+		if absf(desired_speed) > 0.01:
+			var probe_dist := 0.4
+			var move_sign := -1.0 if desired_speed < 0.0 else 1.0
+			var probe_x := position.x + forward.x * probe_dist * move_sign
+			var probe_z := position.z + forward.z * probe_dist * move_sign
+			var ahead_floor: Variant = Geometry.floor_height(probe_x, probe_z, position.y + 1.0)
+			var here_floor: Variant = Geometry.floor_height(position.x, position.z, position.y + 0.6)
+			var cur_y: float = float(here_floor) if here_floor != null else (position.y - RADIUS)
+			if ahead_floor != null and float(ahead_floor) - cur_y > 0.005:
+				var slope_dy := float(ahead_floor) - cur_y
+				uphill_assist = minf(10.0, absf(desired_speed) * (slope_dy / probe_dist))
 		var braking := is_zero_approx(z) or current_speed * desired_speed < 0.0
-		var traction := 18.0 if braking else 9.0
-		next = forward * move_toward(current_speed, desired_speed, traction * elapsed)
+		var traction := 18.0 if braking else (20.0 if uphill_assist > 0.0 else (8.5 if mode == "wheels" else 9.0))
+		var diff := desired_speed - current_speed
+		var speed_along_track := current_speed + signf(diff) * minf(absf(diff), traction * elapsed)
+		next = forward * speed_along_track
 	if wing or mode == "heli":
 		var forward := Vector3(-s, 0, -c)
 		var right := Vector3(c, 0, -s)
@@ -70,7 +89,8 @@ static func step(position: Vector3, velocity: Vector3, command: Variant, dt: flo
 			var drag := (0.065 + 0.045 * absf(y) + (0.16 if z < 0.0 else 0.0)) * absf(forward_speed) * forward_speed
 			var lift_authority := clampf(pow(maxf(0.0, forward_speed) / 8.0, 2.0), 0.0, 1.0)
 			var climb_target := y * 9.0 * lift_authority
-			next = forward * (forward_speed + (thrust - drag) * elapsed)
+			var gravity_along_flight := 9.81 * lift_authority * clampf(velocity.y / maxf(6.0, Vector2(forward_speed, velocity.y).length()), -0.7, 0.7)
+			next = forward * maxf(0.0, forward_speed + (thrust - drag - gravity_along_flight) * elapsed)
 			next += right * sideways_speed * exp(-1.8 * elapsed)
 			var climb_response := 1.0 - exp(-4.0 * elapsed)
 			next.y = clampf(lerpf(velocity.y, climb_target, climb_response) - GRAVITY * (1.0 - lift_authority) * elapsed, -15.0, 9.0)
@@ -86,10 +106,12 @@ static func step(position: Vector3, velocity: Vector3, command: Variant, dt: flo
 			if z < 0.0 and is_zero_approx(y):
 				climb_target = z * 2.5
 			next.y = move_toward(velocity.y, climb_target, 15.0 * elapsed)
-	if ground: next.y = velocity.y-GRAVITY*elapsed
+	if ground:
+		next.y = uphill_assist if uphill_assist > 0.0 else (velocity.y - GRAVITY * elapsed)
 	var requested := position+next*elapsed
 	requested.y=minf(MAX_ALTITUDE,requested.y)
-	var resolved := Geometry.resolve_flight_move(position, requested, RADIUS, GROUND_STEP_HEIGHT if ground else 0.0)
+	var ground_step := 0.58 if mode == "wheels" else GROUND_STEP_HEIGHT
+	var resolved := Geometry.resolve_flight_move(position, requested, RADIUS, ground_step if ground else 0.0)
 	var actual := (resolved-position)/elapsed
 	for axis in 3:
 		if absf(resolved[axis]-requested[axis])<=0.0006: actual[axis]=next[axis]

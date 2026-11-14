@@ -30,6 +30,8 @@ var hitmarker: Label
 var hitmarker_scale: float = 1.0
 var health_bar: ProgressBar
 var health_label: Label
+var _hull_critical_label: Label
+var chassis_armor_label: Label
 var equipment_label: Label
 var killfeed_box: VBoxContainer
 var score_label: Label
@@ -74,7 +76,16 @@ var match_info_label: Label
 var drone_telemetry_label: Label
 var low_hp_vignette: ColorRect
 var damage_overlay: Control
-
+var _tactical_radar: TacticalRadar
+var _compass_ribbon: CompassRibbon
+var _missile_alert_box: PanelContainer
+var _missile_alert_label: Label
+var _missile_lock_timer := 0.0
+var _low_hull_alarm_timer := 0.0
+var _radio_chatter: RadioChatter
+var _ability_name_label: Label
+var _ability_status_label: Label
+var _ability_bar: ProgressBar
 
 var _hit_t := 0.0
 var _feed: Array = []
@@ -82,6 +93,229 @@ var _damage_arcs: Array = []
 var _hurt_flash_t := 0.0
 var _low_hp_pulse := 0.0
 var _fps_timer := 0.0
+
+class TacticalRadar extends Control:
+	var player_pos := Vector3.ZERO
+	var player_yaw := 0.0
+	var radar_range := 100.0
+	var contacts: Array[Dictionary] = []
+	var objectives: Array[Dictionary] = []
+	var sweep_angle := 0.0
+	var missile_threat := false
+	var missile_threat_dir := Vector3.ZERO
+	var missile_threat_dist := 0
+
+	func _ready() -> void:
+		custom_minimum_size = Vector2(104, 104)
+		size = Vector2(104, 104)
+		mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+	func update_sweep(delta: float) -> void:
+		sweep_angle = fmod(sweep_angle + delta * 2.6, TAU)
+		queue_redraw()
+
+	func _draw() -> void:
+		var center := size * 0.5
+		var radius := 48.0
+		var bg_col := Color(0.015, 0.035, 0.045, 0.88)
+		draw_circle(center, radius, bg_col)
+		
+		# Radar range grid rings (33m, 66m, 100m)
+		draw_arc(center, radius, 0, TAU, 32, WarUI.LINE, 1.2, true)
+		draw_arc(center, radius * 0.66, 0, TAU, 24, Color(0.12, 0.24, 0.28, 0.35), 1.0, true)
+		draw_arc(center, radius * 0.33, 0, TAU, 20, Color(0.12, 0.24, 0.28, 0.35), 1.0, true)
+		draw_line(center - Vector2(radius, 0), center + Vector2(radius, 0), Color(0.12, 0.24, 0.28, 0.25), 1.0)
+		draw_line(center - Vector2(0, radius), center + Vector2(0, radius), Color(0.12, 0.24, 0.28, 0.25), 1.0)
+
+		# Rotating radar sweep line with phosphor fade
+		var sweep_dir := Vector2(cos(sweep_angle), sin(sweep_angle))
+		draw_line(center, center + sweep_dir * radius, Color(0.25, 0.95, 0.85, 0.55), 1.4, true)
+		draw_arc(center, radius * 0.85, sweep_angle - 0.45, sweep_angle, 6, Color(0.25, 0.95, 0.85, 0.12), 8.0)
+
+		# Cardinal perimeter labels (N, E, S, W) relative to player yaw
+		var font := get_theme_default_font()
+		var cardinals := [
+			{"label": "N", "angle": -player_yaw - PI * 0.5, "col": WarUI.CYAN},
+			{"label": "E", "angle": -player_yaw, "col": Color(0.55, 0.65, 0.70, 0.7)},
+			{"label": "S", "angle": -player_yaw + PI * 0.5, "col": Color(0.55, 0.65, 0.70, 0.7)},
+			{"label": "W", "angle": -player_yaw + PI, "col": Color(0.55, 0.65, 0.70, 0.7)}
+		]
+		for card in cardinals:
+			var cpt := center + Vector2(cos(card["angle"]), sin(card["angle"])) * (radius - 5.0)
+			draw_string(font, cpt + Vector2(-3, 3), card["label"], HORIZONTAL_ALIGNMENT_CENTER, -1, 9, card["col"])
+
+		# Player heading arrow
+		var p_top := center + Vector2(0, -5.5)
+		var p_left := center + Vector2(-3.5, 3.5)
+		var p_right := center + Vector2(3.5, 3.5)
+		var p_indent := center + Vector2(0, 1.0)
+		draw_colored_polygon(PackedVector2Array([p_top, p_right, p_indent, p_left]), WarUI.CYAN)
+
+		# Inbound missile alert strobe on radar
+		if missile_threat:
+			var pulse := sin(Time.get_ticks_msec() * 0.015) * 0.4 + 0.6
+			draw_arc(center, radius + 2.0, 0, TAU, 32, Color(1.0, 0.2, 0.1, pulse), 2.2, true)
+			var rx := missile_threat_dir.x * cos(player_yaw) - missile_threat_dir.z * sin(player_yaw)
+			var rz := missile_threat_dir.x * sin(player_yaw) + missile_threat_dir.z * cos(player_yaw)
+			var ang := atan2(-rz, rx) - PI * 0.5
+			var edge_pt := center + Vector2(cos(ang), sin(ang)) * radius
+			var in_pt := center + Vector2(cos(ang), sin(ang)) * (radius - 12.0)
+			draw_line(edge_pt, in_pt, Color(1.0, 0.2, 0.1, 0.95), 2.5)
+			draw_circle(in_pt, 3.5, Color(1.0, 0.2, 0.1, pulse))
+
+		# Objectives
+		for obj in objectives:
+			var opos: Vector3 = obj.get("pos", Vector3.ZERO)
+			var rel := opos - player_pos
+			var rx := rel.x * cos(player_yaw) - rel.z * sin(player_yaw)
+			var rz := rel.x * sin(player_yaw) + rel.z * cos(player_yaw)
+			var dist_m := Vector2(rx, rz).length()
+			var screen_dist := minf(radius - 8.0, (dist_m / radar_range) * radius)
+			var angle := atan2(-rz, rx) - PI * 0.5
+			var pt := center + Vector2(cos(angle), sin(angle)) * screen_dist
+			var col: Color = obj.get("color", Color.WHITE)
+			draw_circle(pt, 5.0, Color(0.02, 0.04, 0.05, 0.9))
+			draw_arc(pt, 5.0, 0, TAU, 12, col, 1.2, true)
+			var lbl: String = obj.get("label", "")
+			if not lbl.is_empty():
+				draw_string(font, pt + Vector2(-3, 4), lbl, HORIZONTAL_ALIGNMENT_CENTER, -1, 10, col)
+
+		# Contacts (drones, tanks, bots)
+		for c in contacts:
+			var cpos: Vector3 = c.get("pos", Vector3.ZERO)
+			var rel := cpos - player_pos
+			var rx := rel.x * cos(player_yaw) - rel.z * sin(player_yaw)
+			var rz := rel.x * sin(player_yaw) + rel.z * cos(player_yaw)
+			var dist_m := Vector2(rx, rz).length()
+			if dist_m > radar_range: continue
+			var screen_dist := (dist_m / radar_range) * (radius - 4.0)
+			var angle := atan2(-rz, rx) - PI * 0.5
+			var pt := center + Vector2(cos(angle), sin(angle)) * screen_dist
+			var is_friend: bool = c.get("friendly", false)
+			if is_friend:
+				draw_circle(pt, 3.0, WarUI.CYAN)
+			else:
+				var d_poly := PackedVector2Array([
+					pt + Vector2(0, -3.8),
+					pt + Vector2(3.8, 0),
+					pt + Vector2(0, 3.8),
+					pt + Vector2(-3.8, 0)
+				])
+				draw_colored_polygon(d_poly, WarUI.DANGER)
+
+class CompassRibbon extends Control:
+	var player_yaw := 0.0
+	var player_pos := Vector3.ZERO
+	var objectives: Array[Dictionary] = []
+	var missile_warning := false
+	var missile_dist := 0
+
+	func _ready() -> void:
+		custom_minimum_size = Vector2(360, 24)
+		size = Vector2(360, 24)
+		mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+	func _draw() -> void:
+		var w := size.x
+		var h := size.y
+		var center_x := w * 0.5
+		var font := get_theme_default_font()
+		
+		draw_rect(Rect2(0, 0, w, h), Color(0.015, 0.035, 0.045, 0.75))
+		draw_line(Vector2(0, h), Vector2(w, h), Color(0.12, 0.28, 0.32, 0.6), 1.0)
+		draw_line(Vector2(0, 0), Vector2(w, 0), Color(0.12, 0.28, 0.32, 0.6), 1.0)
+		
+		var cur_pts := PackedVector2Array([
+			Vector2(center_x, 6),
+			Vector2(center_x - 4, 0),
+			Vector2(center_x + 4, 0)
+		])
+		draw_colored_polygon(cur_pts, WarUI.CYAN)
+		
+		var yaw_deg := fposmod(-rad_to_deg(player_yaw), 360.0)
+		var px_per_deg := 2.2
+		var visible_deg := (w * 0.5) / px_per_deg
+		
+		var start_deg := int(floor((yaw_deg - visible_deg) / 5.0)) * 5
+		var end_deg := int(ceil((yaw_deg + visible_deg) / 5.0)) * 5
+		
+		var d := start_deg
+		while d <= end_deg:
+			var normalized_deg := fposmod(float(d), 360.0)
+			var diff := float(d) - yaw_deg
+			var x := center_x + diff * px_per_deg
+			if x >= 0 and x <= w:
+				if int(normalized_deg) % 45 == 0:
+					var card_label := ""
+					var col := WarUI.TEXT
+					match int(normalized_deg):
+						0, 360: card_label = "N"; col = WarUI.CYAN
+						45: card_label = "NE"
+						90: card_label = "E"
+						135: card_label = "SE"
+						180: card_label = "S"
+						225: card_label = "SW"
+						270: card_label = "W"
+						315: card_label = "NW"
+					draw_line(Vector2(x, h - 8), Vector2(x, h), col, 1.4)
+					draw_string(font, Vector2(x - 6, h - 10), card_label, HORIZONTAL_ALIGNMENT_CENTER, -1, 9, col)
+				elif int(normalized_deg) % 15 == 0:
+					draw_line(Vector2(x, h - 5), Vector2(x, h), Color(0.35, 0.55, 0.60, 0.5), 1.0)
+				else:
+					draw_line(Vector2(x, h - 3), Vector2(x, h), Color(0.20, 0.35, 0.40, 0.35), 1.0)
+			d += 5
+
+		for obj in objectives:
+			var opos: Vector3 = obj.get("pos", Vector3.ZERO)
+			var rel := opos - player_pos
+			var angle_rad := atan2(rel.x, -rel.z)
+			var target_deg := fposmod(rad_to_deg(angle_rad), 360.0)
+			var deg_diff := fposmod(target_deg - yaw_deg + 180.0, 360.0) - 180.0
+			var obj_x := center_x + deg_diff * px_per_deg
+			if obj_x >= 12 and obj_x <= w - 12:
+				var col: Color = obj.get("color", Color.WHITE)
+				var lbl: String = obj.get("label", "")
+				draw_circle(Vector2(obj_x, 12), 5.0, Color(0.02, 0.04, 0.05, 0.9))
+				draw_arc(Vector2(obj_x, 12), 5.0, 0, TAU, 12, col, 1.2, true)
+				draw_string(font, Vector2(obj_x - 3, 16), lbl, HORIZONTAL_ALIGNMENT_CENTER, -1, 9, col)
+
+		if missile_warning:
+			var pulse := sin(Time.get_ticks_msec() * 0.02) * 0.5 + 0.5
+			var alert_text := "⚠️ MISSILE [%dM] ⚠️" % missile_dist
+			draw_string(font, Vector2(center_x - 55, 16), alert_text, HORIZONTAL_ALIGNMENT_CENTER, -1, 10, Color(1.0, 0.2, 0.1, pulse))
+
+class RadioChatter extends VBoxContainer:
+	var _lines: Array[Label] = []
+
+	func _ready() -> void:
+		custom_minimum_size = Vector2(320, 80)
+		mouse_filter = Control.MOUSE_FILTER_IGNORE
+		add_theme_constant_override("separation", 2)
+
+	func post_message(callsign: String, message: String, color: Color) -> void:
+		var time_str := Time.get_time_string_from_system()
+		var short_time := time_str.substr(0, 5) if time_str.length() >= 5 else "00:00"
+		var text := "[%s] %s: %s" % [short_time, callsign.to_upper(), message]
+		var lbl := Label.new()
+		lbl.text = text
+		lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		lbl.add_theme_font_size_override("font_size", 11)
+		lbl.add_theme_color_override("font_color", color)
+		lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		add_child(lbl)
+		_lines.append(lbl)
+		if _lines.size() > 4:
+			var old: Label = _lines.pop_front()
+			if is_instance_valid(old):
+				old.queue_free()
+		var tw := create_tween()
+		tw.tween_interval(5.2)
+		tw.tween_property(lbl, "modulate:a", 0.0, 0.8)
+		tw.tween_callback(func() -> void:
+			if is_instance_valid(lbl):
+				_lines.erase(lbl)
+				lbl.queue_free()
+		)
 
 class DroneSensorReticle extends Control:
 	var readout := ""
@@ -221,9 +455,11 @@ func build() -> void:
 	cross_dot = dot
 	
 	# Hitmarker Label
-	hitmarker = _mk_label("X", 28, Color.WHITE)
+	hitmarker = _mk_label("✕", 28, Color.WHITE)
 	hitmarker.set_anchors_preset(Control.PRESET_CENTER)
-	hitmarker.position = Vector2(-12, -24)
+	hitmarker.position = Vector2(-75, -28)
+	hitmarker.custom_minimum_size = Vector2(150, 32)
+	hitmarker.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	hitmarker.modulate.a = 0.0
 	hitmarker.z_index = 3
 	hitmarker.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -244,18 +480,53 @@ func build() -> void:
 	hb.add_theme_constant_override("separation", 4)
 	hb.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	health_card.add_child(hb)
+	var chassis_name := GameState.selected_drone_chassis
+	var init_max := GameState.max_health_for_chassis(chassis_name)
 	hb.add_child(_mk_label("+  DRONE HULL", 12, WarUI.CYAN))
 	
-	health_label = _mk_label("100", 46, Color.WHITE)
+	health_label = _mk_label(str(init_max), 46, Color.WHITE)
 	hb.add_child(health_label)
 	
 	health_bar = ProgressBar.new()
 	health_bar.min_value = 0
-	health_bar.max_value = 100
-	health_bar.value = 100
+	health_bar.max_value = init_max
+	health_bar.value = init_max
 	health_bar.custom_minimum_size = Vector2(190, 5)
 	health_bar.show_percentage = false
 	hb.add_child(health_bar)
+	
+	chassis_armor_label = _mk_label(_armor_label_text(chassis_name, init_max), 11, WarUI.MUTED)
+	hb.add_child(chassis_armor_label)
+	
+	_hull_critical_label = _mk_label("⚠ HULL CRITICAL", 11, Color("ff3333"))
+	_hull_critical_label.visible = false
+	hb.add_child(_hull_critical_label)
+
+	# Ability / Mobility Gadget Card (Positioned beside health card at bottom-left)
+	var ability_card := PanelContainer.new()
+	ability_card.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
+	ability_card.position = Vector2(266, -112)
+	ability_card.custom_minimum_size = Vector2(156, 84)
+	ability_card.z_index = 2
+	ability_card.add_theme_stylebox_override("panel", WarUI.panel(Color(0.035, 0.055, 0.06, 0.92), WarUI.LINE, 12))
+	add_child(ability_card)
+	WarUI.decorate(ability_card, WarUI.ACCENT)
+	var ab_box := VBoxContainer.new()
+	ab_box.z_index = 2
+	ab_box.add_theme_constant_override("separation", 3)
+	ab_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	ability_card.add_child(ab_box)
+	_ability_name_label = _mk_label("[F] GADGET", 11, WarUI.ACCENT)
+	ab_box.add_child(_ability_name_label)
+	_ability_status_label = _mk_label("READY", 20, WarUI.CYAN)
+	ab_box.add_child(_ability_status_label)
+	_ability_bar = ProgressBar.new()
+	_ability_bar.min_value = 0.0
+	_ability_bar.max_value = 1.0
+	_ability_bar.value = 1.0
+	_ability_bar.custom_minimum_size = Vector2(120, 4)
+	_ability_bar.show_percentage = false
+	ab_box.add_child(_ability_bar)
 	
 	# Tactical Bottom-Right HUD: Weapon & Ammo
 	var ammo_card := PanelContainer.new()
@@ -281,6 +552,7 @@ func build() -> void:
 	ab.add_child(equipment_label)
 	_payload_cards.append(_build_payload_card(ab, "1", "PRIMARY"))
 	_payload_cards.append(_build_payload_card(ab, "2", "SECONDARY"))
+	_payload_cards.append(_build_payload_card(ab, "3", "TERTIARY"))
 	_fire_mode_label = _mk_label("3  BOTH", 11, WarUI.MUTED)
 	ab.add_child(_fire_mode_label)
 	ping_label = _mk_label("", 12, Color(0.65, 0.65, 0.65))
@@ -305,6 +577,30 @@ func build() -> void:
 	identity_column.add_child(player_header_label)
 	match_info_label = _mk_label("OFFLINE PRACTICE", 11, WarUI.ACCENT)
 	identity_column.add_child(match_info_label)
+	_tactical_radar = TacticalRadar.new()
+	_tactical_radar.position = Vector2(28, 88)
+	add_child(_tactical_radar)
+	_radio_chatter = RadioChatter.new()
+	_radio_chatter.position = Vector2(28, 204)
+	add_child(_radio_chatter)
+
+	_compass_ribbon = CompassRibbon.new()
+	_compass_ribbon.set_anchors_preset(Control.PRESET_CENTER_TOP)
+	_compass_ribbon.position = Vector2(-180, 2)
+	_compass_ribbon.custom_minimum_size = Vector2(360, 24)
+	add_child(_compass_ribbon)
+
+	_missile_alert_box = PanelContainer.new()
+	_missile_alert_box.set_anchors_preset(Control.PRESET_CENTER)
+	_missile_alert_box.position = Vector2(-220, 75)
+	_missile_alert_box.custom_minimum_size = Vector2(440, 48)
+	_missile_alert_box.add_theme_stylebox_override("panel", WarUI.panel(Color(0.25, 0.04, 0.04, 0.92), Color(1.0, 0.2, 0.1, 0.9), 10))
+	_missile_alert_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_missile_alert_box.visible = false
+	_missile_alert_label = _mk_label("⚠️ MISSILE LOCK-ON DETECTED · DEPLOY COUNTERMEASURES [F/C] ⚠️", 13, Color(1.0, 0.85, 0.8))
+	_missile_alert_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_missile_alert_box.add_child(_missile_alert_label)
+	add_child(_missile_alert_box)
 	var score_position := CenterContainer.new()
 	score_position.set_anchors_preset(Control.PRESET_TOP_WIDE)
 	score_position.offset_top = 20
@@ -387,9 +683,9 @@ func build() -> void:
 	killer_card.add_child(picture)
 	picture.texture = killer_viewport.get_texture()
 	var camera := Camera3D.new()
-	camera.position = Vector3(0.75, 0.43, 1.15)
-	camera.look_at(Vector3.ZERO)
 	killer_viewport.add_child(camera)
+	camera.transform = Transform3D().looking_at(Vector3(-0.75, -0.43, -1.15), Vector3.UP)
+	camera.position = Vector3(0.75, 0.43, 1.15)
 	killer_drone = load("res://scripts/drones/DroneVisual.gd").new()
 	killer_viewport.add_child(killer_drone)
 	killer_drone.configure(false, "ak47", "quad")
@@ -684,18 +980,89 @@ func set_crosshair(spread_px: float, ads: float, on_enemy: bool = false) -> void
 		cross_dot.visible = vis
 		cross_dot.modulate = tint
 
-func flash_hitmarker(kill: bool, is_headshot: bool = false) -> void:
-	hitmarker.text = "KILL" if kill else ("X" if not is_headshot else "+")
-	hitmarker.modulate = Color(1.0, 0.2, 0.2) if (kill or is_headshot) else Color.WHITE
-	hitmarker.modulate.a = 1.0
-	_hit_t = 0.35 if kill else 0.18
+func flash_hitmarker(hit_type_or_kill: Variant = false, is_headshot: bool = false) -> void:
+	if not is_instance_valid(hitmarker):
+		return
+	var type_str := "normal"
+	if hit_type_or_kill is bool:
+		type_str = "kill" if hit_type_or_kill else ("crit" if is_headshot else "normal")
+	elif hit_type_or_kill is String:
+		type_str = hit_type_or_kill
 
-func set_health(h: int) -> void:
+	match type_str:
+		"kill":
+			hitmarker.text = "☠ ELIMINATED"
+			hitmarker.modulate = Color(1.0, 0.25, 0.25)
+			hitmarker_scale = 1.35
+			_hit_t = 0.42
+		"crit":
+			hitmarker.text = ">> CRITICAL <<"
+			hitmarker.modulate = Color(1.0, 0.55, 0.15)
+			hitmarker_scale = 1.2
+			_hit_t = 0.28
+		"deflect":
+			hitmarker.text = "🛡 DEFLECT"
+			hitmarker.modulate = Color(0.35, 0.85, 1.0)
+			hitmarker_scale = 1.1
+			_hit_t = 0.22
+		_: # "normal"
+			hitmarker.text = "✕"
+			hitmarker.modulate = Color(0.95, 0.98, 1.0)
+			hitmarker_scale = 1.0
+			_hit_t = 0.18
+	hitmarker.modulate.a = 1.0
+
+func show_missile_lock(_id: int, dist: int, dir: Vector3) -> void:
+	_missile_lock_timer = 2.4
+	if is_instance_valid(_missile_alert_box):
+		_missile_alert_box.visible = true
+		if is_instance_valid(_missile_alert_label):
+			_missile_alert_label.text = "⚠️ INBOUND MISSILE [%dM] · EVADE OR SMOKE [F/C] ⚠️" % dist
+	if is_instance_valid(_tactical_radar):
+		_tactical_radar.missile_threat = true
+		_tactical_radar.missile_threat_dir = dir
+		_tactical_radar.missile_threat_dist = dist
+		_tactical_radar.queue_redraw()
+	if is_instance_valid(_compass_ribbon):
+		_compass_ribbon.missile_warning = true
+		_compass_ribbon.missile_dist = dist
+		_compass_ribbon.queue_redraw()
+
+func clear_missile_lock(_id: int = 0) -> void:
+	_missile_lock_timer = 0.0
+	if is_instance_valid(_missile_alert_box):
+		_missile_alert_box.visible = false
+	if is_instance_valid(_tactical_radar):
+		_tactical_radar.missile_threat = false
+		_tactical_radar.queue_redraw()
+	if is_instance_valid(_compass_ribbon):
+		_compass_ribbon.missile_warning = false
+		_compass_ribbon.queue_redraw()
+
+func _armor_label_text(chassis: String, max_hp: int) -> String:
+	match chassis:
+		"tracked": return "TANK ARMOR  •  %d HP (MAX)" % max_hp
+		"wheels": return "MONSTER 4x4  •  %d HP (HEAVY)" % max_hp
+		"heli": return "GUNSHIP HELI  •  %d HP (AERO)" % max_hp
+		"wing": return "INTERCEPTOR JET  •  %d HP (LIGHT)" % max_hp
+		_: return "VANGUARD  •  %d HP" % max_hp
+
+func set_health(h: int, max_h: int = -1) -> void:
+	if max_h > 0:
+		health_bar.max_value = max_h
+		if is_instance_valid(chassis_armor_label):
+			chassis_armor_label.text = _armor_label_text(GameState.selected_drone_chassis, max_h)
+	var max_val := maxf(1.0, float(health_bar.max_value))
 	health_label.text = str(h)
 	health_bar.value = h
-	health_label.add_theme_color_override("font_color", Color.WHITE if h > 30 else Color(1.0, 0.3, 0.3))
+	var ratio := float(h) / max_val
+	health_label.add_theme_color_override("font_color", Color.WHITE if ratio > 0.3 else Color(1.0, 0.3, 0.3))
 
 func set_drone_mobility(chassis: String) -> void:
+	var max_hp := GameState.max_health_for_chassis(chassis)
+	health_bar.max_value = max_hp
+	if is_instance_valid(chassis_armor_label):
+		chassis_armor_label.text = _armor_label_text(chassis, max_hp)
 	var movement_hint := "WASD DRIVE" if chassis in ["wheels", "tracked"] else "WASD FLIGHT   SPACE ASCEND   CTRL DESCEND   SHIFT BOOST"
 	_controls_hint.text = movement_hint + "   M MAP   TAB BOARD   ESC MENU"
 
@@ -746,8 +1113,13 @@ func _build_payload_card(parent: VBoxContainer, key: String, slot_name: String) 
 func update_payload_cards(system: WarWeaponSystem) -> void:
 	var equipped := GameState.equipped_indices()
 	var both := system.dual_fire and system.can_dual_fire()
+	var is_tank := GameState.selected_drone_chassis == "tracked"
 	for slot in _payload_cards.size():
 		var card := _payload_cards[slot]
+		if slot >= equipped.size():
+			card.panel.visible = false
+			continue
+		card.panel.visible = true
 		var index := equipped[slot]
 		var config: Dictionary = GameState.WEAPONS[index]
 		var id := String(config["id"])
@@ -769,7 +1141,8 @@ func update_payload_cards(system: WarWeaponSystem) -> void:
 		card.reserve.text = "%02d RESERVE" % status.y if status.z == 0 else "RELOADING"
 		card.reserve.add_theme_color_override("font_color", WarUI.MUTED if status.z == 0 else WarUI.ACCENT)
 	_fire_mode_label.visible = system.can_dual_fire()
-	var fire_mode := "3  BOTH ACTIVE" if both else "3  BOTH"
+	var fire_key := "4" if is_tank else "3"
+	var fire_mode := "%s  BOTH ACTIVE" % fire_key if both else "%s  BOTH" % fire_key
 	if _fire_mode_label.text != fire_mode:
 		_fire_mode_label.text = fire_mode
 		_fire_mode_label.add_theme_color_override("font_color", WarUI.ACCENT if both else WarUI.MUTED)
@@ -801,13 +1174,17 @@ func update_player_header(p_name: String = "", team: String = "", mode: String =
 		match_info_label.text = ("OFFLINE" if GameState.practice_mode else ("%s / %s" % [md, tm])) + "  •  " + GameState.time_label(GameState.selected_time)
 
 func show_elimination(killer: String, victim: String, weapon: String) -> void:
-	var verb := "ELIMINATED" if killer == GameState.username else "ELIMINATED"
-	feed("%s  [%s]  %s  %s" % [killer, weapon.to_upper(), verb, victim], Color("ff746b") if victim == GameState.username else Color("c4d5dc"))
+	var weapon_tag := weapon.to_upper()
+	if weapon_tag.is_empty(): weapon_tag = "KINETIC"
+	var is_me_killer := killer == GameState.username
+	var is_me_victim := victim == GameState.username
+	var col := Color("ff5252") if is_me_victim else (Color("50fa7b") if is_me_killer else Color("d1d5db"))
+	feed("%s  [%s]  ➔  %s" % [killer.to_upper(), weapon_tag, victim.to_upper()], col)
 
 func show_killer_card(killer: String, weapon: String, chassis: String) -> void:
 	if not is_instance_valid(killer_card): return
-	killer_detail.text = "ELIMINATED BY  " + killer.to_upper() + "\n" + weapon.to_upper() + "  /  " + chassis.to_upper()
 	var valid_chassis := chassis if chassis in ["quad", "wheels", "tracked", "heli", "wing"] else "quad"
+	killer_detail.text = "ELIMINATED BY  " + killer.to_upper() + "\n" + weapon.to_upper() + "  •  " + chassis.to_upper() + " (" + str(GameState.max_health_for_chassis(valid_chassis)) + " HP CLASS)"
 	killer_drone.configure(false, weapon, valid_chassis)
 	killer_card.visible = true
 	killer_viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
@@ -832,6 +1209,22 @@ func feed(text: String, color: Color = Color.WHITE) -> void:
 			_feed.erase(l)
 	)
 
+func post_radio_chatter(callsign: String, message: String, color_key: Variant = "cyan") -> void:
+	if not is_instance_valid(_radio_chatter):
+		return
+	var col := WarUI.CYAN
+	if color_key is Color:
+		col = color_key
+	elif color_key is String:
+		match color_key.to_lower():
+			"amber", "orange": col = Color("ffaa33")
+			"danger", "red": col = WarUI.DANGER
+			"success", "green": col = WarUI.SUCCESS
+			"muted": col = WarUI.MUTED
+			"accent": col = WarUI.ACCENT
+			_: col = WarUI.CYAN
+	_radio_chatter.post_message(callsign, message, col)
+
 func set_score(mode: String, a: int, b: int, team: String, winner: String) -> void:
 	if mode == "CONQUEST":
 		objective_strip.visible = true
@@ -844,6 +1237,21 @@ func set_score(mode: String, a: int, b: int, team: String, winner: String) -> vo
 		score_label.text = "" if winner.is_empty() else (" WINNER: " + winner)
 
 func set_conquest_objectives(points: Array) -> void:
+	if is_instance_valid(_tactical_radar):
+		var radar_objs: Array[Dictionary] = []
+		for p in points:
+			if p is Dictionary and p.has("position"):
+				var owner := String(p.get("owner", ""))
+				var contested := bool(p.get("contested", false))
+				var col := Color("ffad61") if contested else (Color("54b5ff") if owner == "A" else (Color("ff6659") if owner == "B" else Color("c4cdd1")))
+				radar_objs.append({
+					"pos": p["position"],
+					"label": String(p.get("id", "")).to_upper(),
+					"color": col
+				})
+		_tactical_radar.objectives = radar_objs
+		if is_instance_valid(_compass_ribbon):
+			_compass_ribbon.objectives = radar_objs
 	if not is_instance_valid(objective_strip): return
 	for index in objective_labels.size():
 		var label := objective_labels[index]
@@ -1105,8 +1513,43 @@ func set_ping(ms: int) -> void:
 
 func _process(delta: float) -> void:
 	update_player_header()
+	_update_ability_card()
+	if not death_panel.visible:
+		var players := get_tree().get_nodes_in_group("local_player")
+		if not players.is_empty() and is_instance_valid(players[0]):
+			var lp = players[0]
+			var lp_pos: Vector3 = lp.global_position
+			var lp_yaw: float = lp.body_yaw if "body_yaw" in lp else lp.global_rotation.y
+			if is_instance_valid(_tactical_radar):
+				_tactical_radar.player_pos = lp_pos
+				_tactical_radar.player_yaw = lp_yaw
+				_tactical_radar.update_sweep(delta)
+				var contacts: Array[Dictionary] = []
+				for rem in get_tree().get_nodes_in_group("remote_players"):
+					if is_instance_valid(rem) and not rem.get("dead"):
+						contacts.append({
+							"pos": rem.global_position,
+							"friendly": rem._is_friendly() if rem.has_method("_is_friendly") else false
+						})
+				_tactical_radar.contacts = contacts
+				_tactical_radar.queue_redraw()
+			if is_instance_valid(_compass_ribbon):
+				_compass_ribbon.player_pos = lp_pos
+				_compass_ribbon.player_yaw = lp_yaw
+				if is_instance_valid(_tactical_radar):
+					_compass_ribbon.objectives = _tactical_radar.objectives
+				_compass_ribbon.queue_redraw()
 	equipment_label.text = "[G] HOLD AIM · RELEASE THROW\n%s ×%d" % [GameState.THROWABLES[GameState.selected_throwable]["name"], GameState.throwables_remaining]
 	_controls_hint.visible = not death_panel.visible and (not is_instance_valid(_sensor_reticle) or not _sensor_reticle.visible)
+	
+	if _missile_lock_timer > 0.0:
+		_missile_lock_timer -= delta
+		if _missile_lock_timer <= 0.0:
+			clear_missile_lock()
+		elif is_instance_valid(_missile_alert_box):
+			var pulse := sin(Time.get_ticks_msec() * 0.018) * 0.35 + 0.65
+			_missile_alert_box.modulate.a = pulse
+	
 	# Real-time hardware and engine audit telemetry + live combat roster refresh while TAB is held
 	if is_instance_valid(board_panel) and board_panel.visible:
 		_audit_timer -= delta
@@ -1131,11 +1574,12 @@ func _process(delta: float) -> void:
 			else:
 				fps_label.modulate = Color(1.0, 0.35, 0.3)
 
-
 	if _hit_t > 0.0:
 		_hit_t -= delta
 		if _hit_t <= 0.0:
 			hitmarker.modulate.a = 0.0
+		else:
+			hitmarker.scale = Vector2.ONE * hitmarker_scale
 			
 	var had_damage_feedback := _hurt_flash_t > 0.0 or not _damage_arcs.is_empty()
 	_hurt_flash_t = maxf(0.0, _hurt_flash_t - delta)
@@ -1154,11 +1598,59 @@ func _process(delta: float) -> void:
 			
 	# Low health vignette pulsing
 	var hp := float(health_bar.value)
+	var max_val := maxf(1.0, float(health_bar.max_value))
+	var is_critical := (hp / max_val) <= 0.25 and hp > 0.0
+	if is_critical:
+		_low_hull_alarm_timer -= delta
+		if _low_hull_alarm_timer <= 0.0:
+			Audio.low_hull_alarm()
+			_low_hull_alarm_timer = 2.4
+	else:
+		_low_hull_alarm_timer = 0.0
+	if is_instance_valid(_hull_critical_label):
+		_hull_critical_label.visible = is_critical
+		if is_critical:
+			_hull_critical_label.modulate.a = sin(Time.get_ticks_msec() * 0.008) * 0.4 + 0.6
 	if hp < 35.0 and hp > 0.0:
 		_low_hp_pulse += delta * 4.0
 		low_hp_vignette.color.a = (sin(_low_hp_pulse) * 0.5 + 0.5) * 0.25 * (1.0 - hp / 35.0)
 	else:
 		low_hp_vignette.color.a = 0.0
+
+func _update_ability_card() -> void:
+	if not is_instance_valid(_ability_name_label) or not is_instance_valid(_ability_status_label):
+		return
+	var players := get_tree().get_nodes_in_group("local_player")
+	if players.is_empty() or not is_instance_valid(players[0]):
+		return
+	var lp = players[0]
+	var chassis: String = GameState.selected_drone_chassis
+	match chassis:
+		"tracked": _ability_name_label.text = "[F/C] SMOKE SCREEN"
+		"wheels": _ability_name_label.text = "[F] NITRO / [C] SMOKE"
+		"heli": _ability_name_label.text = "[F] FLARE DECOY"
+		"wing": _ability_name_label.text = "[F] AIRBRAKE"
+		_: _ability_name_label.text = "[F] RECON PULSE"
+
+	var cd: float = lp.get("ability_cooldown") if "ability_cooldown" in lp else 0.0
+	var active_t: float = lp.get("ability_active_timer") if "ability_active_timer" in lp else 0.0
+	var max_cd: float = lp.get("ABILITY_COOLDOWN_MAX") if "ABILITY_COOLDOWN_MAX" in lp else 10.0
+
+	if active_t > 0.0:
+		_ability_status_label.text = "ACTIVE %.1fs" % active_t
+		_ability_status_label.add_theme_color_override("font_color", Color("ffaa33"))
+		if is_instance_valid(_ability_bar):
+			_ability_bar.value = active_t / 3.0
+	elif cd > 0.0:
+		_ability_status_label.text = "%.1fs" % cd
+		_ability_status_label.add_theme_color_override("font_color", WarUI.MUTED)
+		if is_instance_valid(_ability_bar):
+			_ability_bar.value = 1.0 - (cd / maxf(max_cd, 0.001))
+	else:
+		_ability_status_label.text = "READY"
+		_ability_status_label.add_theme_color_override("font_color", WarUI.CYAN)
+		if is_instance_valid(_ability_bar):
+			_ability_bar.value = 1.0
 
 func _input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo and event.physical_keycode == KEY_F3:

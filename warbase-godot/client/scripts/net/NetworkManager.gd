@@ -10,8 +10,11 @@ var supports_manual_redeploy := false
 
 signal fire_received(shooter: String, origin: Vector3, hit: Vector3, normal: Vector3, wall: bool, weapon: String)
 signal vehicle_impact_received(id: String, normal: Vector3, speed: float)
-signal hit_confirmed()
+signal hit_confirmed(hit_type: String, damage: int)
 signal kill_confirmed()
+signal missile_locked(missile_id: int, distance: int, direction: Vector3)
+signal missile_lock_broken(missile_id: int)
+signal smoke_screen_received(shooter: String, position: Vector3)
 signal grenade_received(shooter: String, pos: Vector3, vel: Vector3, grenade_id: int, kind: String, request_id: int)
 signal grenade_rejected(request_id: int)
 signal explosion_received(grenade_id: int, pos: Vector3, kind: String)
@@ -83,6 +86,9 @@ func send_grenade(_pos: Vector3, _velocity: Vector3, _kind: String = "frag") -> 
 	return 0
 
 func send_vehicle_seat(_id: String, _enter: bool) -> void:
+	pass
+
+func send_smoke(_pos: Vector3) -> void:
 	pass
 
 func send_vehicle_input(_throttle: float, _steer: float, _brake: bool, _gear: int) -> void:

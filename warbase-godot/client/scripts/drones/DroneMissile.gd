@@ -5,6 +5,7 @@ const Payloads := preload("res://scripts/drones/DronePayloadBuilder.gd")
 
 var velocity := Vector3.ZERO
 var remaining := 0.0
+var _trail_distance := 0.0
 var shooter: CharacterBody3D
 var damage := 0.0
 
@@ -36,6 +37,15 @@ func _physics_process(delta: float) -> void:
 			burst(get_parent(), hit["position"])
 			queue_free()
 			return
+	var travel := global_position.distance_to(destination)
+	var effects := get_tree().get_first_node_in_group("drone_combat_effects")
+	var sample_distance := 0.6 - _trail_distance
+	var emitted := 0
+	while sample_distance <= travel and emitted < 12:
+		if effects: effects.call("missile_trail", global_position.lerp(destination, sample_distance / maxf(travel, 0.0001)))
+		sample_distance += 0.6
+		emitted += 1
+	_trail_distance = fmod(_trail_distance + travel, 0.6)
 	global_position = destination
 	remaining -= elapsed
 	if remaining <= 0.0:
@@ -45,22 +55,5 @@ func _physics_process(delta: float) -> void:
 
 static func burst(parent: Node3D, at: Vector3) -> void:
 	if not is_instance_valid(parent) or not parent.is_inside_tree(): return
-	var flash := MeshInstance3D.new()
-	var mesh := SphereMesh.new()
-	mesh.radius = 0.16
-	mesh.height = 0.32
-	mesh.radial_segments = 12
-	mesh.rings = 5
-	var material := StandardMaterial3D.new()
-	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	material.albedo_color = Color(1.0, 0.50, 0.13, 0.88)
-	flash.mesh = mesh
-	flash.material_override = material
-	flash.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	parent.add_child(flash)
-	flash.global_position = at
-	var effect := flash.create_tween().set_parallel(true)
-	effect.tween_property(flash, "scale", Vector3.ONE * 6.0, 0.22)
-	effect.tween_property(material, "albedo_color:a", 0.0, 0.22)
-	effect.chain().tween_callback(flash.queue_free)
+	var effects := parent.get_tree().get_first_node_in_group("drone_combat_effects")
+	if effects: effects.call("missile_explosion", at)

@@ -126,12 +126,14 @@ test('BattleRoom admission, combat authority, ammo and lifecycle', async (t) => 
     assert.ok(drone.y > altitudeBefore + 0.1, 'authoritative move_y input makes a drone climb');
     const highPoint = drone.y;
     flightInput.data.move_y = -1;
-    for (let tick = 0; tick < 15; tick++) {
+    // The default helicopter must brake its upward velocity before descending.
+    // Allow 0.9 seconds for the bounded 15 m/s² vertical acceleration.
+    for (let tick = 0; tick < 45; tick++) {
       sequence = flightInput.send();
       await new Promise((resolve) => setTimeout(resolve, 20));
     }
     await waitFor(() => drone.ack_input_sequence >= sequence);
-    assert.ok(drone.y < highPoint - 0.1, 'negative move_y input makes a drone descend');
+    assert.ok(drone.y < highPoint - 0.1, `negative move_y input makes a drone descend: high=${highPoint}, y=${drone.y}, vy=${drone.vy}, mode=${drone.mobility_mode}`);
     await waitFor(() => processTimingSnapshot().ticks_total > processTicksBefore);
     assert.ok(processTimingSnapshot().ticks_total > processTicksBefore, 'active match ticks reach process metrics');
     t.diagnostic(`first Industrial player+bot admission: ${(performance.now() - joinStarted).toFixed(1)} ms`);
@@ -576,6 +578,51 @@ test('BattleRoom admission, combat authority, ammo and lifecycle', async (t) => 
     (room as any).hit(serverShooter, { target: 'wall-victim', shot_id: 1 });
     assert.equal(p2.health, 100, 'a static warehouse wall occludes the animated player hitbox');
     await shooter.leave(); await victim.leave();
+  });
+
+  await t.test('tracked and wheeled vehicles apply directional armor (front 0.75x, rear 1.5x, top attack bypasses)', async () => {
+    const room = await testing.createRoom<BattleRoom>('battle', { room: 'industrial-public' });
+    const clientA = await testing.connectTo(room, { username: 'tank-victim', room: 'industrial-public' });
+    const victim = room.state.players.get('tank-victim')!;
+    victim.mobility_mode = 'tracked';
+    victim.yaw = 0; // facing -Z
+    victim.x = 0; victim.y = 1; victim.z = 0;
+    victim.health = 220;
+    victim.is_dead = false;
+    (room as any).internal.get(clientA.sessionId).protectedUntil = 0;
+
+    // 1. Frontal shot: coming from z = -10 towards victim at z = 0 (shotDir is [0, 0, 1])
+    (room as any).applyPlayerDamage(undefined, victim, 40, undefined, [0, 0, 1]);
+    assert.equal(victim.health, 190, 'frontal hit takes 0.75x deflected damage');
+
+    // 2. Rear shot: coming from z = 10 towards victim at z = 0 (shotDir is [0, 0, -1])
+    (room as any).applyPlayerDamage(undefined, victim, 40, undefined, [0, 0, -1]);
+    assert.equal(victim.health, 130, 'rear engine bay hit takes 1.5x critical weakspot damage');
+
+    // 3. Top attack: downward plunge (>35 deg downward pitch, shotDir[1] = -0.71)
+    (room as any).applyPlayerDamage(undefined, victim, 40, undefined, [0, -0.71, 0.704]);
+    assert.equal(victim.health, 90, 'top attack downward plunge bypasses frontal armor reduction');
+
+    await clientA.leave();
+  });
+
+  await t.test('smoke screen breaks guided missile tracking and creates protective smoke zone', async () => {
+    const room = await testing.createRoom<BattleRoom>('battle', { room: 'industrial-public' });
+    const client = await testing.connectTo(room, { username: 'smoke-pilot', room: 'industrial-public' });
+    const pilot = room.state.players.get('smoke-pilot')!;
+    pilot.x = 10; pilot.y = 2; pilot.z = 10;
+
+    // Initially position is not smoked
+    assert.equal(room.isPositionSmoked([10, 2, 10]), false);
+
+    // Deploy smoke at pilot's position
+    room.deploySmokeZone(pilot.username, [10, 2, 10]);
+
+    // Position is now protected by smoke zone
+    assert.equal(room.isPositionSmoked([10, 2, 10]), true);
+    assert.equal(room.isPositionSmoked([50, 2, 50]), false);
+
+    await client.leave();
   });
 });
 

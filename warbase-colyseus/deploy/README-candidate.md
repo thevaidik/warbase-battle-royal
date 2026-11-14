@@ -84,7 +84,7 @@ The wrapper defaults to Umbrel's `portainer_docker_1` nested engine, discovers t
 When the log prints the room ID, launch exactly one native observer on the Mac at 30 FPS, using that ID. Give it enough time to cover the 90-second observer gate, peer ramp-up, and the 180-second sample:
 
 ```sh
-/Applications/Godot.app/Contents/MacOS/Godot --headless --max-fps 30 --path warbase-godot/client --script res://scripts/tests/test_official_stress_observer.gd -- qa_colyseus qa_room=<room-id> qa_map=industrial qa_seconds=300 qa_output=audit/colyseus-migration-2026-10-29/native-observer.json
+/Applications/Godot.app/Contents/MacOS/Godot --headless --max-fps 30 --path warbase-godot/client --script res://scripts/tests/test_official_stress_observer.gd -- qa_colyseus qa_room=<room-id> qa_map=industrial qa_seconds=300 qa_output=native-observer.json
 ```
 
 The SDK cohort is limited to 63 peers; the observer must join as the distinct human `QA_NATIVE`, for exactly 64 target humans. The helper waits for that human before joining the cohort and verifies the decoded room state has the expected number of humans. It sends a reflected SDK input through the reliable buffered channel at the server-advertised 60 Hz rate, measures SDK ACKs/RTT/state gaps and authoritative player positions, walks selected peers toward nearby authored vehicle spawns using normal movement input, and attempts normal fire/grenade/vehicle messages. It triggers one SDK transport reconnect, then leaves cohort peers and checks that the room state reports removals. Bots are counted separately from humans. There are no transform writes or test-only server mutations.

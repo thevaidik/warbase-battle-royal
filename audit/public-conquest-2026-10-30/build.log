@@ -1,4 +1,0 @@
-
-> warbase-colyseus@0.1.0 build
-> tsc -p tsconfig.json && node scripts/copy-assets.mjs
-

@@ -25,17 +25,11 @@ func run() -> void:
 	main.player.take_bot_damage(35, main.player.global_position + Vector3(0,0,5))
 	check(main.hud._hurt_flash_t > 0, "incoming damage flashes the hull HUD")
 	await create_timer(0.15).timeout
-	for i in 3: await process_frame
-	RenderingServer.force_draw(false)
-	root.get_texture().get_image().save_png(ProjectSettings.globalize_path("res://../../audit/traversal-combat/hit-feedback.png"))
 	main.player.take_bot_damage(200)
 	await create_timer(0.6).timeout
 	check(main.player.is_dead and main.hud.death_panel.visible, "lethal damage enters the death presentation")
 	check(is_instance_valid(main.player._crash_focus) and not main.player._drone_visual.visible, "death camera follows the wreck")
 	check(get_first_node_in_group("drone_combat_effects")._wrecks.size() == 1, "death leaves one cosmetic wreck")
-	for i in 3: await process_frame
-	RenderingServer.force_draw(false)
-	root.get_texture().get_image().save_png(ProjectSettings.globalize_path("res://../../audit/traversal-combat/death-feedback.png"))
 	main._do_respawn(main.map_builder.spawn_points[0])
 	check(not main.player.is_dead and main.player._drone_visual.visible and is_zero_approx(main.hud._hurt_flash_t), "respawn restores the camera, weapons and clear screen")
 	main._quit_to_menu()

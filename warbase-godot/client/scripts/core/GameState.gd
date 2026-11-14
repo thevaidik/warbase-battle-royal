@@ -114,6 +114,7 @@ var selected_primary := "ak47"
 var selected_drone_chassis := "heli"
 var selected_drone_payload := "ak47"
 var selected_secondary := "pistol"
+var selected_tertiary := "hmg"
 var selected_throwable := "frag"
 const THROWABLES := {
 	"frag": {"name":"M67 Frag", "description":"3-second fuse • Wide blast • 2 per life", "fuse":3.0, "radius":8.5, "damage":90.0},
@@ -161,6 +162,7 @@ func _ready() -> void:
 		selected_primary = String(preferences.get_value("loadout", "primary", "ak47"))
 		selected_drone_chassis = String(preferences.get_value("loadout", "drone_chassis", "heli"))
 		selected_secondary = String(preferences.get_value("loadout", "secondary", "pistol"))
+		selected_tertiary = String(preferences.get_value("loadout", "tertiary", "hmg"))
 		selected_throwable = String(preferences.get_value("loadout", "throwable", "frag"))
 	validate_loadout()
 	if not ["wheels", "tracked", "heli", "wing"].has(selected_drone_chassis): selected_drone_chassis = "heli"
@@ -190,6 +192,14 @@ func record_local_death() -> void:
 	else:
 		players[username]["deaths"] = local_deaths
 
+static func max_health_for_chassis(chassis: String) -> int:
+	match chassis:
+		"tracked": return 220
+		"wheels": return 170
+		"heli": return 100
+		"wing": return 75
+		_: return 100
+
 func weapon_index_for_id(wid: String) -> int:
 	for i in WEAPONS.size():
 		if WEAPONS[i]["id"] == wid: return i
@@ -202,6 +212,8 @@ func starting_weapon_index() -> int:
 	return weapon_index_for_id(selected_primary)
 
 func equipped_indices() -> Array[int]:
+	if selected_drone_chassis == "tracked":
+		return [weapon_index_for_id(selected_primary), weapon_index_for_id(selected_secondary), weapon_index_for_id(selected_tertiary)]
 	return [weapon_index_for_id(selected_primary), weapon_index_for_id(selected_secondary)]
 
 func validate_loadout() -> void:
@@ -210,15 +222,26 @@ func validate_loadout() -> void:
 	if selected_primary not in ids: selected_primary = "ak47"
 	if selected_secondary not in ids or selected_secondary == selected_primary:
 		selected_secondary = "pistol" if selected_primary != "pistol" else "ak47"
+	if selected_tertiary not in ids or selected_tertiary == selected_primary or selected_tertiary == selected_secondary:
+		for fallback in ["hmg", "m2010", "dmr", "mp5"]:
+			if fallback != selected_primary and fallback != selected_secondary:
+				selected_tertiary = fallback
+				break
 	if not THROWABLES.has(selected_throwable): selected_throwable = "frag"
 
 func equip(slot: String, id: String) -> void:
 	if slot == "primary":
 		if id == selected_secondary: selected_secondary = selected_primary
+		elif id == selected_tertiary: selected_tertiary = selected_primary
 		selected_primary = id
 	elif slot == "secondary":
 		if id == selected_primary: selected_primary = selected_secondary
+		elif id == selected_tertiary: selected_tertiary = selected_secondary
 		selected_secondary = id
+	elif slot == "tertiary":
+		if id == selected_primary: selected_primary = selected_tertiary
+		elif id == selected_secondary: selected_secondary = selected_tertiary
+		selected_tertiary = id
 	else: selected_throwable = id
 	validate_loadout()
 	selected_drone_payload = selected_primary
@@ -249,6 +272,7 @@ func save_settings() -> void:
 	preferences.set_value("loadout", "primary", selected_primary)
 	preferences.set_value("loadout", "drone_chassis", selected_drone_chassis)
 	preferences.set_value("loadout", "secondary", selected_secondary)
+	preferences.set_value("loadout", "tertiary", selected_tertiary)
 	preferences.set_value("loadout", "throwable", selected_throwable)
 	preferences.set_value("controls", "sensitivity", BASE_SENSITIVITY)
 	preferences.set_value("audio", "sfx", Audio.sfx_volume)

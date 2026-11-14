@@ -3,6 +3,7 @@ extends Node3D
 ## Map assembly and shared daylight profiles for drone combat.
 
 var spawn_points: Array[Vector3] = []
+var _active_map := "industrial"
 
 const JEEP_SCENE: PackedScene = preload("res://scenes/CombatJeep.tscn")
 
@@ -115,9 +116,11 @@ func _build_restored(root_node: Node3D, map_id: String) -> void:
 	apply_time_of_day(GameState.selected_time)
 	for shape in inst.find_children("*","CollisionShape3D",true,false):
 		if shape.shape is ConcavePolygonShape3D: shape.shape.backface_collision=true
-	for light in root_node.find_children("*","Light3D",true,false):light.shadow_enabled=false
+	for light in root_node.find_children("*","Light3D",true,false):
+		if not light is DirectionalLight3D: light.shadow_enabled=false
 
 func build(map_name: String) -> Array[Vector3]:
+	_active_map = map_name
 	spawn_points.clear()
 	_sanitized_mat_cache.clear()
 	for c in get_children():
@@ -145,7 +148,9 @@ func build(map_name: String) -> Array[Vector3]:
 			root.add_child(inst)
 			if key == "resoforge": inst.scale = Vector3.ONE * 3.0
 			
-			if key == "shipment": _build_shipment_collision(inst)
+			if key == "shipment":
+				_build_shipment_collision(inst)
+				_sanitize_glb_materials(inst)
 
 			# Shipment has authored primitive collision, so avoid replacing it with a full trimesh.
 			if key != "shipment":
@@ -268,7 +273,7 @@ func build(map_name: String) -> Array[Vector3]:
 	for collider in find_children("*", "CollisionShape3D", true, false):
 		if collider.shape is ConcavePolygonShape3D: collider.shape.backface_collision = true
 	for light in find_children("*", "Light3D", true, false):
-		light.shadow_enabled = false
+		if not light is DirectionalLight3D: light.shadow_enabled = false
 	return spawn_points
 
 func _sanitize_glb_materials(node: Node) -> void:
@@ -417,7 +422,7 @@ func _build_sky(root: Node3D, map_name: String = "industrial") -> void:
 	# Screen Space Ambient Occlusion (Disabled for 120Hz e-sports frame rate & zero fillrate penalty)
 	# Bounded contact shading for the Industrial visual reference map.
 	# Godot 4.7 Compatibility supports SSAO on both native and WebGL.
-	env.ssao_enabled = map_name == "industrial"
+	env.ssao_enabled = map_name == "industrial" and not OS.has_feature("web")
 	env.ssao_radius = 0.8
 	env.ssao_intensity = 0.65
 	if map_name == "industrial":
@@ -482,8 +487,13 @@ func _build_sky(root: Node3D, map_name: String = "industrial") -> void:
 		sun.light_energy = 1.65
 		sun.light_color = Color(1.0, 0.76, 0.48)
 		
-	# Disable real-time shadow maps to isolate movement-dependent wall flicker.
-	sun.shadow_enabled = false
+	# Native shadow experiment is opt-in until capture review confirms stable edges.
+	sun.shadow_enabled = OS.get_environment("WARBASE_SHADOW_EXPERIMENT") == "1" and not OS.has_feature("web") and map_name != "football"
+	sun.directional_shadow_max_distance = 60.0
+	sun.directional_shadow_mode = DirectionalLight3D.SHADOW_PARALLEL_2_SPLITS
+	sun.directional_shadow_blend_splits = true
+	sun.shadow_bias = 0.04
+	sun.shadow_normal_bias = 1.0
 	root.add_child(sun)
 	
 	if map_name == "arena":
@@ -527,10 +537,21 @@ func apply_time_of_day(preset: String) -> void:
 			sky.sky_horizon_color = profile[1]
 			sky.ground_horizon_color = (profile[1] as Color).darkened(0.45)
 			sky.ground_bottom_color = (profile[0] as Color).darkened(0.65)
+		environment.ambient_light_source = Environment.AMBIENT_SOURCE_SKY
+		environment.ambient_light_sky_contribution = 0.65
 		environment.ambient_light_color = profile[1]
 		environment.ambient_light_energy = profile[5]
-		environment.fog_light_color = profile[1]
-		environment.fog_density = 0.0006
+		var arid := _active_map in ["dust2", "canyon"]
+		var haze_color: Color = profile[1]
+		if arid: haze_color = haze_color.lerp(Color("d3b99a"), 0.16)
+		environment.fog_light_color = haze_color
+		# Distance haze follows weather while preserving foreground target contrast.
+		environment.fog_density = 0.0010 if preset == "overcast" else (0.00075 if preset in ["dawn", "dusk"] else 0.00035)
+		environment.fog_density *= 1.35 if arid else (0.7 if _active_map == "football" else 1.0)
+		environment.fog_sun_scatter = 0.12 if preset == "overcast" else 0.35
+		environment.fog_light_energy = 0.65
+		environment.tonemap_exposure = 1.0
+		environment.glow_hdr_threshold = 1.4
 	for node in find_children("*", "DirectionalLight3D", true, false):
 		node.rotation_degrees.x = profile[3]
 		node.light_color = profile[2]

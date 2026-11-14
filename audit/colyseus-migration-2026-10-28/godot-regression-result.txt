@@ -1,3 +1,0 @@
-COMMAND: python3 scripts/check_godot.py
-EXIT: 0
-OUTPUT: audit/colyseus-migration-2026-10-28/godot-regression.log

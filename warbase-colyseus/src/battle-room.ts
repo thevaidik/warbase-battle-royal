@@ -16,7 +16,7 @@ import { RewindView } from '@colyseus/core/Rewind';
 import { updatePresentationView } from './presentation-relevance.js';
 import { performance } from 'node:perf_hooks';
 import { anonymousJoinLimiter, canonicalizeUsername, gameMessageLimiter, roomCreationLimiter } from './abuse-protection.js';
-import { incrementProcessOperation, newRoomOperationsMetrics, recordProcessTick, roomOperationsMetrics, serviceOperationsMetrics, type RoomOperationsMetrics } from './operations-metrics.js';
+import { incrementProcessOperation, newRoomOperationsMetrics, recordPhaseTiming, recordProcessTick, roomOperationsMetrics, serviceOperationsMetrics, PERF_TRACE_ENABLED, type RoomOperationsMetrics } from './operations-metrics.js';
 import { awardConquestKill, createConquestState, stepConquest, type ConquestState } from './conquest-simulation.js';
 import { getConfiguredBattleAdmission } from './admission.js';
 
@@ -37,7 +37,8 @@ type PlayerRuntime = { username: string; map: string; lastShotByWeapon: Record<s
   offhandReloads: Map<string, { clear(): void }>;
   fireSegment?: { o: Vec3; d: Vec3; range: number; shotId: number; seen: RewindView } };
 type Weapon = { damage: number; rpm: number; magazine: number; reloadMs: number; range: number; headshot: number; falloffStart: number; falloffEnd: number; minFraction: number; bodyFraction: number; missileSpeed?: number };
-type Missile = { id: number; owner: PlayerState; sessionId: string; weaponId: string; position: Vec3; direction: Vec3; remaining: number; speed: number; damage: number };
+type Missile = { id: number; owner: PlayerState; sessionId: string; weaponId: string; position: Vec3; direction: Vec3; remaining: number; speed: number; damage: number; trackedTarget?: string; decoyed?: boolean; };
+type SmokeZone = { x: number; y: number; z: number; radius: number; expiresAt: number; owner: string; };
 const WEAPONS: Record<string, Weapon> = {
   ak47: { damage: 34, rpm: 600, magazine: 30, reloadMs: 2500, range: 90, headshot: 1.8, falloffStart: 20, falloffEnd: 90, minFraction: 0.6, bodyFraction: 0.84 },
   m4: { damage: 25, rpm: 750, magazine: 30, reloadMs: 2200, range: 90, headshot: 1.8, falloffStart: 20, falloffEnd: 90, minFraction: 0.6, bodyFraction: 0.84 },
@@ -100,6 +101,16 @@ export function movementVelocity(moveX: number, moveZ: number, yaw: number, spee
     (-moveX * Math.sin(yaw) - moveZ * Math.cos(yaw)) / magnitude * speed];
 }
 
+export function maxHealthForChassis(mode?: string): number {
+  switch (mode) {
+    case 'tracked': return 220;
+    case 'wheels': return 170;
+    case 'heli': return 100;
+    case 'wing': return 75;
+    default: return 100;
+  }
+}
+
 export class BattleRoom extends Room<{ state: BattleState; input: MoveInput }> {
   plugins = definePlugins({ uniqueSession: new UniqueSessionPlugin({ max: 1, onDuplicate: 'reject' }) });
   maxClients = 64;
@@ -122,8 +133,12 @@ export class BattleRoom extends Room<{ state: BattleState; input: MoveInput }> {
   private vehicleWeaponBeforeDrive = new Map<string, string>();
   private operations!: RoomOperationsMetrics;
   private conquest?: ConquestState;
+  private readonly smokeZones: SmokeZone[] = [];
   private presentationViews = new Map<string, Set<PlayerState>>();
   private presentationRefreshAt = 0;
+  private readonly simulationPlayers = new Map<string, PlayerState & BotPlayer & VehiclePlayer>();
+  private readonly botTickRecords = new Map<string, { x: number; y: number; z: number; dead: boolean; firedTick: number }>();
+  private botTickSerial = 0;
 
   /**
    * Matchmaker admission runs before find-or-create, so a missing/forged ticket
@@ -208,6 +223,7 @@ export class BattleRoom extends Room<{ state: BattleState; input: MoveInput }> {
       if (lastTickStartedAt > 0 && tickStartedAt - lastTickStartedAt > ctx.dt * 1500) this.operations.lateTicks++;
       lastTickStartedAt = tickStartedAt;
       const now = Date.now();
+      let phaseStart = PERF_TRACE_ENABLED ? performance.now() : 0;
       for (const [username, player] of this.state.players) {
         const sessionId = this.sessionByUsername.get(username);
         if (!sessionId) continue;
@@ -253,20 +269,53 @@ export class BattleRoom extends Room<{ state: BattleState; input: MoveInput }> {
         p.qx = 0; p.qy = Math.sin(movementYaw * 0.5); p.qz = 0; p.qw = Math.cos(movementYaw * 0.5);
         p.ack_input_sequence = inputChannel.consumedCount;
       }
+      if (PERF_TRACE_ENABLED) {
+        recordPhaseTiming(this.operations, 'human_movement', performance.now() - phaseStart);
+        phaseStart = performance.now();
+      }
+
       if (this.vehicleSimulation.needsStep) this.stepVehicles(ctx.dt);
+      if (PERF_TRACE_ENABLED) {
+        recordPhaseTiming(this.operations, 'vehicles', performance.now() - phaseStart);
+        phaseStart = performance.now();
+      }
+
       if (this.botSimulation.hasBots) this.stepBots(ctx.dt);
+      if (PERF_TRACE_ENABLED) {
+        recordPhaseTiming(this.operations, 'bots', performance.now() - phaseStart);
+        phaseStart = performance.now();
+      }
+
       // The native safety floor is below the playable world. Authority must
       // finish the fall through the existing death/respawn lifecycle.
       for (const actor of this.state.players.values()) {
         if (!actor.is_dead && actor.y < voidLimit) this.killPlayer(undefined, actor);
       }
       if (this.grenadeSimulation.hasGrenades) this.stepGrenades(ctx.dt);
+      if (PERF_TRACE_ENABLED) {
+        recordPhaseTiming(this.operations, 'grenades', performance.now() - phaseStart);
+        phaseStart = performance.now();
+      }
+
       if (this.missiles.size > 0) this.stepMissiles(ctx.dt);
+      if (PERF_TRACE_ENABLED) {
+        recordPhaseTiming(this.operations, 'missiles', performance.now() - phaseStart);
+        phaseStart = performance.now();
+      }
+
       if (this.state.room_mode === 'CONQUEST' && this.state.room_state === 'active') this.stepConquestMode(ctx.dt);
+      if (PERF_TRACE_ENABLED) {
+        recordPhaseTiming(this.operations, 'conquest', performance.now() - phaseStart);
+        phaseStart = performance.now();
+      }
+
       // Simulation remains 60 Hz; replicated schema patches are capped at 20 Hz.
       // Composite driver/vehicle mirrors must describe the same fixed tick.
       // Schema publication remains 20 Hz; this only keeps its pending state coherent.
       if (this.vehicleSimulation.needsStep || ++fixedTick % 3 === 0) this.syncVehiclesToSchema();
+      if (PERF_TRACE_ENABLED) {
+        recordPhaseTiming(this.operations, 'schema_prep', performance.now() - phaseStart);
+      }
       const durationMs = performance.now() - tickStartedAt;
       this.operations.lastTickDurationMs = durationMs;
       this.operations.maxTickDurationMs = Math.max(this.operations.maxTickDurationMs, durationMs);
@@ -317,6 +366,12 @@ export class BattleRoom extends Room<{ state: BattleState; input: MoveInput }> {
       else this.rejectGrenadeRequest(client, requestId, false);
     });
     this.onMessage('vehicle_seat', (client, raw: any) => { if (this.allowMessage(client, 'vehicle_seat', 8)) this.vehicleSeat(client, raw); });
+    this.onMessage('deploy_smoke', (client, raw: any) => {
+      const p = this.state.players.get(this.internal.get(client.sessionId)?.username ?? '');
+      if (!p || p.is_dead) return;
+      const pos: Vec3 = Array.isArray(raw?.position) && raw.position.length >= 3 ? [raw.position[0], raw.position[1], raw.position[2]] : [p.x, p.y, p.z];
+      this.deploySmokeZone(p.username, pos);
+    });
     // Vehicle controls are accepted only from the buffered defineInput timeline.
   }
 
@@ -334,7 +389,9 @@ export class BattleRoom extends Room<{ state: BattleState; input: MoveInput }> {
       p.team = auth?.queueTeam ?? (players.filter((player) => player.team === 'A' && !player.is_bot).length <= players.filter((player) => player.team === 'B' && !player.is_bot).length ? 'A' : 'B');
     } else p.team = 'NONE';
     p.username = username;
+    p.health = maxHealthForChassis(p.mobility_mode);
     this.state.players.set(username, p);
+    this.simulationPlayers.set(username, p as PlayerState & BotPlayer & VehiclePlayer);
     client.view = new StateView();
     client.view.add(p, PRIVATE_VIEW_TAG);
     const listing = activeRooms.get(this.roomId); if (listing) listing.clients = this.clients.length;
@@ -367,9 +424,9 @@ export class BattleRoom extends Room<{ state: BattleState; input: MoveInput }> {
       if (weapon && weapon !== player.weapon_id) this.sendOffhandAmmo(client, meta, weapon, player.last_shot_id);
     }
   }
-  onLeave(client: Client) { client.view?.dispose(); client.view = undefined; this.presentationViews.delete(client.sessionId); const meta = this.internal.get(client.sessionId); if (meta) { this.operations.left++; incrementProcessOperation('left'); this.cancelReload(meta); this.sessionByUsername.delete(meta.username); const player = this.state.players.get(meta.username); if (player?.driving_vehicle) this.exitVehicle(player, true); if (player) for (const peer of this.clients) peer.view?.remove(player); this.state.players.delete(meta.username); } this.internal.delete(client.sessionId); const listing = activeRooms.get(this.roomId); if (listing) listing.clients = this.clients.length; this.syncBots(); if (this.clients.length === 0) activeRooms.delete(this.roomId); }
+  onLeave(client: Client) { client.view?.dispose(); client.view = undefined; this.presentationViews.delete(client.sessionId); const meta = this.internal.get(client.sessionId); if (meta) { this.operations.left++; incrementProcessOperation('left'); this.cancelReload(meta); this.sessionByUsername.delete(meta.username); const player = this.state.players.get(meta.username); if (player?.driving_vehicle) this.exitVehicle(player, true); if (player) for (const peer of this.clients) peer.view?.remove(player); this.state.players.delete(meta.username); this.simulationPlayers.delete(meta.username); } this.internal.delete(client.sessionId); const listing = activeRooms.get(this.roomId); if (listing) listing.clients = this.clients.length; this.syncBots(); if (this.clients.length === 0) activeRooms.delete(this.roomId); }
 
-  onDispose() { for (const client of this.clients) { client.view?.dispose(); client.view = undefined; } this.presentationViews.clear(); for (const internal of this.internal.values()) this.cancelReload(internal); activeRooms.delete(this.roomId); roomOperationsMetrics.delete(this.roomId); }
+  onDispose() { for (const client of this.clients) { client.view?.dispose(); client.view = undefined; } this.presentationViews.clear(); for (const internal of this.internal.values()) this.cancelReload(internal); activeRooms.delete(this.roomId); roomOperationsMetrics.delete(this.roomId); this.simulationPlayers.clear(); this.botTickRecords.clear(); }
 
   private allowMessage(client: Client, message: string, limitPerSecond: number): boolean {
     if (gameMessageLimiter.allow(`${this.roomId}:${client.sessionId}:${message}`, limitPerSecond, 1000)) return true;
@@ -415,7 +472,7 @@ export class BattleRoom extends Room<{ state: BattleState; input: MoveInput }> {
     if (!this.botSimulation) return;
     const humans = [...this.state.players.values()].filter((p) => !p.is_bot) as unknown as BotPlayer[];
     const { joined, removed } = this.botSimulation.sync(humans, Date.now(), this.state.room_mode === 'TDM' || this.state.room_mode === 'CONQUEST' ? 'TDM' : 'FFA');
-    for (const name of removed) { this.state.players.delete(name); this.botProtectedUntil.delete(name); this.botAnimationStartedAt.delete(name); this.botPresentationClip.delete(name); this.botFireUntil.delete(name); }
+    for (const name of removed) { this.state.players.delete(name); this.simulationPlayers.delete(name); this.botTickRecords.delete(name); this.botProtectedUntil.delete(name); this.botAnimationStartedAt.delete(name); this.botPresentationClip.delete(name); this.botFireUntil.delete(name); }
     for (const descriptor of joined) {
       const bot = new PlayerState();
       bot.username = descriptor.username; bot.is_bot = true; bot.x = descriptor.x; bot.y = descriptor.y; bot.z = descriptor.z;
@@ -423,7 +480,8 @@ export class BattleRoom extends Room<{ state: BattleState; input: MoveInput }> {
       bot.qy = descriptor.qy ?? 0; bot.qw = descriptor.qw ?? 1; bot.yaw = descriptor.yaw ?? 0; bot.pitch = descriptor.pitch ?? 0;
       bot.health = descriptor.health; bot.kills = descriptor.kills; bot.deaths = descriptor.deaths; bot.team = descriptor.team;
       bot.weapon_id = descriptor.weapon_id; bot.ammo = descriptor.ammo; bot.driving_vehicle = descriptor.driving_vehicle ?? '';
-      this.state.players.set(bot.username, bot); this.botProtectedUntil.set(bot.username, Date.now() + 2500); this.botAnimationStartedAt.set(bot.username, Date.now());
+      bot.mobility_mode = descriptor.mobility_mode ?? 'heli';
+      this.state.players.set(bot.username, bot); this.simulationPlayers.set(bot.username, bot as PlayerState & BotPlayer & VehiclePlayer); this.botProtectedUntil.set(bot.username, Date.now() + 2500); this.botAnimationStartedAt.set(bot.username, Date.now());
     }
     const listing = activeRooms.get(this.roomId); if (listing) listing.bots = this.botSimulation.botIds.length;
     if (listing) this.setMetadata({ ...this.metadata, playerCount: this.clients.length, botCount: listing.bots, capacity: this.maxClients });
@@ -443,7 +501,13 @@ export class BattleRoom extends Room<{ state: BattleState; input: MoveInput }> {
   }
 
   private playerView(): Map<string, PlayerState & BotPlayer & VehiclePlayer> {
-    return new Map([...this.state.players].map(([name, player]) => [name, player as PlayerState & BotPlayer & VehiclePlayer]));
+    if (this.simulationPlayers.size !== this.state.players.size) {
+      this.simulationPlayers.clear();
+      for (const [name, player] of this.state.players) {
+        this.simulationPlayers.set(name, player as PlayerState & BotPlayer & VehiclePlayer);
+      }
+    }
+    return this.simulationPlayers;
   }
 
   private vehiclePlayer(player: PlayerState): VehiclePlayer {
@@ -470,23 +534,48 @@ export class BattleRoom extends Room<{ state: BattleState; input: MoveInput }> {
 
   private stepBots(dt: number): void {
     const players = this.playerView();
-    const before = new Map([...players].filter(([, player]) => player.is_bot).map(([name, player]) => [name, { x: player.x, y: player.y, z: player.z, dead: player.is_dead }]));
-    const fired = new Set<string>();
+    if (!this.botTickRecords) (this as any).botTickRecords = new Map();
+    if (this.botTickSerial === undefined) this.botTickSerial = 0;
+    this.botTickSerial++;
+    const currentTick = this.botTickSerial;
+    for (const [name, player] of this.state.players) {
+      if (!player.is_bot) continue;
+      let rec = this.botTickRecords.get(name);
+      if (!rec) {
+        rec = { x: player.x, y: player.y, z: player.z, dead: player.is_dead, firedTick: 0 };
+        this.botTickRecords.set(name, rec);
+      } else {
+        rec.x = player.x;
+        rec.y = player.y;
+        rec.z = player.z;
+        rec.dead = player.is_dead;
+      }
+    }
     this.botSimulation.step(players, dt, Date.now(), {
-      vehicleBlocked: (at) => [...this.vehicleSimulation.states.values()].some((v) => Math.hypot(at[0] - v.pos[0], at[2] - v.pos[2]) < 3.2),
+      vehicleBlocked: (at) => {
+        for (const v of this.vehicleSimulation.states.values()) {
+          if (Math.hypot(at[0] - v.pos[0], at[2] - v.pos[2]) < 3.2) return true;
+        }
+        return false;
+      },
       ...(this.state.room_mode === 'CONQUEST' ? { objectiveGoal: (bot: BotPlayer) => this.conquestBotGoal(bot) } : {}),
-      onShot: (shot) => { fired.add(shot.shooter); this.resolveBotShot(shot); },
+      onSmoke: (bot) => {
+        this.deploySmokeZone(bot.username, [bot.x, bot.y, bot.z]);
+      },
+      onShot: (shot) => {
+        const rec = this.botTickRecords.get(shot.shooter);
+        if (rec) rec.firedTick = currentTick;
+        this.resolveBotShot(shot);
+      },
     });
     for (const [name, player] of this.state.players) {
       if (!player.is_bot) continue;
-      const previous = before.get(name), now = Date.now();
+      const previous = this.botTickRecords.get(name), now = Date.now();
       if (previous?.dead && !player.is_dead) this.botProtectedUntil.set(name, now + 2500);
       const moved = previous ? Math.hypot(player.x - previous.x, player.y - previous.y, player.z - previous.z) > 0.01 : false;
-      if (fired.has(name)) this.botFireUntil.set(name, now + 320);
+      if (previous && previous.firedTick === currentTick) this.botFireUntil.set(name, now + 320);
       const firing = now < (this.botFireUntil.get(name) ?? 0);
       const clip = player.is_dead ? 'death' : firing ? (moved ? 'firing walk' : 'firing') : moved ? 'run' : 'idle';
-      // Locomotion is rewritten by the bot simulation every tick. Presentation
-      // owns its timeline independently so attack clips last more than one frame.
       if (this.botPresentationClip.get(name) !== clip) {
         this.botPresentationClip.set(name, clip); this.botAnimationStartedAt.set(name, now);
       }
@@ -569,7 +658,12 @@ export class BattleRoom extends Room<{ state: BattleState; input: MoveInput }> {
       if (owner && target.username !== owner.username && this.isTeamMode() && target.team === owner.team) continue;
       const center: Vec3 = [target.x, target.y, target.z];
       const damage = grenadeDamageAt(kind, position, center, this.geometry);
-      if (damage > 0) this.applyPlayerDamage(owner, target, damage);
+      if (damage > 0) {
+        const delta: Vec3 = [center[0] - position[0], center[1] - position[1], center[2] - position[2]];
+        const dist = Math.hypot(...delta);
+        const gDir: Vec3 = dist > 0.01 ? [delta[0] / dist, delta[1] / dist, delta[2] / dist] : [0, 1, 0];
+        this.applyPlayerDamage(owner, target, damage, undefined, gDir);
+      }
     }
     for (const vehicle of this.vehicleSimulation.states.values()) {
       if (!vehicle.health || vehicle.health <= 0) continue;
@@ -624,11 +718,42 @@ export class BattleRoom extends Room<{ state: BattleState; input: MoveInput }> {
     return Date.now() < (runtime?.protectedUntil ?? 0);
   }
 
-  private applyPlayerDamage(attacker: PlayerState | undefined, target: PlayerState, damage: number, client?: Client): void {
+  private applyPlayerDamage(attacker: PlayerState | undefined, target: PlayerState, damage: number, client?: Client, shotDir?: Vec3): void {
     if (this.state.room_mode === 'CONQUEST' && this.state.room_state === 'finished') return;
     if (target.is_dead || !Number.isFinite(damage) || damage <= 0) return;
+
+    let hitType: 'normal' | 'deflect' | 'crit' = 'normal';
+    // Directional Armor & Weakspot calculation for ground vehicles (tracked & wheels)
+    if (shotDir && (target.mobility_mode === 'tracked' || target.mobility_mode === 'wheels')) {
+      const isTopAttack = shotDir[1] < -0.5736; // >35 deg downward steep plunge
+      if (!isTopAttack) {
+        const yaw = target.yaw ?? 0;
+        // Godot camera forward at yaw=0 is -Z, positive yaw turns toward -X
+        const fwdX = -Math.sin(yaw);
+        const fwdZ = -Math.cos(yaw);
+        // shotDir travels from attacker towards victim, so vector from victim towards attacker is -shotDir
+        const toAttackerX = -shotDir[0];
+        const toAttackerZ = -shotDir[2];
+        const len = Math.hypot(toAttackerX, toAttackerZ);
+        if (len > 0.001) {
+          const cosAngle = (fwdX * toAttackerX + fwdZ * toAttackerZ) / len;
+          if (cosAngle > 0.5) {
+            // Frontal 60 deg arc: 0.75x damage deflection
+            damage = Math.round(damage * 0.75);
+            hitType = 'deflect';
+          } else if (cosAngle < -0.5) {
+            // Rear 60 deg engine bay weakspot: 1.5x damage critical
+            damage = Math.round(damage * 1.5);
+            hitType = 'crit';
+          }
+        }
+      }
+    }
+
     target.health = Math.max(0, target.health - Math.trunc(damage));
-    this.broadcast('damage', { target: target.username, pos: [target.x, target.y, target.z], direction: [0, 0, 0], amount: Math.trunc(damage) });
+    if (target.is_bot) this.botSimulation.onBotDamaged(target.username, damage, attacker?.username, Date.now());
+    this.broadcast('damage', { target: target.username, pos: [target.x, target.y, target.z], direction: shotDir ?? [0, 0, 0], amount: Math.trunc(damage), hit_type: hitType });
+    client?.send('hit_confirmed', { type: hitType, target: target.username, damage: Math.trunc(damage) });
     if (target.health <= 0) this.killPlayer(attacker, target, client);
   }
 
@@ -683,7 +808,7 @@ export class BattleRoom extends Room<{ state: BattleState; input: MoveInput }> {
       if (vehicleHit && vehicleHit.fraction * length <= nearest.distance && !this.geometry.rayBlocked(origin, [origin[0] + direction[0] * vehicleHit.fraction * length, origin[1] + direction[1] * vehicleHit.fraction * length, origin[2] + direction[2] * vehicleHit.fraction * length])) {
         this.applyVehicleDamage(shooter, vehicleHit.id, shot.weapon, vehicleHit.fraction * length);
       } else if (!this.geometry.rayBlocked(origin, impact) && !this.vehicleSimulation.blocksRay(origin, impact, shooter.username)) {
-        if (this.areEnemies(shooter, nearest.target) && !this.isProtected(nearest.target)) this.applyPlayerDamage(shooter, nearest.target, damageForZone(shot.weapon, nearest.distance, nearest.zone));
+        if (this.areEnemies(shooter, nearest.target) && !this.isProtected(nearest.target)) this.applyPlayerDamage(shooter, nearest.target, damageForZone(shot.weapon, nearest.distance, nearest.zone), undefined, direction);
       }
     } else if (vehicleHit) {
       const impact: Vec3 = [origin[0] + direction[0] * vehicleHit.fraction * length, origin[1] + direction[1] * vehicleHit.fraction * length, origin[2] + direction[2] * vehicleHit.fraction * length];
@@ -799,8 +924,108 @@ export class BattleRoom extends Room<{ state: BattleState; input: MoveInput }> {
     void client; void raw;
   }
 
+  public deploySmokeZone(owner: string, pos: Vec3): void {
+    const expiresAt = Date.now() + 6500;
+    this.smokeZones.push({ x: pos[0], y: pos[1], z: pos[2], radius: 14, expiresAt, owner });
+    this.broadcast('smoke_screen', { shooter: owner, position: pos, radius: 14 });
+
+    // Break any incoming missile tracking this owner or passing near this smoke
+    for (const missile of this.missiles.values()) {
+      if (missile.trackedTarget === owner || Math.hypot(missile.position[0] - pos[0], missile.position[2] - pos[2]) < 18) {
+        missile.trackedTarget = undefined;
+        missile.decoyed = true;
+        const jitterX = (Math.random() - 0.5) * 0.9;
+        const jitterY = Math.random() * 0.6 + 0.3;
+        const jitterZ = (Math.random() - 0.5) * 0.9;
+        const dir = [missile.direction[0] + jitterX, missile.direction[1] + jitterY, missile.direction[2] + jitterZ];
+        const len = Math.hypot(dir[0], dir[1], dir[2]) || 1;
+        missile.direction = [dir[0] / len, dir[1] / len, dir[2] / len];
+
+        const session = this.sessionByUsername.get(owner);
+        const client = session ? this.clients.getById(session) : undefined;
+        client?.send('missile_lock_break', { id: missile.id });
+      }
+    }
+  }
+
+  public isPositionSmoked(pos: Vec3): boolean {
+    const now = Date.now();
+    for (let i = this.smokeZones.length - 1; i >= 0; i--) {
+      const z = this.smokeZones[i];
+      if (now >= z.expiresAt) {
+        this.smokeZones.splice(i, 1);
+        continue;
+      }
+      const dSq = (pos[0] - z.x) ** 2 + (pos[1] - z.y) ** 2 + (pos[2] - z.z) ** 2;
+      if (dSq <= z.radius * z.radius) return true;
+    }
+    return false;
+  }
+
   private stepMissiles(dt: number): void {
     for (const missile of this.missiles.values()) {
+      // Homing guidance for aim9 (air/air) and agm114 (anti-armor)
+      if (!missile.decoyed && (missile.weaponId === 'aim9' || missile.weaponId === 'agm114')) {
+        let bestTarget: PlayerState | undefined;
+        let bestDist = 75;
+
+        // Maintain current target if valid, alive, and not inside smoke
+        if (missile.trackedTarget) {
+          const current = this.state.players.get(missile.trackedTarget);
+          if (current && !current.is_dead && !this.isPositionSmoked([current.x, current.y, current.z])) {
+            const d = Math.hypot(current.x - missile.position[0], current.y - missile.position[1], current.z - missile.position[2]);
+            if (d < 85) {
+              bestTarget = current;
+              bestDist = d;
+            }
+          }
+        }
+
+        if (!bestTarget) {
+          for (const candidate of this.state.players.values()) {
+            if (candidate === missile.owner || candidate.is_dead || (this.isTeamMode() && candidate.team === missile.owner.team)) continue;
+            if (this.isPositionSmoked([candidate.x, candidate.y, candidate.z])) continue;
+            const toCand: Vec3 = [candidate.x - missile.position[0], candidate.y - missile.position[1], candidate.z - missile.position[2]];
+            const dist = Math.hypot(toCand[0], toCand[1], toCand[2]);
+            if (dist > bestDist || dist < 1.0) continue;
+            const dot = (toCand[0] * missile.direction[0] + toCand[1] * missile.direction[1] + toCand[2] * missile.direction[2]) / dist;
+            if (dot > 0.50) { // ~60 degree acquisition cone
+              bestDist = dist;
+              bestTarget = candidate;
+            }
+          }
+        }
+
+        if (bestTarget) {
+          missile.trackedTarget = bestTarget.username;
+          const toTarget: Vec3 = [bestTarget.x - missile.position[0], (bestTarget.y + 0.3) - missile.position[1], bestTarget.z - missile.position[2]];
+          const dist = Math.hypot(toTarget[0], toTarget[1], toTarget[2]);
+          if (dist > 0.5) {
+            const targetDir: Vec3 = [toTarget[0] / dist, toTarget[1] / dist, toTarget[2] / dist];
+            const turnRate = missile.weaponId === 'aim9' ? 4.2 : 2.8;
+            const t = Math.min(1.0, turnRate * dt);
+            const blended: Vec3 = [
+              missile.direction[0] * (1 - t) + targetDir[0] * t,
+              missile.direction[1] * (1 - t) + targetDir[1] * t,
+              missile.direction[2] * (1 - t) + targetDir[2] * t,
+            ];
+            const blen = Math.hypot(blended[0], blended[1], blended[2]) || 1;
+            missile.direction = [blended[0] / blen, blended[1] / blen, blended[2] / blen];
+
+            // Inbound threat warning to human target
+            if (!bestTarget.is_bot && bestDist < 65) {
+              const session = this.sessionByUsername.get(bestTarget.username);
+              const targetClient = session ? this.clients.getById(session) : undefined;
+              targetClient?.send('missile_lock', {
+                id: missile.id,
+                distance: Math.round(bestDist),
+                direction: [-targetDir[0], -targetDir[1], -targetDir[2]],
+              });
+            }
+          }
+        }
+      }
+
       const distance = Math.min(missile.remaining, missile.speed * dt);
       const start = missile.position;
       const pointAt = (fraction: number): Vec3 => [
@@ -834,8 +1059,7 @@ export class BattleRoom extends Room<{ state: BattleState; input: MoveInput }> {
       this.broadcast('missile_impact', { id: missile.id, position });
       if (target && !this.isProtected(target) && !(this.isTeamMode() && target.team === missile.owner.team)) {
         const client = this.clients.getById(missile.sessionId);
-        this.applyPlayerDamage(missile.owner, target, missile.damage, client);
-        client?.send('hit_confirmed', {});
+        this.applyPlayerDamage(missile.owner, target, missile.damage, client, missile.direction);
       } else if (!target && vehicle && vehicle.fraction < (wall?.fraction ?? Infinity)) {
         this.applyVehicleDamage(missile.owner, vehicle.id, missile.weaponId, 0);
       }
@@ -870,8 +1094,7 @@ export class BattleRoom extends Room<{ state: BattleState; input: MoveInput }> {
     if (!this.areEnemies(attacker, target) || this.isProtected(target)) return;
     const impact: Vec3 = [fire.o[0] + fire.d[0] * along, fire.o[1] + fire.d[1] * along, fire.o[2] + fire.d[2] * along];
     if (this.geometry.rayBlocked(fire.o, impact) || this.vehicleSimulation.blocksRay(fire.o, impact, attacker.username)) return;
-    this.applyPlayerDamage(attacker, target, damageForZone(as.pendingWeaponId, along, zone), client);
-    client.send('hit_confirmed', {});
+    this.applyPlayerDamage(attacker, target, damageForZone(as.pendingWeaponId, along, zone), client, fire.d);
   }
 
   private reload(client: Client) {
@@ -950,7 +1173,7 @@ export class BattleRoom extends Room<{ state: BattleState; input: MoveInput }> {
     const spawn = this.geometry.spawns[spawnIndex];
     p.x = spawn[0]; p.y = spawn[1] + DRONE_SPAWN_OFFSET; p.z = spawn[2];
     this.cancelReload(internal);
-    p.health = 100; p.is_dead = false; p.vx = 0; p.vy = 0; p.vz = 0; p.animation_time = 0; p.pose_time_ms = Date.now(); p.animation = 'idle'; p.animation_code = 0; p.grenades = 2; internal.grenadeLastThrow = 0; internal.animationStartedAt = Date.now(); internal.protectedUntil = Date.now() + 2500;
+    p.health = maxHealthForChassis(p.mobility_mode); p.is_dead = false; p.vx = 0; p.vy = 0; p.vz = 0; p.animation_time = 0; p.pose_time_ms = Date.now(); p.animation = 'idle'; p.animation_code = 0; p.grenades = 2; internal.grenadeLastThrow = 0; internal.animationStartedAt = Date.now(); internal.protectedUntil = Date.now() + 2500;
     this.restockAmmo(p, internal);
     internal.spawnAt = 0;
     this.clients.find((client) => client.sessionId === sessionId)?.send('respawn', { x: p.x, y: p.y, z: p.z });

@@ -75,6 +75,15 @@ static var _dust_mesh: SphereMesh = null
 static var _decal_mesh: QuadMesh = null
 static var _decal_mat: StandardMaterial3D = null
 
+const CASING_POOL := 16
+var _casings: Array[Dictionary] = []
+var _casing_idx := 0
+var _casing_container: Node3D
+static var _casing_mesh: CylinderMesh = null
+static var _casing_mat: StandardMaterial3D = null
+static var _blast_crater_mesh: QuadMesh = null
+static var _blast_crater_texture: ImageTexture = null
+
 func current_config() -> Dictionary:
 	return GameState.WEAPONS[active_index]
 
@@ -104,7 +113,10 @@ func can_dual_fire() -> bool:
 
 func _offhand_index() -> int:
 	var equipped := GameState.equipped_indices()
-	return equipped[1] if active_index == equipped[0] else equipped[0]
+	for idx in equipped:
+		if idx != active_index:
+			return idx
+	return equipped[0]
 
 func payload_status(index: int) -> Vector3i:
 	var id := GameState.weapon_id_for_index(index)
@@ -219,6 +231,29 @@ func setup(p: WarPlayer, cam: Camera3D, net_ref: WarNetwork, world_ref: Node3D) 
 	_flash_light.visible = false
 	add_child(_flash_light)
 
+	_casing_container = Node3D.new()
+	_casing_container.name = "CasingContainer"
+	add_child(_casing_container)
+	if not _casing_mesh:
+		_casing_mesh = CylinderMesh.new()
+		_casing_mesh.top_radius = 0.006
+		_casing_mesh.bottom_radius = 0.006
+		_casing_mesh.height = 0.035
+		_casing_mesh.radial_segments = 6
+	if not _casing_mat:
+		_casing_mat = StandardMaterial3D.new()
+		_casing_mat.albedo_color = Color(0.92, 0.78, 0.32)
+		_casing_mat.metallic = 0.92
+		_casing_mat.roughness = 0.22
+	for i in range(CASING_POOL):
+		var mi := MeshInstance3D.new()
+		mi.mesh = _casing_mesh
+		mi.material_override = _casing_mat
+		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		mi.visible = false
+		_casing_container.add_child(mi)
+		_casings.append({"node": mi, "vel": Vector3.ZERO, "rot_axis": Vector3.RIGHT, "rot_speed": 0.0, "active": false, "age": 0.0, "bounced": false})
+
 func _muzzle_global(weapon_id: String = "") -> Vector3:
 	var visual := player.get("_drone_visual") as Node3D
 	if is_instance_valid(visual):
@@ -231,7 +266,7 @@ func _sync_drone_payload() -> void:
 	if is_instance_valid(visual) and visual.has_method("set_weapon"):
 		var id := GameState.weapon_id_for_index(active_index)
 		if active_index in GameState.equipped_indices():
-			visual.call("set_loadout", GameState.selected_primary, GameState.selected_secondary, id)
+			visual.call("set_loadout", GameState.selected_primary, GameState.selected_secondary, id, GameState.selected_tertiary)
 		else:
 			visual.call("set_weapon", id)
 		if player.has_method("_mask_local_drone_hardware"): player.call("_mask_local_drone_hardware", visual)
@@ -282,6 +317,9 @@ func _fire_mount(index: int, aim: Transform3D) -> void:
 		fired.emit(index)
 		return
 	Audio.shoot(String(cfg["id"]))
+	if is_instance_valid(player) and player.get("_drone_visual") != null:
+		var vis = player.get("_drone_visual")
+		if vis and vis.has_method("kick_recoil"): vis.kick_recoil(0.040)
 	
 	# Auditory perception stimulus for bots
 	if world and world.has_node("Bots"):
@@ -309,6 +347,7 @@ func _fire_mount(index: int, aim: Transform3D) -> void:
 	var dir := (cam_dir + right * cos(ang) * r + up * sin(ang) * r).normalized()
 	
 	var shot_origin := _muzzle_global(id)
+	_eject_casing(shot_origin, aim)
 	_hitscan_query.from = cam_pos
 	_hitscan_query.to = cam_pos + dir * 300.0
 	_hitscan_query.exclude = [player.get_rid()]
@@ -434,7 +473,7 @@ func spawn_hull_hit(pos: Vector3, direction: Vector3, intensity: float = 1.0) ->
 	if is_instance_valid(_drone_effects):
 		_drone_effects.call("hit", pos, direction, intensity)
 	var normal := -direction.normalized() if direction.is_finite() else Vector3.UP
-	_spawn_impact(pos, normal, 2 * clampi(roundi(2.0 * intensity), 1, 4), false)
+	_spawn_impact(pos, normal, 2 * clampi(roundi(2.0 * intensity), 1, 4), false, true)
 
 func _track_decal(decal: MeshInstance3D) -> void:
 	for index in range(_decals.size()-1,-1,-1):
@@ -467,19 +506,94 @@ func _spawn_tracer(a: Vector3, b: Vector3, weapon_id: String = "") -> void:
 	mi.look_at(b, Vector3.UP if absf(direction.y) < 0.95 else Vector3.RIGHT)
 	mi.scale = Vector3(1, 1, minf(0.2, d * 0.5))
 	mi.visible = true
+	var viewport := get_viewport()
+	if viewport != null:
+		var camera := viewport.get_camera_3d()
+		if camera != null:
+			var cam_pos := camera.global_position
+			var ab := b - a
+			var len_sq := ab.length_squared()
+			if len_sq > 0.01:
+				var t := clampf((cam_pos - a).dot(ab) / len_sq, 0.0, 1.0)
+				var nearest_point := a + ab * t
+				var dist := cam_pos.distance_to(nearest_point)
+				if dist < 3.8 and a.distance_to(cam_pos) > 2.5:
+					Audio.supersonic_crack(clampf(-dist * 2.0, -8.0, 0.0))
 
-func _spawn_impact(pos: Vector3, normal: Vector3, spark_count := 4, surface_hit := true) -> void:
+func _eject_casing(origin: Vector3, aim: Transform3D) -> void:
+	if _casings.is_empty(): return
+	var slot: Dictionary = _casings[_casing_idx]
+	_casing_idx = (_casing_idx + 1) % CASING_POOL
+	var mi: MeshInstance3D = slot["node"]
+	var right := aim.basis.x.normalized()
+	var up := aim.basis.y.normalized()
+	var forward := -aim.basis.z.normalized()
+	mi.global_position = origin - forward * 0.12 + right * 0.08
+	slot["vel"] = right * randf_range(2.0, 3.5) + up * randf_range(1.2, 2.2) - forward * randf_range(0.2, 0.6)
+	slot["rot_axis"] = (right * randf() + up * randf() + forward * randf()).normalized()
+	slot["rot_speed"] = randf_range(16.0, 32.0)
+	slot["active"] = true
+	slot["age"] = 0.0
+	slot["bounced"] = false
+	mi.visible = true
+
+static func _get_blast_crater_texture() -> ImageTexture:
+	if _blast_crater_texture != null: return _blast_crater_texture
+	var size := 64
+	var img := Image.create(size, size, false, Image.FORMAT_RGBA8)
+	for y in range(size):
+		for x in range(size):
+			var u := (float(x) / float(size - 1)) * 2.0 - 1.0
+			var v := (float(y) / float(size - 1)) * 2.0 - 1.0
+			var d := sqrt(u * u + v * v)
+			var a := clampf(1.0 - smoothstep(0.2, 1.0, d), 0.0, 1.0)
+			var noise_val := (sin(u * 12.0) * cos(v * 12.0)) * 0.12
+			a = clampf(a + noise_val, 0.0, 0.88)
+			img.set_pixel(x, y, Color(0.04, 0.03, 0.02, a))
+	_blast_crater_texture = ImageTexture.create_from_image(img)
+	return _blast_crater_texture
+
+func spawn_blast_crater(pos: Vector3, radius: float = 1.2) -> void:
+	if not is_instance_valid(world): return
+	var space := world.get_world_3d().direct_space_state
+	var query := PhysicsRayQueryParameters3D.create(pos + Vector3.UP * 0.5, pos + Vector3.DOWN * 2.5, 1)
+	var hit := space.intersect_ray(query)
+	if hit.is_empty(): return
+	var hit_pos: Vector3 = hit["position"]
+	var normal: Vector3 = hit["normal"]
+	if not _blast_crater_mesh:
+		_blast_crater_mesh = QuadMesh.new()
+		_blast_crater_mesh.size = Vector2(radius * 2.0, radius * 2.0)
+	var decal := MeshInstance3D.new()
+	decal.mesh = _blast_crater_mesh
+	var mat := StandardMaterial3D.new()
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	mat.albedo_texture = _get_blast_crater_texture()
+	decal.material_override = mat
+	decal.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	world.add_child(decal)
+	decal.global_position = hit_pos + normal * 0.015
+	if absf(normal.y) < 0.98:
+		decal.look_at(hit_pos + normal, Vector3.UP)
+	else:
+		decal.rotation = Vector3(-PI * 0.5, randf() * TAU, 0.0)
+	_track_decal(decal)
+
+func _spawn_impact(pos: Vector3, normal: Vector3, spark_count := 4, surface_hit := true, is_metal := false) -> void:
 	if normal.is_zero_approx(): normal = Vector3.UP
+	var count := spark_count
 	# Pooled directional spark burst.
-	for i in spark_count:
+	for i in count:
 		var slot: Dictionary = _sparks[_spark_idx]
 		_spark_idx = (_spark_idx + 1) % SPARK_POOL
 		var mi: MeshInstance3D = slot["node"]
 		mi.global_position = pos + normal * 0.03
 		var spread_dir := (normal * randf_range(0.8, 1.4) + Vector3(randf_range(-1, 1), randf_range(-0.4, 1), randf_range(-1, 1))).normalized()
-		slot["vel"] = spread_dir * randf_range(2.2, 4.0) + Vector3.DOWN * 1.2
+		var speed := randf_range(3.5, 6.0) if is_metal else randf_range(2.2, 4.0)
+		slot["vel"] = spread_dir * speed + Vector3.DOWN * 1.2
 		slot["t"] = 0.0
-		slot["dur"] = 0.22
+		slot["dur"] = 0.28 if is_metal else 0.22
 		slot["active"] = true
 		mi.visible = true
 		
@@ -489,7 +603,7 @@ func _spawn_impact(pos: Vector3, normal: Vector3, spark_count := 4, surface_hit 
 	_dust_idx = (_dust_idx + 1) % DUST_POOL
 	var dmi: MeshInstance3D = dslot["node"]
 	dmi.global_position = pos + normal * 0.05
-	dmi.scale = Vector3.ONE * 0.5
+	dmi.scale = Vector3.ONE * (0.8 if not is_metal else 0.3)
 	dslot["start_pos"] = dmi.global_position
 	dslot["normal"] = normal
 	dslot["t"] = 0.0
@@ -581,15 +695,29 @@ func _input(event: InputEvent) -> void:
 	elif event.is_action_pressed("reload"):
 		start_reload()
 		if dual_fire and can_dual_fire(): _start_offhand_reload()
-	elif event.is_action_pressed("weapon_3") and can_dual_fire():
-		dual_fire = true
+	elif event.is_action_pressed("weapon_3"):
+		var equipped := GameState.equipped_indices()
+		if equipped.size() >= 3:
+			dual_fire = false
+			switch_weapon(equipped[2])
+		elif can_dual_fire():
+			dual_fire = true
+	elif (event.is_action_pressed("weapon_4") or (event is InputEventKey and event.pressed and event.keycode == KEY_4)) and can_dual_fire():
+		dual_fire = not dual_fire
 	elif event.is_action_pressed("weapon_1") or event.is_action_pressed("weapon_2"):
 		dual_fire = false
 		var slot := 0 if event.is_action_pressed("weapon_1") else 1
 		switch_weapon(GameState.equipped_indices()[slot])
 	elif event.is_action_pressed("next_weapon") or event.is_action_pressed("prev_weapon"):
 		dual_fire = false
-		switch_weapon(_offhand_index())
+		var equipped := GameState.equipped_indices()
+		var cur_pos := equipped.find(active_index)
+		if cur_pos != -1:
+			var dir := 1 if event.is_action_pressed("next_weapon") else -1
+			var next_pos := (cur_pos + dir + equipped.size()) % equipped.size()
+			switch_weapon(equipped[next_pos])
+		else:
+			switch_weapon(_offhand_index())
 
 func _process(delta: float) -> void:
 	var elapsed := delta
@@ -701,6 +829,35 @@ func _process(delta: float) -> void:
 			mi.scale = Vector3.ONE * lerpf(0.5, 2.2, k)
 			mi.global_position = (slot["start_pos"] as Vector3) + (slot["normal"] as Vector3) * (0.16 * k)
 
+	# Casing advancement
+	for slot in _casings:
+		if not slot["active"]:
+			continue
+		slot["age"] = float(slot["age"]) + delta
+		if float(slot["age"]) > 2.2:
+			slot["active"] = false
+			slot["node"].visible = false
+			continue
+		var mi: MeshInstance3D = slot["node"]
+		slot["vel"] = (slot["vel"] as Vector3) + Vector3.DOWN * 12.0 * delta
+		var next_pos: Vector3 = mi.global_position + (slot["vel"] as Vector3) * delta
+		if is_instance_valid(world) and world.get_world_3d():
+			var space := world.get_world_3d().direct_space_state
+			if space:
+				var ray := PhysicsRayQueryParameters3D.create(mi.global_position, next_pos, 1)
+				var hit := space.intersect_ray(ray)
+				if not hit.is_empty():
+					if not bool(slot["bounced"]):
+						slot["bounced"] = true
+						slot["vel"] = (slot["vel"] as Vector3).bounce(hit["normal"]) * 0.35
+						Audio.casing()
+					else:
+						slot["vel"] = Vector3.ZERO
+						slot["active"] = false
+					next_pos = (hit["position"] as Vector3) + (hit["normal"] as Vector3) * 0.005
+		mi.global_position = next_pos
+		mi.rotate(slot["rot_axis"], float(slot["rot_speed"]) * delta)
+
 func clear() -> void:
 	_decals.clear()
 	_pending_impacts.clear()
@@ -713,6 +870,9 @@ func clear() -> void:
 	if is_instance_valid(_dust_container):
 		_dust_container.queue_free()
 	_dusts.clear()
+	if is_instance_valid(_casing_container):
+		_casing_container.queue_free()
+	_casings.clear()
 func _starting_reserve(config: Dictionary) -> int:
 	return int(config["mag_size"]) * (2 if config.has("missile_speed") else 3)
 
@@ -730,7 +890,7 @@ func clear_pending_shots() -> void:
 
 func reconcile_offhand_ammo(state: Dictionary) -> void:
 	var id := String(state.get("weapon", ""))
-	if id not in [GameState.selected_primary, GameState.selected_secondary]: return
+	if id not in [GameState.selected_primary, GameState.selected_secondary, GameState.selected_tertiary]: return
 	if id == GameState.weapon_id_for_index(_offhand_index()) and not bool(state.get("reloading", false)):
 		_offhand_reload_until = 0.0
 	reconcile_ammo(state)

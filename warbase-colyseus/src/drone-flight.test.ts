@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { DRONE_MAX_ALTITUDE, DRONE_RADIUS, DRONE_SPAWN_OFFSET, stepDroneFlight, type DroneInput } from './drone-flight.js';
+import { DRONE_MAX_ALTITUDE, DRONE_RADIUS, DRONE_SPAWN_OFFSET, sampleChassisGroundRays, stepDroneFlight, type DroneInput } from './drone-flight.js';
 import { loadWorldGeometry, PLAYABLE_MAPS, type Vec3, type WorldGeometry } from './world-geometry.js';
 
 const industrial = loadWorldGeometry('industrial')!;
@@ -166,3 +166,19 @@ test('every authored spawn can run the fixed 120 tick flight command sequence', 
     }
   }
 });
+
+test('4-corner raycast terrain sampler detects ground contact and computes terrain pitch/roll', () => {
+  const spawn = industrial.spawns[0];
+  const floor = industrial.floorHeight(spawn[0], spawn[2], 3)!;
+  const position: Vec3 = [spawn[0], floor + DRONE_RADIUS, spawn[2]];
+  const profile = sampleChassisGroundRays(industrial, position, 0);
+  assert.equal(profile.grounded, true, 'vehicle chassis on floor must be grounded');
+  assert.ok(Math.abs(profile.groundY - floor) < 0.05, `ground height matches authored floor: ${profile.groundY}`);
+  assert.ok(Number.isFinite(profile.pitch) && Math.abs(profile.pitch) < 0.2, 'flat ground pitch is near zero');
+  assert.ok(Number.isFinite(profile.roll) && Math.abs(profile.roll) < 0.2, 'flat ground roll is near zero');
+
+  // Midair check
+  const midairProfile = sampleChassisGroundRays(industrial, [spawn[0], 50, spawn[2]], 0);
+  assert.equal(midairProfile.grounded, false, 'chassis in midair must not be grounded');
+});
+

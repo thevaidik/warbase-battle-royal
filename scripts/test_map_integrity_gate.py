@@ -6,6 +6,9 @@ class MapPackTests(unittest.TestCase):
         self.paths={f'assets/data/maps/{name}.json.gz' for name in MAPS}
         self.paths.update(f'assets/ui/maps/{name}.png.import' for name in MAPS)
         self.paths.update(f'.godot/imported/{name}.png-hash.ctex' for name in MAPS)
+        for drone in ['vanguard.glb', 'raider.glb']:
+            self.paths.add('assets/drones/' + drone + '.import')
+            self.paths.add('.godot/imported/' + drone + '-hash.scn')
         for name in ['low_poly_industrial_zone.glb','resoforge_tdm.glb','village_lowres.glb',
                      'fps_shooter_game_arena_map_v3.glb','shipment.glb']:
             self.paths.add('assets/maps/'+name+'.import')

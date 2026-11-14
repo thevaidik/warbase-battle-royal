@@ -36,7 +36,5 @@ func run() -> void:
 	check(stationary_light and stationary_geometry, "sun and stadium transforms remain fixed during movement")
 	check(is_equal_approx(main.player.camera.near, 0.08) and is_equal_approx(main.player.camera.far, 650.0), "camera uses the tighter depth range")
 	for i in 3: await process_frame
-	RenderingServer.force_draw(false)
-	root.get_texture().get_image().save_png(ProjectSettings.globalize_path("res://../../audit/render-stability/moving-view.png"))
 	print("MOVEMENT RENDER TEST: %d failures; moved %.2fm" % [failures, main.player.global_position.distance_to(start)])
 	quit(failures)

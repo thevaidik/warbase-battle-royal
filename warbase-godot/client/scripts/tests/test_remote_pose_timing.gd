@@ -17,6 +17,7 @@ func _ready() -> void:
 func _run() -> void:
 	_test_histogram()
 	_test_pose_ownership_and_per_frame_instrumentation()
+	_test_cache_lifecycle_and_single_frame_dedup()
 	if failures.is_empty():
 		print("REMOTE_POSE_TIMING_TESTS_OK")
 		get_tree().quit(0)
@@ -73,4 +74,51 @@ func _test_pose_ownership_and_per_frame_instrumentation() -> void:
 	multiplayer.free()
 	remote.free()
 	world.free()
+	net.free()
+
+func _test_cache_lifecycle_and_single_frame_dedup() -> void:
+	var net = NetScript.new()
+	net._username = "local"
+	net._last_normalized_state = {"players": {
+		"local": {"x": 0.0, "y": 1.0, "z": 0.0},
+		"peer": {"x": 5.0, "y": 2.0, "z": -1.0, "yaw": 0.0, "anim": "run"},
+		"peer2": {"x": 10.0, "y": 0.0, "z": 2.0, "yaw": 1.57, "anim": "idle"}
+	}}
+	net.set_qa_timing(true)
+
+	# 1. First call in frame 10
+	var poses1 = net.prepare_remote_poses_for_frame(10)
+	var prep1: Dictionary = net.get_remote_pose_preparation_diagnostics()
+	_check(int(prep1.samples) == 1, "first call in frame 10 prepares poses")
+	_check(poses1.size() == 2, "initial remote pose count")
+
+	# 2. Second call in same frame 10 (dedup)
+	var poses2 = net.prepare_remote_poses_for_frame(10)
+	var prep2: Dictionary = net.get_remote_pose_preparation_diagnostics()
+	_check(int(prep2.samples) == 1, "two getters in one frame perform only one preparation")
+	_check(poses1 == poses2, "cached dictionary instance returned")
+
+	# 3. get_sdk_remote_pose(username) reads cached entry without triggering new preparation
+	var single = net.get_sdk_remote_pose("peer", 10)
+	var prep3: Dictionary = net.get_remote_pose_preparation_diagnostics()
+	_check(int(prep3.samples) == 1, "get_sdk_remote_pose in same frame does not trigger preparation")
+	_check(is_equal_approx(float(single.get("x", 0.0)), 5.0), "get_sdk_remote_pose returns correct coordinates")
+
+	# 4. Next frame 11 triggers preparation
+	var poses_f11 = net.prepare_remote_poses_for_frame(11)
+	var prep4: Dictionary = net.get_remote_pose_preparation_diagnostics()
+	_check(int(prep4.samples) == 2, "advancing frame triggers preparation")
+
+	# 5. Remote departure removes from cache
+	net._last_normalized_state = {"players": {
+		"local": {"x": 0.0, "y": 1.0, "z": 0.0},
+		"peer": {"x": 6.0, "y": 2.0, "z": -1.0, "yaw": 0.0, "anim": "run"}
+	}}
+	var poses_f12 = net.prepare_remote_poses_for_frame(12)
+	_check(not poses_f12.has("peer2"), "departed remote peer2 removed from cache")
+	_check(poses_f12.has("peer"), "remaining remote peer retained in cache")
+
+	# 6. Reconnect invalidates cache
+	net.disconnect_from()
+	_check(net._remote_pose_cache.is_empty(), "cache cleared on disconnect")
 	net.free()

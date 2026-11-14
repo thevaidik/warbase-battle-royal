@@ -1,3 +1,9 @@
+export type PhaseMetrics = {
+  totalMs: number;
+  maxMs: number;
+  count: number;
+};
+
 export type RoomOperationsMetrics = {
   tickCount: number;
   tickOverruns: number;
@@ -13,9 +19,48 @@ export type RoomOperationsMetrics = {
   rejectedPayloads: number;
   rejectedMessages: number;
   rateLimitedMessages: number;
+  phases?: Record<string, PhaseMetrics>;
 };
 
 export const roomOperationsMetrics = new Map<string, RoomOperationsMetrics>();
+
+export const PERF_TRACE_ENABLED = process.env.WARBASE_PERF_TRACE === '1';
+
+export const PERF_PHASES = [
+  'human_movement',
+  'vehicles',
+  'bots',
+  'grenades',
+  'missiles',
+  'conquest',
+  'schema_prep',
+] as const;
+
+export type PerfPhaseName = (typeof PERF_PHASES)[number];
+
+export function recordPhaseTiming(metrics: RoomOperationsMetrics, phase: PerfPhaseName, durationMs: number): void {
+  if (!PERF_TRACE_ENABLED || !metrics.phases) return;
+  const p = metrics.phases[phase];
+  if (p) {
+    p.totalMs += durationMs;
+    p.maxMs = Math.max(p.maxMs, durationMs);
+    p.count++;
+  }
+}
+
+export function newRoomOperationsMetrics(): RoomOperationsMetrics {
+  const m: RoomOperationsMetrics = {
+    tickCount: 0, tickOverruns: 0, lateTicks: 0, lastTickDurationMs: 0, maxTickDurationMs: 0, totalTickDurationMs: 0,
+    consumedInputs: 0, emptyInputSteps: 0, joined: 0, left: 0, rejectedAdmissions: 0, rejectedPayloads: 0, rejectedMessages: 0, rateLimitedMessages: 0
+  };
+  if (PERF_TRACE_ENABLED) {
+    m.phases = {};
+    for (const phase of PERF_PHASES) {
+      m.phases[phase] = { totalMs: 0, maxMs: 0, count: 0 };
+    }
+  }
+  return m;
+}
 export const serviceOperationsMetrics = {
   roomCreateRejected: 0,
   roomCreateRateLimited: 0,
@@ -66,9 +111,4 @@ export function processTimingSnapshot() {
     scheduling_gap_p95_ms: percentile(delays, 0.95),
     scheduling_gap_max_ms: delays.length ? Math.max(...delays) : 0,
   };
-}
-
-export function newRoomOperationsMetrics(): RoomOperationsMetrics {
-  return { tickCount: 0, tickOverruns: 0, lateTicks: 0, lastTickDurationMs: 0, maxTickDurationMs: 0, totalTickDurationMs: 0,
-    consumedInputs: 0, emptyInputSteps: 0, joined: 0, left: 0, rejectedAdmissions: 0, rejectedPayloads: 0, rejectedMessages: 0, rateLimitedMessages: 0 };
 }

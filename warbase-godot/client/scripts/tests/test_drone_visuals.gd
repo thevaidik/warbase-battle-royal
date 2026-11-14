@@ -135,11 +135,11 @@ func run() -> void:
 	friendly.set_payload_visible(true)
 	friendly.set_loadout("aim9", "agm114", "aim9")
 	var left_muzzle := friendly.to_local(friendly.get_muzzle_global())
-	var left_mount := friendly.get_node("PrimaryLeft")
-	var right_mount := friendly.get_node("SecondaryRight")
+	var left_mount := friendly.get_node("WeaponTurret/PrimaryLeft")
+	var right_mount := friendly.get_node("WeaponTurret/SecondaryRight")
 	friendly.set_weapon("agm114")
 	var right_muzzle := friendly.to_local(friendly.get_muzzle_global())
-	check(left_muzzle.x < 0.0 and right_muzzle.x > 0.0 and friendly.get_node("PrimaryLeft") == left_mount and friendly.get_node("SecondaryRight") == right_mount,
+	check(left_muzzle.x < 0.0 and right_muzzle.x > 0.0 and friendly.get_node("WeaponTurret/PrimaryLeft") == left_mount and friendly.get_node("WeaponTurret/SecondaryRight") == right_mount,
 		"both payloads stay mounted while the active muzzle switches sides")
 	friendly.set_chassis("heli")
 	await get_tree().process_frame

@@ -27,8 +27,6 @@ func run() -> void:
 		if marker.visible: markers += 1
 	check(markers > 1, "flight preview is visible while aiming")
 	for i in 3: await process_frame
-	RenderingServer.force_draw(false)
-	root.get_texture().get_image().save_png(ProjectSettings.globalize_path("res://../../audit/grenade-map-upgrade/aim-preview.png"))
 	press.pressed = false
 	main._input(press)
 	check(not main._grenade_aiming and state.throwables_remaining == 1, "release throws exactly one grenade")

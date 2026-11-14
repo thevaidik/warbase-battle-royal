@@ -30,12 +30,12 @@ test('all playable maps get four separated objectives whose centers do not overl
 test('uncontested capture advances and contested presence freezes progress', () => {
   const state = createConquestState(spawns);
   const point = state.objectives[0], atPoint = (team: 'A' | 'B') => player(team, point.x, { y: point.y, z: point.z });
-  stepConquest(state, [atPoint('A')], 6);
+  stepConquest(state, [atPoint('A')], 3);
   assert.equal(point.progress, 0.5);
   stepConquest(state, [atPoint('A'), atPoint('B')], 4);
   assert.equal(state.objectives[0].contested, true);
   assert.equal(state.objectives[0].progress, 0.5);
-  stepConquest(state, [atPoint('A')], 6);
+  stepConquest(state, [atPoint('A')], 3);
   assert.equal(state.objectives[0].owner, 'A');
   assert.equal(state.objectives[0].progress, 0);
 });
@@ -43,9 +43,9 @@ test('uncontested capture advances and contested presence freezes progress', () 
 test('drones can capture within six vertical metres of an objective center', () => {
   const state = createConquestState(spawns);
   const point = state.objectives[0];
-  stepConquest(state, [player('A', point.x, { y: point.y + 5.9, z: point.z })], 6);
+  stepConquest(state, [player('A', point.x, { y: point.y + 5.9, z: point.z })], 3);
   assert.equal(point.progress, 0.5);
-  stepConquest(state, [player('A', point.x, { y: point.y + 6.01, z: point.z })], 6);
+  stepConquest(state, [player('A', point.x, { y: point.y + 6.01, z: point.z })], 3);
   assert.equal(point.progress, 0.5, 'presence beyond the vertical capture limit does not add capture progress');
 });
 

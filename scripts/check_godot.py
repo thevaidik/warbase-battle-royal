@@ -37,6 +37,10 @@ commands = [
     (["--script", "res://scripts/tests/test_grenade_ballistics.gd", "--fixed-fps", "60"], "GRENADE BALLISTICS TEST: 0 failures"),
     (["--script", "res://scripts/tests/test_industrial_collision.gd", "--fixed-fps", "60"], "INDUSTRIAL COLLISION TEST: 0 failures"),
     (["--script", "res://scripts/tests/test_weapon_handling.gd", "--fixed-fps", "60"], "WEAPON TEST: 0 failures"),
+    (["res://scenes/tests/RemotePoseTimingTest.tscn"], "REMOTE_POSE_TIMING_TESTS_OK"),
+    (["res://scenes/tests/DroneVisualResourcesTest.tscn"], "DRONE_VISUAL_RESOURCES_TEST_OK"),
+    (["res://scenes/tests/RemoteBuildQueueTest.tscn"], "REMOTE_BUILD_QUEUE_TEST_OK"),
+    (["res://scenes/tests/VisualLODTest.tscn"], "VISUAL_LOD_TEST_OK"),
 ]
 for arguments, marker in commands:
     with tempfile.TemporaryDirectory(prefix="warbase-test-") as directory:

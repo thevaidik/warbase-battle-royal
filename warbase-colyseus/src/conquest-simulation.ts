@@ -2,7 +2,7 @@ export type ConquestObjective = { id: string; x: number; y: number; z: number; r
 export type ConquestPlayer = { x: number; y: number; z: number; team: string; is_dead: boolean; driving_vehicle?: string };
 export type ConquestState = { objectives: ConquestObjective[]; ticketsA: number; ticketsB: number; roomState: 'active' | 'finished'; winner: string; bleedMs: number; bleedDirection: number };
 export const CONQUEST_CAPTURE_RADIUS = 12;
-export const CONQUEST_CAPTURE_MS = 12_000;
+export const CONQUEST_CAPTURE_MS = 6_000;
 export const CONQUEST_TICKET_START = 500;
 
 export function createConquestState(spawns: readonly (readonly number[])[]): ConquestState {

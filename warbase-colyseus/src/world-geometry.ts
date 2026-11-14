@@ -151,6 +151,30 @@ export class WorldGeometry {
   // World queries are synchronous in the room loop. Reusing this traversal
   // storage avoids allocating a stack and hit objects for every capsule spoke.
   private readonly collisionScratch: CollisionScratch = { stack: [], candidateTriangles: [], fraction: 2, normalY: 0 };
+  private readonly candidateBufferPool: number[][] = [[], [], [], []];
+  private readonly candidateStackPool: number[][] = [[], [], [], []];
+
+  private leaseCandidateBuffer(): number[] {
+    const buf = this.candidateBufferPool.pop() ?? [];
+    buf.length = 0;
+    return buf;
+  }
+
+  private releaseCandidateBuffer(buf: number[]): void {
+    buf.length = 0;
+    if (this.candidateBufferPool.length < 8) this.candidateBufferPool.push(buf);
+  }
+
+  private leaseStack(): number[] {
+    const s = this.candidateStackPool.pop() ?? [];
+    s.length = 0;
+    return s;
+  }
+
+  private releaseStack(s: number[]): void {
+    s.length = 0;
+    if (this.candidateStackPool.length < 8) this.candidateStackPool.push(s);
+  }
 
   constructor(name: PlayableMap, encoded: EncodedMap) {
     this.name = name;
@@ -243,17 +267,15 @@ export class WorldGeometry {
     return scratch;
   }
 
-  private capsuleCandidates(from: Vec3, to: Vec3, radius: number, height: number, stepHeight: number): CollisionCandidates {
-    const { stack, candidateTriangles } = this.collisionScratch;
-    candidateTriangles.length = 0; stack.length = 0; stack.push(0);
+  private collectCapsuleCandidatesInto(from: Vec3, to: Vec3, radius: number, height: number, stepHeight: number, output: number[]): void {
+    const stack = this.leaseStack();
+    stack.push(0);
     const pad = 1e-4;
     const minX = Math.min(from[0], to[0]) - radius - stepHeight - pad, maxX = Math.max(from[0], to[0]) + radius + stepHeight + pad;
     const minY = Math.min(from[1], to[1]) - stepHeight - radius - pad;
     const maxY = Math.max(from[1], to[1]) + stepHeight + height + radius + pad;
     const minZ = Math.min(from[2], to[2]) - radius - stepHeight - pad, maxZ = Math.max(from[2], to[2]) + radius + stepHeight + pad;
     const { nodes, order, vertices } = this.buffers;
-    // Keep the complete local contact set: dropping dense-map triangles would
-    // make collision depend on asset complexity.
 
     while (stack.length) {
       const node = nodes[stack.pop()!];
@@ -269,10 +291,16 @@ export class WorldGeometry {
         const bx = vertices[offset + 3], by = vertices[offset + 4], bz = vertices[offset + 5];
         const cx = vertices[offset + 6], cy = vertices[offset + 7], cz = vertices[offset + 8];
         if (Math.max(ax, bx, cx) < minX || Math.min(ax, bx, cx) > maxX || Math.max(ay, by, cy) < minY || Math.min(ay, by, cy) > maxY || Math.max(az, bz, cz) < minZ || Math.min(az, bz, cz) > maxZ) continue;
-        candidateTriangles.push(order[index]);
-
+        output.push(order[index]);
       }
     }
+    this.releaseStack(stack);
+  }
+
+  private capsuleCandidates(from: Vec3, to: Vec3, radius: number, height: number, stepHeight: number): CollisionCandidates {
+    const { candidateTriangles } = this.collisionScratch;
+    candidateTriangles.length = 0;
+    this.collectCapsuleCandidatesInto(from, to, radius, height, stepHeight, candidateTriangles);
     return candidateTriangles;
   }
 
@@ -301,12 +329,51 @@ export class WorldGeometry {
     return contacts;
   }
 
+  private hasContactDeeperThan(at: Vec3, radius: number, height: number, margin: number, candidates: readonly number[], minDepth: number): boolean {
+    for (const triangle of candidates) {
+      const hit = this.contactTriangle(at, radius, height, triangle, margin);
+      if (hit && hit.depth > minDepth) return true;
+    }
+    return false;
+  }
+
+  private hasAnyContact(at: Vec3, radius: number, height: number, margin: number, candidates: readonly number[]): boolean {
+    for (const triangle of candidates) {
+      const hit = this.contactTriangle(at, radius, height, triangle, margin);
+      if (hit) return true;
+    }
+    return false;
+  }
+
+  private hasBlockingCeilingContact(at: Vec3, radius: number, height: number, margin: number, candidates: readonly number[], normalYThreshold = -0.5): boolean {
+    for (const triangle of candidates) {
+      const hit = this.contactTriangle(at, radius, height, triangle, margin);
+      if (hit && hit.normal[1] < normalYThreshold) return true;
+    }
+    return false;
+  }
+
+  private hasGroundSupport(at: Vec3, radius: number, height: number, margin: number, candidates: readonly number[]): boolean {
+    for (const triangle of candidates) {
+      const hit = this.contactTriangle(at, radius, height, triangle, margin);
+      if (hit && (hit.normal[1] >= 0.5 || (Math.abs(hit.surfaceNormalY) >= 0.5 && hit.normal[1] > 0.05)) && hit.depth <= 0.09) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   /** The actual lower hemisphere must touch a walkable surface. A centre ray
    * cannot describe support at a ledge, on stairs, or on sloping terrain. */
   isGrounded(at: Vec3, radius = 0.4, height = 1.8): boolean {
     if (!finiteVec(at)) return false;
-    const candidates = this.capsuleCandidates(at, at, radius + 0.06, height, 0)!;
-    return this.contacts(at, radius, height, 0.055, candidates).some(hit => (hit.normal[1] >= 0.5 || (Math.abs(hit.surfaceNormalY) >= 0.5 && hit.normal[1] > 0.05)) && hit.depth <= 0.09);
+    const candidates = this.leaseCandidateBuffer();
+    try {
+      this.collectCapsuleCandidatesInto(at, at, radius + 0.06, height, 0, candidates);
+      return this.hasGroundSupport(at, radius, height, 0.055, candidates);
+    } finally {
+      this.releaseCandidateBuffer(candidates);
+    }
   }
 
   /** Drone state is its centre; the shared contact primitive uses feet origin.
@@ -325,74 +392,79 @@ export class WorldGeometry {
     if (!finiteVec(to) || ![radius, height].every(Number.isFinite) || radius <= 0 || height < 2 * radius) return from;
     radius = Math.min(radius, 1.5); height = Math.min(height, 4);
     const grounded = allowStep && this.isGrounded(from, radius, height);
-    const candidates = [...this.capsuleCandidates(from, to, radius, height, Math.max(0.5, stepHeight))!];
-    if (!allowStep || droneMove) for (const box of this.flightPropBounds) {
-      if(box.max[0]<Math.min(from[0],to[0])-radius-.5 || box.min[0]>Math.max(from[0],to[0])+radius+.5 || box.max[1]<Math.min(from[1],to[1])-.5 || box.min[1]>Math.max(from[1],to[1])+height+.5 || box.max[2]<Math.min(from[2],to[2])-radius-.5 || box.min[2]>Math.max(from[2],to[2])+radius+.5)continue;
-      for(let i=0;i<12;i++)candidates.push(-(box.first+i+1));
-    }
-    const skin = 0.008;
-    const recover = (start: Vec3): Vec3 => {
-      let p: Vec3 = start;
-      for (let iteration = 0; iteration < 4; iteration++) {
-        let corrected = false;
-        // Recompute each contact after previous corrections; applying stale
-        // depths twice at a shared triangle edge would launch the capsule.
-        for (const triangle of candidates) {
-          const hit = this.contactTriangle(p, radius, height, triangle, skin);
-          if (!hit || hit.depth <= 0.000001) continue;
-          p = [p[0] + hit.normal[0] * hit.depth, p[1] + hit.normal[1] * hit.depth, p[2] + hit.normal[2] * hit.depth];
-          corrected = true;
+    const candidates = this.leaseCandidateBuffer();
+    try {
+      this.collectCapsuleCandidatesInto(from, to, radius, height, Math.max(0.5, stepHeight), candidates);
+      if (!allowStep || droneMove) for (const box of this.flightPropBounds) {
+        if(box.max[0]<Math.min(from[0],to[0])-radius-.5 || box.min[0]>Math.max(from[0],to[0])+radius+.5 || box.max[1]<Math.min(from[1],to[1])-.5 || box.min[1]>Math.max(from[1],to[1])+height+.5 || box.max[2]<Math.min(from[2],to[2])-radius-.5 || box.min[2]>Math.max(from[2],to[2])+radius+.5)continue;
+        for(let i=0;i<12;i++)candidates.push(-(box.first+i+1));
+      }
+      const skin = 0.008;
+      const recover = (start: Vec3): Vec3 => {
+        let p: Vec3 = start;
+        for (let iteration = 0; iteration < 4; iteration++) {
+          let corrected = false;
+          // Recompute each contact after previous corrections; applying stale
+          // depths twice at a shared triangle edge would launch the capsule.
+          for (const triangle of candidates) {
+            const hit = this.contactTriangle(p, radius, height, triangle, skin);
+            if (!hit || hit.depth <= 0.000001) continue;
+            p = [p[0] + hit.normal[0] * hit.depth, p[1] + hit.normal[1] * hit.depth, p[2] + hit.normal[2] * hit.depth];
+            corrected = true;
+          }
+          if (!corrected) break;
         }
-        if (!corrected) break;
-      }
-      return p;
-    };
-    const attempt = (previous: Vec3, desired: Vec3): Vec3 => {
-      const next = recover(desired);
-      if (Math.hypot(next[0]-desired[0],next[1]-desired[1],next[2]-desired[2]) > 0.2) return previous;
-      return this.contacts(next,radius,height,skin,candidates).some(hit=>hit.depth>0.001) ? previous : next;
-    };
-    const advance = (previous: Vec3, desired: Vec3): Vec3 => {
-      const next=attempt(previous,desired);
-      const nextCell=canonicalMove(next),previousCell=canonicalMove(previous);
-      if(nextCell.some((value,axis)=>value!==previousCell[axis]))return next;
-      // An impossible horizontal gap must not cancel gravity or tangential
-      // movement. Resolve the unblocked components from the last clear pose.
-      let result=previous;
-      for(const axis of [1,0,2] as const) {
-        const amount=desired[axis]-previous[axis];
-        if(amount===0)continue;
-        const target: [number,number,number]=[...result];target[axis]+=amount;
-        result=attempt(result,target);
-      }
-      return result;
-    };
-    const delta: Vec3 = [to[0]-from[0],to[1]-from[1],to[2]-from[2]];
-    const count = Math.max(1, Math.ceil(Math.hypot(...delta) / Math.min(radius * 0.25, 0.1)));
-    // Reject malicious/unbounded teleports; normal fixed-tick movement is 1–3 steps.
-    if (count > 512) return from;
-    let p = advance(from,from);
-    for (let i=0;i<count;i++) p = advance(p,[p[0]+delta[0]/count,p[1]+delta[1]/count,p[2]+delta[2]/count]);
-    const horizontal = Math.hypot(delta[0],delta[2]);
-    // Grounded standing must not turn gravity into sideways slope motion.
-    if (grounded && horizontal === 0 && delta[1] <= 0) return canonicalMove(advance(from,from));
-    // Up/forward/down stepping only starts from support, never during a jump.
-    const stepTolerance = droneMove ? Math.min(0.01, horizontal * 0.25) : 0.01;
-    if (grounded && delta[1] <= 0 && horizontal > 0.000001 && ((p[0]-from[0])*delta[0]+(p[2]-from[2])*delta[2])/horizontal < horizontal - stepTolerance) {
-      const up: Vec3 = [from[0],from[1]+stepHeight,from[2]];
-      if (!this.contacts(up,radius,height,skin,candidates).length) {
-        let step = up;
-        for(let i=0;i<count;i++) step=advance(step,[step[0]+delta[0]/count,step[1],step[2]+delta[2]/count]);
-        // A step must not teleport through a ceiling on its way up.
-        let clear=true;
-        for(let lift=0.1;lift<stepHeight;lift+=0.1) if(this.contacts([from[0],from[1]+lift,from[2]],radius,height,0,candidates).some(hit=>hit.normal[1]<-0.5)){clear=false;break;}
-        if(clear) {
-          for(let i=0;i<6;i++) step=advance(step,[step[0],step[1]-stepHeight/6,step[2]]);
-          if (((step[0]-p[0])*delta[0]+(step[2]-p[2])*delta[2])/horizontal > 0.001 && this.isGrounded(step,radius,height)) p=step;
+        return p;
+      };
+      const attempt = (previous: Vec3, desired: Vec3): Vec3 => {
+        const next = recover(desired);
+        if (Math.hypot(next[0]-desired[0],next[1]-desired[1],next[2]-desired[2]) > 0.2) return previous;
+        return this.hasContactDeeperThan(next, radius, height, skin, candidates, 0.001) ? previous : next;
+      };
+      const advance = (previous: Vec3, desired: Vec3): Vec3 => {
+        const next=attempt(previous,desired);
+        const nextCell=canonicalMove(next),previousCell=canonicalMove(previous);
+        if(nextCell.some((value,axis)=>value!==previousCell[axis]))return next;
+        // An impossible horizontal gap must not cancel gravity or tangential
+        // movement. Resolve the unblocked components from the last clear pose.
+        let result=previous;
+        for(const axis of [1,0,2] as const) {
+          const amount=desired[axis]-previous[axis];
+          if(amount===0)continue;
+          const target: [number,number,number]=[...result];target[axis]+=amount;
+          result=attempt(result,target);
+        }
+        return result;
+      };
+      const delta: Vec3 = [to[0]-from[0],to[1]-from[1],to[2]-from[2]];
+      const count = Math.max(1, Math.ceil(Math.hypot(...delta) / Math.min(radius * 0.25, 0.1)));
+      // Reject malicious/unbounded teleports; normal fixed-tick movement is 1–3 steps.
+      if (count > 512) return from;
+      let p = advance(from,from);
+      for (let i=0;i<count;i++) p = advance(p,[p[0]+delta[0]/count,p[1]+delta[1]/count,p[2]+delta[2]/count]);
+      const horizontal = Math.hypot(delta[0],delta[2]);
+      // Grounded standing must not turn gravity into sideways slope motion.
+      if (grounded && horizontal === 0 && delta[1] <= 0) return canonicalMove(advance(from,from));
+      // Up/forward/down stepping only starts from support, never during a jump.
+      const stepTolerance = droneMove ? Math.min(0.01, horizontal * 0.25) : 0.01;
+      if (grounded && delta[1] <= 0 && horizontal > 0.000001 && ((p[0]-from[0])*delta[0]+(p[2]-from[2])*delta[2])/horizontal < horizontal - stepTolerance) {
+        const up: Vec3 = [from[0],from[1]+stepHeight,from[2]];
+        if (!this.hasAnyContact(up, radius, height, skin, candidates)) {
+          let step = up;
+          for(let i=0;i<count;i++) step=advance(step,[step[0]+delta[0]/count,step[1],step[2]+delta[2]/count]);
+          // A step must not teleport through a ceiling on its way up.
+          let clear=true;
+          for(let lift=0.1;lift<stepHeight;lift+=0.1) if(this.hasBlockingCeilingContact([from[0],from[1]+lift,from[2]], radius, height, 0, candidates, -0.5)){clear=false;break;}
+          if(clear) {
+            for(let i=0;i<6;i++) step=advance(step,[step[0],step[1]-stepHeight/6,step[2]]);
+            if (((step[0]-p[0])*delta[0]+(step[2]-p[2])*delta[2])/horizontal > 0.001 && this.isGrounded(step,radius,height)) p=step;
+          }
         }
       }
+      return canonicalMove(p);
+    } finally {
+      this.releaseCandidateBuffer(candidates);
     }
-    return canonicalMove(p);
   }
 
 }

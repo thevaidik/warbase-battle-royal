@@ -4,6 +4,7 @@ extends Node3D
 
 const PayloadBuilderScript = preload("res://scripts/drones/DronePayloadBuilder.gd")
 const DroneMeshScript = preload("res://scripts/drones/DroneMesh.gd")
+const DroneVisualResourcesScript = preload("res://scripts/drones/DroneVisualResources.gd")
 const Finish := preload("res://scripts/drones/DroneFinish.gd")
 const PAYLOAD_IDS := ["ak47", "pistol", "m2010", "hmg", "m4", "mp5", "dmr", "aim9", "agm114"]
 const CHASSIS := ["quad", "wheels", "tracked", "heli", "wing"]
@@ -14,15 +15,23 @@ const BODY_SCALE := 0.96
 const DISPLAY_SCALE := 1.10
 const GROUND_HULL_DROP := 0.115
 const GROUND_CONTACT_DEPTH := GameState.DRONE_RADIUS + 0.008
-const TIRE_RADIUS := 0.058
-const WHEEL_HUB_Y := -0.10
-const TRACK_BOTTOM_Y := -0.165
+const TIRE_RADIUS := 0.142
+const TIRE_WIDTH := 0.092
+const WHEEL_HUB_Y := -0.065
+const TRACK_BOTTOM_Y := -0.161
 var friendly := true
 var weapon_id := "ak47"
 var chassis_id := "quad"
 var dead := false
 var crash_hidden := false
 var payload_enabled := true
+var _track_shoes: Array[Node3D] = []
+var _steer_parts: Array[Node3D] = []
+var _wheel_struts: Array[Node3D] = []
+var _prev_rolling_speed := 0.0
+var _last_motion_yaw := 0.0
+var _motion_yaw_initialized := false
+var _turret: Node3D
 var _velocity := Vector3.ZERO
 var _body: Node3D
 var _bank_root: Node3D
@@ -30,8 +39,14 @@ var _payload_gimbal: Node3D
 var _payload: Node3D
 var _left_mount: Node3D
 var _right_mount: Node3D
+var _center_mount: Node3D
 var _primary_weapon := "ak47"
 var _secondary_weapon := ""
+var _tertiary_weapon := "hmg"
+var _recoil_kick := 0.0
+
+func kick_recoil(amount: float = 0.035) -> void:
+	_recoil_kick = minf(_recoil_kick + amount, 0.095)
 var _rotor: Node3D
 var _rotor_player: AnimationPlayer
 var _aim_pitch := 0.0
@@ -40,7 +55,25 @@ var _team_trim: MeshInstance3D
 var _team_leds: Array[MeshInstance3D] = []
 var _attachment_sets: Dictionary = {}
 var _rolling_parts: Array[Node3D] = []
+var _built_friendly := false
+var _built_primary := ""
+var _built_secondary := ""
+var _built_chassis := ""
+var _is_built := false
+var deferred_construction := false
 static var _heat_material: StandardMaterial3D
+
+func is_built() -> bool:
+	return _is_built and is_instance_valid(_body)
+
+func get_primary_weapon() -> String:
+	return _primary_weapon
+
+func get_secondary_weapon() -> String:
+	return _secondary_weapon
+
+func get_active_weapon() -> String:
+	return weapon_id
 
 func set_thermal_signature(on: bool) -> void:
 	if _heat_material == null and on:
@@ -56,25 +89,69 @@ func _ready() -> void:
 	call_deferred("_configure_default_if_needed")
 
 func _configure_default_if_needed() -> void:
+	if deferred_construction: return
+	var parent = get_parent()
+	if is_instance_valid(parent) and parent.get_meta("deferred_visual", false):
+		deferred_construction = true
+		return
 	if not is_instance_valid(_body): configure(friendly, weapon_id, chassis_id)
 
-func configure(is_friendly: bool, selected_weapon: String = "ak47", selected_chassis: String = "quad", legacy_payload_id: String = "", secondary_weapon: String = "") -> void:
+func configure(is_friendly: bool, selected_weapon: String = "ak47", selected_chassis: String = "quad", legacy_payload_id: String = "", secondary_weapon: String = "", tertiary_weapon: String = "") -> void:
+	var target_friendly: bool = is_friendly
+	var target_weapon: String = legacy_payload_id if PAYLOAD_IDS.has(legacy_payload_id) else (selected_weapon if PAYLOAD_IDS.has(selected_weapon) else "ak47")
+	var target_secondary: String = secondary_weapon if PAYLOAD_IDS.has(secondary_weapon) and secondary_weapon != target_weapon else ""
+	var target_tertiary: String = tertiary_weapon if PAYLOAD_IDS.has(tertiary_weapon) else (GameState.selected_tertiary if GameState != null and PAYLOAD_IDS.has(GameState.selected_tertiary) else "hmg")
+	var target_chassis: String = selected_chassis if CHASSIS.has(selected_chassis) else "quad"
+
+	prepare_body(target_friendly, target_chassis)
+	prepare_payloads(target_weapon, target_secondary, target_weapon, target_tertiary)
+	finalize_visual()
+
+func prepare_body(is_friendly: bool, selected_chassis: String) -> void:
 	scale = Vector3.ONE * DISPLAY_SCALE
 	friendly = is_friendly
-	weapon_id = legacy_payload_id if PAYLOAD_IDS.has(legacy_payload_id) else (selected_weapon if PAYLOAD_IDS.has(selected_weapon) else "ak47")
-	_primary_weapon = weapon_id
-	_secondary_weapon = secondary_weapon if PAYLOAD_IDS.has(secondary_weapon) and secondary_weapon != weapon_id else ""
 	chassis_id = selected_chassis if CHASSIS.has(selected_chassis) else "quad"
 	if not is_inside_tree(): return
+	if _is_built and is_instance_valid(_body) and _built_friendly == friendly and _built_chassis == chassis_id:
+		return
 	_rebuild_body()
+	_built_friendly = friendly
+	_built_chassis = chassis_id
+
+func prepare_payloads(pri: String, sec: String = "", active: String = "", tert: String = "") -> void:
+	var target_pri := pri if PAYLOAD_IDS.has(pri) else "ak47"
+	var target_sec := sec if PAYLOAD_IDS.has(sec) and sec != target_pri else ""
+	var target_tert := tert if PAYLOAD_IDS.has(tert) else (GameState.selected_tertiary if GameState != null and PAYLOAD_IDS.has(GameState.selected_tertiary) else "hmg")
+	var target_active := active if PAYLOAD_IDS.has(active) else target_pri
+	_primary_weapon = target_pri
+	_secondary_weapon = target_sec
+	_tertiary_weapon = target_tert
+	weapon_id = target_active
+	if not is_inside_tree(): return
+	if _built_primary == target_pri and _built_secondary == target_sec and is_instance_valid(_left_mount):
+		_select_active_mount()
+		return
 	_rebuild_payloads()
+	_built_primary = target_pri
+	_built_secondary = target_sec
+	_select_active_mount()
+
+func finalize_visual() -> void:
+	_is_built = true
+	deferred_construction = false
+	visible = true
+	_apply_visual_lod()
+	_select_active_mount()
 
 func set_chassis(selected_chassis: String) -> void:
 	if not CHASSIS.has(selected_chassis): return
+	if selected_chassis == chassis_id and _is_built and is_instance_valid(_body): return
 	chassis_id = selected_chassis
 	if is_inside_tree():
 		_rebuild_body()
 		_rebuild_payloads()
+		_built_chassis = chassis_id
+		_is_built = true
 
 func _rebuild_body() -> void:
 	if is_instance_valid(_bank_root):
@@ -83,11 +160,17 @@ func _rebuild_body() -> void:
 	_bank_root = Node3D.new(); _bank_root.name = "BankVisual"; add_child(_bank_root)
 	_body = Node3D.new(); _body.name = "Vanguard" if friendly else "Raider"; _bank_root.add_child(_body)
 	_body.scale = Vector3.ONE * BODY_SCALE
+	_body.set_meta("batch_cache_key", "body_%s_%s" % [chassis_id, "friendly" if friendly else "enemy"])
 	if _uses_ground_gear():
 		_bank_root.position.y = -GROUND_HULL_DROP
+	if is_instance_valid(_turret): _turret.position.y = 0.065 - (GROUND_HULL_DROP if _uses_ground_gear() else 0.0)
 	_team_trim = null; _team_leds.clear(); _rotor = null; _rotor_player = null
 	_attachment_sets.clear()
 	_rolling_parts.clear()
+	_track_shoes.clear()
+	_steer_parts.clear()
+	_wheel_struts.clear()
+	_motion_yaw_initialized = false
 	var armor := _mat(Color("596a77") if friendly else Color("847b73"), 0.74, 0.36)
 	var dark := _mat(Color("28323b"), 0.42, 0.57)
 	var armor_panel := _mat(Color("8b9ba7") if friendly else Color("a29787"), 0.79, 0.31)
@@ -134,16 +217,18 @@ func _rebuild_body() -> void:
 		var track := animation.add_track(Animation.TYPE_VALUE); animation.track_set_path(track, NodePath("HeliDeployment/Rotor:rotation:y")); animation.track_insert_key(track,0.0,0.0); animation.track_insert_key(track,0.18,TAU)
 		library.add_animation("rotor-spin",animation); _rotor_player.add_animation_library("",library)
 		_rotor_player.play("rotor-spin")
+	_apply_visual_lod()
 
 func _register_attachment_set(key: String, nodes: Array[Node]) -> void:
 	var module := Node3D.new()
 	module.name = key.capitalize() + "Deployment"
+	module.set_meta("batch_cache_key", "module_%s_%s" % [key, "friendly" if friendly else "enemy"])
 	_body.add_child(module)
 	for node in nodes:
 		if is_instance_valid(node): node.reparent(module,true)
 	match key:
 		"wheels":
-			module.position.y = -_ground_gear_drop(WHEEL_HUB_Y - TIRE_RADIUS)
+			module.position.y = -_ground_gear_drop(WHEEL_HUB_Y - (TIRE_RADIUS + 0.0152))
 		"tracked":
 			module.position.y = -_ground_gear_drop(TRACK_BOTTOM_Y)
 	_attachment_sets[key] = [module]
@@ -202,13 +287,21 @@ func _build_tracked(armor: Material, dark: Material) -> void:
 		belt.position = Vector3(side * 0.19, -0.105, 0.03)
 		_body.add_child(belt)
 		modules.append(belt)
-		var perimeter := 0.62 + TAU * 0.057
-		for i in 44:
-			var distance := perimeter * float(i) / 44.0
-			var point := DroneMeshScript.track_point(distance)
-			var tangent := (DroneMeshScript.track_point(fmod(distance + 0.0001, perimeter)) - point).normalized()
-			var pos := Vector3(side * 0.19, -0.105 + point.y, 0.03 + point.x)
-			modules.append(_box(_body, "TrackShoe", Vector3(0.108,0.010,0.013), pos, shoe_metal, Vector3(-atan2(tangent.y, tangent.x),0,0)))
+		var shoes := MultiMeshInstance3D.new()
+		shoes.name = "InstancedTrackShoes"
+		shoes.multimesh = MultiMesh.new()
+		shoes.multimesh.transform_format = MultiMesh.TRANSFORM_3D
+		shoes.multimesh.mesh = DroneMeshScript.panel(Vector3(0.108,0.010,0.013))
+		shoes.multimesh.instance_count = 44
+		shoes.material_override = shoe_metal
+		shoes.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		shoes.physics_interpolation_mode = Node.PHYSICS_INTERPOLATION_MODE_OFF
+		shoes.set_meta("side", side)
+		shoes.set_meta("phase", 0.0)
+		_body.add_child(shoes)
+		_track_shoes.append(shoes)
+		modules.append(shoes)
+		_update_track_instances(shoes, 0.0)
 		for z in [-0.13,0.16]:
 			var wheel_pos := Vector3(side*0.205,-0.105,z)
 			var road_wheel := _cylinder(_body,"RoadWheel",0.039,0.025,wheel_pos,rubber,Vector3(0,0,PI/2))
@@ -225,28 +318,73 @@ func _build_tracked(armor: Material, dark: Material) -> void:
 
 func _build_wheels(armor: Material, dark: Material) -> void:
 	var modules: Array[Node] = []
-	for side in [-1.0, 1.0]:
-		for fore in [-1.0, 1.0]:
-			var hub := Vector3(side * 0.17, WHEEL_HUB_Y, fore * 0.13)
+	var tire_rubber := _mat(Color("181c20"), 0.04, 0.94)
+	var rim_alloy := _mat(Color("4a5560"), 0.85, 0.30)
+	var beadlock_ring := _mat(Color("7ca2b8") if friendly else Color("b88670"), 0.88, 0.24)
+	var caliper_red := _mat(Color("c82828"), 0.5, 0.35)
+	var rotor_steel := _mat(Color("a2abb2"), 0.94, 0.18)
+	var spring_color := _mat(Color("e89b25") if friendly else Color("d43b2a"), 0.75, 0.35)
+	for fore in [-1.0, 1.0]:
+		for side in [-1.0, 1.0]:
+			var hub := Vector3(side * 0.235, WHEEL_HUB_Y, fore * 0.165)
+			var strut_mount := Node3D.new()
+			strut_mount.name = "MonsterStrutMount"
+			strut_mount.set_meta("batch_cache_key", "strut_s%.0f_f%.0f" % [side, fore])
+			_body.add_child(strut_mount)
+			strut_mount.position = hub
+			modules.append(strut_mount)
+			_wheel_struts.append(strut_mount)
+			var steer_node := Node3D.new()
+			steer_node.name = "MonsterSteerNode"
+			steer_node.set_meta("batch_cache_key", "steer_s%.0f" % side)
+			strut_mount.add_child(steer_node)
+			if fore < 0.0:
+				_steer_parts.append(steer_node)
 			var wheel := Node3D.new()
-			wheel.name = "WheelAssembly"
-			_body.add_child(wheel)
-			wheel.position = hub
+			wheel.name = "MonsterWheelAssembly"
+			wheel.set_meta("batch_cache_key", "wheel_%s_s%.0f_f%.0f" % ["friendly" if friendly else "enemy", side, fore])
+			steer_node.add_child(wheel)
 			wheel.set_meta("mobility_profile", "wheels")
+			wheel.set_meta("side", side)
+			wheel.set_meta("fore", fore)
 			modules.append(wheel)
 			_rolling_parts.append(wheel)
-			_cylinder(wheel, "Tire", TIRE_RADIUS, 0.028, Vector3.ZERO, dark, Vector3(0, 0, PI / 2))
-			_cylinder(wheel, "WheelHub", 0.030, 0.032, Vector3.ZERO, armor, Vector3(0, 0, PI / 2))
-			for lug in range(8):
-				var angle := TAU * float(lug) / 8.0
-				var tread_pos := Vector3(0, cos(angle), sin(angle)) * 0.053
-				_box(wheel, "TireTread", Vector3(0.034, 0.008, 0.012), tread_pos, armor, Vector3(angle, 0, 0))
-			for bolt in range(5):
-				var angle := TAU * float(bolt) / 5.0
-				var bolt_pos := Vector3(side * 0.018, sin(angle) * 0.018, cos(angle) * 0.018)
-				_cylinder(wheel, "RimBolt", 0.003, 0.004, bolt_pos, dark, Vector3(0, 0, PI / 2))
-			var upper_mount := Vector3(side * 0.11, _ground_gear_drop(WHEEL_HUB_Y - TIRE_RADIUS), fore * 0.11)
-			modules.append(_rod_between(_body, "SuspensionStrut", upper_mount, hub, 0.012, armor))
+			_cylinder(wheel, "TireCarcass", TIRE_RADIUS, TIRE_WIDTH, Vector3.ZERO, tire_rubber, Vector3(0, 0, PI / 2))
+			_cylinder(wheel, "InnerBevel", TIRE_RADIUS * 0.97, TIRE_WIDTH * 0.15, Vector3(side * (TIRE_WIDTH * 0.42), 0, 0), tire_rubber, Vector3(0, 0, PI / 2))
+			for lug in range(14):
+				var angle: float = TAU * float(lug) / 14.0
+				var chevron_angle: float = side * 0.32
+				var lug_pos := Vector3(0, cos(angle), sin(angle)) * (TIRE_RADIUS - 0.002)
+				_box(wheel, "MonsterLug", Vector3(TIRE_WIDTH * 0.72, 0.016, 0.026), lug_pos, tire_rubber, Vector3(angle, 0, chevron_angle))
+				var cleat_pos := Vector3(side * (TIRE_WIDTH * 0.44), cos(angle) * (TIRE_RADIUS * 0.88), sin(angle) * (TIRE_RADIUS * 0.88))
+				_box(wheel, "SideBite", Vector3(0.012, 0.014, 0.022), cleat_pos, tire_rubber, Vector3(angle, 0, 0))
+			_cylinder(wheel, "RimBarrel", 0.076, TIRE_WIDTH * 0.90, Vector3.ZERO, rim_alloy, Vector3(0, 0, PI / 2))
+			_cylinder(wheel, "BeadlockRing", 0.084, 0.014, Vector3(side * (TIRE_WIDTH * 0.44), 0, 0), beadlock_ring, Vector3(0, 0, PI / 2))
+			for bolt in range(10):
+				var b_angle: float = TAU * float(bolt) / 10.0
+				var b_pos := Vector3(side * (TIRE_WIDTH * 0.455), sin(b_angle) * 0.078, cos(b_angle) * 0.078)
+				_cylinder(wheel, "BeadBolt", 0.0035, 0.006, b_pos, dark, Vector3(0, 0, PI / 2))
+			for spoke in range(6):
+				var s_angle: float = TAU * float(spoke) / 6.0
+				var s_pos := Vector3(side * (TIRE_WIDTH * 0.30), sin(s_angle) * 0.046, cos(s_angle) * 0.046)
+				_box(wheel, "RimSpoke", Vector3(0.018, 0.012, 0.040), s_pos, rim_alloy, Vector3(s_angle, 0, 0))
+			_cylinder(wheel, "CenterHub", 0.034, 0.040, Vector3(side * (TIRE_WIDTH * 0.35), 0, 0), armor, Vector3(0, 0, PI / 2))
+			for l in range(6):
+				var l_angle: float = TAU * float(l) / 6.0
+				var l_pos := Vector3(side * (TIRE_WIDTH * 0.40), sin(l_angle) * 0.022, cos(l_angle) * 0.022)
+				_cylinder(wheel, "LugNut", 0.004, 0.008, l_pos, dark, Vector3(0, 0, PI / 2))
+			_cylinder(wheel, "LockingDial", 0.014, 0.010, Vector3(side * (TIRE_WIDTH * 0.42), 0, 0), _mat(Color("c43b35") if friendly else Color("e89b38"), 0.6, 0.4), Vector3(0, 0, PI / 2))
+			_cylinder(steer_node, "BrakeRotor", 0.065, 0.008, Vector3(side * (TIRE_WIDTH * 0.14), 0, 0), rotor_steel, Vector3(0, 0, PI / 2))
+			_box(steer_node, "BrakeCaliper", Vector3(0.026, 0.032, 0.044), Vector3(side * (TIRE_WIDTH * 0.14), 0.048, 0.018), caliper_red)
+			var upper_mount := Vector3(side * 0.12, _ground_gear_drop(WHEEL_HUB_Y - TIRE_RADIUS) + 0.05, fore * 0.14)
+			modules.append(_rod_between(_body, "ShockBody", upper_mount, hub, 0.015, dark))
+			modules.append(_rod_between(_body, "ShockShaft", upper_mount.lerp(hub, 0.5), hub, 0.009, _mat(Color("e8ecef"), 0.98, 0.1)))
+			for coil in range(5):
+				var c_t: float = 0.22 + float(coil) * 0.13
+				var coil_pos := upper_mount.lerp(hub, c_t)
+				modules.append(_cylinder(_body, "SpringCoil", 0.022, 0.008, coil_pos, spring_color, Vector3(0, 0, PI / 2)))
+			modules.append(_rod_between(_body, "ControlArmLower", Vector3(side * 0.08, -0.05, fore * 0.14), hub + Vector3(0, -0.03, 0), 0.011, armor))
+			modules.append(_rod_between(_body, "ControlArmUpper", Vector3(side * 0.08, 0.01, fore * 0.14), hub + Vector3(0, 0.03, 0), 0.010, armor))
 	_register_attachment_set("wheels", modules)
 
 func _build_heli(armor: Material, dark: Material) -> void:
@@ -254,7 +392,7 @@ func _build_heli(armor: Material, dark: Material) -> void:
 	modules.append(_box(_body,"TailBoom",Vector3(0.045,0.045,0.22),Vector3(0,0.015,0.20),armor))
 	modules.append(_box(_body,"TailFin",Vector3(0.018,0.09,0.04),Vector3(0,0.035,0.29),dark))
 	modules.append(_box(_body,"TailBoomSeam",Vector3(0.003,0.003,0.12),Vector3(0.025,0.039,0.20),dark))
-	_rotor = Node3D.new(); _rotor.name="Rotor"; _rotor.position=Vector3(0,0.12,0.015); _body.add_child(_rotor)
+	_rotor = Node3D.new(); _rotor.name="Rotor"; _rotor.position=Vector3(0,0.12,0.015); _rotor.set_meta("batch_cache_key", "rotor_%s" % ("friendly" if friendly else "enemy")); _body.add_child(_rotor)
 	_box(_rotor,"RotorBlade",Vector3(0.48,0.008,0.025),Vector3.ZERO,dark)
 	var cross_blade := _box(_rotor,"RotorBlade",Vector3(0.48,0.008,0.025),Vector3.ZERO,dark)
 	cross_blade.rotation.y=PI/2
@@ -290,10 +428,7 @@ func _rod_between(parent: Node3D, name: String, start: Vector3, end: Vector3, ra
 	return rod
 
 func _mat(color: Color, metallic: float, roughness: float, emissive: bool=false) -> StandardMaterial3D:
-	var m := StandardMaterial3D.new(); m.albedo_color=color; m.metallic=metallic; m.roughness=roughness
-	if emissive: m.emission_enabled=true; m.emission=color; m.emission_energy_multiplier=0.65
-	Finish.apply_metal_grain(m)
-	return m
+	return DroneVisualResourcesScript.get_material(color, metallic, roughness, emissive)
 
 func set_inspection_pose() -> void:
 	if is_instance_valid(_rotor_player):
@@ -333,41 +468,105 @@ func _box(parent: Node3D, name: String, size: Vector3, pos: Vector3, material: M
 func _cylinder(parent: Node3D, name: String, radius: float, height: float, pos: Vector3, material: Material, rot: Vector3=Vector3.ZERO) -> MeshInstance3D:
 	var item := MeshInstance3D.new(); item.name=name; var mesh := CylinderMesh.new(); mesh.top_radius=radius; mesh.bottom_radius=radius; mesh.height=height; mesh.radial_segments=16; item.mesh=mesh; item.position=pos; item.rotation=rot; item.material_override=material; item.cast_shadow=GeometryInstance3D.SHADOW_CASTING_SETTING_OFF; parent.add_child(item); return item
 
+func _get_mesh_lod_tier(cname: String) -> int:
+	if cname.begins_with("ShoulderPanelFastener") or cname.begins_with("HatchBolt") \
+			or cname.begins_with("HeatExchangerSlot") or cname.begins_with("ArmorLock") \
+			or cname.begins_with("SideVent") or cname.begins_with("BeadBolt") \
+			or cname.begins_with("LugNut") or cname.begins_with("RoadWheelBolt") \
+			or cname.begins_with("PanelFastener") or cname.begins_with("BeadlockRing") \
+			or cname.begins_with("LockingDial"):
+		return 1
+	elif cname.begins_with("CoolingVent") or cname.begins_with("AccessPanelSeam") \
+			or cname.begins_with("ServiceHatch") or cname.begins_with("DorsalBay") \
+			or cname.begins_with("TailBoomSeam") or cname.begins_with("SideBite") \
+			or cname.begins_with("HardpointStripe") or cname.begins_with("ShoulderRail"):
+		return 2
+	return 0
+
 func _batch_static_meshes(parent: Node3D) -> void:
 	for child in parent.get_children():
 		if child is Node3D and not child is MeshInstance3D: _batch_static_meshes(child)
-	var groups: Dictionary = {}
+
+	var cache_key: String = parent.get_meta("batch_cache_key", "")
+	var cached_groups: Variant = DroneVisualResourcesScript.get_batched_meshes(cache_key) if not cache_key.is_empty() else null
+
 	var original_instances: Array[MeshInstance3D] = []
 	for child in parent.get_children():
 		if not child is MeshInstance3D: continue
 		var instance := child as MeshInstance3D
-		if instance.mesh == null or _rolling_parts.has(instance) or _team_leds.has(instance): continue
+		if instance.mesh == null or _track_shoes.has(instance) or _rolling_parts.has(instance) or _team_leds.has(instance): continue
 		original_instances.append(instance)
+
+	if cached_groups != null:
+		for group in cached_groups:
+			var merged := MeshInstance3D.new()
+			merged.name = group.get("name", "BatchedStaticHardware")
+			merged.set_meta("visual_lod_tier", int(group.get("tier", 0)))
+			merged.mesh = group["mesh"]
+			merged.material_override = group["material"]
+			merged.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+			parent.add_child(merged)
+		for instance in original_instances: instance.free()
+		return
+
+	var groups: Dictionary = {}
+	for instance in original_instances:
+		var tier := _get_mesh_lod_tier(String(instance.name))
 		for surface in instance.mesh.get_surface_count():
 			var material := instance.material_override if instance.material_override != null else instance.mesh.surface_get_material(surface)
 			if material == null: continue
-			var key := str(material.get_instance_id())
+			var key := "%d_%d" % [tier, material.get_instance_id()]
 			if not groups.has(key):
 				var tool := SurfaceTool.new()
 				tool.begin(Mesh.PRIMITIVE_TRIANGLES)
-				groups[key] = {"tool":tool,"material":material}
-			groups[key]["tool"].append_from(instance.mesh,surface,instance.transform)
+				var group_name := "BatchedStaticCore"
+				if tier == 1:
+					group_name = "BatchedStaticDetailSmall"
+				elif tier == 2:
+					group_name = "BatchedStaticDetailMedium"
+				groups[key] = {"tool": tool, "material": material, "tier": tier, "name": group_name}
+			groups[key]["tool"].append_from(instance.mesh, surface, instance.transform)
+
+	if not groups.is_empty():
+		DroneVisualResourcesScript.record_merge()
+
+	var committed_cache: Array = []
 	for group in groups.values():
 		var merged := MeshInstance3D.new()
-		merged.name = "BatchedStaticHardware"
+		merged.name = group["name"]
+		merged.set_meta("visual_lod_tier", int(group["tier"]))
 		merged.mesh = group["tool"].commit()
 		merged.material_override = group["material"]
 		merged.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		parent.add_child(merged)
+		if not cache_key.is_empty():
+			committed_cache.append({
+				"mesh": merged.mesh,
+				"material": group["material"],
+				"name": group["name"],
+				"tier": group["tier"]
+			})
+
+	if not cache_key.is_empty():
+		DroneVisualResourcesScript.set_batched_meshes(cache_key, committed_cache)
+
 	for instance in original_instances: instance.free()
 
 func _rebuild_payloads() -> void:
-	for mount in [_left_mount, _right_mount]:
+	if not is_instance_valid(_turret):
+		_turret = Node3D.new()
+		_turret.name = "WeaponTurret"
+		_turret.position.y = 0.065 - (GROUND_HULL_DROP if _uses_ground_gear() else 0.0)
+		add_child(_turret)
+		_cylinder(_turret, "TurretBearing", 0.083, 0.026, Vector3.ZERO, _mat(Color("343f48"), 0.75, 0.38))
+		_box(_turret, "TurretArmor", Vector3(0.19,0.055,0.15), Vector3(0,0.022,0), _mat(Color("66727b"), 0.72, 0.4))
+	for mount in [_left_mount, _right_mount, _center_mount]:
 		if is_instance_valid(mount):
-			remove_child(mount)
+			mount.get_parent().remove_child(mount)
 			mount.queue_free()
 	_left_mount = _build_mount(_primary_weapon, -1.0)
 	_right_mount = _build_mount(_secondary_weapon, 1.0) if not _secondary_weapon.is_empty() else null
+	_center_mount = _build_center_mount(_tertiary_weapon) if (chassis_id == "tracked" and not _tertiary_weapon.is_empty()) else null
 	_select_active_mount()
 	if GameState.thermal_view: set_thermal_signature(true)
 
@@ -383,28 +582,53 @@ func _build_mount(id: String, side: float) -> Node3D:
 	model.position = -center * scale_factor
 	var mount := Node3D.new()
 	mount.name = "PrimaryLeft" if side < 0.0 else "SecondaryRight"
-	mount.position = Vector3(side * 0.152, -0.075, -0.085)
+	mount.position = Vector3(side * 0.152, 0.025, -0.045)
 	mount.add_child(model)
-	add_child(mount)
+	_turret.add_child(mount)
+	return mount
+
+func _build_center_mount(id: String) -> Node3D:
+	var model := PayloadBuilderScript.build(id)
+	var bounds := _payload_bounds(model)
+	var center := bounds.get_center()
+	var radius := 0.0
+	for corner in _aabb_corners(bounds):
+		radius = maxf(radius, center.distance_to(corner))
+	var scale_factor := 0.12 / maxf(radius, 0.0001)
+	model.scale = Vector3.ONE * scale_factor
+	model.position = -center * scale_factor
+	var mount := Node3D.new()
+	mount.name = "TertiaryCenter"
+	mount.position = Vector3(0.0, 0.065, -0.02)
+	mount.add_child(model)
+	_turret.add_child(mount)
 	return mount
 
 func _select_active_mount() -> void:
 	if is_instance_valid(_payload_gimbal):
 		_payload_gimbal.rotation = Vector3.ZERO
-	_payload_gimbal = _right_mount if weapon_id == _secondary_weapon and is_instance_valid(_right_mount) else _left_mount
+	if weapon_id == _secondary_weapon and is_instance_valid(_right_mount):
+		_payload_gimbal = _right_mount
+	elif chassis_id == "tracked" and weapon_id == _tertiary_weapon and is_instance_valid(_center_mount):
+		_payload_gimbal = _center_mount
+	else:
+		_payload_gimbal = _left_mount
 	_payload = _payload_gimbal.get_child(0) as Node3D if is_instance_valid(_payload_gimbal) else null
 	if is_instance_valid(_payload_gimbal):
 		_payload_gimbal.rotation = Vector3(_aim_pitch, _aim_yaw, 0.0)
 	_update_payload_visibility()
 
-func set_loadout(primary: String, secondary: String, active: String) -> void:
+func set_loadout(primary: String, secondary: String, active: String, tertiary: String = "") -> void:
 	primary = primary if PAYLOAD_IDS.has(primary) else "ak47"
 	secondary = secondary if PAYLOAD_IDS.has(secondary) and secondary != primary else ""
-	var changed := primary != _primary_weapon or secondary != _secondary_weapon
-	var next_weapon := active if active == primary or (not secondary.is_empty() and active == secondary) else primary
+	if tertiary.is_empty() and GameState != null:
+		tertiary = GameState.selected_tertiary if PAYLOAD_IDS.has(GameState.selected_tertiary) else "hmg"
+	var changed := primary != _primary_weapon or secondary != _secondary_weapon or tertiary != _tertiary_weapon
+	var next_weapon := active if active == primary or (not secondary.is_empty() and active == secondary) or (chassis_id == "tracked" and not tertiary.is_empty() and active == tertiary) else primary
 	var active_changed := weapon_id != next_weapon
 	_primary_weapon = primary
 	_secondary_weapon = secondary
+	_tertiary_weapon = tertiary
 	weapon_id = next_weapon
 	if not is_inside_tree() or not is_instance_valid(_bank_root): return
 	if changed or not is_instance_valid(_left_mount):
@@ -421,6 +645,11 @@ func _payload_bounds(root: Node) -> AABB:
 
 func _collect_mesh_bounds(node: Node, parent: Transform3D, points: Array[Vector3]) -> void:
 	var t:=parent; if node is Node3D: t=parent*(node as Node3D).transform
+	if node is MultiMeshInstance3D:
+		var instances := (node as MultiMeshInstance3D).multimesh
+		if instances != null and instances.mesh != null:
+			for index in instances.instance_count:
+				for corner in _aabb_corners(instances.mesh.get_aabb()): points.append(t * instances.get_instance_transform(index) * corner)
 	if node is MeshInstance3D and (node as MeshInstance3D).mesh!=null:
 		for p in _aabb_corners((node as MeshInstance3D).get_aabb()): points.append(t*p)
 	for child in node.get_children(): _collect_mesh_bounds(child,t,points)
@@ -432,10 +661,10 @@ func _aabb_corners(b: AABB) -> Array[Vector3]:
 	return a
 
 func set_weapon(selected_weapon: String) -> void:
-	if selected_weapon == _primary_weapon or selected_weapon == _secondary_weapon:
-		set_loadout(_primary_weapon, _secondary_weapon, selected_weapon)
+	if selected_weapon == _primary_weapon or selected_weapon == _secondary_weapon or (chassis_id == "tracked" and selected_weapon == _tertiary_weapon):
+		set_loadout(_primary_weapon, _secondary_weapon, selected_weapon, _tertiary_weapon)
 	else:
-		set_loadout(selected_weapon, "", selected_weapon)
+		set_loadout(selected_weapon, "", selected_weapon, "")
 
 func set_payload_visible(visible: bool) -> void:
 	payload_enabled = visible
@@ -444,20 +673,24 @@ func set_payload_visible(visible: bool) -> void:
 func _update_payload_visibility() -> void:
 	if is_instance_valid(_left_mount): _left_mount.get_child(0).visible = payload_enabled and not dead
 	if is_instance_valid(_right_mount): _right_mount.get_child(0).visible = payload_enabled and not dead
+	if is_instance_valid(_center_mount): _center_mount.get_child(0).visible = payload_enabled and not dead
 
 func get_payload() -> Node3D: return _payload
 
 func aim_payload_at(world_point: Vector3, both := false) -> void:
 	if not world_point.is_finite() or not is_instance_valid(_payload_gimbal): return
+	if is_instance_valid(_turret):
+		var direction := global_basis.inverse() * (world_point - _turret.global_position)
+		_turret.rotation.y = atan2(-direction.x, -direction.z)
 	_payload_gimbal.rotation = _mount_aim(_payload_gimbal, world_point)
 	_aim_pitch = _payload_gimbal.rotation.x
 	_aim_yaw = _payload_gimbal.rotation.y
-	var other := _right_mount if _payload_gimbal == _left_mount else _left_mount
-	if is_instance_valid(other):
-		other.rotation = _mount_aim(other, world_point) if both else Vector3.ZERO
+	for mount in [_left_mount, _right_mount, _center_mount]:
+		if is_instance_valid(mount) and mount != _payload_gimbal:
+			mount.rotation = _mount_aim(mount, world_point) if both else Vector3.ZERO
 
 func _mount_aim(mount: Node3D, world_point: Vector3) -> Vector3:
-	var direction := global_basis.inverse() * (world_point - mount.global_position)
+	var direction := (mount.get_parent() as Node3D).global_basis.inverse() * (world_point - mount.global_position)
 	if direction.length_squared() < 0.000001: return mount.rotation
 	return Vector3(atan2(direction.y, Vector2(direction.x, direction.z).length()), atan2(-direction.x, -direction.z), 0.0)
 
@@ -465,6 +698,7 @@ func get_muzzle_global(mount_weapon := "") -> Vector3:
 	var gimbal := _payload_gimbal
 	if mount_weapon == _primary_weapon: gimbal = _left_mount
 	elif mount_weapon == _secondary_weapon and not mount_weapon.is_empty(): gimbal = _right_mount
+	elif mount_weapon == _tertiary_weapon and chassis_id == "tracked" and is_instance_valid(_center_mount): gimbal = _center_mount
 	if is_instance_valid(gimbal):
 		var muzzle := gimbal.get_child(0).find_child("Muzzle", true, false) as Node3D
 		if is_instance_valid(muzzle): return muzzle.global_position
@@ -482,12 +716,30 @@ func set_crash_hidden(hidden: bool) -> void:
 	crash_hidden = hidden
 	visible = not hidden
 
+var visual_lod := 0
+
+func set_visual_lod(level: int) -> void:
+	visual_lod = clampi(level, 0, 2)
+	_apply_visual_lod()
+
+func _apply_visual_lod() -> void:
+	if not is_instance_valid(_body): return
+	for child in _body.find_children("*", "MeshInstance3D", true, false):
+		# Names are not identities: Godot renames same-tier material siblings.
+		var tier := int(child.get_meta("visual_lod_tier", 0))
+		if tier > 0:
+			child.visible = visual_lod < tier
+	# Keep rotor angular speed unchanged. Slowing the animation clock does
+	# not reduce evaluation cost and is not an update-frequency optimization.
+	if is_instance_valid(_rotor_player):
+		_rotor_player.speed_scale = 1.0
+
 func make_wreck_visual(parent: Node3D) -> Node3D:
 	var model := Node3D.new()
 	model.name = "DroneWreck"
 	parent.add_child(model)
 	# Preserve the assembled chassis and loadout. Mesh resources stay shared.
-	for part in [_bank_root, _left_mount, _right_mount]:
+	for part in [_bank_root, _left_mount, _right_mount, _center_mount]:
 		if is_instance_valid(part):
 			var copy := part.duplicate(0) as Node3D
 			copy.process_mode = Node.PROCESS_MODE_DISABLED
@@ -500,32 +752,72 @@ func make_wreck_visual(parent: Node3D) -> Node3D:
 		mesh.material_overlay = null
 		var original := mesh.material_override as StandardMaterial3D
 		if original == null or original.emission_enabled or original.metallic < 0.55: continue
-		var finish := original.duplicate() as StandardMaterial3D
-		finish.albedo_color = original.albedo_color.lerp(Color("252225"), 0.38)
-		finish.roughness = maxf(original.roughness, 0.68)
-		mesh.material_override = finish
+		mesh.material_override = DroneVisualResourcesScript.get_wreck_material(original)
 	return model
 
-func apply_motion(velocity: Vector3, yaw: float, pitch: float, is_dead: bool=false) -> void:
+func apply_motion(velocity: Vector3, yaw: float, pitch: float, is_dead: bool=false, ground_roll: float = 0.0, suspension_offsets: Array = []) -> void:
 	_velocity=velocity if velocity.is_finite() else Vector3.ZERO; dead=is_dead; _aim_pitch=clampf(pitch,-1.55,1.55)
 	if is_instance_valid(_payload_gimbal): _payload_gimbal.rotation=Vector3(_aim_pitch,_aim_yaw,0.0)
 	if not is_instance_valid(_bank_root): return
 	var local_velocity:=Vector3(cos(yaw)*_velocity.x-sin(yaw)*_velocity.z,0,sin(yaw)*_velocity.x+cos(yaw)*_velocity.z)
-	var target:=clampf(-local_velocity.x*0.10,-BANK_LIMIT,BANK_LIMIT)
-	if _uses_ground_gear(): target = 0.0
-	elif dead: target=clampf(target+deg_to_rad(7),-deg_to_rad(17),deg_to_rad(17))
-	_bank_root.rotation.z=move_toward_angle(_bank_root.rotation.z,target,BANK_RESPONSE*get_process_delta_time())
-	if chassis_id == "wing":
-		_bank_root.rotation.x = move_toward(_bank_root.rotation.x, _aim_pitch * 0.45, 1.8 * get_process_delta_time())
+	var frame_dt := maxf(get_process_delta_time(), 0.0001)
 	var rolling_speed := local_velocity.z
+	var accel := (rolling_speed - _prev_rolling_speed) / frame_dt
+	_prev_rolling_speed = rolling_speed
+	var pitch_inertia := clampf(-accel * 0.012, -0.09, 0.09) if _uses_ground_gear() else 0.0
+	if _uses_ground_gear():
+		_bank_root.rotation.x = move_toward_angle(_bank_root.rotation.x, _aim_pitch + pitch_inertia - _recoil_kick * 1.5, 14.0 * frame_dt)
+		_bank_root.rotation.z = move_toward_angle(_bank_root.rotation.z, ground_roll, 8.0 * frame_dt)
+	elif chassis_id == "wing":
+		var target:=clampf(-local_velocity.x*0.10,-BANK_LIMIT,BANK_LIMIT)
+		if dead: target=clampf(target+deg_to_rad(7),-deg_to_rad(17),deg_to_rad(17))
+		_bank_root.rotation.z=move_toward_angle(_bank_root.rotation.z,target,BANK_RESPONSE*frame_dt)
+		_bank_root.rotation.x = move_toward(_bank_root.rotation.x, _aim_pitch * 0.45, 1.8 * frame_dt)
+	else:
+		var target:=clampf(-local_velocity.x*0.10,-BANK_LIMIT,BANK_LIMIT)
+		if dead: target=clampf(target+deg_to_rad(7),-deg_to_rad(17),deg_to_rad(17))
+		_bank_root.rotation.z=move_toward_angle(_bank_root.rotation.z,target,BANK_RESPONSE*frame_dt)
+		_bank_root.rotation.x = move_toward(_bank_root.rotation.x, 0.0, 4.0 * frame_dt)
+	if not suspension_offsets.is_empty():
+		for idx in range(min(_wheel_struts.size(), suspension_offsets.size())):
+			var strut := _wheel_struts[idx]
+			if is_instance_valid(strut):
+				strut.position.y = WHEEL_HUB_Y + float(suspension_offsets[idx])
+	var turn_rate := clampf(wrapf(yaw - _last_motion_yaw, -PI, PI) / frame_dt, -3.0, 3.0) if _motion_yaw_initialized else 0.0
+	_motion_yaw_initialized = true
+	_last_motion_yaw = yaw
+	var steer_target := clampf(-turn_rate * 0.22, -0.45, 0.45)
+	for steer_node in _steer_parts:
+		if is_instance_valid(steer_node):
+			steer_node.rotation.y = move_toward_angle(steer_node.rotation.y, steer_target, 8.0 * frame_dt)
+	if chassis_id == "tracked" and not dead:
+		var perimeter := 0.62 + TAU * 0.057
+		for shoe in _track_shoes:
+			if not is_instance_valid(shoe): continue
+			var side := float(shoe.get_meta("side"))
+			var phase := fposmod(float(shoe.get_meta("phase")) + (rolling_speed / BODY_SCALE - side * turn_rate * 0.19) * frame_dt, perimeter)
+			shoe.set_meta("phase", phase)
+			_update_track_instances(shoe as MultiMeshInstance3D, phase)
 	var movement_profile := "heli" if chassis_id == "quad" else chassis_id
 	for wheel in _rolling_parts:
 		if is_instance_valid(wheel) and String(wheel.get_meta("mobility_profile","")) == movement_profile:
 			var radius := TIRE_RADIUS if movement_profile == "wheels" else 0.039
-			wheel.rotate(Vector3.RIGHT, rolling_speed * get_process_delta_time() / (radius * BODY_SCALE))
+			wheel.rotate(Vector3.RIGHT, rolling_speed * frame_dt / (radius * BODY_SCALE))
+	_recoil_kick = lerpf(_recoil_kick, 0.0, 1.0 - exp(-24.0 * frame_dt))
+	if is_instance_valid(_payload_gimbal):
+		_payload_gimbal.position.z = -0.045 + _recoil_kick
 	_update_payload_visibility()
 	for led in _team_leds: if is_instance_valid(led): led.visible=not dead
 
 static func move_toward_angle(current: float, target: float, max_delta: float) -> float:
 	var difference:=wrapf(target-current,-PI,PI)
 	return current+difference if absf(difference)<=max_delta else current+signf(difference)*max_delta
+
+func _update_track_instances(track: MultiMeshInstance3D, phase: float) -> void:
+	var perimeter := 0.62 + TAU * 0.057
+	var side := float(track.get_meta("side"))
+	for index in track.multimesh.instance_count:
+		var distance := fposmod(phase + perimeter * float(index) / 44.0, perimeter)
+		var point := DroneMeshScript.track_point(distance)
+		var tangent := (DroneMeshScript.track_point(fposmod(distance + 0.0001, perimeter)) - point).normalized()
+		track.multimesh.set_instance_transform(index, Transform3D(Basis(Vector3.RIGHT, -atan2(tangent.y, tangent.x)), Vector3(side * 0.19, -0.105 + point.y, 0.03 + point.x)))

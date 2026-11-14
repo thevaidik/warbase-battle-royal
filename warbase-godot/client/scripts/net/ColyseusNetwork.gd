@@ -82,6 +82,11 @@ var _prediction_cache_map := ""
 var _qa_move_cache_hits := 0
 var _qa_move_cache_misses := 0
 var _qa_remote_pose_timing
+var _remote_pose_cache: Dictionary = {}
+var _remote_pose_frame_id: int = -1
+var _remote_pose_connection_gen: int = -1
+var _remote_pose_state_gen: int = -1
+var _state_generation: int = 0
 var _next_grenade_request_id := 0
 var _want_connection := false
 var _username := "Player"
@@ -318,6 +323,10 @@ func _clear_incremental_state_cache() -> void:
 	_dirty_schema_objects = {"player": {}, "vehicle": {}, "objective": {}}
 	_state_cache_conversion_counts = {"player": 0, "vehicle": 0, "objective": 0}
 	_state_cache_entity_conversions.clear()
+	_remote_pose_cache.clear()
+	_remote_pose_frame_id = -1
+	_remote_pose_connection_gen = -1
+	_remote_pose_state_gen = -1
 
 func _begin_incremental_state_cache() -> void:
 	_clear_incremental_state_cache()
@@ -378,6 +387,7 @@ func _on_player_removed(_player: Variant, key: String) -> void:
 	_schema_instances["player"].erase(key)
 	_dirty_schema_objects["player"].erase(key)
 	_remove_object_callback("player", key)
+	_remote_pose_cache.erase(key)
 
 func _on_vehicle_added(vehicle: Variant, key: String) -> void:
 	_watch_schema_object(vehicle, "vehicle", key)
@@ -539,6 +549,10 @@ func _on_state_changed(source_room: Variant, generation: int) -> void:
 			vehicle_state["pos"] = Vector3(float(vehicle_state.get("x", 0.0)), float(vehicle_state.get("y", 0.0)), float(vehicle_state.get("z", 0.0)))
 		state["vehicles"] = normalized_vehicles
 		_last_normalized_state = state
+		_state_generation += 1
+		_remote_pose_frame_id = -1
+		for removed_pid in removed_players:
+			_remote_pose_cache.erase(removed_pid)
 		if ready_after_state: _set_connected(true)
 		state_received.emit(state)
 		_apply_local_reconciler()
@@ -548,29 +562,51 @@ func _on_state_changed(source_room: Variant, generation: int) -> void:
 			_qa_state_count += 1
 			_qa_state_max_us = maxi(_qa_state_max_us, elapsed)
 
-func get_sdk_remote_poses() -> Dictionary:
+## Refreshes the reusable remote pose cache at most once per rendered frame.
+## Returned entries are borrowed and read-only until the next refresh.
+func prepare_remote_poses_for_frame(frame_id: int = -1) -> Dictionary:
+	var target_frame := frame_id if frame_id >= 0 else Engine.get_process_frames()
+	if _remote_pose_frame_id == target_frame and _remote_pose_connection_gen == _connection_generation and _remote_pose_state_gen == _state_generation:
+		return _remote_pose_cache
+
 	var timing_start := Time.get_ticks_usec() if _qa_timing else 0
 	var players: Dictionary = _last_normalized_state.get("players", {})
 	if players.is_empty():
+		_remote_pose_cache.clear()
+		_remote_pose_frame_id = target_frame
+		_remote_pose_connection_gen = _connection_generation
+		_remote_pose_state_gen = _state_generation
 		if _qa_timing: _qa_remote_pose_timing.record(Time.get_ticks_usec() - timing_start, 0)
-		return {}
+		return _remote_pose_cache
+
+	for cached_user in _remote_pose_cache.keys():
+		if not players.has(cached_user) or cached_user == _username:
+			_remote_pose_cache.erase(cached_user)
+
 	var decoded = room.get_state() if room != null and predictor != null else null
 	var instances: Dictionary = decoded.get("players") if decoded != null else {}
 	var render_time_ms := float(room.clock.render_now()) if room != null and predictor != null else 0.0
 	var sdk_server_time_ms := float(room.clock.server_now()) if room != null and predictor != null else 0.0
-	var poses := {}
+
 	for username in players:
 		if username == _username: continue
-		# Rendering consumes pose/animation fields only; inventory, score and
-		# loadout data stay in the state cache instead of being copied every frame.
 		var source: Dictionary = players[username]
-		var pose := {
-			"x": source.get("x", 0.0), "y": source.get("y", 0.0), "z": source.get("z", 0.0),
-			"pitch": source.get("pitch", 0.0), "yaw": source.get("yaw", 0.0), "anim": source.get("anim", "idle"),
-			"animation_time": source.get("animation_time", 0.0),
-			"pose_time_ms": source.get("pose_time_ms", render_time_ms),
-			"is_dead": source.get("is_dead", false),
-		}
+		var pose: Dictionary
+		if _remote_pose_cache.has(username):
+			pose = _remote_pose_cache[username]
+		else:
+			pose = {}
+			_remote_pose_cache[username] = pose
+		pose["x"] = source.get("x", 0.0)
+		pose["y"] = source.get("y", 0.0)
+		pose["z"] = source.get("z", 0.0)
+		pose["pitch"] = source.get("pitch", 0.0)
+		pose["yaw"] = source.get("yaw", 0.0)
+		pose["anim"] = source.get("anim", "idle")
+		pose["animation_time"] = source.get("animation_time", 0.0)
+		pose["pose_time_ms"] = source.get("pose_time_ms", render_time_ms)
+		pose["is_dead"] = source.get("is_dead", false)
+
 		if room != null and predictor != null and instances.has(username):
 			var instance = instances[username]
 			for field in ["x", "y", "z", "yaw", "pitch"]:
@@ -597,9 +633,17 @@ func get_sdk_remote_poses() -> Dictionary:
 		pose["ry"] = rotation.y
 		pose["rz"] = rotation.z
 		pose["rw"] = rotation.w
-		poses[username] = pose
-	if _qa_timing: _qa_remote_pose_timing.record(Time.get_ticks_usec() - timing_start, poses.size())
-	return poses
+
+	_remote_pose_frame_id = target_frame
+	_remote_pose_connection_gen = _connection_generation
+	_remote_pose_state_gen = _state_generation
+
+	if _qa_timing: _qa_remote_pose_timing.record(Time.get_ticks_usec() - timing_start, _remote_pose_cache.size())
+	return _remote_pose_cache
+
+## Backward-compatible wrapper for remote pose access. Borrowed, read-only view.
+func get_sdk_remote_poses() -> Dictionary:
+	return prepare_remote_poses_for_frame()
 
 ## Explicit QA report; ordinary gameplay does not allocate timing samples or summaries.
 func get_remote_pose_preparation_diagnostics() -> Dictionary:
@@ -609,8 +653,12 @@ func set_qa_timing(enabled: bool) -> void:
 	_qa_timing = enabled
 	_qa_remote_pose_timing = RemotePoseTiming.new() if enabled else null
 
-func get_sdk_remote_pose(username: String) -> Dictionary:
-	return get_sdk_remote_poses().get(username, {})
+## Returns a single cached remote pose, refreshing the frame cache if stale.
+func get_sdk_remote_pose(username: String, frame_id: int = -1) -> Dictionary:
+	var target_frame := frame_id if frame_id >= 0 else Engine.get_process_frames()
+	if _remote_pose_frame_id != target_frame or _remote_pose_connection_gen != _connection_generation or _remote_pose_state_gen != _state_generation:
+		prepare_remote_poses_for_frame(target_frame)
+	return _remote_pose_cache.get(username, {})
 
 func get_pose_clock_diagnostics() -> Dictionary:
 	return {"raw_delta_ms": _pose_clock_raw_delta_ms, "server_offset_ms": _pose_clock_server_offset_ms, "render_delta_ms": _pose_clock_render_delta_ms, "samples": _pose_clock_samples, "coherent": _pose_clock_coherent}
@@ -805,8 +853,16 @@ func _on_message(kind: Variant, payload: Variant, source_room: Variant, generati
 			var impact_speed := float(msg.get("speed", 0.0))
 			if impact_normal.is_finite() and is_finite(impact_speed):
 				vehicle_impact_received.emit(String(msg.get("id", "")), impact_normal, clampf(impact_speed, 0.0, 40.0))
-		"hit_confirmed": hit_confirmed.emit()
-		"kill_confirmed": kill_confirmed.emit()
+		"hit_confirmed":
+			hit_confirmed.emit(String(msg.get("type", "normal")), int(msg.get("damage", 0)))
+		"kill_confirmed":
+			kill_confirmed.emit()
+		"missile_lock":
+			missile_locked.emit(int(msg.get("id", 0)), int(msg.get("distance", 0)), _vec(msg.get("direction", [])))
+		"missile_lock_break":
+			missile_lock_broken.emit(int(msg.get("id", 0)))
+		"smoke_screen":
+			smoke_screen_received.emit(String(msg.get("shooter", "")), _vec(msg.get("position", [])))
 		"elimination":
 			elimination_received.emit(msg.duplicate(true))
 		"damage": damage_received.emit(String(msg.get("target", "")), _vec(msg.get("pos", [])), _vec(msg.get("direction", [])), int(msg.get("amount", 0)))
@@ -990,6 +1046,9 @@ func _clear_projectile_prediction() -> void:
 
 func send_vehicle_seat(id: String, enter: bool) -> void:
 	if room != null and _gameplay_input_enabled: room.send_message("vehicle_seat", {"id": id, "enter": enter})
+
+func send_smoke(pos: Vector3) -> void:
+	if room != null: room.send_message("deploy_smoke", {"position": [pos.x, pos.y, pos.z]})
 
 func send_vehicle_input(throttle: float, steer: float, brake: bool, gear: int) -> void:
 	# Controls are sampled once per SDK input tick; this legacy-shaped entry

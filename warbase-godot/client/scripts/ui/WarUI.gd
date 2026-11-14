@@ -101,3 +101,17 @@ static func refresh_nameplate(label: Label3D, identity: String, friendly: bool, 
 	if label.text != caption: label.text = caption
 	var colour := CYAN if friendly else DANGER
 	if label.modulate != colour: label.modulate = colour
+
+static func configure_health_badge(label: Label3D) -> void:
+	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	label.font = DISPLAY_FONT
+	label.font_size = 18
+	label.pixel_size = 0.003
+	label.outline_size = 4
+	label.outline_modulate = Color(0.02, 0.03, 0.035, 0.9)
+
+static func refresh_health_badge(label: Label3D, hp: int, friendly: bool) -> void:
+	var text := "%d HP" % hp
+	if label.text != text: label.text = text
+	var colour := CYAN if friendly else DANGER
+	if label.modulate != colour: label.modulate = colour

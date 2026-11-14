@@ -95,7 +95,7 @@ const gameServer = new Server({
     app.get('/healthcheck', health);
     app.get('/internal/metrics', createOperationsMetricsHandler(operationsToken, () => {
       const roomMetrics = [...roomOperationsMetrics.values()];
-      const sum = (field: keyof (typeof roomMetrics)[number]) => roomMetrics.reduce((total, value) => total + value[field], 0);
+      const sum = (field: keyof (typeof roomMetrics)[number]) => roomMetrics.reduce((total, value) => total + (typeof value[field] === 'number' ? (value[field] as number) : 0), 0);
       const tickCount = sum('tickCount'), tickDuration = sum('totalTickDurationMs');
       const maxTickMs = roomMetrics.reduce((max, room) => Math.max(max, room.maxTickDurationMs), 0);
       return {

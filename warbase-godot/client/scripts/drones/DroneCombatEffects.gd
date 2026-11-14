@@ -22,6 +22,8 @@ class Wreck:
 	var age := 0.0
 	var next_plume := 0.0
 	var next_ember := 0.0
+	var next_cookoff := 0.0
+	var is_ground_vehicle := false
 	var rest_height := 0.0
 	var grounded := false
 
@@ -81,6 +83,78 @@ static func _get_smoke_texture() -> ImageTexture:
 	_smoke_texture = ImageTexture.create_from_image(image)
 	return _smoke_texture
 
+func ground_dust(position: Vector3, velocity: Vector3) -> void:
+	if not position.is_finite(): return
+	var drift := velocity * 0.25 + Vector3(randf_range(-0.15, 0.15), randf_range(0.1, 0.28), randf_range(-0.15, 0.15))
+	_emit_smoke(position, drift, randf_range(0.35, 0.65), randf_range(0.2, 0.38), Color(0.68, 0.62, 0.54, 0.42))
+	set_physics_process(true)
+
+func missile_trail(position: Vector3) -> void:
+	_emit_smoke(position, Vector3.UP * 0.18, 0.75, 0.16, Color(0.62, 0.61, 0.58, 0.38))
+	set_physics_process(true)
+
+func missile_explosion(position: Vector3) -> void:
+	if not position.is_finite(): return
+	Audio.explosion()
+	var weapons = get_tree().get_first_node_in_group("weapon_system")
+	if weapons and weapons.has_method("spawn_blast_crater"):
+		weapons.spawn_blast_crater(position, 1.4)
+	_burst(position, Vector3.ZERO, true)
+	# Brief ignition followed by slower, irregular soot; no expanding solid sphere.
+	_emit_smoke(position, Vector3.UP * 0.6, 0.10, 1.2, Color(1.0, 0.88, 0.62, 0.95))
+	for index in 7:
+		var direction := Vector3(randf_range(-1.0, 1.0), randf_range(0.2, 1.0), randf_range(-1.0, 1.0))
+		_emit_smoke(position + direction * 0.3, direction * 2.0, randf_range(1.6, 2.7), randf_range(0.9, 1.6), Color(0.27, 0.26, 0.24, 0.75))
+	set_physics_process(true)
+
+func deploy_smoke_screen(center: Vector3, count: int = 14) -> void:
+	if not center.is_finite(): return
+	for i in count:
+		var offset := Vector3(randf_range(-3.8, 3.8), randf_range(0.2, 0.7), randf_range(-3.8, 3.8))
+		var drift := Vector3(randf_range(-0.5, 0.5), randf_range(0.25, 0.55), randf_range(-0.5, 0.5))
+		_emit_smoke(center + offset, drift, randf_range(5.0, 7.5), randf_range(2.2, 3.5), Color(0.74, 0.73, 0.70, 0.88))
+	set_physics_process(true)
+
+func deflect_sparks(position: Vector3, normal: Vector3) -> void:
+	if not position.is_finite(): return
+	var dir := normal.normalized() if normal.is_finite() else Vector3.UP
+	for index in 8:
+		var spread := (dir + Vector3(randf_range(-0.6, 0.6), randf_range(0.1, 0.8), randf_range(-0.6, 0.6))).normalized()
+		var debris := _debris[_debris_cursor]
+		_debris_cursor = (_debris_cursor + 1) % _debris.size()
+		var spark := Color(1.0, randf_range(0.85, 1.0), 0.35)
+		_start(debris, position + dir * 0.08, spread * randf_range(4.5, 9.5), randf_range(0.18, 0.38), randf_range(0.28, 0.52), spark)
+		debris.node.rotation = spread * TAU
+	set_physics_process(true)
+
+func emit_critical_hull_smoke(position: Vector3, velocity: Vector3) -> void:
+	if not position.is_finite(): return
+	var drift := velocity * 0.15 + Vector3(randf_range(-0.2, 0.2), randf_range(0.6, 1.1), randf_range(-0.2, 0.2))
+	_emit_smoke(position, drift, randf_range(1.2, 1.8), randf_range(0.4, 0.7), Color(0.16, 0.15, 0.14, 0.92))
+	if randf() < 0.45:
+		var ember := _debris[_debris_cursor]
+		_debris_cursor = (_debris_cursor + 1) % _debris.size()
+		var ember_dir := Vector3(randf_range(-0.3, 0.3), randf_range(0.8, 1.5), randf_range(-0.3, 0.3))
+		_start(ember, position, ember_dir + velocity * 0.1, randf_range(0.2, 0.4), randf_range(0.25, 0.45), Color(1.0, 0.55, 0.15))
+	set_physics_process(true)
+
+func deploy_flares(origin: Vector3, rear_dir: Vector3, count: int = 4) -> void:
+	if not origin.is_finite(): return
+	for i in count:
+		var spread := (rear_dir + Vector3(randf_range(-0.6, 0.6), randf_range(-0.4, 0.2), randf_range(-0.6, 0.6))).normalized()
+		var vel := spread * randf_range(4.0, 7.5) + Vector3.DOWN * 1.5
+		_emit_smoke(origin, vel, randf_range(2.0, 3.2), randf_range(0.4, 0.7), Color(1.0, 0.94, 0.55, 0.95))
+	set_physics_process(true)
+
+func deploy_nitro_burst(origin: Vector3, rear_dir: Vector3) -> void:
+	if not origin.is_finite(): return
+	for i in 6:
+		var vel := rear_dir * randf_range(3.0, 6.0) + Vector3(randf_range(-0.3, 0.3), randf_range(0.1, 0.4), randf_range(-0.3, 0.3))
+		var is_flame := i < 3
+		var col := Color(0.25, 0.65, 1.0, 0.9) if is_flame else Color(0.85, 0.85, 0.85, 0.6)
+		_emit_smoke(origin, vel, randf_range(0.4, 0.8), randf_range(0.3, 0.6), col)
+	set_physics_process(true)
+
 func hit(position: Vector3, direction: Vector3, intensity: float) -> void:
 	if not position.is_finite(): return
 	var strength := clampf(intensity, 0.65, 2.0)
@@ -102,6 +176,7 @@ func crash(source: Node3D, velocity: Vector3) -> Node3D:
 	wreck.velocity = velocity.limit_length(16.0) + forward * 1.3 + Vector3.UP * 0.9
 	var side := -1.0 if randf() < 0.5 else 1.0
 	wreck.angular = Vector3(randf_range(-1.9, -0.9), side * 0.7, side * randf_range(2.1, 3.5))
+	wreck.is_ground_vehicle = String(source.get("chassis_id")) in ["tracked", "wheels"] if "chassis_id" in source else (GameState.selected_drone_chassis in ["tracked", "wheels"])
 	_wrecks.append(wreck)
 	_burst(wreck.model.global_position, wreck.velocity * 0.2, false)
 	set_physics_process(true)
@@ -174,6 +249,15 @@ func _advance_wreck(wreck: Wreck, delta: float) -> void:
 			wreck.angular *= 0.28
 			if wreck.grounded:
 				wreck.rest_height = float(contact.position.y) + _ground_clearance(wreck)
+	if wreck.is_ground_vehicle and wreck.age < 1.8 and wreck.age >= wreck.next_cookoff:
+		wreck.next_cookoff = wreck.age + randf_range(0.18, 0.32)
+		var pop_pos := model.global_position + Vector3(randf_range(-0.25, 0.25), randf_range(0.08, 0.28), randf_range(-0.25, 0.25))
+		var pop_dir := Vector3(randf_range(-0.6, 0.6), randf_range(0.7, 1.8), randf_range(-0.6, 0.6)).normalized()
+		_emit_smoke(pop_pos, pop_dir * 1.5, randf_range(0.5, 0.9), randf_range(0.35, 0.65), Color(1.0, 0.5, 0.15, 0.95))
+		var ember := _debris[_debris_cursor]
+		_debris_cursor = (_debris_cursor + 1) % _debris.size()
+		_start(ember, pop_pos, pop_dir * randf_range(3.0, 6.5), randf_range(0.2, 0.4), randf_range(0.25, 0.5), Color(1.0, 0.85, 0.25))
+		Audio.cookoff_pop(-4.0)
 	if wreck.grounded:
 		model.rotation.x = lerp_angle(model.rotation.x, -0.24, delta * 5.0)
 		model.rotation.z = lerp_angle(model.rotation.z, signf(wreck.angular.z) * 0.32, delta * 5.0)

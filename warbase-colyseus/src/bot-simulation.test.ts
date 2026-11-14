@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { BotSimulation, type BotPlayer } from './bot-simulation.js';
+import { BotSimulation, type BotPlayer, insertNearestCandidate } from './bot-simulation.js';
 import { INDUSTRIAL_SPAWNS, loadWorldGeometry } from './world-geometry.js';
 
 function human(username: string, spawn: readonly number[], team = 'B'): BotPlayer {
@@ -135,4 +135,40 @@ test('Resoforge bots accelerate away from their spawns at the live tick rate', (
   }
   const moved = joined.filter((bot, i) => Math.hypot(bot.x - starts[i].x, bot.z - starts[i].z) > 0.5);
   assert.ok(moved.length >= 4, 'most of the bot roster should travel beyond its spawn');
+});
+
+test('insertNearestCandidate maintains exact bounded ascending order with stable index tie-breaking', () => {
+  const indices = new Int32Array(4);
+  const distances = new Float64Array(4);
+  let count = 0;
+
+  // Insert items out of order, including identical distances to test stable tie-breaking
+  const items = [
+    { idx: 10, d: 50 },
+    { idx: 5, d: 10 },
+    { idx: 8, d: 20 },
+    { idx: 3, d: 20 }, // tie with idx 8, but idx 3 < 8, so 3 must come before 8
+    { idx: 12, d: 5 },
+    { idx: 7, d: 20 }, // tie with 3 and 8: 3 < 7 < 8
+  ];
+
+  for (const item of items) {
+    count = insertNearestCandidate(indices, distances, count, 4, item.idx, item.d);
+  }
+
+  assert.equal(count, 4);
+  // Expected top 4:
+  // d=5 (idx 12)
+  // d=10 (idx 5)
+  // d=20 (idx 3)
+  // d=20 (idx 7)
+  // (idx 8 dropped because capacity is 4)
+  assert.equal(indices[0], 12);
+  assert.equal(distances[0], 5);
+  assert.equal(indices[1], 5);
+  assert.equal(distances[1], 10);
+  assert.equal(indices[2], 3);
+  assert.equal(distances[2], 20);
+  assert.equal(indices[3], 7);
+  assert.equal(distances[3], 20);
 });
