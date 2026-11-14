@@ -1,10 +1,10 @@
 import subprocess, sys, time, json, urllib.request, urllib.error
 
 D = ['docker', 'exec', 'portainer_docker_1', 'docker', '-H', 'unix:///data/docker.sock']
-IMAGE = 'warbase-colyseus:release-20261114-conquest'
+IMAGE = 'warbase-colyseus:release-20261114-neumorphic'
 CONTAINER_NAME = 'warbase-colyseus-candidate'
-BACKUP_NAME = 'warbase-colyseus-backup-pre-release-20261114'
-STAGE_NAME = 'warbase-colyseus-stage-20261114'
+BACKUP_NAME = 'warbase-colyseus-backup-pre-neumorphic-20261114'
+STAGE_NAME = 'warbase-colyseus-stage-neumorphic'
 
 def run(*args, check=True):
     res = subprocess.run(D + list(args), stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
