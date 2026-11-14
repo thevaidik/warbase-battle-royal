@@ -27,7 +27,7 @@ func _ready() -> void:
 	_build_preview()
 	var panel := PanelContainer.new()
 	panel.custom_minimum_size.x = 320
-	panel.add_theme_stylebox_override("panel", WarUI.panel(WarUI.PANEL, WarUI.LINE, 24))
+	panel.add_theme_stylebox_override("panel", WarUI.neumorphic_panel(WarUI.PANEL, 20))
 	add_child(panel)
 	WarUI.decorate(panel, WarUI.CYAN)
 	var scroll := ScrollContainer.new()
@@ -53,6 +53,8 @@ func _ready() -> void:
 		button.toggle_mode = true
 		button.button_pressed = chassis == GameState.selected_drone_chassis
 		button.pressed.connect(_select_chassis.bind(chassis))
+		button.custom_minimum_size = Vector2(72, 38)
+		WarUI.neumorphic_chassis_button(button, button.button_pressed, 14)
 		_chassis_buttons.add_child(button)
 	info.add_child(_chassis_buttons)
 	var primary_heading := Label.new()
@@ -322,6 +324,7 @@ func refresh() -> void:
 		if button is Button:
 			var chassis_by_label := {"WHEELS":"wheels","TRACKS":"tracked","HELI":"heli","WING":"wing"}
 			button.button_pressed = String(chassis_by_label.get(button.text,"")) == GameState.selected_drone_chassis
+			WarUI.neumorphic_chassis_button(button, button.button_pressed, 14)
 	if is_instance_valid(_drone):
 		_scene.remove_child(_drone)
 		_drone.queue_free()

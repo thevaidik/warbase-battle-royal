@@ -14,6 +14,7 @@ const MenuScript := preload("res://scripts/ui/MainMenu.gd")
 const CombatJeepScript := preload("res://scripts/vehicles/CombatJeep.gd")
 const ColyseusNetScript := preload("res://scripts/net/ColyseusNetwork.gd")
 const TacticalMapScript := preload("res://scripts/ui/TacticalMap.gd")
+const IntroScript := preload("res://scripts/ui/StarWarsIntro.gd")
 
 enum Phase { MENU, PLAYING, PAUSED, DEAD }
 
@@ -29,6 +30,7 @@ var hud: WarHUD
 var tactical_map: WarTacticalMap
 var objective_markers: WarObjectiveMarkers
 var menu: WarMenu
+var intro: CanvasLayer
 var _online_vehicles: Dictionary = {}
 
 var _send_acc := 0.0
@@ -100,6 +102,14 @@ func _ready() -> void:
 	add_child(menu)
 	menu.deploy_requested.connect(_on_deploy)
 	menu.quick_match_ready.connect(_on_quick_match)
+	menu.play_intro_requested.connect(_launch_intro)
+	
+	var is_test_environment: bool = DisplayServer.get_name() == "headless" or _autotest or OS.has_feature("test")
+	if not is_test_environment:
+		menu.visible = false
+		_launch_intro()
+	else:
+		menu.visible = true
 	
 	net.state_received.connect(_on_state)
 	net.payload_ammo_received.connect(func(state: Dictionary) -> void:
@@ -413,6 +423,16 @@ func _quit_to_menu() -> void:
 	menu.visible = true
 	phase = Phase.MENU
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+
+func _launch_intro() -> void:
+	if is_instance_valid(intro):
+		intro.queue_free()
+	menu.visible = false
+	intro = IntroScript.new()
+	intro.intro_finished.connect(func() -> void:
+		menu.visible = true
+	)
+	add_child(intro)
 
 func _grenade_launch() -> Dictionary:
 	var cam: Camera3D = player.camera

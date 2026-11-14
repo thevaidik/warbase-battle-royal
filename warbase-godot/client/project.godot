@@ -15,7 +15,11 @@ config/description="WarBase Conquest FPS with online human/AI teams, selectable 
 run/main_scene="res://scenes/Main.tscn"
 run/max_fps=0
 config/features=PackedStringArray("4.7", "GL Compatibility")
-boot_splash/bg_color=Color(0.03, 0.03, 0.05, 1)
+boot_splash/bg_color=Color(0.024, 0.031, 0.047, 1)
+boot_splash/show_image=true
+boot_splash/image="res://assets/ui/warbots_splash.png"
+boot_splash/fullsize=true
+boot_splash/use_filter=true
 
 [autoload]
 

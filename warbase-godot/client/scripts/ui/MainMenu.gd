@@ -3,6 +3,7 @@ extends CanvasLayer
 ## Map-led lobby with a shared theme and explicit online/practice states.
 signal deploy_requested
 signal quick_match_ready(reservation: Dictionary, map: String)
+signal play_intro_requested
 
 enum FeatureTab { HOME, SETTINGS, MULTIPLAYER }
 var current_tab := FeatureTab.HOME
@@ -111,7 +112,8 @@ func _margin(parent: Node, padding: int) -> MarginContainer:
 func _button(text: String, callback: Callable) -> Button:
 	var button := Button.new()
 	button.text = text
-	button.custom_minimum_size.y = 42
+	button.custom_minimum_size.y = 44
+	WarUI.neumorphic_button(button, false, 14)
 	button.mouse_entered.connect(func() -> void: Audio.ui_btn_hover())
 	button.pressed.connect(func() -> void:
 		Audio.ui_btn_click()
@@ -154,10 +156,23 @@ func build_lobby() -> void:
 	_operator_page = preload("res://scripts/ui/OperatorMenu.gd").new()
 	_operator_page.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_home_page.add_child(_operator_page)
-	_home_page.add_child(_button("DEPLOY DRONE  ›", func() -> void:
+	var home_actions := HBoxContainer.new()
+	home_actions.add_theme_constant_override("separation", 16)
+	_home_page.add_child(home_actions)
+	var deploy_btn := _button("DEPLOY DRONE  ›", func() -> void:
 		GameState.practice_mode = false
 		deploy_requested.emit()
-	))
+	)
+	deploy_btn.custom_minimum_size = Vector2(240, 56)
+	deploy_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	WarUI.primary(deploy_btn)
+	home_actions.add_child(deploy_btn)
+	var briefing_btn := _button("MISSION BRIEFING  ›", func() -> void:
+		play_intro_requested.emit()
+	)
+	briefing_btn.custom_minimum_size = Vector2(200, 56)
+	WarUI.neumorphic_button(briefing_btn, false, 24)
+	home_actions.add_child(briefing_btn)
 	_multiplayer_page = VBoxContainer.new()
 	_multiplayer_page.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_multiplayer_page.add_theme_constant_override("separation", 18)
@@ -170,7 +185,7 @@ func build_lobby() -> void:
 	_build_bottom_bar(_multiplayer_page)
 	_settings_page = PanelContainer.new()
 	_settings_page.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	_settings_page.add_theme_stylebox_override("panel", WarUI.panel(WarUI.PANEL, WarUI.LINE, 24))
+	_settings_page.add_theme_stylebox_override("panel", WarUI.neumorphic_panel(WarUI.PANEL, 20))
 	_pages.add_child(_settings_page)
 	_build_create_server_modal()
 	_build_toast_banner()
@@ -274,8 +289,7 @@ func _switch_tab(tab: int) -> void:
 	_settings_page.visible = tab == FeatureTab.SETTINGS
 	for key in tab_buttons:
 		var button: Button = tab_buttons[key]
-		button.add_theme_stylebox_override("normal", WarUI.panel(WarUI.RAISED if key == tab else WarUI.BACKGROUND, WarUI.ACCENT if key == tab else WarUI.BACKGROUND, 12))
-		button.add_theme_color_override("font_color", WarUI.ACCENT if key == tab else WarUI.MUTED)
+		WarUI.neumorphic_tab(button, key == tab, 18)
 	if tab == FeatureTab.HOME: _operator_page.refresh()
 	if tab == FeatureTab.SETTINGS:
 		for child in _settings_page.get_children(): _settings_page.remove_child(child); child.queue_free()
@@ -353,9 +367,15 @@ func _render_servers() -> void:
 		var map_id := String(room.get("map", "industrial"))
 		var selected := id == GameState.room_id
 		var card := _button("", func() -> void: _select_server(room))
-		card.custom_minimum_size.y = 74
-		card.add_theme_stylebox_override("normal", WarUI.panel(WarUI.RAISED if selected else WarUI.PANEL, WarUI.ACCENT if selected else WarUI.LINE))
-		if selected: WarUI.decorate(card, WarUI.ACCENT)
+		card.custom_minimum_size.y = 76
+		if selected:
+			var sel_style := WarUI.neumorphic_style("pressed", 14)
+			sel_style.border_color = WarUI.CYAN
+			sel_style.border_width_left = 4
+			card.add_theme_stylebox_override("normal", sel_style)
+			WarUI.decorate(card, WarUI.CYAN)
+		else:
+			card.add_theme_stylebox_override("normal", WarUI.neumorphic_style("normal", 14))
 		var content := _margin(card, 12)
 		content.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 		var row := HBoxContainer.new()
@@ -609,7 +629,7 @@ func _build_create_server_modal() -> void:
 	create_modal.grow_vertical = Control.GROW_DIRECTION_BOTH
 	create_modal.custom_minimum_size = Vector2(460, 410)
 	create_modal.visible = false
-	create_modal.add_theme_stylebox_override("panel", _style_panel(WarUI.PANEL, WarUI.LINE, 8, 2))
+	create_modal.add_theme_stylebox_override("panel", WarUI.neumorphic_panel(WarUI.PANEL, 20))
 	root.add_child(create_modal)
 	
 	var m := MarginContainer.new()

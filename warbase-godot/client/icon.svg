@@ -1,1 +1,16 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128"><rect width="128" height="128" rx="16" fill="#0b0d12"/><circle cx="64" cy="64" r="34" fill="none" stroke="#e33" stroke-width="7"/><path d="M64 30v68M30 64h68" stroke="#e33" stroke-width="5"/><circle cx="64" cy="64" r="6" fill="#fff"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <defs>
+    <linearGradient id="glow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#69dce7"/>
+      <stop offset="100%" stop-color="#c6ff5a"/>
+    </linearGradient>
+  </defs>
+  <rect width="128" height="128" rx="28" fill="#080a0f"/>
+  <rect x="2" y="2" width="124" height="124" rx="26" fill="none" stroke="#22303c" stroke-width="2"/>
+  <!-- Tactical Hex / Frame -->
+  <polygon points="64,18 106,42 106,86 64,110 22,86 22,42" fill="none" stroke="#1d2c38" stroke-width="3"/>
+  <!-- Minimalist WARBOTS Angular 'W' -->
+  <path d="M38 46 L50 82 L64 54 L78 82 L90 46" fill="none" stroke="url(#glow)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Tech Core Dot -->
+  <circle cx="64" cy="38" r="4" fill="#c6ff5a"/>
+</svg>
