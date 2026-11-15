@@ -63,9 +63,16 @@ func _ready() -> void:
 	Input.use_accumulated_input = false
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 
-	# Draw at the window's actual resolution; upscaling amplifies moving edges.
-	get_viewport().msaa_3d = Viewport.MSAA_2X if OS.has_feature("web") else Viewport.MSAA_4X
-	get_viewport().scaling_3d_scale = 1.0
+	# Dynamic resolution scaling & anti-aliasing
+	get_viewport().msaa_3d = Viewport.MSAA_2X
+	if OS.has_feature("web"):
+		get_viewport().scaling_3d_mode = Viewport.SCALING_3D_MODE_BILINEAR
+		get_viewport().scaling_3d_scale = 1.0
+	else:
+		get_viewport().scaling_3d_mode = Viewport.SCALING_3D_MODE_FSR
+		get_viewport().scaling_3d_scale = 0.85
+		get_viewport().fsr_sharpness = 0.2
+		Engine.max_fps = 120
 
 	for a in OS.get_cmdline_user_args():
 		if a == "autotest":

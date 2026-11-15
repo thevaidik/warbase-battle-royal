@@ -443,13 +443,13 @@ func _build_sky(root: Node3D, map_name: String = "industrial") -> void:
 	
 	# Screen Space Reflections (Glossy metal armor & wet road reflections)
 	env.ssr_enabled = is_desktop and quality in ["medium", "high", "ultra"]
-	env.ssr_max_steps = 48
+	env.ssr_max_steps = 32
 	env.ssr_fade_in = 0.15
 	env.ssr_fade_out = 1.8
 	env.ssr_depth_tolerance = 0.25
 	
 	# SDFGI: Real-Time Ray-Marched Global Illumination
-	if is_desktop and quality in ["high", "ultra"]:
+	if is_desktop and quality in ["ultra"]:
 		env.sdfgi_enabled = true
 		env.sdfgi_use_occlusion = true
 		env.sdfgi_bounce_feedback = 0.45
@@ -484,7 +484,7 @@ func _build_sky(root: Node3D, map_name: String = "industrial") -> void:
 	env.fog_aerial_perspective = 0.70
 	
 	# 3D Froxel Ray-Marched Volumetric Fog (God rays piercing through cranes & structures)
-	if is_desktop and quality in ["high", "ultra"]:
+	if is_desktop and quality in ["ultra"]:
 		env.volumetric_fog_enabled = true
 		env.volumetric_fog_density = 0.0065
 		env.volumetric_fog_albedo = env.fog_light_color
@@ -531,14 +531,14 @@ func _build_sky(root: Node3D, map_name: String = "industrial") -> void:
 		
 	# Cascaded PCSS Soft Directional Shadows
 	sun.shadow_enabled = is_desktop and map_name != "football" and quality != "low"
-	sun.directional_shadow_max_distance = 80.0
+	sun.directional_shadow_max_distance = 65.0
 	sun.directional_shadow_mode = DirectionalLight3D.SHADOW_PARALLEL_4_SPLITS
 	sun.directional_shadow_blend_splits = true
 	sun.directional_shadow_split_1 = 0.08
 	sun.directional_shadow_split_2 = 0.22
 	sun.directional_shadow_split_3 = 0.50
 	sun.directional_shadow_fade_start = 0.8
-	sun.shadow_bias = 0.025
+	sun.shadow_bias = 0.02
 	sun.shadow_normal_bias = 1.6
 	sun.shadow_opacity = 0.88
 	sun.shadow_blur = 1.2
