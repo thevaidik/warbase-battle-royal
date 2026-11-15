@@ -124,6 +124,7 @@ var practice_mode := false
 var online_ready := false
 var thermal_view := false
 var throwables_remaining := 2
+var graphics_quality: String = "high"
 
 # Match state (mirrors server GameState for HUD)
 var players: Dictionary = {}
@@ -164,6 +165,7 @@ func _ready() -> void:
 		selected_secondary = String(preferences.get_value("loadout", "secondary", "pistol"))
 		selected_tertiary = String(preferences.get_value("loadout", "tertiary", "hmg"))
 		selected_throwable = String(preferences.get_value("loadout", "throwable", "frag"))
+		graphics_quality = String(preferences.get_value("graphics", "quality", "high"))
 	validate_loadout()
 	if not ["wheels", "tracked", "heli", "wing"].has(selected_drone_chassis): selected_drone_chassis = "heli"
 	selected_drone_payload = selected_primary
@@ -275,5 +277,6 @@ func save_settings() -> void:
 	preferences.set_value("loadout", "tertiary", selected_tertiary)
 	preferences.set_value("loadout", "throwable", selected_throwable)
 	preferences.set_value("controls", "sensitivity", BASE_SENSITIVITY)
+	preferences.set_value("graphics", "quality", graphics_quality)
 	preferences.set_value("audio", "sfx", Audio.sfx_volume)
 	preferences.save("user://settings.cfg")

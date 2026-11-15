@@ -426,16 +426,43 @@ func _build_sky(root: Node3D, map_name: String = "industrial") -> void:
 	env.adjustment_contrast = 1.10
 	env.adjustment_brightness = 1.02
 	
-	# Screen Space Ambient Occlusion for grounded contact shadows
-	env.ssao_enabled = not OS.has_feature("web")
-	env.ssao_radius = 0.8
-	env.ssao_intensity = 0.65
+	# Screen Space Ambient Occlusion for grounded contact shadows under vehicles & structures
+	var is_desktop := not OS.has_feature("web")
+	var quality: String = GameState.graphics_quality if GameState != null else "high"
+	env.ssao_enabled = is_desktop and quality != "low"
+	env.ssao_radius = 1.25
+	env.ssao_intensity = 1.75
+	env.ssao_power = 1.35
+	env.ssao_detail = 0.5
+	env.ssao_horizon = 0.06
+	
+	# Screen Space Indirect Lighting (Fast diffuse bounce)
+	env.ssil_enabled = is_desktop and quality in ["high", "ultra"]
+	env.ssil_radius = 2.4
+	env.ssil_intensity = 0.55
+	
+	# Screen Space Reflections (Glossy metal armor & wet road reflections)
+	env.ssr_enabled = is_desktop and quality in ["medium", "high", "ultra"]
+	env.ssr_max_steps = 48
+	env.ssr_fade_in = 0.15
+	env.ssr_fade_out = 1.8
+	env.ssr_depth_tolerance = 0.25
+	
+	# SDFGI: Real-Time Ray-Marched Global Illumination
+	if is_desktop and quality in ["high", "ultra"]:
+		env.sdfgi_enabled = true
+		env.sdfgi_use_occlusion = true
+		env.sdfgi_bounce_feedback = 0.45
+		env.sdfgi_cascades = 4
+		env.sdfgi_min_cell_size = 0.35
+		env.sdfgi_cascade0_distance = 14.0
+		env.sdfgi_y_scale = Environment.SDFGI_Y_SCALE_75_PERCENT
 	
 	# Subtle Tactical Evening Bloom (Sun specular glints, vehicle headlights, muzzle flashes)
-	env.glow_enabled = not OS.has_feature("web")
+	env.glow_enabled = is_desktop
 	env.glow_normalized = true
-	env.glow_intensity = 0.18
-	env.glow_bloom = 0.04
+	env.glow_intensity = 0.20
+	env.glow_bloom = 0.05
 	env.glow_blend_mode = Environment.GLOW_BLEND_MODE_SOFTLIGHT
 	env.glow_hdr_threshold = 1.05
 	
@@ -455,6 +482,17 @@ func _build_sky(root: Node3D, map_name: String = "industrial") -> void:
 		env.fog_density = 0.00065
 	env.fog_light_energy = 0.55
 	env.fog_aerial_perspective = 0.70
+	
+	# 3D Froxel Ray-Marched Volumetric Fog (God rays piercing through cranes & structures)
+	if is_desktop and quality in ["high", "ultra"]:
+		env.volumetric_fog_enabled = true
+		env.volumetric_fog_density = 0.0065
+		env.volumetric_fog_albedo = env.fog_light_color
+		env.volumetric_fog_emission_energy = 0.04
+		env.volumetric_fog_anisotropy = 0.35
+		env.volumetric_fog_temporal_reprojection_enabled = true
+		env.volumetric_fog_temporal_reprojection_amount = 0.92
+		env.volumetric_fog_ambient_inject = 0.15
 	
 	var hemi := WorldEnvironment.new()
 	hemi.environment = env
@@ -491,13 +529,19 @@ func _build_sky(root: Node3D, map_name: String = "industrial") -> void:
 		sun.light_energy = 1.45
 		sun.light_color = Color(1.0, 0.97, 0.92)
 		
-	# Native shadow experiment is opt-in until capture review confirms stable edges.
-	sun.shadow_enabled = OS.get_environment("WARBASE_SHADOW_EXPERIMENT") == "1" and not OS.has_feature("web") and map_name != "football"
-	sun.directional_shadow_max_distance = 60.0
-	sun.directional_shadow_mode = DirectionalLight3D.SHADOW_PARALLEL_2_SPLITS
+	# Cascaded PCSS Soft Directional Shadows
+	sun.shadow_enabled = is_desktop and map_name != "football" and quality != "low"
+	sun.directional_shadow_max_distance = 80.0
+	sun.directional_shadow_mode = DirectionalLight3D.SHADOW_PARALLEL_4_SPLITS
 	sun.directional_shadow_blend_splits = true
-	sun.shadow_bias = 0.04
-	sun.shadow_normal_bias = 1.0
+	sun.directional_shadow_split_1 = 0.08
+	sun.directional_shadow_split_2 = 0.22
+	sun.directional_shadow_split_3 = 0.50
+	sun.directional_shadow_fade_start = 0.8
+	sun.shadow_bias = 0.025
+	sun.shadow_normal_bias = 1.6
+	sun.shadow_opacity = 0.88
+	sun.shadow_blur = 1.2
 	root.add_child(sun)
 	
 	if map_name == "arena":
@@ -554,6 +598,9 @@ func apply_time_of_day(preset: String) -> void:
 		environment.fog_density *= 1.25 if arid else (0.7 if _active_map == "football" else 1.0)
 		environment.fog_sun_scatter = 0.12 if preset == "overcast" else 0.30
 		environment.fog_light_energy = 0.60
+		if environment.volumetric_fog_enabled:
+			environment.volumetric_fog_albedo = haze_color
+			environment.volumetric_fog_density = 0.009 if preset == "overcast" else (0.007 if preset in ["dawn", "dusk"] else 0.004)
 		environment.tonemap_mode = Environment.TONE_MAPPER_ACES
 		environment.tonemap_exposure = 1.02
 		environment.tonemap_white = 5.8
