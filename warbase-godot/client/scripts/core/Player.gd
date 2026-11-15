@@ -106,6 +106,8 @@ var _crash_focus: Node3D
 var drone_range_m := 300.0
 var _drone_camera_sweep: PhysicsShapeQueryParameters3D
 var _drone_camera_shape: SphereShape3D
+var _camera_smooth_head_y := 0.0
+var _camera_smooth_initialized := false
 var _target_ray := PhysicsRayQueryParameters3D.new()
 var aim_sway := Vector2.ZERO
 var recoil_pitch := 0.0
@@ -208,14 +210,24 @@ func _drone_crosshair_target() -> Vector3:
 
 func _update_drone_chase_camera(optic_weight := 0.0) -> void:
 	if _drone_camera_sweep == null or not is_inside_tree(): return
+	var head_pos := head.global_position
+	var chassis := GameState.selected_drone_chassis
+	var is_ground := chassis in ["tracked", "wheels"]
+	if not is_ground or not _camera_smooth_initialized or is_dead or absf(head_pos.y - _camera_smooth_head_y) > 0.75:
+		_camera_smooth_head_y = head_pos.y
+		_camera_smooth_initialized = true
+	else:
+		var dt := clampf(get_process_delta_time(), 0.001, 0.05)
+		_camera_smooth_head_y = lerpf(_camera_smooth_head_y, head_pos.y, 1.0 - exp(-14.0 * dt))
+	var cam_pivot := Vector3(head_pos.x, _camera_smooth_head_y, head_pos.z)
 	var offset := head.global_basis * Vector3(0, 0.25, 2.2) * (1.0 - optic_weight)
-	_drone_camera_sweep.transform = Transform3D(Basis.IDENTITY, head.global_position)
+	_drone_camera_sweep.transform = Transform3D(Basis.IDENTITY, cam_pivot)
 	_drone_camera_sweep.motion = offset
 	var space := get_world_3d().direct_space_state
 	var start_overlap := not space.intersect_shape(_drone_camera_sweep, 1).is_empty()
 	var travel := space.cast_motion(_drone_camera_sweep)
 	var safe_fraction := 0.0 if start_overlap else (float(travel[0]) if travel.size() >= 2 and travel[1] < 1.0 else 1.0)
-	camera.global_position = head.global_position + offset * maxf(0.0, safe_fraction - 0.02)
+	camera.global_position = cam_pivot + offset * maxf(0.0, safe_fraction - 0.02)
 	if is_instance_valid(_drone_visual): _drone_visual.visible = not is_dead and camera.global_position.distance_to(global_position) >= 0.65
 
 func apply_authoritative_motion(next_velocity: Vector3, sprinting: bool) -> void:
@@ -337,17 +349,22 @@ func _update_ground_surface(delta: float) -> void:
 	var front_y := (hits_y[0] + hits_y[1]) * 0.5
 	var rear_y := (hits_y[2] + hits_y[3]) * 0.5
 	var dz := front_y - rear_y
-	var target_pitch := clampf(atan2(dz, wheelbase * 2.0), -deg_to_rad(45.0), deg_to_rad(45.0))
+	var target_pitch := clampf(atan2(dz, wheelbase * 2.0), -deg_to_rad(32.0), deg_to_rad(32.0))
 	var left_y := (hits_y[0] + hits_y[2]) * 0.5
 	var right_y := (hits_y[1] + hits_y[3]) * 0.5
 	var dx := right_y - left_y
-	var target_roll := clampf(atan2(dx, track_width * 2.0), -deg_to_rad(30.0), deg_to_rad(30.0))
-	flight_pitch = move_toward(flight_pitch, target_pitch, 8.0 * delta)
-	ground_roll = move_toward(ground_roll, target_roll, 8.0 * delta)
+	var target_roll := clampf(atan2(dx, track_width * 2.0), -deg_to_rad(24.0), deg_to_rad(24.0))
+	var pitch_blend := 1.0 - exp(-7.5 * delta)
+	flight_pitch = lerpf(flight_pitch, target_pitch, pitch_blend)
+	var roll_blend := 1.0 - exp(-7.5 * delta)
+	ground_roll = lerpf(ground_roll, target_roll, roll_blend)
+	var center_floor_y := (front_y + rear_y) * 0.5
 	for i in range(4):
-		var ref_y := front_y if i < 2 else rear_y
-		var disp := clampf(hits_y[i] - ref_y, -0.08, 0.08)
-		wheel_suspension[i] = move_toward(wheel_suspension[i], disp, 12.0 * delta)
+		var fore_sign: float = 1.0 if i < 2 else -1.0
+		var side_sign: float = -1.0 if (i % 2 == 0) else 1.0
+		var expected_wheel_y := center_floor_y + fore_sign * wheelbase * sin(flight_pitch) + side_sign * track_width * sin(ground_roll)
+		var disp := clampf(hits_y[i] - expected_wheel_y, -0.09, 0.09)
+		wheel_suspension[i] = lerpf(wheel_suspension[i], disp, 1.0 - exp(-16.0 * delta))
 	_dust_timer = maxf(0.0, _dust_timer - delta)
 	var spd := velocity.length()
 	if spd > 1.2 and _dust_timer <= 0.0:
@@ -419,6 +436,8 @@ func respawn_at(pos: Vector3) -> void:
 	health = max_health
 	ground_roll = 0.0
 	wheel_suspension = [0.0, 0.0, 0.0, 0.0]
+	_camera_smooth_head_y = pos.y + 0.18
+	_camera_smooth_initialized = false
 	_crash_focus = null
 	if is_instance_valid(_drone_visual): _drone_visual.call("set_crash_hidden", false)
 	global_position = pos

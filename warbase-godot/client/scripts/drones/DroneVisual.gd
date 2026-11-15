@@ -31,6 +31,9 @@ var _wheel_struts: Array[Node3D] = []
 var _prev_rolling_speed := 0.0
 var _last_motion_yaw := 0.0
 var _motion_yaw_initialized := false
+var _suspension_body_y := 0.0
+var _prev_world_y := 0.0
+var _world_y_initialized := false
 var _turret: Node3D
 var _velocity := Vector3.ZERO
 var _body: Node3D
@@ -715,6 +718,8 @@ func begin_crash(velocity: Vector3) -> Node3D:
 func set_crash_hidden(hidden: bool) -> void:
 	crash_hidden = hidden
 	visible = not hidden
+	_suspension_body_y = 0.0
+	_world_y_initialized = false
 
 var visual_lod := 0
 
@@ -764,16 +769,36 @@ func apply_motion(velocity: Vector3, yaw: float, pitch: float, is_dead: bool=fal
 	var rolling_speed := local_velocity.z
 	var accel := (rolling_speed - _prev_rolling_speed) / frame_dt
 	_prev_rolling_speed = rolling_speed
-	var pitch_inertia := clampf(-accel * 0.012, -0.09, 0.09) if _uses_ground_gear() else 0.0
+	var pitch_inertia := clampf(-accel * 0.015, -0.09, 0.09) if _uses_ground_gear() else 0.0
 	if _uses_ground_gear():
-		_bank_root.rotation.x = move_toward_angle(_bank_root.rotation.x, _aim_pitch + pitch_inertia - _recoil_kick * 1.5, 14.0 * frame_dt)
-		_bank_root.rotation.z = move_toward_angle(_bank_root.rotation.z, ground_roll, 8.0 * frame_dt)
+		var current_world_y := global_position.y
+		if _world_y_initialized and not dead:
+			var dy := current_world_y - _prev_world_y
+			if absf(dy) > 0.5:
+				_suspension_body_y = 0.0
+			else:
+				# Absorb vertical step shocks so the chassis glides smoothly over stairs/bumps
+				_suspension_body_y = clampf(_suspension_body_y - dy * 0.88, -0.18, 0.18)
+		else:
+			_world_y_initialized = true
+			_suspension_body_y = 0.0
+		_prev_world_y = current_world_y
+		# Critically damped return to baseline ride height
+		_suspension_body_y = lerpf(_suspension_body_y, 0.0, 1.0 - exp(-12.0 * frame_dt))
+		_bank_root.position.y = -GROUND_HULL_DROP + _suspension_body_y
+		
+		var pitch_blend := 1.0 - exp(-8.5 * frame_dt)
+		_bank_root.rotation.x = lerp_angle(_bank_root.rotation.x, _aim_pitch + pitch_inertia - _recoil_kick * 1.5, pitch_blend)
+		var roll_blend := 1.0 - exp(-8.5 * frame_dt)
+		_bank_root.rotation.z = lerp_angle(_bank_root.rotation.z, ground_roll, roll_blend)
 	elif chassis_id == "wing":
+		_bank_root.position.y = 0.0
 		var target:=clampf(-local_velocity.x*0.10,-BANK_LIMIT,BANK_LIMIT)
 		if dead: target=clampf(target+deg_to_rad(7),-deg_to_rad(17),deg_to_rad(17))
 		_bank_root.rotation.z=move_toward_angle(_bank_root.rotation.z,target,BANK_RESPONSE*frame_dt)
 		_bank_root.rotation.x = move_toward(_bank_root.rotation.x, _aim_pitch * 0.45, 1.8 * frame_dt)
 	else:
+		_bank_root.position.y = 0.0
 		var target:=clampf(-local_velocity.x*0.10,-BANK_LIMIT,BANK_LIMIT)
 		if dead: target=clampf(target+deg_to_rad(7),-deg_to_rad(17),deg_to_rad(17))
 		_bank_root.rotation.z=move_toward_angle(_bank_root.rotation.z,target,BANK_RESPONSE*frame_dt)
@@ -782,7 +807,7 @@ func apply_motion(velocity: Vector3, yaw: float, pitch: float, is_dead: bool=fal
 		for idx in range(min(_wheel_struts.size(), suspension_offsets.size())):
 			var strut := _wheel_struts[idx]
 			if is_instance_valid(strut):
-				strut.position.y = WHEEL_HUB_Y + float(suspension_offsets[idx])
+				strut.position.y = WHEEL_HUB_Y + float(suspension_offsets[idx]) - _suspension_body_y
 	var turn_rate := clampf(wrapf(yaw - _last_motion_yaw, -PI, PI) / frame_dt, -3.0, 3.0) if _motion_yaw_initialized else 0.0
 	_motion_yaw_initialized = true
 	_last_motion_yaw = yaw
