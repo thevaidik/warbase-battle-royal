@@ -552,18 +552,22 @@ func _render_animation(a: Dictionary, b: Dictionary, weight: float) -> void:
 	var state_anim := String(a.get("anim", "idle")) if weight < 0.5 else String(b.get("anim", "idle"))
 	_sync_anim(state_anim, dead)
 	if is_instance_valid(_remote_engine_audio):
-		if dead or not visible:
+		if dead or not visible or Audio.muted:
 			if _remote_engine_audio.playing:
 				_remote_engine_audio.stop()
 		else:
 			var stream: AudioStreamWAV = Audio.get_engine_stream(mobility_mode)
-			if _remote_engine_audio.stream != stream:
-				_remote_engine_audio.stream = stream
-			if not _remote_engine_audio.playing and stream != null:
-				_remote_engine_audio.play()
-			var spd := _visual_velocity.length()
-			_remote_engine_audio.pitch_scale = clampf(0.85 + (spd / 20.0) * 0.45, 0.75, 1.4)
-			_remote_engine_audio.volume_db = lerpf(-14.0, -8.0, clampf(spd / 15.0, 0.0, 1.0))
+			if stream == null:
+				if _remote_engine_audio.playing:
+					_remote_engine_audio.stop()
+			else:
+				if _remote_engine_audio.stream != stream:
+					_remote_engine_audio.stream = stream
+				if not _remote_engine_audio.playing:
+					_remote_engine_audio.play()
+				var spd := _visual_velocity.length()
+				_remote_engine_audio.pitch_scale = clampf(0.85 + (spd / 20.0) * 0.45, 0.75, 1.4)
+				_remote_engine_audio.volume_db = lerpf(-14.0, -8.0, clampf(spd / 15.0, 0.0, 1.0))
 
 func _update_distance_lod() -> void:
 	var camera := get_viewport().get_camera_3d()

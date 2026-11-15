@@ -4,7 +4,7 @@ extends Node
 ## Zero external audio asset dependencies; 100% deterministic 16-bit PCM sound bank.
 
 const AUDIO_ENABLED := true
-var muted := false
+var muted := true
 var master_volume := 1.0
 var sfx_volume := 1.0
 
@@ -17,10 +17,11 @@ var _streams: Dictionary = {}
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	muted = true
 	var master := AudioServer.get_bus_index("Master")
 	if master >= 0:
-		AudioServer.set_bus_mute(master, muted)
-		AudioServer.set_bus_volume_db(master, linear_to_db(master_volume))
+		AudioServer.set_bus_mute(master, true)
+		AudioServer.set_bus_volume_db(master, -80.0)
 	
 	# Instantiate voice pool for overlapping sound playback
 	for i in range(POOL_SIZE):
@@ -135,6 +136,7 @@ func stop_all() -> void:
 			p.stop()
 
 func get_engine_stream(mobility_mode: String) -> AudioStreamWAV:
+	if muted: return null
 	var key := "engine_" + mobility_mode.to_lower()
 	return _streams.get(key, _streams.get("engine_wheels"))
 

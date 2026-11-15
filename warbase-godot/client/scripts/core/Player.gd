@@ -543,11 +543,14 @@ func _unhandled_input(event: InputEvent) -> void:
 
 func _update_engine_audio(delta: float) -> void:
 	if not is_instance_valid(_engine_audio): return
-	if is_dead or is_driving or not WarAudioManager.AUDIO_ENABLED or not is_inside_tree():
+	if is_dead or is_driving or not WarAudioManager.AUDIO_ENABLED or Audio.muted or not is_inside_tree():
 		if _engine_audio.playing: _engine_audio.stop()
 		return
 	var chassis := GameState.selected_drone_chassis
 	var stream := Audio.get_engine_stream(chassis)
+	if stream == null:
+		if _engine_audio.playing: _engine_audio.stop()
+		return
 	if _engine_audio.stream != stream:
 		_engine_audio.stream = stream
 	if not _engine_audio.playing:

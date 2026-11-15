@@ -376,7 +376,7 @@ func _setup_vfx() -> void:
 # PROCEDURAL V8 ENGINE AUDIO SYNTHESIZER
 # ==============================================================================
 func _setup_audio() -> void:
-	if not WarAudioManager.AUDIO_ENABLED: return
+	if not WarAudioManager.AUDIO_ENABLED or Audio.muted: return
 	_engine_audio = AudioStreamPlayer3D.new()
 	_engine_audio.name = "EngineAudio"
 	_engine_audio.bus = "Master"
