@@ -436,13 +436,13 @@ func _build_sky(root: Node3D, map_name: String = "industrial") -> void:
 	env.ssao_detail = 0.5
 	env.ssao_horizon = 0.06
 	
-	# Screen Space Indirect Lighting (Fast diffuse bounce)
-	env.ssil_enabled = is_desktop and quality in ["high", "ultra"]
+	# Screen Space Indirect Lighting (Fast diffuse bounce) - Gated to ultra to eliminate compute thermal load
+	env.ssil_enabled = is_desktop and quality in ["ultra"]
 	env.ssil_radius = 2.4
 	env.ssil_intensity = 0.55
 	
-	# Screen Space Reflections (Glossy metal armor & wet road reflections)
-	env.ssr_enabled = is_desktop and quality in ["medium", "high", "ultra"]
+	# Screen Space Reflections (Glossy metal armor & wet road reflections) - Gated to ultra to keep GPU cool
+	env.ssr_enabled = is_desktop and quality in ["ultra"]
 	env.ssr_max_steps = 32
 	env.ssr_fade_in = 0.15
 	env.ssr_fade_out = 1.8

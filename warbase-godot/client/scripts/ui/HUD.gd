@@ -763,6 +763,20 @@ func build() -> void:
 	sens_box.add_child(sens_slider)
 	pv.add_child(sens_box)
 	
+	# FPS Governor Toggle
+	var fps_btn := Button.new()
+	fps_btn.custom_minimum_size = Vector2(0, 32)
+	WarUI.decorate(fps_btn, WarUI.CYAN)
+	var update_hud_fps := func() -> void:
+		if is_instance_valid(fps_btn):
+			fps_btn.text = "PROFILE: %d FPS  [%s]" % [GameState.target_fps, "COOL & SILENT" if GameState.target_fps == 60 else "MAX 120Hz"]
+	fps_btn.pressed.connect(func() -> void:
+		GameState.set_target_fps(120 if GameState.target_fps == 60 else 60)
+		update_hud_fps.call()
+	)
+	update_hud_fps.call()
+	pv.add_child(fps_btn)
+	
 	pv.add_child(_mk_label("AUDIO DISABLED", 12, Color.LIGHT_GRAY))
 	
 	var resume_btn := Button.new()

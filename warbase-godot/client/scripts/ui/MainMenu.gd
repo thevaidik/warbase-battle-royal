@@ -323,6 +323,35 @@ func _build_settings_content() -> void:
 		GameState.save_settings()
 	)
 	drawer_content.add_child(sensitivity)
+	
+	drawer_content.add_child(_mk_label("THERMAL & PERFORMANCE PROFILE", 12, WarUI.MUTED))
+	var fps_row := HBoxContainer.new()
+	fps_row.add_theme_constant_override("separation", 10)
+	var fps_btn_60 := Button.new()
+	var fps_btn_120 := Button.new()
+	fps_btn_60.custom_minimum_size = Vector2(170, 36)
+	fps_btn_120.custom_minimum_size = Vector2(170, 36)
+	WarUI.neumorphic_button(fps_btn_60, false, 12)
+	WarUI.neumorphic_button(fps_btn_120, false, 12)
+	
+	var update_fps_buttons := func() -> void:
+		if is_instance_valid(fps_btn_60) and is_instance_valid(fps_btn_120):
+			fps_btn_60.text = "60 FPS  [COOL]%s" % ("  ✓" if GameState.target_fps == 60 else "")
+			fps_btn_120.text = "120 FPS  [MAX]%s" % ("  ✓" if GameState.target_fps == 120 else "")
+	
+	fps_btn_60.pressed.connect(func() -> void:
+		GameState.set_target_fps(60)
+		update_fps_buttons.call()
+	)
+	fps_btn_120.pressed.connect(func() -> void:
+		GameState.set_target_fps(120)
+		update_fps_buttons.call()
+	)
+	update_fps_buttons.call()
+	fps_row.add_child(fps_btn_60)
+	fps_row.add_child(fps_btn_120)
+	drawer_content.add_child(fps_row)
+	
 	drawer_content.add_child(_mk_label("AUDIO DISABLED", 12, WarUI.MUTED))
 	drawer_content.add_child(_mk_label("ONLINE SERVICE", 12, WarUI.MUTED))
 	_service_status_label = _mk_label(status_pill.text, 16, WarUI.TEXT)

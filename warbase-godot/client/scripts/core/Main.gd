@@ -70,9 +70,9 @@ func _ready() -> void:
 		get_viewport().scaling_3d_scale = 1.0
 	else:
 		get_viewport().scaling_3d_mode = Viewport.SCALING_3D_MODE_FSR
-		get_viewport().scaling_3d_scale = 0.85
-		get_viewport().fsr_sharpness = 0.2
-		Engine.max_fps = 120
+		get_viewport().scaling_3d_scale = 0.67
+		get_viewport().fsr_sharpness = 0.25
+		Engine.max_fps = GameState.target_fps
 
 	for a in OS.get_cmdline_user_args():
 		if a == "autotest":
