@@ -49,6 +49,7 @@ const WEAPONS: Record<string, Weapon> = {
   hmg: { damage: 34, rpm: 520, magazine: 60, reloadMs: 3400, range: 90, headshot: 1.8, falloffStart: 20, falloffEnd: 90, minFraction: 0.6, bodyFraction: 0.84 },
   aim9: { damage: 82, rpm: 75, magazine: 2, reloadMs: 4000, range: 170, headshot: 1, falloffStart: 0, falloffEnd: 170, minFraction: 1, bodyFraction: 1, missileSpeed: 78 },
   agm114: { damage: 95, rpm: 55, magazine: 1, reloadMs: 4000, range: 140, headshot: 1, falloffStart: 0, falloffEnd: 140, minFraction: 1, bodyFraction: 1, missileSpeed: 62 },
+  laser: { damage: 30, rpm: 750, magazine: 45, reloadMs: 2000, range: 140, headshot: 1.6, falloffStart: 30, falloffEnd: 140, minFraction: 0.75, bodyFraction: 0.85 },
 };
 export const MAX_WEAPON_RANGE = Math.max(...Object.values(WEAPONS).map(weapon => weapon.range));
 const getWeapon = (weaponId: string): Weapon | undefined => Object.hasOwn(WEAPONS, weaponId) ? WEAPONS[weaponId] : undefined;

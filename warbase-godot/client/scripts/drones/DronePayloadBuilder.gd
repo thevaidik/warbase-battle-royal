@@ -37,12 +37,33 @@ static func build(weapon_id: String) -> Node3D:
 	if weapon_id in ["aim9", "agm114"]:
 		root.add_child(missile_body(weapon_id))
 		muzzle.position.z = -0.169
+	elif weapon_id == "laser":
+		_build_laser_emitter(root, casing, mount)
+		muzzle.position.z = -0.180
 	else:
 		var profile: Array = CANNONS.get(weapon_id, CANNONS["ak47"])
 		_build_cannon(root, int(profile[0]), float(profile[1]), float(profile[2]), casing, mount)
 		muzzle.position.z = -float(profile[1]) + 0.075
 	_mounted_meshes[weapon_id] = {"mesh": _bake_mesh(root, muzzle), "muzzle": muzzle.position}
 	return root
+
+static func _build_laser_emitter(root: Node3D, casing: Material, steel: Material) -> void:
+	var cyan_lens := StandardMaterial3D.new()
+	cyan_lens.albedo_color = Color("00e5ff")
+	cyan_lens.emission_enabled = true
+	cyan_lens.emission = Color("00e5ff")
+	cyan_lens.emission_energy_multiplier = 4.0
+	
+	var heatsink := _finish(Color("222a30"), 0.35, 0.45)
+	# Laser barrel shroud
+	_axial(root, 0.042, 0.17, Vector3(0, 0, -0.04), casing)
+	# Cooling fins / ribs
+	for rib in 4:
+		_axial(root, 0.048, 0.008, Vector3(0, 0, 0.02 - rib * 0.035), heatsink)
+	# High-tech aperture focus ring
+	_axial(root, 0.034, 0.04, Vector3(0, 0, -0.14), steel)
+	# Emissive optic lens at the muzzle tip
+	_axial(root, 0.024, 0.004, Vector3(0, 0, -0.162), cyan_lens)
 
 static func _build_cannon(root: Node3D, barrels: int, length: float, collar: float, casing: Material, steel: Material) -> void:
 	var bore := _finish(Color("10181c"), 0.3, 0.72)

@@ -34,6 +34,7 @@ var score_label: Label
 var objective_strip: HBoxContainer
 var objective_labels: Array[Label] = []
 var _sensor_reticle: DroneSensorReticle
+var _missile_guidance_hud: DroneMissileGuidanceHUD
 var _thermal_feed: ColorRect
 var _cinematic_lens: ColorRect
 var _payload_cards: Array[Dictionary] = []
@@ -354,6 +355,86 @@ class DroneSensorReticle extends Control:
 			draw_string_outline(font, line[0], line[1], HORIZONTAL_ALIGNMENT_LEFT, -1, 13, 4, edge)
 			draw_string(font, line[0], line[1], HORIZONTAL_ALIGNMENT_LEFT, -1, 13, ink)
 
+class DroneMissileGuidanceHUD extends Control:
+	var weapons_ref: Node
+	
+	func _ready() -> void:
+		mouse_filter = Control.MOUSE_FILTER_IGNORE
+		set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		resized.connect(queue_redraw)
+		
+	func _process(_delta: float) -> void:
+		if visible:
+			queue_redraw()
+			
+	func _draw() -> void:
+		if weapons_ref == null or not is_instance_valid(weapons_ref): return
+		var config: Dictionary = weapons_ref.call("current_config")
+		if not config.has("missile_speed"): return
+		
+		var center := size * 0.5
+		var font := get_theme_default_font()
+		var locked_target = weapons_ref.get("locked_target")
+		var lock_progress: float = float(weapons_ref.get("lock_progress"))
+		var is_locked: bool = bool(weapons_ref.get("is_locked"))
+		
+		# 1. Seeker acquisition cone reticle at screen center
+		var seeker_radius := 68.0
+		var seeker_color := Color("00e5ff") if not is_locked else Color("ff3344")
+		var pulse := 0.75 + 0.25 * sin(Time.get_ticks_msec() * 0.015)
+		
+		# Dashed seeker ring
+		draw_arc(center, seeker_radius, 0, TAU, 48, Color(seeker_color, 0.35), 1.5, true)
+		# 4 seeker tick marks
+		for i in 4:
+			var ang := i * (PI * 0.5) + (Time.get_ticks_msec() * 0.001)
+			var tick_start := center + Vector2(cos(ang), sin(ang)) * (seeker_radius - 8.0)
+			var tick_end := center + Vector2(cos(ang), sin(ang)) * (seeker_radius + 8.0)
+			draw_line(tick_start, tick_end, Color(seeker_color, 0.65), 1.5, true)
+			
+		# Mode label below seeker
+		var mode_str := "SEEKER ACQUIRING..." if (locked_target != null and not is_locked) else ("RADAR / IR LOCK ACQUIRED" if is_locked else "SEEKER ACTIVE · ALIGN WITH TARGET")
+		var mode_color := Color("ffaa00") if (locked_target != null and not is_locked) else (Color("ff3344") if is_locked else Color(1, 1, 1, 0.75))
+		var str_size := font.get_string_size(mode_str, HORIZONTAL_ALIGNMENT_CENTER, -1, 11)
+		draw_string_outline(font, center + Vector2(-str_size.x * 0.5, seeker_radius + 24.0), mode_str, HORIZONTAL_ALIGNMENT_CENTER, -1, 11, 3, Color(0,0,0,0.85))
+		draw_string(font, center + Vector2(-str_size.x * 0.5, seeker_radius + 24.0), mode_str, HORIZONTAL_ALIGNMENT_CENTER, -1, 11, mode_color)
+		
+		# 2. Tracked target reticle in 3D screen space
+		if locked_target != null and is_instance_valid(locked_target):
+			var camera := get_viewport().get_camera_3d()
+			if camera != null:
+				var target_pos3d: Vector3 = locked_target.global_position + Vector3.UP * 0.35
+				var cam_to_tgt := camera.global_transform.affine_inverse() * target_pos3d
+				if cam_to_tgt.z < -0.2:
+					var screen_pos := camera.unproject_position(target_pos3d)
+					var dist_m := roundi(camera.global_position.distance_to(target_pos3d))
+					
+					var box_size := 36.0 if is_locked else (56.0 - lock_progress * 20.0)
+					var box_color := Color(Color("ff3344"), pulse) if is_locked else Color(Color("ffaa00"), 0.85)
+					
+					# Draw target locking box corners
+					var b_half := box_size * 0.5
+					var c_len := 10.0
+					# Top-left
+					draw_polyline(PackedVector2Array([screen_pos + Vector2(-b_half, -b_half + c_len), screen_pos + Vector2(-b_half, -b_half), screen_pos + Vector2(-b_half + c_len, -b_half)]), box_color, 2.0, true)
+					# Top-right
+					draw_polyline(PackedVector2Array([screen_pos + Vector2(b_half - c_len, -b_half), screen_pos + Vector2(b_half, -b_half), screen_pos + Vector2(b_half, -b_half + c_len)]), box_color, 2.0, true)
+					# Bottom-left
+					draw_polyline(PackedVector2Array([screen_pos + Vector2(-b_half, b_half - c_len), screen_pos + Vector2(-b_half, b_half), screen_pos + Vector2(-b_half + c_len, b_half)]), box_color, 2.0, true)
+					# Bottom-right
+					draw_polyline(PackedVector2Array([screen_pos + Vector2(b_half - c_len, b_half), screen_pos + Vector2(b_half, b_half), screen_pos + Vector2(b_half, b_half - c_len)]), box_color, 2.0, true)
+					
+					# Progress circle around target while acquiring
+					if not is_locked and lock_progress > 0.05:
+						draw_arc(screen_pos, b_half + 12.0, -PI * 0.5, -PI * 0.5 + TAU * lock_progress, 24, Color("00e5ff"), 2.0, true)
+					
+					# Target info banner
+					var lock_banner := "LOCKED · %dM" % dist_m if is_locked else "LOCKING %d%%" % roundi(lock_progress * 100.0)
+					var banner_size := font.get_string_size(lock_banner, HORIZONTAL_ALIGNMENT_CENTER, -1, 12)
+					var banner_pos := screen_pos + Vector2(-banner_size.x * 0.5, b_half + 18.0)
+					draw_string_outline(font, banner_pos, lock_banner, HORIZONTAL_ALIGNMENT_CENTER, -1, 12, 3, Color(0,0,0,0.9))
+					draw_string(font, banner_pos, lock_banner, HORIZONTAL_ALIGNMENT_CENTER, -1, 12, box_color)
+
 class DamageIndicator extends Control:
 	var hud_ref: WarHUD
 	func _ready() -> void:
@@ -651,6 +732,12 @@ func build() -> void:
 	_sensor_reticle.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_sensor_reticle.visible = false
 	add_child(_sensor_reticle)
+
+	_missile_guidance_hud = DroneMissileGuidanceHUD.new()
+	_missile_guidance_hud.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_missile_guidance_hud.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_missile_guidance_hud.visible = false
+	add_child(_missile_guidance_hud)
 
 	# Death Screen
 	death_panel = PanelContainer.new()
@@ -1080,7 +1167,8 @@ func update_payload_cards(system: WarWeaponSystem) -> void:
 		if card.id != id:
 			card.id = id
 			card.title.text = String(config["name"])
-			card.thumbnail.texture = load("res://assets/ui/payloads/%s.png" % id)
+			var icon_path := "res://assets/ui/payloads/%s.png" % id
+			card.thumbnail.texture = load(icon_path) if ResourceLoader.exists(icon_path) else null
 			card.status = Vector3i(-1, -1, -1)
 		var selected := both or system.active_index == index
 		if card.selected != selected:
@@ -1483,6 +1571,15 @@ func _process(delta: float) -> void:
 				_compass_ribbon.queue_redraw()
 	equipment_label.text = "[G] HOLD AIM · RELEASE THROW\n%s ×%d" % [GameState.THROWABLES[GameState.selected_throwable]["name"], GameState.throwables_remaining]
 	_controls_hint.visible = not death_panel.visible and (not is_instance_valid(_sensor_reticle) or not _sensor_reticle.visible)
+	
+	if is_instance_valid(_missile_guidance_hud):
+		var main_scene = get_tree().current_scene
+		if main_scene and "weapons" in main_scene and is_instance_valid(main_scene.weapons):
+			_missile_guidance_hud.weapons_ref = main_scene.weapons
+			var cur_cfg: Dictionary = main_scene.weapons.current_config()
+			_missile_guidance_hud.visible = cur_cfg.has("missile_speed") and not death_panel.visible
+		else:
+			_missile_guidance_hud.visible = false
 	
 	if _missile_lock_timer > 0.0:
 		_missile_lock_timer -= delta

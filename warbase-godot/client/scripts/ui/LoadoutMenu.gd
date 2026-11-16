@@ -163,7 +163,14 @@ func _refresh() -> void:
 	else:
 		for weapon in GameState.WEAPONS:
 			var category := "SEMI-AUTO PAYLOAD" if not weapon["is_auto"] else "AUTOMATIC PAYLOAD"
-			_card(weapon["id"], weapon["name"], "%d DAMAGE   /   %d RPM\n%d ROUNDS   /   %.1fs RELOAD" % [weapon["damage"], weapon["fire_rate"], weapon["mag_size"], weapon["reload_time"]], category)
+			if weapon.has("is_laser") and weapon["is_laser"]:
+				category = "DIRECTED ENERGY WEAPON"
+			elif weapon.has("missile_speed"):
+				category = "AUTO-LOCK GUIDED MISSILE"
+			var stats := "%d DAMAGE   /   %d RPM\n%d ROUNDS   /   %.1fs RELOAD" % [weapon["damage"], weapon["fire_rate"], weapon["mag_size"], weapon["reload_time"]]
+			if weapon.has("missile_speed"):
+				stats = "%.0f DAMAGE   /   %.0f m/s\n%d PER RACK   /   %.1fs RELOAD" % [weapon["damage"], weapon["missile_speed"], weapon["mag_size"], weapon["reload_time"]]
+			_card(weapon["id"], weapon["name"], stats, category)
 	_update_preview(_equipped(slot))
 
 func _equipped(id: String) -> String:
@@ -208,7 +215,12 @@ func _update_preview(id: String) -> void:
 		var config: Dictionary = GameState.WEAPONS[GameState.weapon_index_for_id(id)]
 		_preview_model = preload("res://scripts/drones/DronePayloadBuilder.gd").build(id)
 		_title.text = config["name"]
-		_details.text = "Mounted payload • %d rounds • %.1fs reload\n%d RPM • %s" % [config["mag_size"], config["reload_time"], config["fire_rate"], "Automatic" if config["is_auto"] else "Semi-automatic"]
+		if config.has("missile_speed"):
+			_details.text = "Mounted guided missile • %d per rack • %.1fs reload\n%.0f m/s • Auto-Lock Guidance" % [config["mag_size"], config["reload_time"], config["missile_speed"]]
+		elif config.has("is_laser") and config["is_laser"]:
+			_details.text = "High-energy directed laser • %d charges • %.1fs reload\n%d RPM • Speed-of-Light Beam" % [config["mag_size"], config["reload_time"], config["fire_rate"]]
+		else:
+			_details.text = "Mounted payload • %d rounds • %.1fs reload\n%d RPM • %s" % [config["mag_size"], config["reload_time"], config["fire_rate"], "Automatic" if config["is_auto"] else "Semi-automatic"]
 	_model_root.add_child(_preview_model)
 
 func _fit_layout() -> void:

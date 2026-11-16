@@ -61,7 +61,7 @@ const WEAPONS: Array = [
 		"is_auto": false,
 	},
 	{
-		"id": "aim9", "name": "AIM-9 Sidewinder", "damage": 82.0, "headshot_mult": 1.0,
+		"id": "aim9", "name": "AIM-9X Auto-Lock Sidewinder", "damage": 82.0, "headshot_mult": 1.0,
 		"fire_rate": 75.0, "mag_size": 2, "reload_time": 4.0,
 		"base_spread": 0.0, "bloom_per_shot": 0.0, "max_spread": 0.0, "bloom_recovery": 8.0,
 		"recoil_vertical": 0.005, "recoil_horizontal": 0.0, "recoil_recovery": 8.0,
@@ -70,13 +70,23 @@ const WEAPONS: Array = [
 		"missile_speed": 78.0, "missile_range": 170.0,
 	},
 	{
-		"id": "agm114", "name": "AGM-114 Hellfire", "damage": 95.0, "headshot_mult": 1.0,
+		"id": "agm114", "name": "AGM-114K Laser Hellfire", "damage": 95.0, "headshot_mult": 1.0,
 		"fire_rate": 55.0, "mag_size": 1, "reload_time": 4.0,
 		"base_spread": 0.0, "bloom_per_shot": 0.0, "max_spread": 0.0, "bloom_recovery": 8.0,
 		"recoil_vertical": 0.005, "recoil_horizontal": 0.0, "recoil_recovery": 8.0,
 		"ads_time": 0.16, "ads_spread_mult": 0.0, "ads_recoil_mult": 0.5,
 		"is_auto": false,
 		"missile_speed": 62.0, "missile_range": 140.0,
+	},
+	{
+		"id": "laser", "name": "HELIOS Tactical Laser", "damage": 30.0, "headshot_mult": 1.6,
+		"fire_rate": 750.0, "mag_size": 45, "reload_time": 2.0,
+		"base_spread": 0.05, "bloom_per_shot": 0.02, "max_spread": 0.6, "bloom_recovery": 12.0,
+		"recoil_vertical": 0.005, "recoil_horizontal": 0.002, "recoil_recovery": 12.0,
+		"ads_time": 0.12, "ads_spread_mult": 0.02, "ads_recoil_mult": 0.3,
+		"is_auto": true,
+		"is_laser": true,
+		"beam_color": Color(0.18, 0.92, 1.0),
 	},
 ]
 
@@ -268,6 +278,7 @@ func damage_at_range(config: Dictionary, metres: float) -> float:
 		"mp5": start = 10; end = 45; minimum = 0.45
 		"pistol": start = 10; end = 50; minimum = 0.5
 		"dmr": start = 35; end = 150; minimum = 0.75
+		"laser": start = 30; end = 140; minimum = 0.75
 	return roundf(float(config["damage"]) * lerpf(1, minimum, clampf((metres-start)/(end-start), 0, 1)))
 
 func damage_for_zone(config: Dictionary, metres: float, zone: String) -> int:

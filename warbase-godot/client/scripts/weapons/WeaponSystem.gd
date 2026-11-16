@@ -45,16 +45,23 @@ var _can_fire_semi := true
 var _tracers: Array = []
 var _tracer_idx := 0
 var _pending_impacts: Array = []
-const MUZZLE_SPEEDS := {"ak47":715.0, "m4":900.0, "mp5":400.0, "pistol":340.0, "dmr":820.0, "m2010":850.0, "hmg":890.0}
+const MUZZLE_SPEEDS := {"ak47":715.0, "m4":900.0, "mp5":400.0, "pistol":340.0, "dmr":820.0, "m2010":850.0, "hmg":890.0, "laser":2400.0}
 var _flash_light: OmniLight3D
 var _flash_mesh: MeshInstance3D
 var _flash_t := 0.0
 var _time := 0.0
 var _tracer_container: Node3D
+var _tracer_mat: StandardMaterial3D
+var _laser_mat: StandardMaterial3D
 const TRACER_POOL := 64
 const MAX_DECALS := 32
 const SPARK_POOL := 24
 const DUST_POOL := 8
+
+var locked_target: Node3D = null
+var lock_progress: float = 0.0
+var is_locked: bool = false
+var _lock_scan_timer: float = 0.0
 
 var _sparks: Array = []
 var _spark_idx := 0
@@ -148,20 +155,28 @@ func setup(p: WarPlayer, cam: Camera3D, net_ref: WarNetwork, world_ref: Node3D) 
 	# Pool tracers so sustained dual fire does not allocate scene nodes.
 	var tracer_box := BoxMesh.new()
 	tracer_box.size = Vector3(0.018, 0.018, 1.0)
-	var tracer_material := StandardMaterial3D.new()
-	tracer_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	tracer_material.albedo_color = Color(1.0, 0.86, 0.58)
-	tracer_material.emission_enabled = true
-	tracer_material.emission = Color(1.0, 0.70, 0.35)
-	tracer_material.emission_energy_multiplier = 1.8
+	_tracer_mat = StandardMaterial3D.new()
+	_tracer_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	_tracer_mat.albedo_color = Color(1.0, 0.86, 0.58)
+	_tracer_mat.emission_enabled = true
+	_tracer_mat.emission = Color(1.0, 0.70, 0.35)
+	_tracer_mat.emission_energy_multiplier = 1.8
+	
+	_laser_mat = StandardMaterial3D.new()
+	_laser_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	_laser_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	_laser_mat.albedo_color = Color("00e5ff")
+	_laser_mat.emission_enabled = true
+	_laser_mat.emission = Color("00e5ff")
+	_laser_mat.emission_energy_multiplier = 4.2
 	for i in TRACER_POOL:
 		var mi := MeshInstance3D.new()
 		mi.mesh = tracer_box
-		mi.material_override = tracer_material
+		mi.material_override = _tracer_mat
 		mi.visible = false
 		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		_tracer_container.add_child(mi)
-		_tracers.append({"node": mi, "t": 0.0, "dur": 0.0, "from": Vector3.ZERO, "to": Vector3.ZERO, "active": false})
+		_tracers.append({"node": mi, "t": 0.0, "dur": 0.0, "from": Vector3.ZERO, "to": Vector3.ZERO, "active": false, "is_laser": false})
 		
 	# Query world/vehicle solids and anatomical combatant areas. Exclude layer 2:
 	# a bot's broad CharacterBody capsule would otherwise mask its layer-4 hitboxes.
@@ -450,13 +465,21 @@ func _launch_missile(config: Dictionary, aim: Transform3D, wire_weapon: String) 
 	var aim_point: Vector3 = hit.get("position", query.to)
 	var direction := (aim_point - start).normalized()
 	if direction.dot(aim_direction) <= 0.0: direction = aim_direction
+	
+	# Active auto-lock guidance
+	var chosen_target: Node3D = locked_target if (is_locked or lock_progress > 0.4) else null
+	if chosen_target != null and is_instance_valid(chosen_target):
+		var to_tgt := ((chosen_target.global_position + Vector3.UP * 0.35) - start).normalized()
+		if to_tgt.dot(aim_direction) > 0.35:
+			direction = to_tgt
+			
 	if net and net.connected:
 		net.predict_missile(_shot_seq, String(config["id"]), start, direction * float(config["missile_speed"]))
 		net.send_fire(start, aim_point, Vector3.ZERO, false, _shot_seq,
 			atan2(-direction.x, -direction.z), -asin(clampf(direction.y, -1.0, 1.0)), wire_weapon)
 	else:
 		var speed := float(config["missile_speed"])
-		Missile.launch(world, String(config["id"]), start, direction, speed, float(config["missile_range"]) / speed, player, float(config["damage"]))
+		Missile.launch(world, String(config["id"]), start, direction, speed, float(config["missile_range"]) / speed, player, float(config["damage"]), chosen_target)
 
 func _flash(pos: Vector3, _dir: Vector3) -> void:
 	_flash_mesh.global_position = pos
@@ -491,16 +514,19 @@ func _spawn_tracer(a: Vector3, b: Vector3, weapon_id: String = "") -> void:
 	var d := a.distance_to(b)
 	if d < 0.1: return
 	if weapon_id.is_empty(): weapon_id = String(current_config()["id"])
-	var speed := float(MUZZLE_SPEEDS.get(weapon_id, 715.0))
+	var is_laser := weapon_id == "laser"
+	var speed := 2400.0 if is_laser else float(MUZZLE_SPEEDS.get(weapon_id, 715.0))
 	var slot: Dictionary = _tracers[_tracer_idx]
 	_tracer_idx = (_tracer_idx + 1) % TRACER_POOL
 	slot["from"] = a
 	slot["to"] = b
 	slot["t"] = 0.0
-	slot["dur"] = maxf(d / speed, 0.016)
-	slot["length"] = minf(d * 0.8, speed * 0.012)
+	slot["dur"] = 0.065 if is_laser else maxf(d / speed, 0.016)
+	slot["length"] = (d * 0.98) if is_laser else minf(d * 0.8, speed * 0.012)
+	slot["is_laser"] = is_laser
 	slot["active"] = true
 	var mi: MeshInstance3D = slot["node"]
+	mi.material_override = _laser_mat if is_laser else _tracer_mat
 	mi.global_position = a
 	var direction := (b-a).normalized()
 	mi.look_at(b, Vector3.UP if absf(direction.y) < 0.95 else Vector3.RIGHT)
@@ -777,12 +803,37 @@ func _process(delta: float) -> void:
 			_spawn_impact(_pending_impacts[index]["pos"], _pending_impacts[index]["normal"])
 			_pending_impacts.remove_at(index)
 
+	# Missile seeker and auto-lock scanning
+	if cfg.has("missile_speed") and input_enabled:
+		_update_missile_lock(delta)
+	else:
+		locked_target = null
+		lock_progress = 0.0
+		is_locked = false
+
 	# Tracers advancement
 	for slot in _tracers:
 		if not slot["active"]:
 			continue
 		slot["t"] = float(slot["t"]) + elapsed
 		var mi: MeshInstance3D = slot["node"]
+		var is_laser: bool = bool(slot.get("is_laser", false))
+		if is_laser:
+			const LASER_DUR := 0.065
+			if float(slot["t"]) >= LASER_DUR:
+				slot["active"] = false
+				mi.visible = false
+				continue
+			var fade := 1.0 - (float(slot["t"]) / LASER_DUR)
+			var start: Vector3 = slot["from"]
+			var end: Vector3 = slot["to"]
+			var full_len := start.distance_to(end)
+			mi.global_position = (start + end) * 0.5
+			var dir := (end - start).normalized()
+			mi.look_at(end, Vector3.UP if absf(dir.y) < 0.95 else Vector3.RIGHT)
+			mi.scale = Vector3(1.6 * fade, 1.6 * fade, maxf(0.1, full_len))
+			continue
+			
 		var dur: float = float(slot["dur"])
 		const AFTERGLOW := 0.042
 		if float(slot["t"]) >= dur + AFTERGLOW:
@@ -910,3 +961,87 @@ func reconcile_ammo(state: Dictionary) -> void:
 	if weapon_id == String(current_config()["id"]):
 		ammo = _ammo_store[weapon_id]
 		reserve_ammo = _reserve_store[weapon_id]
+
+func _update_missile_lock(delta: float) -> void:
+	_lock_scan_timer += delta
+	if _lock_scan_timer < 0.035: return
+	_lock_scan_timer = 0.0
+	
+	var cam := camera
+	if not is_instance_valid(cam): return
+	var cam_pos := cam.global_position
+	var cam_forward := -cam.global_transform.basis.z.normalized()
+	
+	var best_cand: Node3D = null
+	var best_dot := 0.70 # ~45 degree forward acquisition cone
+	
+	# Check local AI bots
+	if world and world.has_node("Bots"):
+		var bm = world.get_node("Bots")
+		if bm and "bots" in bm:
+			for bot in bm.bots:
+				if not is_instance_valid(bot) or (bot.has_method("is_dead") and bot.is_dead()) or ("dead" in bot and bot.dead):
+					continue
+				if "team" in bot and bot.team == GameState.local_team:
+					continue
+				var target_pt: Vector3 = bot.global_position + Vector3.UP * 0.4
+				var to_bot := target_pt - cam_pos
+				var d := to_bot.length()
+				if d < 3.0 or d > 170.0: continue
+				var dot := cam_forward.dot(to_bot.normalized())
+				if dot > best_dot:
+					_hitscan_query.from = cam_pos
+					_hitscan_query.to = target_pt
+					_hitscan_query.exclude = [player.get_rid()]
+					var hit := world.get_world_3d().direct_space_state.intersect_ray(_hitscan_query)
+					if hit.is_empty() or hit.get("collider") == bot or (hit.get("collider") is Node and hit.get("collider").get_parent() == bot):
+						best_dot = dot
+						best_cand = bot
+						
+	# Check remote human players
+	if net and "remote_players" in net:
+		for rp in net.remote_players.values():
+			if not is_instance_valid(rp) or (rp.has_method("is_dead") and rp.is_dead()): continue
+			if "team" in rp and rp.team == GameState.local_team: continue
+			var target_pt: Vector3 = rp.global_position + Vector3.UP * 0.4
+			var to_rp := target_pt - cam_pos
+			var d := to_rp.length()
+			if d < 3.0 or d > 170.0: continue
+			var dot := cam_forward.dot(to_rp.normalized())
+			if dot > best_dot:
+				_hitscan_query.from = cam_pos
+				_hitscan_query.to = target_pt
+				_hitscan_query.exclude = [player.get_rid()]
+				var hit := world.get_world_3d().direct_space_state.intersect_ray(_hitscan_query)
+				if hit.is_empty() or hit.get("collider") == rp:
+					best_dot = dot
+					best_cand = rp
+					
+	# Check vehicles
+	var vehicles := get_tree().get_nodes_in_group("combat_jeeps")
+	for v in vehicles:
+		if not is_instance_valid(v) or v == player: continue
+		var target_pt: Vector3 = v.global_position + Vector3.UP * 0.6
+		var to_v := target_pt - cam_pos
+		var d := to_v.length()
+		if d < 3.0 or d > 170.0: continue
+		var dot := cam_forward.dot(to_v.normalized())
+		if dot > best_dot:
+			best_dot = dot
+			best_cand = v
+			
+	if best_cand != null:
+		if locked_target == best_cand:
+			lock_progress = minf(1.0, lock_progress + delta * 2.8)
+			if lock_progress >= 1.0 and not is_locked:
+				is_locked = true
+				Audio.missile_lock_warning()
+		else:
+			locked_target = best_cand
+			lock_progress = 0.15
+			is_locked = false
+	else:
+		lock_progress = maxf(0.0, lock_progress - delta * 4.5)
+		if lock_progress <= 0.0:
+			locked_target = null
+			is_locked = false

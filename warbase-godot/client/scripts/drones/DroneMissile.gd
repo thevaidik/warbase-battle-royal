@@ -8,13 +8,15 @@ var remaining := 0.0
 var _trail_distance := 0.0
 var shooter: CharacterBody3D
 var damage := 0.0
+var target_node: Node3D = null
 
-static func launch(parent: Node3D, weapon: String, origin: Vector3, direction: Vector3, speed: float, duration: float, offline_shooter: CharacterBody3D = null, offline_damage: float = 0.0) -> Node3D:
+static func launch(parent: Node3D, weapon: String, origin: Vector3, direction: Vector3, speed: float, duration: float, offline_shooter: CharacterBody3D = null, offline_damage: float = 0.0, target: Node3D = null) -> Node3D:
 	var missile := new()
 	missile.velocity = direction.normalized() * speed
 	missile.remaining = duration
 	missile.shooter = offline_shooter
 	missile.damage = offline_damage
+	missile.target_node = target
 	missile.add_child(Payloads.missile_body(weapon))
 	parent.add_child(missile)
 	missile.global_position = origin
@@ -23,6 +25,18 @@ static func launch(parent: Node3D, weapon: String, origin: Vector3, direction: V
 	return missile
 
 func _physics_process(delta: float) -> void:
+	# Active proportional navigation / pursuit guidance toward locked target
+	if is_instance_valid(target_node) and remaining > 0.0:
+		var target_pos := target_node.global_position + Vector3.UP * 0.35
+		var to_target := (target_pos - global_position).normalized()
+		var speed := velocity.length()
+		var turn_rate := 5.2 # rad/sec
+		var cur_dir := velocity.normalized()
+		var new_dir := cur_dir.slerp(to_target, minf(1.0, turn_rate * delta)).normalized()
+		velocity = new_dir * speed
+		var up := Vector3.RIGHT if absf(new_dir.dot(Vector3.UP)) > 0.95 else Vector3.UP
+		look_at(global_position + velocity, up)
+		
 	var elapsed := minf(delta, remaining)
 	var destination := global_position + velocity * elapsed
 	if is_instance_valid(shooter):

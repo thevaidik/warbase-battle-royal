@@ -317,7 +317,9 @@ func refresh() -> void:
 	var selected_weapon_index := GameState.weapon_index_for_id(GameState.selected_primary)
 	var selected_weapon: Dictionary = GameState.WEAPONS[selected_weapon_index]
 	if selected_weapon.has("missile_speed"):
-		_stats.text = "%s\n%.0f direct damage  •  %d per rack  •  Unguided" % [label, selected_weapon["damage"], selected_weapon["mag_size"]]
+		_stats.text = "%s\n%.0f direct damage  •  %d per rack  •  Auto-Lock Guided" % [label, selected_weapon["damage"], selected_weapon["mag_size"]]
+	elif selected_weapon.has("is_laser") and selected_weapon["is_laser"]:
+		_stats.text = "%s\n%.0f damage  •  %.0f RPM  •  High-Energy Directed Laser" % [label, selected_weapon["damage"], selected_weapon["fire_rate"]]
 	else:
 		_stats.text = "%s\n%.0f damage  •  %.0f RPM  •  %d round mag" % [label, selected_weapon["damage"], selected_weapon["fire_rate"], selected_weapon["mag_size"]]
 	for button in _chassis_buttons.get_children():
