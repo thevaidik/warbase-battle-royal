@@ -332,6 +332,9 @@ func _build_settings_content() -> void:
 	)
 	drawer_content.add_child(sensitivity)
 	
+	drawer_content.add_child(_mk_label("RENDER RESOLUTION & QUALITY", 12, WarUI.MUTED))
+	drawer_content.add_child(_mk_label("100% NATIVE RESOLUTION · 4X MSAA · ULTRA SHADOWS", 14, WarUI.CYAN))
+	
 	drawer_content.add_child(_mk_label("THERMAL & PERFORMANCE PROFILE", 12, WarUI.MUTED))
 	var fps_row := HBoxContainer.new()
 	fps_row.add_theme_constant_override("separation", 10)

@@ -65,14 +65,15 @@ func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 
 	# Dynamic resolution scaling & anti-aliasing
-	get_viewport().msaa_3d = Viewport.MSAA_2X
+	# Use native 100% resolution with 4X MSAA on desktop to eliminate low-res FSR artifacts and edge lines
 	if OS.has_feature("web"):
+		get_viewport().msaa_3d = Viewport.MSAA_2X
 		get_viewport().scaling_3d_mode = Viewport.SCALING_3D_MODE_BILINEAR
 		get_viewport().scaling_3d_scale = 1.0
 	else:
-		get_viewport().scaling_3d_mode = Viewport.SCALING_3D_MODE_FSR
-		get_viewport().scaling_3d_scale = 0.67
-		get_viewport().fsr_sharpness = 0.25
+		get_viewport().msaa_3d = Viewport.MSAA_4X
+		get_viewport().scaling_3d_mode = Viewport.SCALING_3D_MODE_BILINEAR
+		get_viewport().scaling_3d_scale = 1.0
 		Engine.max_fps = GameState.target_fps
 
 	for a in OS.get_cmdline_user_args():

@@ -23,12 +23,15 @@ void fragment() {
 	float dist_sq = dot(centered, centered);
 	
 	// Subtle lens radial chromatic dispersion at the extreme edges (outer 25%)
+	// Clamped to valid UV range [0.0005, 0.9995] to prevent black border lines
 	float ca_factor = smoothstep(0.18, 0.55, dist_sq) * 0.0012;
 	vec2 ca_offset = normalize(centered + vec2(0.0001)) * ca_factor;
+	vec2 uv_r = clamp(uv - ca_offset, vec2(0.0005), vec2(0.9995));
+	vec2 uv_b = clamp(uv + ca_offset, vec2(0.0005), vec2(0.9995));
 	
-	float r = texture(screen_texture, uv - ca_offset).r;
+	float r = texture(screen_texture, uv_r).r;
 	float g = texture(screen_texture, uv).g;
-	float b = texture(screen_texture, uv + ca_offset).b;
+	float b = texture(screen_texture, uv_b).b;
 	vec3 col = vec3(r, g, b);
 	
 	// Hollywood cinema split-toning (harmonizes disparate scene colors into a unified palette)
@@ -40,9 +43,10 @@ void fragment() {
 	float vignette = 1.0 - smoothstep(0.18, 0.75, dist_sq) * 0.30;
 	col *= vignette;
 	
-	// Organic 35mm micro film grain (quantized at 12 fps for authentic cinematic texture)
+	// Organic micro film grain calculated at native screen pixel pitch
 	float frame = floor(TIME * 12.0) * 0.08;
-	float grain = (film_hash(SCREEN_UV * vec2(960.0, 540.0), frame) - 0.5) * 0.020;
+	vec2 grain_coords = SCREEN_UV / SCREEN_PIXEL_SIZE;
+	float grain = (film_hash(grain_coords, frame) - 0.5) * 0.008;
 	col += vec3(grain);
 	
 	COLOR = vec4(clamp(col, 0.0, 1.0), 1.0);

@@ -437,8 +437,8 @@ func _build_sky(root: Node3D, map_name: String = "industrial") -> void:
 	env.ssil_radius = 2.4
 	env.ssil_intensity = 0.55
 	
-	# Screen Space Reflections (Glossy metal armor & wet road reflections) - Gated to ultra to keep GPU cool
-	env.ssr_enabled = is_desktop and quality in ["ultra"]
+	# Screen Space Reflections (Glossy metal armor & wet road reflections)
+	env.ssr_enabled = is_desktop and quality in ["medium", "high", "ultra"]
 	env.ssr_max_steps = 32
 	env.ssr_fade_in = 0.15
 	env.ssr_fade_out = 1.8
@@ -545,15 +545,15 @@ func _build_sky(root: Node3D, map_name: String = "industrial") -> void:
 		
 	# Cascaded PCSS Soft Directional Shadows
 	sun.shadow_enabled = is_desktop and map_name != "football" and quality != "low"
-	sun.directional_shadow_max_distance = 65.0
+	sun.directional_shadow_max_distance = 80.0
 	sun.directional_shadow_mode = DirectionalLight3D.SHADOW_PARALLEL_4_SPLITS
 	sun.directional_shadow_blend_splits = true
 	sun.directional_shadow_split_1 = 0.08
 	sun.directional_shadow_split_2 = 0.22
 	sun.directional_shadow_split_3 = 0.50
 	sun.directional_shadow_fade_start = 0.8
-	sun.shadow_bias = 0.02
-	sun.shadow_normal_bias = 1.6
+	sun.shadow_bias = 0.035
+	sun.shadow_normal_bias = 2.0
 	sun.shadow_opacity = 0.88
 	sun.shadow_blur = 1.2
 	root.add_child(sun)

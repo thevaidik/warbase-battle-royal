@@ -14,17 +14,17 @@ static func apply_metal_grain(material: StandardMaterial3D) -> void:
 		var random := RandomNumberGenerator.new()
 		random.seed = 640313
 		for y in 256:
-			var brush := random.randf_range(0.94, 0.99)
 			for x in 256:
-				# Broad machining variation survives mipmapping without sparkling.
+				# Broad isotropic machining variation survives mipmapping without lines or sparkling.
+				var brush := random.randf_range(0.95, 0.98)
 				var wear := sin(float(x) * 0.049) * sin(float(y) * 0.074)
-				var value := clampf(brush + wear * 0.006 + random.randf_range(-0.008, 0.008), 0.0, 1.0)
+				var value := clampf(brush + wear * 0.006, 0.0, 1.0)
 				image.set_pixel(x, y, Color(value, value, value))
 				var finish := clampf(0.88 + wear * 0.05, 0.55, 1.0)
 				rough.set_pixel(x, y, Color(finish, finish, finish))
 				
-				# Tangent space normal map for micro-machined brushed metal relief
-				var grain_nx := (random.randf() * 2.0 - 1.0) * 0.05 + cos(float(x) * 0.049) * 0.04
+				# Smooth tangent space normal map for micro-machined matte metal relief
+				var grain_nx := (random.randf() * 2.0 - 1.0) * 0.025
 				var grain_ny := (random.randf() * 2.0 - 1.0) * 0.025
 				var r := clampf(0.5 + grain_nx, 0.0, 1.0)
 				var g := clampf(0.5 + grain_ny, 0.0, 1.0)
