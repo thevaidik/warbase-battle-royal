@@ -8,7 +8,7 @@ import tempfile
 from client_provenance import client_fingerprint
 from optional_map_assets import RESTORED_MAPS
 
-MAPS = ('football','resoforge','industrial','village','arena','shipment','dust2','nuketown','canyon','military_base', 'ghost_city')
+MAPS = ('football','industrial','village','arena','dust2','nuketown','canyon','military_base', 'ghost_city')
 
 def ensure_map_integrity(root: pathlib.Path, godot: pathlib.Path) -> dict:
     client = root / 'warbase-godot/client'
@@ -41,7 +41,7 @@ def ensure_map_integrity(root: pathlib.Path, godot: pathlib.Path) -> dict:
         if process.returncode or 'SCRIPT ERROR' in output or not report.exists():
             raise RuntimeError('Map release blocked: physics audit failed\n'+output[-4000:])
         for exporter, test, argument, marker in (
-            ('export-drone-prediction-fixtures.ts','test_drone_prediction_parity.gd','fixtures=', 'DRONE_PREDICTION_PARITY comparisons=792'),
+            ('export-drone-prediction-fixtures.ts','test_drone_prediction_parity.gd','fixtures=', f'DRONE_PREDICTION_PARITY comparisons={len(MAPS) * 72}'),
         ):
             fixture = pathlib.Path(directory) / (exporter + '.json')
             generated = subprocess.run(['node','--import','tsx','scripts/'+exporter,'--out',str(fixture)],
@@ -75,8 +75,8 @@ def verify_map_pack(paths: set[str], *, include_football: bool) -> None:
     required = {'assets/drones/vanguard.glb.import','assets/drones/raider.glb.import'}
     required.update({f'assets/data/maps/{name}.json.gz' for name in MAPS})
     required.update(f'assets/ui/maps/{name}.png.import' for name in MAPS)
-    assets = ['low_poly_industrial_zone.glb','resoforge_tdm.glb','village_lowres.glb',
-              'fps_shooter_game_arena_map_v3.glb','shipment.glb']
+    assets = ['low_poly_industrial_zone.glb','village_lowres.glb',
+              'fps_shooter_game_arena_map_v3.glb']
     if include_football:
         required.update(f'assets/maps/restored/{name}.scn' for name in RESTORED_MAPS)
         assets.append('football.glb')

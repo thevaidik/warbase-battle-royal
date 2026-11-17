@@ -1,6 +1,6 @@
 extends SceneTree
 ## Rebuild server collision/spawn data from the same shapes used by the client.
-const MAPS := ["football","resoforge","industrial","village","arena","shipment","dust2","nuketown","canyon","military_base","ghost_city"]
+const MAPS := ["football","industrial","village","arena","dust2","nuketown","canyon","military_base","ghost_city"]
 func _initialize() -> void:
 	call_deferred("run")
 func run() -> void:

@@ -27,7 +27,7 @@ FIXTURE_CONTENT = {
         {"name": "warehouse_slide", "from": [-12, 0.8420999299399377, -10], "to": [-8, 0.8420999299399377, -6], "expected": [-10.95703125, 0.8421006282052232, -6]},
     ],
 }
-PLAYABLE_MAPS = ("football", "resoforge", "industrial", "village", "arena", "shipment", "dust2", "nuketown", "canyon", "military_base", "ghost_city")
+PLAYABLE_MAPS = ("football", "industrial", "village", "arena", "dust2", "nuketown", "canyon", "military_base", "ghost_city")
 
 
 def encode_map(name: str, entry: dict) -> tuple[bytes, dict]:

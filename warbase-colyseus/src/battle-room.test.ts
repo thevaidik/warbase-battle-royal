@@ -184,7 +184,7 @@ test('BattleRoom admission, combat authority, ammo and lifecycle', async (t) => 
   });
 
   await t.test('joins a live Conquest room with four objectives, balanced teams, and ticking capture state', async () => {
-    const room = await testing.createRoom<BattleRoom>('battle', { room: 'conquest-live', map: 'resoforge', mode: 'CONQUEST' });
+    const room = await testing.createRoom<BattleRoom>('battle', { room: 'conquest-live', map: 'football', mode: 'CONQUEST' });
     const alpha = await testing.connectTo(room, { username: 'conquest-alpha', room: 'conquest-live' });
     const beta = await testing.connectTo(room, { username: 'conquest-beta', room: 'conquest-live' });
     await waitFor(() => room.state.players.has('conquest-alpha') && room.state.players.has('conquest-beta'));

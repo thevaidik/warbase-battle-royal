@@ -15,7 +15,7 @@ const MAX_PEERS = 63; // 63 SDK peers plus the separately verified QA_NATIVE obs
 const MAX_DURATION_SECONDS = 300;
 const MAX_WALL_SECONDS = 480;
 const JOIN_TIMEOUT_MS = 20_000;
-const PLAYABLE_MAPS = new Set(['football', 'resoforge', 'industrial', 'village', 'arena', 'shipment', 'dust2', 'nuketown', 'canyon', 'desert_oasis']);
+const PLAYABLE_MAPS = new Set(['football', 'industrial', 'village', 'arena', 'dust2', 'nuketown', 'canyon', 'desert_oasis']);
 
 function argumentsFrom(argv) {
   const values = { url: '', map: 'industrial', mode: 'CONQUEST', peers: 63, seconds: 180, observer: 'QA_NATIVE', observerTimeout: 90, output: '/results/official-load.json', steady: false, admissionCache: '', roomId: '', totalPeers: null, coordinated: false };

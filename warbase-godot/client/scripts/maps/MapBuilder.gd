@@ -44,57 +44,12 @@ func _theme_football(inst: Node3D) -> void:
 			rear.material_override = mi.get_active_material(0)
 			mi.add_child(rear)
 
-func _build_shipment_collision(inst: Node3D) -> void:
-	for body in inst.find_children("*", "StaticBody3D", true, false): body.free()
-	
-	var meshes: Array[MeshInstance3D] = []
-	_find_mesh_instances(inst, meshes)
-	
-	for mi in meshes:
-		var n := mi.name.to_lower()
-		if n.begins_with("cargo"):
-			# Fast box collider for closed containers, saving 100,000+ trimesh physics checks
-			if not n.contains("open"):
-				var sb := StaticBody3D.new()
-				var col := CollisionShape3D.new()
-				var bs := BoxShape3D.new()
-				var aabb := mi.get_aabb()
-				bs.size = aabb.size
-				col.shape = bs
-				col.position = aabb.position + aabb.size * 0.5
-				sb.add_child(col)
-				mi.add_child(sb)
-			else:
-				# Only open containers get trimesh so players can enter
-				mi.create_trimesh_collision()
-		elif n.begins_with("barrel"):
-			mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-			# Accurate Cylinder collider centered to match barrel visual mesh
-			var sb := StaticBody3D.new()
-			var col := CollisionShape3D.new()
-			var cs := CylinderShape3D.new()
-			var aabb := mi.get_aabb()
-			cs.radius = maxf(aabb.size.x, aabb.size.z) * 0.5
-			cs.height = aabb.size.y
-			col.shape = cs
-			col.position = aabb.position + aabb.size * 0.5
-			sb.add_child(col)
-			mi.add_child(sb)
-		elif n.begins_with("plane"):
-			mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-			mi.create_trimesh_collision()
-		elif n.begins_with("wall"):
-			mi.create_trimesh_collision()
-
-
 const RESTORED_MAPS := ["dust2","nuketown","canyon","military_base","ghost_city"]
 const MAP_GLBS := {
 	"industrial":"res://assets/maps/low_poly_industrial_zone.glb",
-	"resoforge":"res://assets/maps/resoforge_tdm.glb",
 	"football":"res://assets/maps/football.glb",
 	"village":"res://assets/maps/village_lowres.glb",
 	"arena":"res://assets/maps/fps_shooter_game_arena_map_v3.glb",
-	"shipment":"res://assets/maps/shipment.glb",
 	"dust2":"res://assets/maps/restored/dust2.scn",
 	"nuketown":"res://assets/maps/restored/nuketown.scn",
 	"canyon":"res://assets/maps/restored/canyon.scn",
@@ -146,16 +101,8 @@ func build(map_name: String) -> Array[Vector3]:
 			var inst := glb.instantiate() as Node3D
 			inst.name = "GLBMap"
 			root.add_child(inst)
-			if key == "resoforge": inst.scale = Vector3.ONE * 3.0
-			
-			if key == "shipment":
-				_build_shipment_collision(inst)
-				_sanitize_glb_materials(inst)
-
-			# Shipment has authored primitive collision, so avoid replacing it with a full trimesh.
-			if key != "shipment":
-				_add_trimesh_collision(inst, key in ["resoforge", "football", "village"])
-				_sanitize_glb_materials(inst)
+			_add_trimesh_collision(inst, key in ["football", "village"])
+			_sanitize_glb_materials(inst)
 			if key == "football": _theme_football(inst)
 			
 			# Fall-catcher safety barrier below map (deep safety net only if player clips out of bounds)
@@ -170,23 +117,6 @@ func build(map_name: String) -> Array[Vector3]:
 			root.add_child(safety)
 			
 			match key:
-				"shipment":
-					extent = 24.0
-					center = Vector3.ZERO
-					spawn_points = [
-						Vector3(-19.2929, 0.08, -19.2929),
-						Vector3(-17.5, 0.1296, -2.0),
-						Vector3(-16.0, 0.08, 18.0),
-						Vector3(-12.0, 0.08, 4.0),
-						Vector3(-7.8087, 0.08, -19.5381),
-						Vector3(-6.0, 0.08, 14.0),
-						Vector3(-2.0, 0.1302, 16.0),
-						Vector3(4.0, 0.08, -18.0),
-						Vector3(8.0, 0.08, -10.0),
-						Vector3(10.0, 0.08, 8.0),
-						Vector3(14.0, 0.08, -16.0),
-						Vector3(18.1913, 0.08, -19.5381),
-					]
 				"football":
 					extent = 110.0
 					center = Vector3.ZERO
@@ -197,16 +127,6 @@ func build(map_name: String) -> Array[Vector3]:
 						Vector3(-45, 2.1619, 45), Vector3(45, 2.1619, 45),
 						Vector3(-15, 2.1619, -65), Vector3(15, 2.1619, -65),
 						Vector3(-15, 2.1619, 65), Vector3(15, 2.1619, 65),
-					]
-
-				"resoforge":
-					extent = 28.0
-					center = Vector3.ZERO
-					spawn_points = [
-						Vector3(-9, 0.15, -20), Vector3(0, 0.15, -20), Vector3(9, 0.15, -20),
-						Vector3(-9, 0.15, -14), Vector3(0, 0.15, -14), Vector3(9, 0.15, -14),
-						Vector3(-9, 0.15, 20), Vector3(0, 0.15, 20), Vector3(3, 0.15, 20),
-						Vector3(-3, 0.15, 14), Vector3(3, 0.15, 14), Vector3(9, 0.15, 14),
 					]
 
 				"industrial":
@@ -378,14 +298,6 @@ func _build_sky(root: Node3D, map_name: String = "industrial") -> void:
 		pm.ground_bottom_color = Color(0.14, 0.12, 0.10)
 		pm.sun_angle_max = 36.0
 		pm.sun_curve = 0.07
-	elif map_name == "shipment":
-		# Coastal Harbor Slate Overcast
-		pm.sky_top_color = Color(0.25, 0.31, 0.38)
-		pm.sky_horizon_color = Color(0.66, 0.70, 0.73)
-		pm.ground_horizon_color = Color(0.34, 0.35, 0.36)
-		pm.ground_bottom_color = Color(0.10, 0.10, 0.11)
-		pm.sun_angle_max = 28.0
-		pm.sun_curve = 0.10
 	elif map_name == "nuketown":
 		# Subdued Suburban Daylight
 		pm.sky_top_color = Color(0.26, 0.36, 0.48)
@@ -473,9 +385,6 @@ func _build_sky(root: Node3D, map_name: String = "industrial") -> void:
 		env.fog_density = 0.0005 if map_name == "canyon" else 0.00075
 	elif map_name == "arena":
 		env.fog_light_color = Color(0.68, 0.71, 0.74)
-		env.fog_density = 0.0008
-	elif map_name == "shipment":
-		env.fog_light_color = Color(0.66, 0.70, 0.73)
 		env.fog_density = 0.0008
 	else:
 		env.fog_light_color = Color(0.71, 0.74, 0.77)

@@ -163,10 +163,10 @@ test('bots anchor to conquest objectives and capture points while defending agai
   assert.ok(targetObj.progress > 0 || targetObj.owner === 'A', 'anchored bot generated capture progress');
 });
 
-test('Resoforge bots accelerate away from their spawns at the live tick rate', () => {
-  const geometry = loadWorldGeometry('resoforge')!;
+test('Canyon bots accelerate away from their spawns at the live tick rate', () => {
+  const geometry = loadWorldGeometry('canyon')!;
   const sim = new BotSimulation(geometry);
-  const pilot = human('resoforge-pilot', geometry.spawns[0], 'A');
+  const pilot = human('canyon-pilot', geometry.spawns[0], 'A');
   const { joined } = sim.sync([pilot], 1000, 'TDM');
   const players = new Map([pilot, ...joined].map((actor) => [actor.username, actor]));
   const starts = joined.map(({ x, z }) => ({ x, z }));

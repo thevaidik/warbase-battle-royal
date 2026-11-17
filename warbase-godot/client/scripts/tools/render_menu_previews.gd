@@ -24,11 +24,9 @@ func run() -> void:
 	root.size = Vector2i(1100, 550)
 	var views := {
 		"football": [Vector3(90, 100, 130), Vector3(5, 0, 13)],
-		"resoforge": [Vector3(25, 30, 35), Vector3(0, 2, 0)],
 		"industrial": [Vector3(28, 16, 36), Vector3(0, 1, 0)],
 		"village": [Vector3(28, 22, 36), Vector3(0, 2, 0)],
 		"arena": [Vector3(-26, 2.75, -3), Vector3(-10, 2, -5)],
-		"shipment": [Vector3(24, 20, 24), Vector3(0, 1, 0)],
 		"dust2": [Vector3(45, 24, 46), Vector3(8, 1, 10)],
 		"nuketown": [Vector3(-32, 20, 30), Vector3(0, 1, 0)],
 		"canyon": [Vector3(42, 25, -40), Vector3(0, 1, 0)],

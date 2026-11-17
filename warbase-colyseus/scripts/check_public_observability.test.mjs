@@ -8,7 +8,7 @@ import express from 'express';
 import { checkPublicApi, parseOptions } from './check_public_observability.mjs';
 import { createOperationsMetricsHandler } from '../src/metrics-handler.ts';
 
-const maps = ['football', 'resoforge', 'industrial', 'village', 'arena', 'shipment', 'dust2', 'nuketown', 'canyon', 'desert_oasis'];
+const maps = ['football', 'industrial', 'village', 'arena', 'dust2', 'nuketown', 'canyon', 'desert_oasis'];
 
 function fixtureFetcher({ mapIds = maps, rooms = [{ id: 'industrial-public', map: 'industrial', playerCount: 2, botCount: 4, capacity: 64 }] } = {}) {
   return async (url, _timeout, headers = {}) => {

@@ -2,8 +2,8 @@ import { query } from '@colyseus/core/MatchMaker';
 import { PLAYABLE_MAPS } from './world-geometry.js';
 
 export const OFFICIAL_MAP_NAMES: Record<string, string> = {
-  industrial: 'Industrial Zone', resoforge: 'ResoForge Yard', football: 'Football Stadium',
-  village: 'Village Outpost', arena: 'Combat Arena', shipment: 'Shipment',
+  industrial: 'Industrial Zone', football: 'Football Stadium',
+  village: 'Village Outpost', arena: 'Combat Arena',
   dust2: 'Dust II', canyon: 'Devil’s Canyon', nuketown: 'Nuketown', military_base: 'Military Base', ghost_city: 'Ghost City',
 };
 

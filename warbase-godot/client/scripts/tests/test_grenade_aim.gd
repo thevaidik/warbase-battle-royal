@@ -8,7 +8,7 @@ func run() -> void:
 	var state = root.get_node("GameState")
 	state.practice_mode = true
 	state.bot_damage_enabled = false
-	state.selected_map = "resoforge"
+	state.selected_map = "industrial"
 	state.throwables_remaining = 2
 	change_scene_to_file("res://scenes/Main.tscn")
 	while current_scene == null: await process_frame

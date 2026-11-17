@@ -238,7 +238,7 @@ func _start_match(reservation: Dictionary = {}) -> void:
 	var cam := player.get_node("Head/Camera3D") as Camera3D
 	var sp: Vector3 = spawns[0] if not spawns.is_empty() else Vector3(0, 0.5, 0)
 	player.global_position = sp + Vector3.UP * GameState.DRONE_SPAWN_OFFSET
-	if GameState.selected_map in ["resoforge", "football"]: player.yaw = atan2(sp.x, sp.z)
+	if GameState.selected_map == "football": player.yaw = atan2(sp.x, sp.z)
 	
 	# Weapons system
 	weapons = WeaponSysScript.new()
@@ -807,7 +807,7 @@ func _do_respawn(pos: Vector3) -> void:
 	_redeploy_queued = false
 	_respawn_attempts = 0
 	player.respawn_at(pos)
-	if GameState.selected_map in ["resoforge", "football"]: player.yaw = atan2(pos.x, pos.z)
+	if GameState.selected_map == "football": player.yaw = atan2(pos.x, pos.z)
 	if is_instance_valid(weapons):
 		weapons.reset_after_respawn()
 

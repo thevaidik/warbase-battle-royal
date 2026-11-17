@@ -9,8 +9,8 @@ class MapPackTests(unittest.TestCase):
         for drone in ['vanguard.glb', 'raider.glb']:
             self.paths.add('assets/drones/' + drone + '.import')
             self.paths.add('.godot/imported/' + drone + '-hash.scn')
-        for name in ['low_poly_industrial_zone.glb','resoforge_tdm.glb','village_lowres.glb',
-                     'fps_shooter_game_arena_map_v3.glb','shipment.glb']:
+        for name in ['low_poly_industrial_zone.glb','village_lowres.glb',
+                     'fps_shooter_game_arena_map_v3.glb']:
             self.paths.add('assets/maps/'+name+'.import')
             self.paths.add('.godot/imported/'+name+'-hash.scn')
     def test_removed_loft_assets_cannot_ship(self):

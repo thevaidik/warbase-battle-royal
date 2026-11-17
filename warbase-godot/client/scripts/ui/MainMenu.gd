@@ -45,8 +45,8 @@ var _service_status_label: Label
 var _operator_page: Control
 var _settings_page: PanelContainer
 var create_time_id := "noon"
-const PLAYABLE_MAPS := ["football", "resoforge", "industrial", "village", "arena", "shipment", "dust2", "nuketown", "canyon", "military_base", "ghost_city"]
-const MAP_NAMES := {"football":"Football Stadium", "resoforge":"ResoForge Yard", "industrial":"Industrial Zone", "village":"Village Outpost", "arena":"Combat Arena", "shipment":"Shipment", "dust2":"Dust II", "canyon":"Devil’s Canyon", "nuketown":"Nuketown", "military_base":"Military Base", "ghost_city":"Ghost City"}
+const PLAYABLE_MAPS := ["football", "industrial", "village", "arena", "dust2", "nuketown", "canyon", "military_base", "ghost_city"]
+const MAP_NAMES := {"football":"Football Stadium", "industrial":"Industrial Zone", "village":"Village Outpost", "arena":"Combat Arena", "dust2":"Dust II", "canyon":"Devil’s Canyon", "nuketown":"Nuketown", "military_base":"Military Base", "ghost_city":"Ghost City"}
 
 func _ready() -> void:
 	_selected_room_id = GameState.room_id

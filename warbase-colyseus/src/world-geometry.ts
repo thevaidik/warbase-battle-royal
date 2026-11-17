@@ -4,7 +4,7 @@ import { capsuleTriangle, type CapsuleContact } from './capsule-contact.js';
 
 // These IDs exactly match MainMenu.PLAYABLE_MAPS in the Godot client. Keep the
 // list explicit so unsupported maps fail closed instead of receiving fake floors.
-export const PLAYABLE_MAPS = Object.freeze(['football', 'resoforge', 'industrial', 'village', 'arena', 'shipment', 'dust2', 'nuketown', 'canyon', 'military_base', 'ghost_city'] as const);
+export const PLAYABLE_MAPS = Object.freeze(['football', 'industrial', 'village', 'arena', 'dust2', 'nuketown', 'canyon', 'military_base', 'ghost_city'] as const);
 export type PlayableMap = typeof PLAYABLE_MAPS[number];
 export type Vec3 = readonly [x: number, y: number, z: number];
 

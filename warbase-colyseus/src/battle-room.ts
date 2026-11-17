@@ -66,7 +66,7 @@ export function consumeRoomCreationAllowance(options: JoinOptions, activeRoomCou
     return normalized === candidate || normalized.startsWith(`${candidate}-`);
   }) || '';
   if (!PLAYABLE_MAPS.includes(map as (typeof PLAYABLE_MAPS)[number])) throw new Error(`Unsupported map: ${map || requested}`);
-  const defaultMode = map === 'industrial' || map === 'resoforge' || map === 'football' ? 'TDM' : 'FFA';
+  const defaultMode = map === 'industrial' || map === 'football' ? 'TDM' : 'FFA';
   const suppliedMode = String(options.mode ?? defaultMode).trim().toUpperCase();
   if (suppliedMode !== 'TDM' && suppliedMode !== 'FFA' && suppliedMode !== 'CONQUEST') throw new Error(`Unsupported room mode: ${suppliedMode}`);
   // Public presets are server-owned: an older client cannot recreate them as FFA/TDM.

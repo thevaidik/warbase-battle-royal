@@ -15,13 +15,6 @@
       "note": "No authored vehicles on this map."
     },
     {
-      "map": "resoforge",
-      "initialVehicles": [],
-      "driver": null,
-      "steps": [],
-      "note": "No authored vehicles on this map."
-    },
-    {
       "map": "industrial",
       "initialVehicles": [
         {
@@ -4917,13 +4910,6 @@
     },
     {
       "map": "arena",
-      "initialVehicles": [],
-      "driver": null,
-      "steps": [],
-      "note": "No authored vehicles on this map."
-    },
-    {
-      "map": "shipment",
       "initialVehicles": [],
       "driver": null,
       "steps": [],

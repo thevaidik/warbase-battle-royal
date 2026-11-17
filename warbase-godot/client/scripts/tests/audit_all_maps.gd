@@ -4,14 +4,12 @@ const MAPS = [
 	"industrial",
 	"village",
 	"arena",
-	"shipment",
 	"dust2",
 	"nuketown",
 	"canyon",
 	"military_base",
 	"ghost_city",
-	"football",
-	"resoforge"
+	"football"
 ]
 
 func _process(delta: float) -> bool:

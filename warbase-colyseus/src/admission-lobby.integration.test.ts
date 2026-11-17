@@ -62,7 +62,7 @@ test('signed SDK matchmaking, duplicate-session rejection and realtime lobby lif
   await assert.rejects(client.joinOrCreate('battle', { protocol_version: 16, username: 'quota', room: 'village-public' }));
   assert.equal((await query({ name: 'battle' })).length, 1);
   const directory = buildRoomDirectory(await listLiveBattleRooms());
-  assert.equal(directory.rooms.length, 11);
+  assert.equal(directory.rooms.length, 9);
   assert.equal(directory.online_players, 1);
   assert.equal(directory.rooms.find(r => r.id === 'industrial-public')?.playerCount, 1);
   const serverRoom = getLocalRoomById(battle.roomId)!;
@@ -74,7 +74,7 @@ test('signed SDK matchmaking, duplicate-session rejection and realtime lobby lif
   await until(() => !listings.has(battle.roomId));
   const after = buildRoomDirectory(await listLiveBattleRooms());
   assert.equal(after.online_players, 0);
-  assert.equal(after.rooms.length, 11);
+  assert.equal(after.rooms.length, 9);
   assert.equal((await fetch(`${endpoint}/api/rooms`, { method: 'POST' })).status, 401);
 
   const queueOptions = (index: number) => ({ map: 'industrial', username: `queue-${index}`, protocol_version: GAME_PROTOCOL_VERSION });

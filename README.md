@@ -16,8 +16,8 @@ Players command versatile combat chassis—ranging from agile aerial drones to h
   - **Active Countermeasures**: Deployable thermal smoke screens (`[C]` / `[X]`) providing visual concealment and projectile disruption.
   - **Dynamic Hull States**: Critical hull warnings (<25% HP), billowing smoke effects, and violent ammo rack cook-offs upon vehicle destruction.
   - **Combat Audio & Acoustics**: Procedural engine dynamics, weapon report, explosive impacts, and supersonic bullet flyby snaps.
-- **11 Battle-Tested Maps**: Complete with server-verified collision geometry and spawn integrity:
-  - `arena`, `canyon`, `desert_oasis`, `dust2`, `football`, `ghost_city`, `industrial`, `military_base`, `nuketown`, `resoforge`, and `shipment`.
+- **9 Battle-Tested Maps**: Complete with server-verified collision geometry and spawn integrity:
+  - `arena`, `canyon`, `desert_oasis`, `dust2`, `football`, `ghost_city`, `industrial`, `military_base`, and `nuketown`.
 - **Game Modes**:
   - **Conquest**: Tactical 4-point (A–D) objective control with real-time ticket bleed and full-map tactical overview (`[M]`).
   - **Team Deathmatch (TDM)** & **Free-For-All (FFA)**: Fast-paced elimination matches with automatic bot backfill.

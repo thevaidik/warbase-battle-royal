@@ -5,7 +5,7 @@ import { pathToFileURL } from 'node:url';
 import { readFileSync } from 'node:fs';
 
 const PLAYABLE_MAPS = [
-  'football', 'resoforge', 'industrial', 'village', 'arena', 'shipment',
+  'football', 'industrial', 'village', 'arena',
   'dust2', 'nuketown', 'canyon', 'desert_oasis',
 ];
 const MAX_BODY_BYTES = 256 * 1024;
