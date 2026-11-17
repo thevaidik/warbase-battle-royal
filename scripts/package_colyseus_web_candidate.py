@@ -23,6 +23,7 @@ CLIENT = ROOT / "warbase-godot/client"
 PLAYABLE_MAPS = (
     "football", "industrial", "village", "arena",
     "dust2", "nuketown", "canyon", "military_base", "ghost_city",
+    "cosmodrome", "dam", "skyline",
 )
 ASSETS = WEB_EXPORT_ASSETS
 SDK_WASM_ASSET = "libcolyseus_godot.web.wasm32.release.wasm"
