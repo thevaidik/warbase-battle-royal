@@ -548,104 +548,132 @@ func build() -> void:
 	hitmarker.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(hitmarker)
 	
-	# Restrained combat panels remain legible over bright and dark environments.
+	# Minimalist Sleek Drone Health Bar (Bottom-Left)
+	var health_container := PanelContainer.new()
+	health_container.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
+	health_container.position = Vector2(28, -52)
+	health_container.custom_minimum_size = Vector2(190, 28)
+	health_container.z_index = 2
+	var hp_bg := StyleBoxFlat.new()
+	hp_bg.bg_color = Color(0.02, 0.04, 0.05, 0.65)
+	hp_bg.border_width_left = 1
+	hp_bg.border_width_top = 1
+	hp_bg.border_width_right = 1
+	hp_bg.border_width_bottom = 1
+	hp_bg.border_color = Color(0.15, 0.28, 0.32, 0.5)
+	hp_bg.corner_radius_top_left = 4
+	hp_bg.corner_radius_top_right = 4
+	hp_bg.corner_radius_bottom_right = 4
+	hp_bg.corner_radius_bottom_left = 4
+	hp_bg.content_margin_left = 8
+	hp_bg.content_margin_right = 8
+	hp_bg.content_margin_top = 4
+	hp_bg.content_margin_bottom = 4
+	health_container.add_theme_stylebox_override("panel", hp_bg)
+	add_child(health_container)
 
-	var health_card := PanelContainer.new()
-	health_card.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
-	health_card.position = Vector2(28, -150)
-	health_card.custom_minimum_size = Vector2(226, 122)
-	health_card.z_index = 2
-	health_card.add_theme_stylebox_override("panel", WarUI.panel(Color(0.035, 0.055, 0.06, 0.92), WarUI.LINE, 16))
-	add_child(health_card)
-	WarUI.decorate(health_card, WarUI.CYAN)
 	var hb := VBoxContainer.new()
 	hb.z_index = 2
-	hb.add_theme_constant_override("separation", 4)
+	hb.add_theme_constant_override("separation", 3)
 	hb.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	health_card.add_child(hb)
+	health_container.add_child(hb)
+
 	var chassis_name := GameState.selected_drone_chassis
 	var init_max := GameState.max_health_for_chassis(chassis_name)
-	hb.add_child(_mk_label("+  DRONE HULL", 12, WarUI.CYAN))
-	
-	health_label = _mk_label(str(init_max), 46, Color.WHITE)
-	hb.add_child(health_label)
-	
+
+	var top_row := HBoxContainer.new()
+	top_row.add_theme_constant_override("separation", 6)
+	hb.add_child(top_row)
+
+	var hp_tag := _mk_label("HULL", 11, WarUI.CYAN)
+	top_row.add_child(hp_tag)
+
+	health_label = _mk_label(str(init_max), 13, Color.WHITE)
+	health_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	health_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	top_row.add_child(health_label)
+
+	_hull_critical_label = _mk_label("⚠ CRIT", 10, Color("ff3333"))
+	_hull_critical_label.visible = false
+	top_row.add_child(_hull_critical_label)
+
 	health_bar = ProgressBar.new()
 	health_bar.min_value = 0
 	health_bar.max_value = init_max
 	health_bar.value = init_max
-	health_bar.custom_minimum_size = Vector2(190, 5)
+	health_bar.custom_minimum_size = Vector2(174, 5)
 	health_bar.show_percentage = false
-	hb.add_child(health_bar)
-	
-	chassis_armor_label = _mk_label(_armor_label_text(chassis_name, init_max), 11, WarUI.MUTED)
-	hb.add_child(chassis_armor_label)
-	
-	_hull_critical_label = _mk_label("⚠ HULL CRITICAL", 11, Color("ff3333"))
-	_hull_critical_label.visible = false
-	hb.add_child(_hull_critical_label)
 
-	# Ability / Mobility Gadget Card (Positioned beside health card at bottom-left)
-	var ability_card := PanelContainer.new()
-	ability_card.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
-	ability_card.position = Vector2(266, -112)
-	ability_card.custom_minimum_size = Vector2(156, 84)
-	ability_card.z_index = 2
-	ability_card.add_theme_stylebox_override("panel", WarUI.panel(Color(0.035, 0.055, 0.06, 0.92), WarUI.LINE, 12))
-	add_child(ability_card)
-	WarUI.decorate(ability_card, WarUI.ACCENT)
-	var ab_box := VBoxContainer.new()
-	ab_box.z_index = 2
-	ab_box.add_theme_constant_override("separation", 3)
-	ab_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	ability_card.add_child(ab_box)
-	_ability_name_label = _mk_label("[F] GADGET", 11, WarUI.ACCENT)
-	ab_box.add_child(_ability_name_label)
-	_ability_status_label = _mk_label("READY", 20, WarUI.CYAN)
-	ab_box.add_child(_ability_status_label)
-	_ability_bar = ProgressBar.new()
-	_ability_bar.min_value = 0.0
-	_ability_bar.max_value = 1.0
-	_ability_bar.value = 1.0
-	_ability_bar.custom_minimum_size = Vector2(120, 4)
-	_ability_bar.show_percentage = false
-	ab_box.add_child(_ability_bar)
-	
-	# Tactical Bottom-Right HUD: Weapon & Ammo
+	var bar_bg := StyleBoxFlat.new()
+	bar_bg.bg_color = Color(0.08, 0.12, 0.15, 0.8)
+	bar_bg.corner_radius_top_left = 2
+	bar_bg.corner_radius_top_right = 2
+	bar_bg.corner_radius_bottom_right = 2
+	bar_bg.corner_radius_bottom_left = 2
+	var bar_fill := StyleBoxFlat.new()
+	bar_fill.bg_color = Color(0.12, 0.85, 0.82, 0.95)
+	bar_fill.corner_radius_top_left = 2
+	bar_fill.corner_radius_top_right = 2
+	bar_fill.corner_radius_bottom_right = 2
+	bar_fill.corner_radius_bottom_left = 2
+	health_bar.add_theme_stylebox_override("background", bar_bg)
+	health_bar.add_theme_stylebox_override("fill", bar_fill)
+	hb.add_child(health_bar)
+
+	chassis_armor_label = _mk_label("", 1, Color(0, 0, 0, 0))
+	chassis_armor_label.visible = false
+	hb.add_child(chassis_armor_label)
+
+	# Minimalist Combat Readout (Bottom-Right)
 	var ammo_card := PanelContainer.new()
 	ammo_card.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
-	ammo_card.offset_left = -316
-	ammo_card.offset_right = -28
-	ammo_card.offset_top = -224
-	ammo_card.offset_bottom = -28
+	ammo_card.offset_left = -270
+	ammo_card.offset_right = -24
+	ammo_card.offset_top = -120
+	ammo_card.offset_bottom = -24
 	ammo_card.grow_vertical = Control.GROW_DIRECTION_BEGIN
-	ammo_card.custom_minimum_size = Vector2(274, 152)
 	ammo_card.z_index = 2
-	ammo_card.add_theme_stylebox_override("panel", WarUI.panel(Color(0.035, 0.055, 0.06, 0.92), WarUI.LINE, 16))
+	var ammo_bg := StyleBoxFlat.new()
+	ammo_bg.bg_color = Color(0.02, 0.04, 0.05, 0.65)
+	ammo_bg.border_width_left = 1
+	ammo_bg.border_width_top = 1
+	ammo_bg.border_width_right = 1
+	ammo_bg.border_width_bottom = 1
+	ammo_bg.border_color = Color(0.15, 0.28, 0.32, 0.5)
+	ammo_bg.corner_radius_top_left = 4
+	ammo_bg.corner_radius_top_right = 4
+	ammo_bg.corner_radius_bottom_right = 4
+	ammo_bg.corner_radius_bottom_left = 4
+	ammo_bg.content_margin_left = 8
+	ammo_bg.content_margin_right = 8
+	ammo_bg.content_margin_top = 5
+	ammo_bg.content_margin_bottom = 5
+	ammo_card.add_theme_stylebox_override("panel", ammo_bg)
 	add_child(ammo_card)
-	WarUI.decorate(ammo_card, WarUI.ACCENT)
+
 	var ab := VBoxContainer.new()
 	ab.z_index = 2
-	ab.add_theme_constant_override("separation", 2)
+	ab.add_theme_constant_override("separation", 3)
 	ab.alignment = BoxContainer.ALIGNMENT_END
 	ab.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	ammo_card.add_child(ab)
 	
-	equipment_label = _mk_label("", 11, WarUI.ACCENT)
+	equipment_label = _mk_label("", 10, WarUI.ACCENT)
 	ab.add_child(equipment_label)
 	_payload_cards.append(_build_payload_card(ab, "1", "PRIMARY"))
 	_payload_cards.append(_build_payload_card(ab, "2", "SECONDARY"))
 	_payload_cards.append(_build_payload_card(ab, "3", "TERTIARY"))
-	_fire_mode_label = _mk_label("3  BOTH", 11, WarUI.MUTED)
+	_fire_mode_label = _mk_label("3  DUAL FIRE", 10, WarUI.MUTED)
+	_fire_mode_label.visible = false
 	ab.add_child(_fire_mode_label)
-	ping_label = _mk_label("", 12, Color(0.65, 0.65, 0.65))
+	ping_label = _mk_label("", 10, Color(0.65, 0.65, 0.65))
 	ab.add_child(ping_label)
 	
-	fps_label = _mk_label("", 11, WarUI.MUTED)
+	fps_label = _mk_label("", 10, WarUI.MUTED)
 	fps_label.visible = false
 	ab.add_child(fps_label)
 	
-	optic_label = _mk_label("RMB OPTIC   V ZOOM   T THERMAL   R RELOAD", 11, WarUI.ACCENT)
+	optic_label = _mk_label("RMB OPTIC · V ZOOM · T THERMAL · R RELOAD", 9, Color(0.6, 0.72, 0.72, 0.65))
 	ab.add_child(optic_label)
 	
 	var identity := PanelContainer.new()
@@ -680,7 +708,7 @@ func build() -> void:
 	_missile_alert_box.add_theme_stylebox_override("panel", WarUI.panel(Color(0.25, 0.04, 0.04, 0.92), Color(1.0, 0.2, 0.1, 0.9), 10))
 	_missile_alert_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_missile_alert_box.visible = false
-	_missile_alert_label = _mk_label("⚠️ MISSILE LOCK-ON DETECTED · DEPLOY COUNTERMEASURES [F/C] ⚠️", 13, Color(1.0, 0.85, 0.8))
+	_missile_alert_label = _mk_label("⚠️ MISSILE LOCK-ON DETECTED · EVADE MANEUVERS ⚠️", 12, Color(1.0, 0.85, 0.8))
 	_missile_alert_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_missile_alert_box.add_child(_missile_alert_label)
 	add_child(_missile_alert_box)
@@ -720,10 +748,10 @@ func build() -> void:
 	killfeed_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	killfeed_box.add_theme_constant_override("separation", 6)
 	add_child(killfeed_box)
-	_controls_hint = _mk_label("WASD FLIGHT   SPACE ASCEND   CTRL DESCEND   SHIFT BOOST   M MAP   TAB BOARD   ESC MENU", 11, Color(0.8, 0.85, 0.83, 0.65))
+	_controls_hint = _mk_label("WASD FLIGHT   SPACE ASCEND   CTRL DESCEND   SHIFT BOOST   M MAP   TAB BOARD   ESC MENU", 10, Color(0.8, 0.85, 0.83, 0.5))
 	_controls_hint.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
-	_controls_hint.position = Vector2(-440, -34)
-	_controls_hint.custom_minimum_size.x = 880
+	_controls_hint.position = Vector2(-360, -22)
+	_controls_hint.custom_minimum_size.x = 720
 	_controls_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_controls_hint.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_controls_hint)
@@ -1058,7 +1086,7 @@ func show_missile_lock(_id: int, dist: int, dir: Vector3) -> void:
 	if is_instance_valid(_missile_alert_box):
 		_missile_alert_box.visible = true
 		if is_instance_valid(_missile_alert_label):
-			_missile_alert_label.text = "⚠️ INBOUND MISSILE [%dM] · EVADE OR SMOKE [F/C] ⚠️" % dist
+			_missile_alert_label.text = "⚠️ INBOUND MISSILE [%dM] · EVADE MANEUVERS ⚠️" % dist
 	if is_instance_valid(_tactical_radar):
 		_tactical_radar.missile_threat = true
 		_tactical_radar.missile_threat_dir = dir
@@ -1098,6 +1126,7 @@ func set_health(h: int, max_h: int = -1) -> void:
 	health_bar.value = h
 	var ratio := float(h) / max_val
 	health_label.add_theme_color_override("font_color", Color.WHITE if ratio > 0.3 else Color(1.0, 0.3, 0.3))
+	health_bar.modulate = Color(1.0, 0.25, 0.25) if ratio <= 0.25 else (Color(1.0, 0.7, 0.2) if ratio <= 0.45 else Color.WHITE)
 
 func set_drone_mobility(chassis: String) -> void:
 	var max_hp := GameState.max_health_for_chassis(chassis)
@@ -1111,45 +1140,65 @@ func set_drone_telemetry(speed_mps: float, altitude: float) -> void:
 	if not is_instance_valid(drone_telemetry_label): return
 	drone_telemetry_label.text = "ALT  %4.1f m    /    SPD  %2.0f m/s" % [maxf(0.0, altitude), maxf(0.0, speed_mps)]
 
-func _build_payload_card(parent: VBoxContainer, key: String, slot_name: String) -> Dictionary:
+func _build_payload_card(parent: VBoxContainer, key: String, _slot_name: String) -> Dictionary:
 	var panel := PanelContainer.new()
 	parent.add_child(panel)
+	
+	var lit_style := StyleBoxFlat.new()
+	lit_style.bg_color = Color(0.08, 0.16, 0.16, 0.8)
+	lit_style.border_width_left = 2
+	lit_style.border_color = WarUI.CYAN
+	lit_style.corner_radius_top_left = 2
+	lit_style.corner_radius_bottom_left = 2
+	lit_style.content_margin_left = 6
+	lit_style.content_margin_right = 6
+	lit_style.content_margin_top = 2
+	lit_style.content_margin_bottom = 2
+	
+	var dim_style := StyleBoxFlat.new()
+	dim_style.bg_color = Color(0.03, 0.05, 0.06, 0.3)
+	dim_style.border_width_left = 2
+	dim_style.border_color = Color(0.1, 0.15, 0.16, 0.3)
+	dim_style.corner_radius_top_left = 2
+	dim_style.corner_radius_bottom_left = 2
+	dim_style.content_margin_left = 6
+	dim_style.content_margin_right = 6
+	dim_style.content_margin_top = 2
+	dim_style.content_margin_bottom = 2
+	
+	panel.add_theme_stylebox_override("panel", dim_style)
+	
 	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 8)
+	row.add_theme_constant_override("separation", 6)
 	panel.add_child(row)
-	var identity := VBoxContainer.new()
-	identity.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	identity.add_theme_constant_override("separation", 0)
-	row.add_child(identity)
-	var slot := _mk_label("%s  %s" % [key, slot_name], 11, WarUI.MUTED)
-	identity.add_child(slot)
+	
+	var slot := _mk_label("[%s]" % key, 10, WarUI.MUTED)
+	slot.custom_minimum_size.x = 18
+	row.add_child(slot)
+	
+	var title := _mk_label("", 11, WarUI.TEXT)
+	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	title.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	row.add_child(title)
+	
 	var thumbnail := TextureRect.new()
-	thumbnail.custom_minimum_size = Vector2(112, 38)
-	thumbnail.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
-	thumbnail.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	thumbnail.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	thumbnail.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	thumbnail.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
-	thumbnail.material = _thumbnail_material
-	thumbnail.z_index = 1
-	identity.add_child(thumbnail)
-	var title := _mk_label("", 12, WarUI.TEXT)
-	identity.add_child(title)
-	var values := VBoxContainer.new()
-	values.alignment = BoxContainer.ALIGNMENT_CENTER
-	values.add_theme_constant_override("separation", 0)
-	row.add_child(values)
-	var loaded := _mk_label("", 27, WarUI.TEXT)
+	thumbnail.visible = false
+	thumbnail.custom_minimum_size = Vector2(0, 0)
+	panel.add_child(thumbnail)
+	
+	var loaded := _mk_label("", 13, WarUI.TEXT)
 	loaded.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	loaded.custom_minimum_size.x = 76
-	values.add_child(loaded)
-	var reserve := _mk_label("", 11, WarUI.MUTED)
+	loaded.custom_minimum_size.x = 22
+	row.add_child(loaded)
+	
+	var reserve := _mk_label("", 10, WarUI.MUTED)
 	reserve.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	values.add_child(reserve)
+	reserve.custom_minimum_size.x = 42
+	row.add_child(reserve)
+	
 	return {"panel": panel, "slot": slot, "title": title, "thumbnail": thumbnail, "loaded": loaded,
 		"reserve": reserve, "id": "", "selected": null, "status": Vector3i(-1, -1, -1),
-		"lit_style": WarUI.panel(Color("202c2b"), Color("61764c"), 6),
-		"dim_style": WarUI.panel(Color("10191d"), Color("2f3b42"), 6)}
+		"lit_style": lit_style, "dim_style": dim_style}
 
 func update_payload_cards(system: WarWeaponSystem) -> void:
 	var equipped := GameState.equipped_indices()
@@ -1168,23 +1217,25 @@ func update_payload_cards(system: WarWeaponSystem) -> void:
 			card.id = id
 			card.title.text = String(config["name"])
 			var icon_path := "res://assets/ui/payloads/%s.png" % id
-			card.thumbnail.texture = load(icon_path) if ResourceLoader.exists(icon_path) else null
+			if ResourceLoader.exists(icon_path):
+				card.thumbnail.texture = load(icon_path)
 			card.status = Vector3i(-1, -1, -1)
 		var selected := both or system.active_index == index
 		if card.selected != selected:
 			card.selected = selected
 			card.panel.add_theme_stylebox_override("panel", card.lit_style if selected else card.dim_style)
-			card.slot.add_theme_color_override("font_color", WarUI.ACCENT if selected else WarUI.MUTED)
+			card.slot.add_theme_color_override("font_color", WarUI.CYAN if selected else WarUI.MUTED)
+			card.title.add_theme_color_override("font_color", WarUI.TEXT if selected else WarUI.MUTED)
 		var status := system.payload_status(index)
 		if card.status == status: continue
 		card.status = status
 		card.loaded.text = "%02d" % status.x
-		card.loaded.add_theme_color_override("font_color", WarUI.DANGER if status.x == 0 else WarUI.TEXT)
-		card.reserve.text = "%02d RESERVE" % status.y if status.z == 0 else "RELOADING"
+		card.loaded.add_theme_color_override("font_color", WarUI.DANGER if status.x == 0 else (WarUI.CYAN if selected else WarUI.TEXT))
+		card.reserve.text = "/ %02d" % status.y if status.z == 0 else "RELOAD"
 		card.reserve.add_theme_color_override("font_color", WarUI.MUTED if status.z == 0 else WarUI.ACCENT)
 	_fire_mode_label.visible = system.can_dual_fire()
 	var fire_key := "4" if is_tank else "3"
-	var fire_mode := "%s  BOTH ACTIVE" % fire_key if both else "%s  BOTH" % fire_key
+	var fire_mode := "%s  DUAL ACTIVE" % fire_key if both else "%s  DUAL" % fire_key
 	if _fire_mode_label.text != fire_mode:
 		_fire_mode_label.text = fire_mode
 		_fire_mode_label.add_theme_color_override("font_color", WarUI.ACCENT if both else WarUI.MUTED)
@@ -1569,7 +1620,7 @@ func _process(delta: float) -> void:
 				if is_instance_valid(_tactical_radar):
 					_compass_ribbon.objectives = _tactical_radar.objectives
 				_compass_ribbon.queue_redraw()
-	equipment_label.text = "[G] HOLD AIM · RELEASE THROW\n%s ×%d" % [GameState.THROWABLES[GameState.selected_throwable]["name"], GameState.throwables_remaining]
+	equipment_label.text = "[G] %s ×%d" % [GameState.THROWABLES[GameState.selected_throwable]["name"], GameState.throwables_remaining]
 	_controls_hint.visible = not death_panel.visible and (not is_instance_valid(_sensor_reticle) or not _sensor_reticle.visible)
 	
 	if is_instance_valid(_missile_guidance_hud):
@@ -1657,39 +1708,7 @@ func _process(delta: float) -> void:
 		low_hp_vignette.color.a = 0.0
 
 func _update_ability_card() -> void:
-	if not is_instance_valid(_ability_name_label) or not is_instance_valid(_ability_status_label):
-		return
-	var players := get_tree().get_nodes_in_group("local_player")
-	if players.is_empty() or not is_instance_valid(players[0]):
-		return
-	var lp = players[0]
-	var chassis: String = GameState.selected_drone_chassis
-	match chassis:
-		"tracked": _ability_name_label.text = "[F/C] SMOKE SCREEN"
-		"wheels": _ability_name_label.text = "[F] NITRO / [C] SMOKE"
-		"heli": _ability_name_label.text = "[F] FLARE DECOY"
-		"wing": _ability_name_label.text = "[F] AIRBRAKE"
-		_: _ability_name_label.text = "[F] RECON PULSE"
-
-	var cd: float = lp.get("ability_cooldown") if "ability_cooldown" in lp else 0.0
-	var active_t: float = lp.get("ability_active_timer") if "ability_active_timer" in lp else 0.0
-	var max_cd: float = lp.get("ABILITY_COOLDOWN_MAX") if "ABILITY_COOLDOWN_MAX" in lp else 10.0
-
-	if active_t > 0.0:
-		_ability_status_label.text = "ACTIVE %.1fs" % active_t
-		_ability_status_label.add_theme_color_override("font_color", Color("ffaa33"))
-		if is_instance_valid(_ability_bar):
-			_ability_bar.value = active_t / 3.0
-	elif cd > 0.0:
-		_ability_status_label.text = "%.1fs" % cd
-		_ability_status_label.add_theme_color_override("font_color", WarUI.MUTED)
-		if is_instance_valid(_ability_bar):
-			_ability_bar.value = 1.0 - (cd / maxf(max_cd, 0.001))
-	else:
-		_ability_status_label.text = "READY"
-		_ability_status_label.add_theme_color_override("font_color", WarUI.CYAN)
-		if is_instance_valid(_ability_bar):
-			_ability_bar.value = 1.0
+	pass
 
 func _input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo and event.physical_keycode == KEY_F3:
