@@ -499,12 +499,15 @@ func _check_local_server() -> void:
 	if OS.has_feature("web"): return
 	# Check if local development server is running on 127.0.0.1:8081
 	var req := HTTPRequest.new()
-	req.timeout = 0.5
+	req.timeout = 1.5
 	add_child(req)
 	req.request_completed.connect(func(result: int, code: int, _headers: PackedStringArray, _body: PackedByteArray) -> void:
 		req.queue_free()
 		if result == HTTPRequest.RESULT_SUCCESS and code == 200:
 			GameState.server_host = "127.0.0.1:8081"
+			if _lobby_adapter != null:
+				_lobby_adapter.stop()
+				_lobby_adapter.start()
 			_probe_server()
 			refresh_rooms()
 	)
@@ -513,7 +516,9 @@ func _check_local_server() -> void:
 func _probe_server() -> void:
 	_api_request("/healthcheck", func(code: int, _data: Variant) -> void:
 		_server_online = code == 200
-		status_pill.text = "LIVE LOBBY" if _lobby_adapter != null and _lobby_adapter.available else ("SERVICE ONLINE" if _server_online else "SERVICE UNAVAILABLE")
+		var is_local := GameState.server_host.begins_with("127.") or GameState.server_host.begins_with("localhost")
+		var host_tag := " [LOCAL]" if is_local else " [CLOUD]"
+		status_pill.text = ("LIVE LOBBY" if _lobby_adapter != null and _lobby_adapter.available else ("SERVICE ONLINE" if _server_online else "SERVICE UNAVAILABLE")) + host_tag
 		status_pill.tooltip_text = GameState.server_host
 		status_pill.add_theme_color_override("font_color", WarUI.SUCCESS if _server_online or (_lobby_adapter != null and _lobby_adapter.available) else WarUI.MUTED)
 		_update_service_status()
