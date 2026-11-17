@@ -8,7 +8,7 @@ import tempfile
 from client_provenance import client_fingerprint
 from optional_map_assets import RESTORED_MAPS
 
-MAPS = ('football','industrial','village','arena','dust2','nuketown','canyon','military_base', 'ghost_city', 'cosmodrome', 'dam', 'skyline')
+MAPS = ('football','industrial','village','dust2','canyon','military_base', 'cosmodrome', 'dam', 'skyline')
 
 def ensure_map_integrity(root: pathlib.Path, godot: pathlib.Path) -> dict:
     client = root / 'warbase-godot/client'

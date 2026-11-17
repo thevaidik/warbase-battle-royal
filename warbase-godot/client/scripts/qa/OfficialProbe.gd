@@ -80,7 +80,7 @@ func run() -> void:
 		var valid_room_query := RegEx.new()
 		valid_room_query.compile("^[A-Za-z0-9_-]{1,64}$")
 		if valid_room_query.search(room_query) != null: state.room_id = room_query
-		if ["industrial", "football", "village", "arena", "dust2", "nuketown", "canyon", "military_base", "ghost_city"].has(map_query): state.selected_map = map_query
+		if ["industrial", "football", "village", "dust2", "canyon", "military_base", "cosmodrome", "dam", "skyline"].has(map_query): state.selected_map = map_query
 		if seconds_query.is_valid_float(): seconds = float(seconds_query)
 		var drop_query := String(JavaScriptBridge.eval("new URLSearchParams(window.location.search).get('qa_drop_at') || ''"))
 		if drop_query.is_valid_float(): injected_drop_at = float(drop_query)

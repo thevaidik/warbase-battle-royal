@@ -44,17 +44,14 @@ func _theme_football(inst: Node3D) -> void:
 			rear.material_override = mi.get_active_material(0)
 			mi.add_child(rear)
 
-const RESTORED_MAPS := ["dust2","nuketown","canyon","military_base","ghost_city"]
+const RESTORED_MAPS := ["dust2","canyon","military_base"]
 const MAP_GLBS := {
 	"industrial":"res://assets/maps/low_poly_industrial_zone.glb",
 	"football":"res://assets/maps/football.glb",
 	"village":"res://assets/maps/village_lowres.glb",
-	"arena":"res://assets/maps/fps_shooter_game_arena_map_v3.glb",
 	"dust2":"res://assets/maps/restored/dust2.scn",
-	"nuketown":"res://assets/maps/restored/nuketown.scn",
 	"canyon":"res://assets/maps/restored/canyon.scn",
 	"military_base":"res://assets/maps/restored/military_base.scn",
-	"ghost_city":"res://assets/maps/restored/ghost_city.scn",
 	"cosmodrome":"res://assets/maps/cosmodrome.scn",
 	"dam":"res://assets/maps/dam.scn",
 	"skyline":"res://assets/maps/skyline.scn",
@@ -173,23 +170,6 @@ func build(map_name: String) -> Array[Vector3]:
 						Vector3(14.0, 0.08, -16.0),
 						Vector3(-6.0, 0.08, 2.0),
 						Vector3(6.0, 0.08, -2.0),
-					]
-				"arena":
-					extent = 36.0
-					center = Vector3(-15.0, 0.0, -15.0)
-					spawn_points = [
-						Vector3(-25.5, 1.08, -3.0),
-						Vector3(-26.0, 1.0799, -7.5),
-						Vector3(-20.0, 1.0799, -3.0),
-						Vector3(-20.0, 1.0799, -7.5),
-						Vector3(-15.0, 1.0799, -3.0),
-						Vector3(-15.0, 1.0799, -7.5),
-						Vector3(-9.0, 1.0799, -3.0),
-						Vector3(-9.0, 1.0799, -7.5),
-						Vector3(-3.5, 1.08, -3.5),
-						Vector3(-4.3827, 1.0799, -7.4239),
-						Vector3(-14.8087, 1.08, -4.5381),
-						Vector3(-21.8087, 1.08, -4.5381),
 					]
 				"cosmodrome":
 					extent = 90.0
@@ -342,14 +322,6 @@ func _build_sky(root: Node3D, map_name: String = "industrial") -> void:
 		pm.ground_bottom_color = Color(0.12, 0.12, 0.10)
 		pm.sun_angle_max = 32.0
 		pm.sun_curve = 0.08
-	elif map_name == "arena":
-		# Tactical Stadium Overcast
-		pm.sky_top_color = Color(0.26, 0.32, 0.40)
-		pm.sky_horizon_color = Color(0.68, 0.71, 0.74)
-		pm.ground_horizon_color = Color(0.36, 0.37, 0.38)
-		pm.ground_bottom_color = Color(0.10, 0.10, 0.11)
-		pm.sun_angle_max = 28.0
-		pm.sun_curve = 0.10
 	elif map_name in ["dust2", "warzone", "desert_road", "canyon", "desert_oasis"]:
 		# Arid Cinematic Desert (Muted sand haze, desaturated sky)
 		pm.sky_top_color = Color(0.25, 0.36, 0.48)
@@ -358,14 +330,6 @@ func _build_sky(root: Node3D, map_name: String = "industrial") -> void:
 		pm.ground_bottom_color = Color(0.14, 0.12, 0.10)
 		pm.sun_angle_max = 36.0
 		pm.sun_curve = 0.07
-	elif map_name == "nuketown":
-		# Subdued Suburban Daylight
-		pm.sky_top_color = Color(0.26, 0.36, 0.48)
-		pm.sky_horizon_color = Color(0.72, 0.75, 0.76)
-		pm.ground_horizon_color = Color(0.44, 0.43, 0.40)
-		pm.ground_bottom_color = Color(0.11, 0.11, 0.10)
-		pm.sun_angle_max = 32.0
-		pm.sun_curve = 0.08
 	elif map_name == "cosmodrome":
 		# Dawn Aerospace Gold (Warm amber glow, deep orbital blue zenith)
 		pm.sky_top_color = Color(0.12, 0.22, 0.38)
@@ -467,9 +431,6 @@ func _build_sky(root: Node3D, map_name: String = "industrial") -> void:
 	if map_name in ["dust2", "warzone", "desert_road", "canyon", "desert_oasis"]:
 		env.fog_light_color = Color(0.74, 0.72, 0.68)
 		env.fog_density = 0.0005 if map_name == "canyon" else 0.00075
-	elif map_name == "arena":
-		env.fog_light_color = Color(0.68, 0.71, 0.74)
-		env.fog_density = 0.0008
 	elif map_name == "cosmodrome":
 		env.fog_light_color = Color(0.82, 0.60, 0.42)
 		env.fog_density = 0.00055
@@ -518,10 +479,6 @@ func _build_sky(root: Node3D, map_name: String = "industrial") -> void:
 		sun.rotation = Vector3(deg_to_rad(-22.0), deg_to_rad(-48.0), 0)
 		sun.light_energy = 1.50
 		sun.light_color = Color(1.0, 0.96, 0.90)
-	elif map_name == "nuketown":
-		sun.rotation = Vector3(deg_to_rad(-20.0), deg_to_rad(38.0), 0)
-		sun.light_energy = 1.45
-		sun.light_color = Color(1.0, 0.97, 0.92)
 	elif map_name in ["canyon", "warzone", "desert_road", "desert_oasis"]:
 		sun.rotation = Vector3(deg_to_rad(-20.0), deg_to_rad(-35.0), 0)
 		sun.light_energy = 1.50
@@ -557,30 +514,6 @@ func _build_sky(root: Node3D, map_name: String = "industrial") -> void:
 	sun.shadow_opacity = 0.88
 	sun.shadow_blur = 1.2
 	root.add_child(sun)
-	
-	if map_name == "arena":
-		_add_arena_accents(root)
-
-func _add_arena_accents(root: Node3D) -> void:
-	var center_light := OmniLight3D.new()
-	center_light.light_color = Color(1.0, 0.96, 0.90)
-	center_light.light_energy = 2.0
-	center_light.omni_range = 22.0
-	center_light.position = Vector3(0, 3.8, 0)
-	root.add_child(center_light)
-	
-	var lamp_points := [
-		Vector3(-18, 3.2, 5), Vector3(-18, 3.2, -5),
-		Vector3(18, 3.2, 5), Vector3(18, 3.2, -5),
-		Vector3(0, 3.2, 18), Vector3(0, 3.2, -18)
-	]
-	for i in lamp_points.size():
-		var l := OmniLight3D.new()
-		l.light_color = Color(0.96, 0.98, 1.0)
-		l.light_energy = 1.2
-		l.omni_range = 14.0
-		l.position = lamp_points[i]
-		root.add_child(l)
 
 
 func apply_time_of_day(preset: String) -> void:

@@ -1,7 +1,7 @@
 extends SceneTree
 
 const MAPS = [
-	"arena",
+	"cosmodrome",
 	"industrial",
 	"village",
 	"city",

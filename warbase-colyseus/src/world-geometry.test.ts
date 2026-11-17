@@ -217,7 +217,7 @@ test('all selectable maps load independent authored geometry and match the share
 
 test('original map spawns stand above their authored ground and settle without embedding', () => {
   let settled = 0;
-  for (const map of ['industrial', 'nuketown', 'village', 'dust2', 'canyon']) {
+  for (const map of ['industrial', 'village', 'dust2', 'canyon', 'dam']) {
     const geometry = loadWorldGeometry(map)!;
     for (const spawn of geometry.spawns) {
       const floor = geometry.floorHeight(spawn[0], spawn[2], spawn[1] + 0.01);

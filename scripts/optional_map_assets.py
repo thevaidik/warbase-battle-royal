@@ -6,7 +6,7 @@ import pathlib
 import re
 from client_provenance import parse_pack_paths
 
-RESTORED_MAPS = ('dust2','nuketown','canyon','military_base','ghost_city')
+RESTORED_MAPS = ('dust2','canyon','military_base')
 OPTIONAL_MAPS = ('football', *RESTORED_MAPS)
 
 

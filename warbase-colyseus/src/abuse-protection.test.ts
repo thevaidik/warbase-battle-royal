@@ -37,7 +37,7 @@ test('invalid and over-capacity room creates do not spend the shared valid-creat
   assert.deepEqual(consumeRoomCreationAllowance({ map: 'industrial' }, 0, limiter, 100), {
     requested: 'industrial-public', map: 'industrial', requestedMode: 'CONQUEST', timeOfDay: 'noon',
   });
-  assert.equal(consumeRoomCreationAllowance({ map: 'arena', mode: 'CONQUEST' }, 0, new FixedWindowLimiter(), 100).requestedMode, 'CONQUEST');
+  assert.equal(consumeRoomCreationAllowance({ map: 'industrial', mode: 'CONQUEST' }, 0, new FixedWindowLimiter(), 100).requestedMode, 'CONQUEST');
   for (let i = 1; i < 60; i++) consumeRoomCreationAllowance({ map: 'industrial' }, 0, limiter, 100);
   assert.throws(() => consumeRoomCreationAllowance({ map: 'industrial' }, 0, limiter, 100), /rate limited/);
 });

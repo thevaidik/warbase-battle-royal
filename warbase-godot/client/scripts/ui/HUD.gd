@@ -915,7 +915,7 @@ func build() -> void:
 	add_child(board_overlay)
 	
 	board_panel = PanelContainer.new()
-	board_panel.custom_minimum_size = Vector2(760, 500)
+	board_panel.custom_minimum_size = Vector2(880, 520)
 	board_panel.visible = false
 	board_overlay.add_child(board_panel)
 
@@ -923,35 +923,35 @@ func build() -> void:
 	b_style.bg_color = WarUI.PANEL
 	b_style.border_color = WarUI.LINE
 	b_style.set_border_width_all(2)
-	b_style.set_corner_radius_all(6)
-	b_style.content_margin_left = 18
-	b_style.content_margin_right = 18
-	b_style.content_margin_top = 16
-	b_style.content_margin_bottom = 16
+	b_style.set_corner_radius_all(8)
+	b_style.content_margin_left = 20
+	b_style.content_margin_right = 20
+	b_style.content_margin_top = 18
+	b_style.content_margin_bottom = 18
 	board_panel.add_theme_stylebox_override("panel", b_style)
 
 	var main_vbox := VBoxContainer.new()
-	main_vbox.add_theme_constant_override("separation", 12)
+	main_vbox.add_theme_constant_override("separation", 14)
 	board_panel.add_child(main_vbox)
 
 	# Global Header Row
 	var top_hdr := HBoxContainer.new()
 	main_vbox.add_child(top_hdr)
 
-	var tab_title := _mk_label("MATCH SCOREBOARD", 21, WarUI.TEXT)
+	var tab_title := _mk_label("MATCH SCOREBOARD", 20, WarUI.TEXT)
 	top_hdr.add_child(tab_title)
 
 	var spacer := Control.new()
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	top_hdr.add_child(spacer)
 
-	_audit_lbl_status = _mk_label(" AUDIT: 120Hz ULTRA-FLUID", 13, Color(0.2, 1.0, 0.4))
-	top_hdr.add_child(_audit_lbl_status)
+	_audit_lbl_status = _mk_label("", 1, Color(0, 0, 0, 0))
 	_audit_lbl_status.visible = false
+	top_hdr.add_child(_audit_lbl_status)
 
 	var resume_board_btn := Button.new()
 	resume_board_btn.text = "RESUME GAME [TAB / ESC]"
-	resume_board_btn.custom_minimum_size = Vector2(190, 34)
+	resume_board_btn.custom_minimum_size = Vector2(190, 32)
 	resume_board_btn.mouse_filter = Control.MOUSE_FILTER_STOP
 	resume_board_btn.pressed.connect(func() -> void:
 		Audio.ui_btn_click()
@@ -959,44 +959,19 @@ func build() -> void:
 	)
 	top_hdr.add_child(resume_board_btn)
 
-	# Dual Column Content Container
-	var cols := HBoxContainer.new()
-	cols.add_theme_constant_override("separation", 24)
-	cols.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	main_vbox.add_child(cols)
-
-	# Left Column: Combat Roster / Scoreboard
-	var left_vbox := VBoxContainer.new()
-	left_vbox.custom_minimum_size = Vector2(420, 0)
-	left_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	cols.add_child(left_vbox)
-
-	var sc_title := _mk_label("PILOTS", 12, Color(0.7, 0.82, 0.95))
-	left_vbox.add_child(sc_title)
-
-	var sc_scroll := ScrollContainer.new()
-	sc_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	left_vbox.add_child(sc_scroll)
-
+	# Full Width Board Area for Team Columns
 	board_list = VBoxContainer.new()
 	board_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	board_list.add_theme_constant_override("separation", 4)
-	sc_scroll.add_child(board_list)
+	board_list.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	board_list.add_theme_constant_override("separation", 10)
+	main_vbox.add_child(board_list)
 
-	# Vertical Divider
-	var div := ColorRect.new()
-	div.color = Color(0.2, 0.25, 0.35, 0.5)
-	div.custom_minimum_size = Vector2(1, 0)
-	div.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	cols.add_child(div)
-	div.visible = false
-
-	# Right Column: Real-Time Hardware & Engine Telemetry
 	audit_box = VBoxContainer.new()
+	audit_box.visible = false
 	audit_box.custom_minimum_size = Vector2.ZERO
 	audit_box.visible = false
 	audit_box.add_theme_constant_override("separation", 8)
-	cols.add_child(audit_box)
+	main_vbox.add_child(audit_box)
 
 	var aud_hdr := _mk_label("LIVE HARDWARE & ENGINE AUDIT METRICS", 13, Color(0.4, 0.9, 1.0))
 	audit_box.add_child(aud_hdr)
@@ -1445,68 +1420,179 @@ func _refresh_scoreboard(players: Dictionary, me: String) -> void:
 	for c in board_list.get_children():
 		board_list.remove_child(c)
 		c.queue_free()
-	
-	# Header Row
-	var hdr := HBoxContainer.new()
-	var h_op := _mk_label("PILOT", 11, Color(0.65, 0.7, 0.75))
-	h_op.custom_minimum_size = Vector2(290, 0)
-	hdr.add_child(h_op)
-	var h_k := _mk_label("ELIMS", 11, Color(0.65, 0.7, 0.75))
-	h_k.custom_minimum_size = Vector2(82, 0)
-	hdr.add_child(h_k)
-	var h_d := _mk_label("LOSSES", 11, Color(0.65, 0.7, 0.75))
-	h_d.custom_minimum_size = Vector2(82, 0)
-	hdr.add_child(h_d)
-	var h_hp := _mk_label("HULL", 11, Color(0.65, 0.7, 0.75))
-	h_hp.custom_minimum_size = Vector2(88, 0)
-	hdr.add_child(h_hp)
-	var h_tm := _mk_label("TEAM", 11, Color(0.65, 0.7, 0.75))
-	hdr.add_child(h_tm)
-	board_list.add_child(hdr)
 
-	var rows: Array = []
+	var team_a_rows: Array[Dictionary] = []
+	var team_b_rows: Array[Dictionary] = []
+	var team_a_kills := 0
+	var team_b_kills := 0
+
 	for pid in players.keys():
 		var p_val = players[pid]
 		var p: Dictionary = p_val.duplicate() if p_val is Dictionary else {}
 		p["id"] = str(pid)
-		rows.append(p)
-	rows.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return int(a.get("kills", 0)) > int(b.get("kills", 0)))
+		var k := int(p.get("kills", 0))
+		var tm := String(p.get("team", "A"))
+		if tm == "B":
+			team_b_rows.append(p)
+			team_b_kills += k
+		else:
+			team_a_rows.append(p)
+			team_a_kills += k
 
-	for p in rows:
-		var pid_str := String(p.get("id", ""))
-		var nm := String(p.get("name", pid_str))
-		if nm.is_empty() or nm == "?":
-			nm = pid_str
-		var is_me := (nm == me or pid_str == me)
-		var kills: int = int(p.get("kills", 0))
-		var deaths: int = int(p.get("deaths", 0))
-		var health_val: int = int(p.get("health", 0))
-		var team: String = String(p.get("team", "A"))
+	var sort_by_kills := func(a: Dictionary, b: Dictionary) -> bool:
+		return int(a.get("kills", 0)) > int(b.get("kills", 0))
 
-		var row := HBoxContainer.new()
-		row.custom_minimum_size.y = 32
-		var col_txt := WarUI.ACCENT if is_me else WarUI.TEXT
-		
-		var l_op := _mk_label((" " if is_me else "  ") + nm, 14, col_txt)
-		l_op.custom_minimum_size = Vector2(290, 0)
-		row.add_child(l_op)
-		
-		var l_k := _mk_label(str(kills), 14, col_txt)
-		l_k.custom_minimum_size = Vector2(82, 0)
-		row.add_child(l_k)
-		
-		var l_d := _mk_label(str(deaths), 14, col_txt)
-		l_d.custom_minimum_size = Vector2(82, 0)
-		row.add_child(l_d)
-		
-		var l_hp := _mk_label(str(health_val) + "%", 14, WarUI.SUCCESS if health_val > 50 else (WarUI.ACCENT if health_val > 25 else WarUI.DANGER))
-		l_hp.custom_minimum_size = Vector2(88, 0)
-		row.add_child(l_hp)
-		
-		var l_tm := _mk_label("Team " + team, 13, Color(0.3, 0.7, 1.0) if team == "A" else Color(1.0, 0.4, 0.4))
-		row.add_child(l_tm)
-		
-		board_list.add_child(row)
+	team_a_rows.sort_custom(sort_by_kills)
+	team_b_rows.sort_custom(sort_by_kills)
+
+	# Match Score Summary Banner
+	var score_banner := HBoxContainer.new()
+	score_banner.alignment = BoxContainer.ALIGNMENT_CENTER
+	score_banner.add_theme_constant_override("separation", 20)
+	
+	var a_score_lbl := _mk_label("TEAM A  %d" % team_a_kills, 15, WarUI.CYAN)
+	score_banner.add_child(a_score_lbl)
+	var vs_lbl := _mk_label("—  VS  —", 12, WarUI.MUTED)
+	score_banner.add_child(vs_lbl)
+	var b_score_lbl := _mk_label("%d  TEAM B" % team_b_kills, 15, Color(1.0, 0.4, 0.4))
+	score_banner.add_child(b_score_lbl)
+	board_list.add_child(score_banner)
+
+	# Side-by-Side Team Columns
+	var teams_hbox := HBoxContainer.new()
+	teams_hbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	teams_hbox.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	teams_hbox.add_theme_constant_override("separation", 16)
+	board_list.add_child(teams_hbox)
+
+	var col_a := _build_team_column(team_a_rows, "TEAM A · VANGUARD", WarUI.CYAN, Color(0.04, 0.08, 0.12, 0.9), team_a_kills, me)
+	teams_hbox.add_child(col_a)
+
+	var col_b := _build_team_column(team_b_rows, "TEAM B · RAIDER", Color(1.0, 0.4, 0.4), Color(0.12, 0.05, 0.05, 0.9), team_b_kills, me)
+	teams_hbox.add_child(col_b)
+
+func _build_team_column(rows: Array[Dictionary], title: String, accent_color: Color, bg_color: Color, team_kills: int, me: String) -> Control:
+	var panel := PanelContainer.new()
+	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	
+	var style := StyleBoxFlat.new()
+	style.bg_color = bg_color
+	style.border_width_left = 1
+	style.border_width_top = 3
+	style.border_width_right = 1
+	style.border_width_bottom = 1
+	style.border_color = accent_color
+	style.corner_radius_top_left = 6
+	style.corner_radius_top_right = 6
+	style.corner_radius_bottom_right = 6
+	style.corner_radius_bottom_left = 6
+	style.content_margin_left = 14
+	style.content_margin_right = 14
+	style.content_margin_top = 10
+	style.content_margin_bottom = 10
+	panel.add_theme_stylebox_override("panel", style)
+
+	var vbox := VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 6)
+	panel.add_child(vbox)
+
+	var hdr := HBoxContainer.new()
+	hdr.add_theme_constant_override("separation", 8)
+	vbox.add_child(hdr)
+
+	var t_lbl := _mk_label(title, 13, accent_color)
+	hdr.add_child(t_lbl)
+
+	var spacer := Control.new()
+	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	hdr.add_child(spacer)
+
+	var stats_lbl := _mk_label("%d ELIMS  ·  %d PILOTS" % [team_kills, rows.size()], 11, WarUI.MUTED)
+	hdr.add_child(stats_lbl)
+
+	var col_hdr := HBoxContainer.new()
+	vbox.add_child(col_hdr)
+
+	var h_pilot := _mk_label("PILOT", 10, WarUI.MUTED)
+	h_pilot.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	col_hdr.add_child(h_pilot)
+
+	var h_k := _mk_label("ELIMS", 10, WarUI.MUTED)
+	h_k.custom_minimum_size.x = 56
+	h_k.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	col_hdr.add_child(h_k)
+
+	var h_d := _mk_label("LOSSES", 10, WarUI.MUTED)
+	h_d.custom_minimum_size.x = 56
+	h_d.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	col_hdr.add_child(h_d)
+
+	var h_hp := _mk_label("HULL", 10, WarUI.MUTED)
+	h_hp.custom_minimum_size.x = 56
+	h_hp.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	col_hdr.add_child(h_hp)
+
+	var div := ColorRect.new()
+	div.color = Color(1.0, 1.0, 1.0, 0.12)
+	div.custom_minimum_size = Vector2(0, 1)
+	vbox.add_child(div)
+
+	var scroll := ScrollContainer.new()
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	vbox.add_child(scroll)
+
+	var list_vbox := VBoxContainer.new()
+	list_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	list_vbox.add_theme_constant_override("separation", 3)
+	scroll.add_child(list_vbox)
+
+	if rows.is_empty():
+		var empty_lbl := _mk_label("No pilots active", 11, WarUI.MUTED)
+		empty_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		list_vbox.add_child(empty_lbl)
+	else:
+		for p in rows:
+			var pid_str := String(p.get("id", ""))
+			var nm := String(p.get("name", pid_str))
+			if nm.is_empty() or nm == "?":
+				nm = pid_str
+			var is_me := (nm == me or pid_str == me)
+			var kills: int = int(p.get("kills", 0))
+			var deaths: int = int(p.get("deaths", 0))
+			var health_val: int = int(p.get("health", 0))
+
+			var row := HBoxContainer.new()
+			row.custom_minimum_size.y = 26
+			
+			var name_col := WarUI.ACCENT if is_me else WarUI.TEXT
+			var display_name := ("[YOU] " + nm) if is_me else nm
+			var l_name := _mk_label(display_name, 12, name_col)
+			l_name.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			l_name.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+			row.add_child(l_name)
+
+			var l_k := _mk_label(str(kills), 12, WarUI.TEXT)
+			l_k.custom_minimum_size.x = 56
+			l_k.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			row.add_child(l_k)
+
+			var l_d := _mk_label(str(deaths), 12, WarUI.MUTED)
+			l_d.custom_minimum_size.x = 56
+			l_d.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			row.add_child(l_d)
+
+			var hp_text := "DOWN" if health_val <= 0 else (str(health_val) + "%")
+			var hp_col := Color("ff4444") if health_val <= 0 else (WarUI.SUCCESS if health_val > 50 else WarUI.ACCENT)
+			var l_hp := _mk_label(hp_text, 11, hp_col)
+			l_hp.custom_minimum_size.x = 56
+			l_hp.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+			row.add_child(l_hp)
+
+			list_vbox.add_child(row)
+
+	return panel
 
 func _update_audit_telemetry() -> void:
 	if not is_instance_valid(_audit_lbl_frame):

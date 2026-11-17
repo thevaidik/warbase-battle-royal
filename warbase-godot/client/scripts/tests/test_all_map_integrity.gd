@@ -3,7 +3,7 @@ extends SceneTree
 const AUTHORING = preload("res://scripts/tools/export_server_maps.gd")
 const SHARED_GEOMETRY = preload("res://scripts/net/ColyseusWorldGeometry.gd")
 const DRONE_FLIGHT = preload("res://scripts/drones/DroneFlight.gd")
-const MAPS := ["football","industrial","village","arena","dust2","nuketown","canyon","military_base", "ghost_city", "cosmodrome", "dam", "skyline"]
+const MAPS := ["football","industrial","village","dust2","canyon","military_base","cosmodrome","dam","skyline"]
 var failures: Array[String] = []
 func _initialize() -> void: call_deferred("run")
 func check(ok: bool, message: String) -> void:

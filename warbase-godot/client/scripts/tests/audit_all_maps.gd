@@ -3,12 +3,9 @@ extends SceneTree
 const MAPS = [
 	"industrial",
 	"village",
-	"arena",
 	"dust2",
-	"nuketown",
 	"canyon",
 	"military_base",
-	"ghost_city",
 	"football",
 	"cosmodrome",
 	"dam",

@@ -3,7 +3,8 @@ import { loadWorldGeometry, PLAYABLE_MAPS } from '../src/world-geometry.js';
 
 const file = new URL('../src/data/maps/map-fixtures.json', import.meta.url);
 const godotFile = new URL('../../warbase-godot/client/assets/data/maps/map-fixtures.json', import.meta.url);
-const fixtures = JSON.parse(readFileSync(file, 'utf8')) as Array<Record<string, unknown>>;
+const allFixtures = JSON.parse(readFileSync(file, 'utf8')) as Array<Record<string, unknown>>;
+const fixtures = allFixtures.filter((row) => (PLAYABLE_MAPS as readonly string[]).includes(row.map as string));
 for (const id of PLAYABLE_MAPS) {
   const geometry = loadWorldGeometry(id);
   if (!geometry) throw new Error(`No geometry for ${id}`);

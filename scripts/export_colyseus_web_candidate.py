@@ -149,8 +149,8 @@ def main() -> int:
             "assets/data/industrial.json.gz",
         }
         playable_maps = (
-            "football", "industrial", "village", "arena",
-            "dust2", "nuketown", "canyon", "military_base", "ghost_city",
+            "football", "industrial", "village",
+            "dust2", "canyon", "military_base",
             "cosmodrome", "dam", "skyline",
         )
         required_paths.update(f"assets/data/maps/{map_name}.json.gz" for map_name in playable_maps)

@@ -1,6 +1,6 @@
 extends SceneTree
 ## Offline static batching: retain materials/UVs while reducing tiny mesh nodes.
-const SOURCES := {"dust2":["dust2",1.0],"nuketown":["nuketown",1.0],"military_base":["military_base",0.015],"canyon":["devils_canyon",3.0],"ghost_city":["BLD_Ghost_city",1.0]}
+const SOURCES := {"dust2":["dust2",1.0],"military_base":["military_base",0.015],"canyon":["devils_canyon",3.0]}
 func _initialize() -> void: call_deferred("run")
 func run() -> void:
 	var metadata: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://assets/data/restored-map-authoring.json"))

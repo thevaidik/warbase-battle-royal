@@ -15,7 +15,7 @@ test('match names are independent of canonical map names in both public and cust
 
 test('restored maps have distinct source geometry rather than Industrial variants', () => {
   const industrial = loadWorldGeometry('industrial')!;
-  for (const id of ['dust2','nuketown','canyon','military_base','ghost_city']) {
+  for (const id of ['dust2','canyon','military_base']) {
     const map = loadWorldGeometry(id)!;
     assert.notEqual(map.spawns[0].join(','), industrial.spawns[0].join(','), id);
     assert.equal(map.spawns.length, 12);

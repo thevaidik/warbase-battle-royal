@@ -12,6 +12,7 @@ import { ConquestQueue } from './conquest-queue.js';
 import { GAME_PROTOCOL_VERSION } from './schema.js';
 import type { ISeatReservation } from '@colyseus/shared-types';
 import { buildRoomDirectory, listLiveBattleRooms } from './room-directory.js';
+import { PLAYABLE_MAPS } from './world-geometry.js';
 async function until(check: () => boolean) {
   const deadline = Date.now() + 8000;
   while (!check() && Date.now() < deadline) await new Promise(r => setTimeout(r, 25));
@@ -62,7 +63,7 @@ test('signed SDK matchmaking, duplicate-session rejection and realtime lobby lif
   await assert.rejects(client.joinOrCreate('battle', { protocol_version: 16, username: 'quota', room: 'village-public' }));
   assert.equal((await query({ name: 'battle' })).length, 1);
   const directory = buildRoomDirectory(await listLiveBattleRooms());
-  assert.equal(directory.rooms.length, 12);
+  assert.equal(directory.rooms.length, PLAYABLE_MAPS.length);
   assert.equal(directory.online_players, 1);
   assert.equal(directory.rooms.find(r => r.id === 'industrial-public')?.playerCount, 1);
   const serverRoom = getLocalRoomById(battle.roomId)!;
@@ -74,7 +75,7 @@ test('signed SDK matchmaking, duplicate-session rejection and realtime lobby lif
   await until(() => !listings.has(battle.roomId));
   const after = buildRoomDirectory(await listLiveBattleRooms());
   assert.equal(after.online_players, 0);
-  assert.equal(after.rooms.length, 12);
+  assert.equal(after.rooms.length, PLAYABLE_MAPS.length);
   assert.equal((await fetch(`${endpoint}/api/rooms`, { method: 'POST' })).status, 401);
 
   const queueOptions = (index: number) => ({ map: 'industrial', username: `queue-${index}`, protocol_version: GAME_PROTOCOL_VERSION });
