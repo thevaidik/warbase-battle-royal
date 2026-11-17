@@ -30,17 +30,28 @@ func _physics_process(delta: float) -> void:
 		var target_pos := target_node.global_position + Vector3.UP * 0.35
 		var to_target := (target_pos - global_position).normalized()
 		var speed := velocity.length()
-		var turn_rate := 5.2 # rad/sec
+		var turn_rate := 9.0 # rad/sec
 		var cur_dir := velocity.normalized()
 		var new_dir := cur_dir.slerp(to_target, minf(1.0, turn_rate * delta)).normalized()
 		velocity = new_dir * speed
 		var up := Vector3.RIGHT if absf(new_dir.dot(Vector3.UP)) > 0.95 else Vector3.UP
 		look_at(global_position + velocity, up)
+
+		# Proximity fuse detonation against locked drone
+		if is_instance_valid(shooter):
+			var dist_to_tgt := global_position.distance_to(target_pos)
+			if dist_to_tgt <= 2.2:
+				var actor := target_node
+				if actor is WarBot:
+					actor.take_damage(damage, "torso", GameState.username, "missile")
+				burst(get_parent(), global_position)
+				queue_free()
+				return
 		
 	var elapsed := minf(delta, remaining)
 	var destination := global_position + velocity * elapsed
 	if is_instance_valid(shooter):
-		var query := PhysicsRayQueryParameters3D.create(global_position, destination, 5, [shooter.get_rid()])
+		var query := PhysicsRayQueryParameters3D.create(global_position, destination, 7, [shooter.get_rid()])
 		query.collide_with_areas = true
 		var hit := get_world_3d().direct_space_state.intersect_ray(query)
 		if not hit.is_empty():

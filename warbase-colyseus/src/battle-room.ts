@@ -971,14 +971,14 @@ export class BattleRoom extends Room<{ state: BattleState; input: MoveInput }> {
       // Homing guidance for aim9 (air/air) and agm114 (anti-armor)
       if (!missile.decoyed && (missile.weaponId === 'aim9' || missile.weaponId === 'agm114')) {
         let bestTarget: PlayerState | undefined;
-        let bestDist = 75;
+        let bestDist = 180;
 
         // Maintain current target if valid, alive, and not inside smoke
         if (missile.trackedTarget) {
           const current = this.state.players.get(missile.trackedTarget);
           if (current && !current.is_dead && !this.isPositionSmoked([current.x, current.y, current.z])) {
             const d = Math.hypot(current.x - missile.position[0], current.y - missile.position[1], current.z - missile.position[2]);
-            if (d < 85) {
+            if (d < 180) {
               bestTarget = current;
               bestDist = d;
             }
@@ -1006,7 +1006,7 @@ export class BattleRoom extends Room<{ state: BattleState; input: MoveInput }> {
           const dist = Math.hypot(toTarget[0], toTarget[1], toTarget[2]);
           if (dist > 0.5) {
             const targetDir: Vec3 = [toTarget[0] / dist, toTarget[1] / dist, toTarget[2] / dist];
-            const turnRate = missile.weaponId === 'aim9' ? 4.2 : 2.8;
+            const turnRate = missile.weaponId === 'aim9' ? 8.5 : 7.5;
             const t = Math.min(1.0, turnRate * dt);
             const blended: Vec3 = [
               missile.direction[0] * (1 - t) + targetDir[0] * t,
@@ -1017,7 +1017,7 @@ export class BattleRoom extends Room<{ state: BattleState; input: MoveInput }> {
             missile.direction = [blended[0] / blen, blended[1] / blen, blended[2] / blen];
 
             // Inbound threat warning to human target
-            if (!bestTarget.is_bot && bestDist < 65) {
+            if (!bestTarget.is_bot && bestDist < 100) {
               const session = this.sessionByUsername.get(bestTarget.username);
               const targetClient = session ? this.clients.getById(session) : undefined;
               targetClient?.send('missile_lock', {
@@ -1044,7 +1044,7 @@ export class BattleRoom extends Room<{ state: BattleState; input: MoveInput }> {
       let target: PlayerState | undefined;
       for (const candidate of this.state.players.values()) {
         if (candidate === missile.owner || candidate.is_dead) continue;
-        const hit = traceDroneHit(start, end, [candidate.x, candidate.y, candidate.z]);
+        const hit = traceDroneHit(start, end, [candidate.x, candidate.y, candidate.z], 1.8);
         if (hit && hit.fraction < fraction) {
           fraction = hit.fraction;
           target = candidate;

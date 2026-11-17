@@ -1,6 +1,7 @@
 class_name WarWeaponSystem
 extends Node3D
 const Missile := preload("res://scripts/drones/DroneMissile.gd")
+const DroneRadarHighlightScript := preload("res://scripts/drones/DroneRadarHighlight.gd")
 signal fired(weapon_index: int)
 signal hit_confirmed_editorial(target: String, damage: int, is_kill: bool, is_headshot: bool)
 
@@ -62,6 +63,7 @@ var locked_target: Node3D = null
 var lock_progress: float = 0.0
 var is_locked: bool = false
 var _lock_scan_timer: float = 0.0
+var _radar_highlight: Node3D = null
 
 var _sparks: Array = []
 var _spark_idx := 0
@@ -98,6 +100,11 @@ func reset_after_respawn() -> void:
 	clear_pending_shots()
 	_restock_ammo()
 	is_reloading = false
+	locked_target = null
+	lock_progress = 0.0
+	is_locked = false
+	if is_instance_valid(_radar_highlight):
+		_radar_highlight.update_lock_state(null, false, 0.0, Vector3.ZERO)
 	reload_t = 0.0
 	ads_t = 0.0
 	ads_amount = 0.0
@@ -151,6 +158,9 @@ func setup(p: WarPlayer, cam: Camera3D, net_ref: WarNetwork, world_ref: Node3D) 
 	_tracer_container = Node3D.new()
 	_tracer_container.name = "TracerPool"
 	world_ref.add_child(_tracer_container)
+
+	_radar_highlight = DroneRadarHighlightScript.new()
+	world_ref.add_child(_radar_highlight)
 	
 	# Pool tracers so sustained dual fire does not allocate scene nodes.
 	var tracer_box := BoxMesh.new()
@@ -469,9 +479,11 @@ func _launch_missile(config: Dictionary, aim: Transform3D, wire_weapon: String) 
 	# Active auto-lock guidance
 	var chosen_target: Node3D = locked_target if (is_locked or lock_progress > 0.4) else null
 	if chosen_target != null and is_instance_valid(chosen_target):
-		var to_tgt := ((chosen_target.global_position + Vector3.UP * 0.35) - start).normalized()
+		var target_center: Vector3 = chosen_target.global_position + Vector3.UP * 0.35
+		var to_tgt := (target_center - start).normalized()
 		if to_tgt.dot(aim_direction) > 0.35:
 			direction = to_tgt
+			aim_point = target_center
 			
 	if net and net.connected:
 		net.predict_missile(_shot_seq, String(config["id"]), start, direction * float(config["missile_speed"]))
@@ -810,6 +822,8 @@ func _process(delta: float) -> void:
 		locked_target = null
 		lock_progress = 0.0
 		is_locked = false
+		if is_instance_valid(_radar_highlight):
+			_radar_highlight.update_lock_state(null, false, 0.0, Vector3.ZERO)
 
 	# Tracers advancement
 	for slot in _tracers:
@@ -912,6 +926,9 @@ func _process(delta: float) -> void:
 func clear() -> void:
 	_decals.clear()
 	_pending_impacts.clear()
+	if is_instance_valid(_radar_highlight):
+		_radar_highlight.queue_free()
+		_radar_highlight = null
 	if is_instance_valid(_tracer_container):
 		_tracer_container.queue_free()
 	_tracers.clear()
@@ -1017,19 +1034,6 @@ func _update_missile_lock(delta: float) -> void:
 					best_dot = dot
 					best_cand = rp
 					
-	# Check vehicles
-	var vehicles := get_tree().get_nodes_in_group("combat_jeeps")
-	for v in vehicles:
-		if not is_instance_valid(v) or v == player: continue
-		var target_pt: Vector3 = v.global_position + Vector3.UP * 0.6
-		var to_v := target_pt - cam_pos
-		var d := to_v.length()
-		if d < 3.0 or d > 170.0: continue
-		var dot := cam_forward.dot(to_v.normalized())
-		if dot > best_dot:
-			best_dot = dot
-			best_cand = v
-			
 	if best_cand != null:
 		if locked_target == best_cand:
 			lock_progress = minf(1.0, lock_progress + delta * 2.8)
@@ -1045,3 +1049,7 @@ func _update_missile_lock(delta: float) -> void:
 		if lock_progress <= 0.0:
 			locked_target = null
 			is_locked = false
+
+	if is_instance_valid(_radar_highlight):
+		var target_for_highlight: Node3D = locked_target if (locked_target != null and (is_locked or lock_progress > 0.05)) else null
+		_radar_highlight.update_lock_state(target_for_highlight, is_locked, lock_progress, cam_pos)
