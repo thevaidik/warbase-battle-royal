@@ -6,6 +6,8 @@ class MapPackTests(unittest.TestCase):
         self.paths={f'assets/data/maps/{name}.json.gz' for name in MAPS}
         self.paths.update(f'assets/ui/maps/{name}.png.import' for name in MAPS)
         self.paths.update(f'.godot/imported/{name}.png-hash.ctex' for name in MAPS)
+        for name in ['cosmodrome', 'dam', 'skyline']:
+            self.paths.add(f'assets/maps/{name}.scn')
         for drone in ['vanguard.glb', 'raider.glb']:
             self.paths.add('assets/drones/' + drone + '.import')
             self.paths.add('.godot/imported/' + drone + '-hash.scn')

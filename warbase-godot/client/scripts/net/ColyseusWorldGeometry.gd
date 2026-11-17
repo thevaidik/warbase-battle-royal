@@ -8,7 +8,7 @@ extends RefCounted
 const DATA_DIR := "res://assets/data/maps/"
 const INDUSTRIAL_FALLBACK_PATH := "res://assets/data/industrial.json.gz"
 const Capsule := preload("res://scripts/net/CapsuleContact.gd")
-const PLAYABLE_MAPS: Array[String] = ["football", "industrial", "village", "arena", "dust2", "nuketown", "canyon", "military_base", "ghost_city"]
+const PLAYABLE_MAPS: Array[String] = ["football", "industrial", "village", "arena", "dust2", "nuketown", "canyon", "military_base", "ghost_city", "cosmodrome", "dam", "skyline"]
 const NODE_STRIDE := 10
 const SWEEP_EPSILON := 0.0001
 

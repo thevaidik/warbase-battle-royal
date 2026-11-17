@@ -30,7 +30,10 @@ func run() -> void:
 		"dust2": [Vector3(45, 24, 46), Vector3(8, 1, 10)],
 		"nuketown": [Vector3(-32, 20, 30), Vector3(0, 1, 0)],
 		"canyon": [Vector3(42, 25, -40), Vector3(0, 1, 0)],
-		"desert_oasis": [Vector3(30, 18, 28), Vector3(0, 1, 0)]
+		"desert_oasis": [Vector3(30, 18, 28), Vector3(0, 1, 0)],
+		"cosmodrome": [Vector3(65, 45, 75), Vector3(0, 18, 0)],
+		"dam": [Vector3(55, 60, 65), Vector3(0, 22, 10)],
+		"skyline": [Vector3(55, 45, 65), Vector3(0, 24, 0)]
 	}
 	var metadata: Dictionary=JSON.parse_string(FileAccess.get_file_as_string("res://assets/data/restored-map-authoring.json"))
 	for id in metadata:

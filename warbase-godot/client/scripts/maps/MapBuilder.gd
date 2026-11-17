@@ -55,6 +55,9 @@ const MAP_GLBS := {
 	"canyon":"res://assets/maps/restored/canyon.scn",
 	"military_base":"res://assets/maps/restored/military_base.scn",
 	"ghost_city":"res://assets/maps/restored/ghost_city.scn",
+	"cosmodrome":"res://assets/maps/cosmodrome.scn",
+	"dam":"res://assets/maps/dam.scn",
+	"skyline":"res://assets/maps/skyline.scn",
 }
 
 func _build_restored(root_node: Node3D, map_id: String) -> void:
@@ -101,7 +104,7 @@ func build(map_name: String) -> Array[Vector3]:
 			var inst := glb.instantiate() as Node3D
 			inst.name = "GLBMap"
 			root.add_child(inst)
-			_add_trimesh_collision(inst, key in ["football", "village"])
+			_add_trimesh_collision(inst, key in ["football", "village", "cosmodrome", "dam", "skyline"])
 			_sanitize_glb_materials(inst)
 			if key == "football": _theme_football(inst)
 			
@@ -187,6 +190,63 @@ func build(map_name: String) -> Array[Vector3]:
 						Vector3(-4.3827, 1.0799, -7.4239),
 						Vector3(-14.8087, 1.08, -4.5381),
 						Vector3(-21.8087, 1.08, -4.5381),
+					]
+				"cosmodrome":
+					extent = 90.0
+					center = Vector3.ZERO
+					_spawn_jeep(Vector3(-30.0, 0.5, 55.0), 0.0, root)
+					_spawn_jeep(Vector3(30.0, 0.5, -55.0), PI, root)
+					spawn_points = [
+						Vector3(25.0, 0.20, 45.0),
+						Vector3(40.0, 0.20, 45.0),
+						Vector3(55.0, 0.20, 45.0),
+						Vector3(25.0, 0.20, 60.0),
+						Vector3(40.0, 0.20, 60.0),
+						Vector3(55.0, 0.20, 60.0),
+						Vector3(-25.0, 0.20, -45.0),
+						Vector3(-40.0, 0.20, -45.0),
+						Vector3(-55.0, 0.20, -45.0),
+						Vector3(-25.0, 0.20, -60.0),
+						Vector3(-40.0, 0.20, -60.0),
+						Vector3(-55.0, 0.20, -60.0),
+					]
+				"dam":
+					extent = 100.0
+					center = Vector3(0.0, 20.0, 20.0)
+					_spawn_jeep(Vector3(-25.0, 38.6, 0.0), 0.0, root)
+					_spawn_jeep(Vector3(25.0, 38.6, 0.0), PI, root)
+					spawn_points = [
+						Vector3(-35.0, 34.25, -55.0),
+						Vector3(-20.0, 34.25, -55.0),
+						Vector3(-5.0, 34.25, -55.0),
+						Vector3(5.0, 34.25, -55.0),
+						Vector3(20.0, 34.25, -55.0),
+						Vector3(35.0, 34.25, -55.0),
+						Vector3(-40.0, 0.20, 65.0),
+						Vector3(-25.0, 0.20, 65.0),
+						Vector3(-40.0, 0.20, 78.0),
+						Vector3(-25.0, 0.20, 78.0),
+						Vector3(-10.0, 0.20, 78.0),
+						Vector3(5.0, 0.20, 78.0),
+					]
+				"skyline":
+					extent = 85.0
+					center = Vector3(0.0, 20.0, 0.0)
+					_spawn_jeep(Vector3(-35.0, 0.5, 30.0), 0.0, root)
+					_spawn_jeep(Vector3(35.0, 0.5, -30.0), PI, root)
+					spawn_points = [
+						Vector3(-60.0, 0.20, 50.0),
+						Vector3(-45.0, 0.20, 50.0),
+						Vector3(-30.0, 0.20, 50.0),
+						Vector3(-60.0, 0.20, 65.0),
+						Vector3(-45.0, 0.20, 65.0),
+						Vector3(-30.0, 0.20, 65.0),
+						Vector3(30.0, 0.20, -45.0),
+						Vector3(45.0, 0.20, -45.0),
+						Vector3(60.0, 0.20, -45.0),
+						Vector3(30.0, 0.20, -60.0),
+						Vector3(45.0, 0.20, -60.0),
+						Vector3(60.0, 0.20, -60.0),
 					]
 	_build_sky(root, key)
 	apply_time_of_day(GameState.selected_time)
@@ -306,6 +366,30 @@ func _build_sky(root: Node3D, map_name: String = "industrial") -> void:
 		pm.ground_bottom_color = Color(0.11, 0.11, 0.10)
 		pm.sun_angle_max = 32.0
 		pm.sun_curve = 0.08
+	elif map_name == "cosmodrome":
+		# Dawn Aerospace Gold (Warm amber glow, deep orbital blue zenith)
+		pm.sky_top_color = Color(0.12, 0.22, 0.38)
+		pm.sky_horizon_color = Color(0.85, 0.58, 0.35)
+		pm.ground_horizon_color = Color(0.42, 0.36, 0.32)
+		pm.ground_bottom_color = Color(0.10, 0.08, 0.08)
+		pm.sun_angle_max = 30.0
+		pm.sun_curve = 0.09
+	elif map_name == "dam":
+		# Alpine Reservoir Overcast (Cold slate blue, misty granite mountain canyon)
+		pm.sky_top_color = Color(0.28, 0.36, 0.44)
+		pm.sky_horizon_color = Color(0.68, 0.72, 0.75)
+		pm.ground_horizon_color = Color(0.38, 0.40, 0.41)
+		pm.ground_bottom_color = Color(0.09, 0.10, 0.11)
+		pm.sun_angle_max = 28.0
+		pm.sun_curve = 0.10
+	elif map_name == "skyline":
+		# Cyber Twilight (Neon dusk, deep indigo zenith, vibrant city glow horizon)
+		pm.sky_top_color = Color(0.10, 0.14, 0.28)
+		pm.sky_horizon_color = Color(0.55, 0.35, 0.58)
+		pm.ground_horizon_color = Color(0.25, 0.22, 0.30)
+		pm.ground_bottom_color = Color(0.06, 0.06, 0.08)
+		pm.sun_angle_max = 34.0
+		pm.sun_curve = 0.08
 	else:
 		# Industrial & Default Metropolis
 		pm.sky_top_color = Color(0.25, 0.34, 0.45)
@@ -386,6 +470,15 @@ func _build_sky(root: Node3D, map_name: String = "industrial") -> void:
 	elif map_name == "arena":
 		env.fog_light_color = Color(0.68, 0.71, 0.74)
 		env.fog_density = 0.0008
+	elif map_name == "cosmodrome":
+		env.fog_light_color = Color(0.82, 0.60, 0.42)
+		env.fog_density = 0.00055
+	elif map_name == "dam":
+		env.fog_light_color = Color(0.68, 0.72, 0.75)
+		env.fog_density = 0.00075
+	elif map_name == "skyline":
+		env.fog_light_color = Color(0.50, 0.35, 0.55)
+		env.fog_density = 0.00060
 	else:
 		env.fog_light_color = Color(0.71, 0.74, 0.77)
 		env.fog_density = 0.00065
@@ -433,6 +526,18 @@ func _build_sky(root: Node3D, map_name: String = "industrial") -> void:
 		sun.rotation = Vector3(deg_to_rad(-20.0), deg_to_rad(-35.0), 0)
 		sun.light_energy = 1.50
 		sun.light_color = Color(1.0, 0.96, 0.90)
+	elif map_name == "cosmodrome":
+		sun.rotation = Vector3(deg_to_rad(-16.0), deg_to_rad(65.0), 0)
+		sun.light_energy = 1.55
+		sun.light_color = Color(1.0, 0.92, 0.82)
+	elif map_name == "dam":
+		sun.rotation = Vector3(deg_to_rad(-28.0), deg_to_rad(45.0), 0)
+		sun.light_energy = 1.35
+		sun.light_color = Color(0.95, 0.97, 1.0)
+	elif map_name == "skyline":
+		sun.rotation = Vector3(deg_to_rad(-14.0), deg_to_rad(-70.0), 0)
+		sun.light_energy = 1.25
+		sun.light_color = Color(1.0, 0.88, 0.80)
 	else: # industrial and default
 		sun.rotation = Vector3(deg_to_rad(-22.0), deg_to_rad(-42.0), 0)
 		sun.light_energy = 1.45

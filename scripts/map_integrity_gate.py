@@ -8,7 +8,7 @@ import tempfile
 from client_provenance import client_fingerprint
 from optional_map_assets import RESTORED_MAPS
 
-MAPS = ('football','industrial','village','arena','dust2','nuketown','canyon','military_base', 'ghost_city')
+MAPS = ('football','industrial','village','arena','dust2','nuketown','canyon','military_base', 'ghost_city', 'cosmodrome', 'dam', 'skyline')
 
 def ensure_map_integrity(root: pathlib.Path, godot: pathlib.Path) -> dict:
     client = root / 'warbase-godot/client'
@@ -79,6 +79,7 @@ def verify_map_pack(paths: set[str], *, include_football: bool) -> None:
               'fps_shooter_game_arena_map_v3.glb']
     if include_football:
         required.update(f'assets/maps/restored/{name}.scn' for name in RESTORED_MAPS)
+        required.update(f'assets/maps/{name}.scn' for name in ('cosmodrome', 'dam', 'skyline'))
         assets.append('football.glb')
     required.update('assets/maps/'+name+'.import' for name in assets)
     missing = required - paths

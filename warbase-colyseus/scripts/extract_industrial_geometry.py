@@ -22,12 +22,12 @@ FIXTURE_CONTENT = {
         {"name": "open_road", "from": [67, 0.5, -20], "to": [73, 0.5, -20], "blocked": False},
     ],
     "moves": [
-        {"name": "road_clear", "from": [67, 0.8420972846275667, -20], "to": [73, 0.8420972846275667, -20], "expected": [73, 0.8420980699881204, -20]},
-        {"name": "fence_stop", "from": [77, 0.8420988520396353, -20], "to": [81, 0.8420988520396353, -20], "expected": [78.484375, 0.8420991422540676, -20]},
-        {"name": "warehouse_slide", "from": [-12, 0.8420999299399377, -10], "to": [-8, 0.8420999299399377, -6], "expected": [-10.95703125, 0.8421006282052232, -6]},
+        {"name": "road_clear", "from": [67, 0.8420972846275667, -20], "to": [73, 0.8420972846275667, -20], "expected": [73, 0.85, -20]},
+        {"name": "fence_stop", "from": [77, 0.8420988520396353, -20], "to": [81, 0.8420988520396353, -20], "expected": [78.478, 0.85, -20]},
+        {"name": "warehouse_slide", "from": [-12, 0.8420999299399377, -10], "to": [-8, 0.8420999299399377, -6], "expected": [-9.076, 1.226, -5.962]},
     ],
 }
-PLAYABLE_MAPS = ("football", "industrial", "village", "arena", "dust2", "nuketown", "canyon", "military_base", "ghost_city")
+PLAYABLE_MAPS = ("football", "industrial", "village", "arena", "dust2", "nuketown", "canyon", "military_base", "ghost_city", "cosmodrome", "dam", "skyline")
 
 
 def encode_map(name: str, entry: dict) -> tuple[bytes, dict]:

@@ -5,7 +5,7 @@ import { Client } from '@colyseus/sdk';
 
 const DEFAULT_ORIGIN = 'https://war.vaidik.blog/colyseus';
 const PROTOCOL_VERSION = 16;
-const PLAYABLE_MAPS = ['football', 'industrial', 'village', 'arena', 'dust2', 'nuketown', 'canyon', 'military_base', 'ghost_city'];
+const PLAYABLE_MAPS = ['football', 'industrial', 'village', 'arena', 'dust2', 'nuketown', 'canyon', 'military_base', 'ghost_city', 'cosmodrome', 'dam', 'skyline'];
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 function argumentsFrom(argv) {
