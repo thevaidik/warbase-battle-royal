@@ -61,6 +61,7 @@ func _ready() -> void:
 	_match_queue.seat_ready.connect(func(seat: Dictionary, map: String) -> void: quick_match_ready.emit(seat, map))
 	add_child(_match_queue)
 	get_viewport().size_changed.connect(_on_window_resized)
+	_check_local_server()
 	_probe_server()
 	if true:
 		_lobby_adapter = preload("res://scripts/net/LobbyAdapter.gd").new()
@@ -167,10 +168,17 @@ func build_lobby() -> void:
 	deploy_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	WarUI.primary(deploy_btn)
 	home_actions.add_child(deploy_btn)
+	var practice_btn := _button("OFFLINE PRACTICE  ›", func() -> void:
+		GameState.practice_mode = true
+		deploy_requested.emit()
+	)
+	practice_btn.custom_minimum_size = Vector2(210, 56)
+	WarUI.neumorphic_button(practice_btn, false, 24)
+	home_actions.add_child(practice_btn)
 	var briefing_btn := _button("MISSION BRIEFING  ›", func() -> void:
 		play_intro_requested.emit()
 	)
-	briefing_btn.custom_minimum_size = Vector2(200, 56)
+	briefing_btn.custom_minimum_size = Vector2(190, 56)
 	WarUI.neumorphic_button(briefing_btn, false, 24)
 	home_actions.add_child(briefing_btn)
 	_multiplayer_page = VBoxContainer.new()
@@ -486,6 +494,21 @@ func _api_request(path: String, callback: Callable, method: int = HTTPClient.MET
 	if error != OK:
 		request.queue_free()
 		callback.call(0, null)
+
+func _check_local_server() -> void:
+	if OS.has_feature("web"): return
+	# Check if local development server is running on 127.0.0.1:8081
+	var req := HTTPRequest.new()
+	req.timeout = 0.5
+	add_child(req)
+	req.request_completed.connect(func(result: int, code: int, _headers: PackedStringArray, _body: PackedByteArray) -> void:
+		req.queue_free()
+		if result == HTTPRequest.RESULT_SUCCESS and code == 200:
+			GameState.server_host = "127.0.0.1:8081"
+			_probe_server()
+			refresh_rooms()
+	)
+	req.request("http://127.0.0.1:8081/healthcheck")
 
 func _probe_server() -> void:
 	_api_request("/healthcheck", func(code: int, _data: Variant) -> void:

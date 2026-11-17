@@ -36,6 +36,7 @@ var _online_vehicles: Dictionary = {}
 var _send_acc := 0.0
 var _respawn_t := 0.0
 var _redeploy_queued := false
+var _respawn_attempts := 0
 var _next_respawn_request_ms := 0
 var _deploy_pending := false
 var _grenade_cd := 0.0
@@ -785,6 +786,7 @@ func _on_dead() -> void:
 	phase = Phase.DEAD
 	_respawn_t = 3.0
 	_redeploy_queued = false
+	_respawn_attempts = 0
 	hud.configure_redeploy(_can_edit_on_death())
 	_next_respawn_request_ms = 0
 	hud.set_dead(true, 3)
@@ -803,6 +805,7 @@ func _do_respawn(pos: Vector3) -> void:
 		weapons.active_index = GameState.starting_weapon_index()
 		weapons._sync_drone_payload()
 	_redeploy_queued = false
+	_respawn_attempts = 0
 	player.respawn_at(pos)
 	if GameState.selected_map in ["resoforge", "football"]: player.yaw = atan2(pos.x, pos.z)
 	if is_instance_valid(weapons):
@@ -823,10 +826,10 @@ func _can_edit_on_death() -> bool:
 	return GameState.practice_mode or net.supports_manual_redeploy
 
 func _request_redeployment() -> void:
-	if phase != Phase.DEAD or not _can_edit_on_death() or _respawn_t > 0.0 or _redeploy_queued: return
+	if phase != Phase.DEAD or not _can_edit_on_death() or _redeploy_queued: return
 	_redeploy_queued = true
 	hud.close_drone_editor()
-	hud.update_redeploy(0, true)
+	hud.update_redeploy(ceili(_respawn_t), true)
 
 func _set_thermal_view(on: bool) -> void:
 	if GameState.thermal_view == on: return
@@ -853,9 +856,20 @@ func _process(delta: float) -> void:
 			elif net.connected and Time.get_ticks_msec() >= _next_respawn_request_ms:
 				var loadout := {"primary": GameState.selected_primary, "secondary": GameState.selected_secondary,
 					"throwable": GameState.selected_throwable, "chassis": GameState.selected_drone_chassis} if _redeploy_queued else {}
+				_respawn_attempts += 1
+				# After 2 unacknowledged attempts, fallback to standard weapons in case remote server is older deployment
+				if _respawn_attempts >= 2 and _redeploy_queued:
+					loadout = {"primary": "ak47", "secondary": "pistol", "throwable": "frag", "chassis": "heli"}
 				net.send_respawn(loadout)
 				player.set_meta("respawn_requested", true)
+				# After 4 attempts (4s), if remote server has not acknowledged, fallback to local respawn to prevent hanging
+				if _respawn_attempts >= 4:
+					var spawn: Vector3 = map_builder.spawn_points.pick_random() if is_instance_valid(map_builder) and not map_builder.spawn_points.is_empty() else Vector3(0, 1, 0)
+					_do_respawn(spawn + Vector3.UP * GameState.DRONE_SPAWN_OFFSET)
 				_next_respawn_request_ms = Time.get_ticks_msec() + 1000
+			elif not net.connected:
+				var spawn: Vector3 = map_builder.spawn_points.pick_random() if is_instance_valid(map_builder) and not map_builder.spawn_points.is_empty() else Vector3(0, 1, 0)
+				_do_respawn(spawn + Vector3.UP * GameState.DRONE_SPAWN_OFFSET)
 
 		if _autotest:
 			_autotest_tick(delta)
