@@ -527,6 +527,8 @@ func _probe_server() -> void:
 		_update_service_status()
 		_update_footer_selection()
 		_render_servers()
+		if _server_online and _lobby_adapter != null:
+			_lobby_adapter.ensure_admission(func(_token: String, _err: Variant) -> void: pass)
 	)
 
 func refresh_rooms() -> void:

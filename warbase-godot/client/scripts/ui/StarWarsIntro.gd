@@ -10,7 +10,6 @@ const DISPLAY_FONT = preload("res://assets/fonts/Rajdhani-SemiBold.ttf")
 var _root: Control
 var _starfield: Control
 var _prologue: Label
-var _title_center: CenterContainer
 var _title_label: Label
 var _viewport_container: SubViewportContainer
 var _viewport: SubViewport
@@ -92,16 +91,20 @@ func _build_ui() -> void:
 	_viewport_container.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_root.add_child(_viewport_container)
 	
+	var vp_size: Vector2 = get_viewport().get_visible_rect().size
 	_viewport = SubViewport.new()
 	_viewport.transparent_bg = true
 	_viewport.handle_input_locally = false
 	_viewport.gui_disable_input = true
+	if vp_size.x > 0 and vp_size.y > 0:
+		_viewport.size = Vector2i(vp_size)
 	_viewport_container.add_child(_viewport)
 	
 	var cam := Camera3D.new()
 	cam.position = Vector3(0, 1.85, 3.8)
 	cam.rotation_degrees = Vector3(-19.0, 0, 0)
 	cam.fov = 64.0
+	cam.keep_aspect = Camera3D.KEEP_WIDTH
 	_viewport.add_child(cam)
 	
 	_crawler_pivot = Node3D.new()
@@ -110,9 +113,9 @@ func _build_ui() -> void:
 	
 	_crawl_label = Label3D.new()
 	_crawl_label.font = DISPLAY_FONT
-	_crawl_label.font_size = 40
-	_crawl_label.pixel_size = 0.0072
-	_crawl_label.width = 860.0
+	_crawl_label.font_size = 36
+	_crawl_label.pixel_size = 0.0055
+	_crawl_label.width = 560.0
 	_crawl_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_crawl_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_crawl_label.modulate = Color("e5b83b") # Iconic Star Wars crawl amber-gold
@@ -141,28 +144,34 @@ func _build_ui() -> void:
 	_prologue.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	_prologue.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_prologue.add_theme_font_override("font", DISPLAY_FONT)
-	_prologue.add_theme_font_size_override("font_size", 28)
+	var prologue_sz: int = clamp(int(vp_size.x * 0.022), 20, 32)
+	_prologue.add_theme_font_size_override("font_size", prologue_sz)
 	_prologue.add_theme_color_override("font_color", Color("69dce7"))
 	_prologue.modulate.a = 0.0
 	_prologue.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_root.add_child(_prologue)
 	
 	# Huge WARBOTS title that recedes into the distance
-	_title_center = CenterContainer.new()
-	_title_center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	_title_center.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_root.add_child(_title_center)
-	
 	_title_label = Label.new()
 	_title_label.text = "WARBOTS"
 	_title_label.add_theme_font_override("font", DISPLAY_FONT)
-	_title_label.add_theme_font_size_override("font_size", 104)
+	var title_sz: int = clamp(int(vp_size.x * 0.08), 54, 104)
+	_title_label.add_theme_font_size_override("font_size", title_sz)
 	_title_label.add_theme_color_override("font_color", Color("e5b83b"))
 	_title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_title_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	_title_label.pivot_offset = Vector2(240, 60)
+	_title_label.anchor_left = 0.0
+	_title_label.anchor_right = 1.0
+	_title_label.anchor_top = 0.0
+	_title_label.anchor_bottom = 1.0
+	_title_label.offset_left = 0
+	_title_label.offset_right = 0
+	_title_label.offset_top = 0
+	_title_label.offset_bottom = 0
+	_title_label.pivot_offset = vp_size * 0.5
 	_title_label.modulate.a = 0.0
-	_title_center.add_child(_title_label)
+	_title_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_root.add_child(_title_label)
 	
 	# Sleek Neumorphic skip button at bottom-right
 	_skip_btn = Button.new()
@@ -269,5 +278,14 @@ func skip() -> void:
 	tw.finished.connect(_emit_and_free)
 
 func _on_viewport_resized() -> void:
+	var vp_rect := get_viewport().get_visible_rect()
+	var vp_size := vp_rect.size
+	if is_instance_valid(_viewport) and vp_size.x > 0 and vp_size.y > 0:
+		_viewport.size = Vector2i(vp_size)
 	if is_instance_valid(_title_label):
-		_title_label.pivot_offset = _title_label.size * 0.5
+		_title_label.pivot_offset = vp_size * 0.5
+		var title_sz: int = clamp(int(vp_size.x * 0.08), 54, 104)
+		_title_label.add_theme_font_size_override("font_size", title_sz)
+	if is_instance_valid(_prologue):
+		var prologue_sz: int = clamp(int(vp_size.x * 0.022), 20, 32)
+		_prologue.add_theme_font_size_override("font_size", prologue_sz)

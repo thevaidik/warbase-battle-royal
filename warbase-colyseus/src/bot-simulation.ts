@@ -326,7 +326,11 @@ export class BotSimulation {
         team = teamA <= teamB ? 'A' : 'B';
       }
       const chassis = BOT_CHASSIS[(n - 1) % BOT_CHASSIS.length];
-      const bot: BotPlayer = { username: name, is_bot: true, x: spawn[0], y: spawn[1], z: spawn[2], vx: 0, vy: 0, vz: 0, qy: 0, qw: 1, yaw: 0, pitch: 0,
+      const initialYaw = Math.atan2(spawn[0], spawn[2]);
+      const halfYaw = initialYaw * 0.5;
+      const qy = Math.sin(halfYaw);
+      const qw = Math.cos(halfYaw);
+      const bot: BotPlayer = { username: name, is_bot: true, x: spawn[0], y: spawn[1], z: spawn[2], vx: 0, vy: 0, vz: 0, qy, qw, yaw: initialYaw, pitch: 0,
         health: maxHealthForChassis(chassis), kills: 0, deaths: 0, team, is_dead: false, weapon_id: weapon, ammo: BOT_MAGAZINES[weapon], driving_vehicle: '', mobility_mode: chassis };
       const seed = (n * 0x9e3779b1) >>> 0;
       this.brains.set(name, {
@@ -871,7 +875,10 @@ export class BotSimulation {
 
   private respawn(bot: BotPlayer, brain: Brain, nowMs: number): void {
     const spawn = this.geometry.spawns[bot.deaths % this.geometry.spawns.length];
+    const initialYaw = Math.atan2(spawn[0], spawn[2]);
+    const halfYaw = initialYaw * 0.5;
     bot.x = spawn[0]; bot.y = spawn[1] + DRONE_SPAWN_OFFSET; bot.z = spawn[2]; bot.vx = 0; bot.vy = 0; bot.vz = 0;
+    bot.yaw = initialYaw; bot.qy = Math.sin(halfYaw); bot.qw = Math.cos(halfYaw);
     bot.health = maxHealthForChassis(bot.mobility_mode); bot.is_dead = false; bot.ammo = BOT_MAGAZINES[bot.weapon_id] ?? 30; bot.animation = 'idle';
     brain.ammo = bot.ammo; brain.deathAt = 0; brain.target = ''; brain.visible = false;
     brain.targetVelocity = [0, 0, 0]; brain.state = 'PATROL'; brain.coverPoint = undefined;

@@ -12,11 +12,109 @@ signal quit_pressed
 signal scoreboard_closed
 
 var _connection_status: Label
+var _preflight_layer: Control
+var _preflight_header: Label
+var _preflight_title: Label
+var _preflight_sub: Label
+var _preflight_stage_label: Label
+var _preflight_bar_fill: ColorRect
+var _preflight_active := false
 
 func set_connection_status(message: String) -> void:
 	if not is_instance_valid(_connection_status): return
 	_connection_status.text = message
 	_connection_status.visible = not message.is_empty()
+
+func _build_preflight_ui() -> void:
+	_preflight_layer = Control.new()
+	_preflight_layer.name = "PreflightDeployment"
+	_preflight_layer.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_preflight_layer.mouse_filter = Control.MOUSE_FILTER_STOP
+	_preflight_layer.z_index = 25
+	_preflight_layer.visible = false
+	add_child(_preflight_layer)
+	
+	var bg := ColorRect.new()
+	bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	bg.color = Color(0.02, 0.035, 0.05, 0.94)
+	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_preflight_layer.add_child(bg)
+	
+	var center_box := CenterContainer.new()
+	center_box.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	center_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_preflight_layer.add_child(center_box)
+	
+	var card := VBoxContainer.new()
+	card.custom_minimum_size = Vector2(520, 260)
+	card.add_theme_constant_override("separation", 14)
+	card.alignment = BoxContainer.ALIGNMENT_CENTER
+	center_box.add_child(card)
+	
+	_preflight_header = _mk_label("WARBOTS // TACTICAL DEPLOYMENT", 13, WarUI.ACCENT)
+	_preflight_header.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	card.add_child(_preflight_header)
+	
+	_preflight_title = _mk_label("OPERATION: THEATER", 26, WarUI.TEXT)
+	_preflight_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	card.add_child(_preflight_title)
+	
+	_preflight_sub = _mk_label("MODE: CONQUEST  ·  CHASSIS: TRACKED", 14, WarUI.MUTED)
+	_preflight_sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	card.add_child(_preflight_sub)
+	
+	var track := ColorRect.new()
+	track.custom_minimum_size = Vector2(480, 4)
+	track.color = Color(0.12, 0.16, 0.22, 0.8)
+	card.add_child(track)
+	
+	_preflight_bar_fill = ColorRect.new()
+	_preflight_bar_fill.size = Vector2(160, 4)
+	_preflight_bar_fill.color = WarUI.ACCENT
+	track.add_child(_preflight_bar_fill)
+	
+	_preflight_stage_label = _mk_label("[1/3] SATCOM LINKED — ESTABLISHING TELEMETRY...", 13, WarUI.ACCENT)
+	_preflight_stage_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	card.add_child(_preflight_stage_label)
+
+func show_preflight_deployment(map_name: String, mode: String, chassis: String) -> void:
+	if not is_instance_valid(_preflight_layer): return
+	_preflight_active = true
+	_preflight_layer.modulate.a = 1.0
+	_preflight_layer.visible = true
+	var map_display := map_name.replace("_", " ").to_upper()
+	if is_instance_valid(_preflight_title):
+		_preflight_title.text = "OPERATION: %s" % map_display
+	if is_instance_valid(_preflight_sub):
+		_preflight_sub.text = "MODE: %s  ·  CHASSIS: %s" % [mode.to_upper(), chassis.to_upper()]
+	set_preflight_stage(1, "SATCOM LINKED — ESTABLISHING TELEMETRY...")
+
+func set_preflight_stage(stage: int, status_text: String) -> void:
+	if not is_instance_valid(_preflight_stage_label) or not _preflight_active: return
+	_preflight_stage_label.text = "[%d/3] %s" % [stage, status_text]
+	if is_instance_valid(_preflight_bar_fill):
+		var target_w := (480.0 / 3.0) * float(stage)
+		var tw := create_tween()
+		tw.tween_property(_preflight_bar_fill, "size:x", target_w, 0.25).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+
+func hide_preflight_deployment(instant := false) -> void:
+	if not is_instance_valid(_preflight_layer) or not _preflight_layer.visible: return
+	_preflight_active = false
+	if instant or DisplayServer.get_name() == "headless" or OS.has_feature("test"):
+		_preflight_layer.visible = false
+		return
+	if is_instance_valid(_preflight_stage_label):
+		_preflight_stage_label.text = "[✓] BATTLESPACE SYNCHRONIZED — LINK ESTABLISHED"
+		_preflight_stage_label.add_theme_color_override("font_color", Color("2fe080"))
+	if is_instance_valid(_preflight_bar_fill):
+		_preflight_bar_fill.size.x = 480.0
+		_preflight_bar_fill.color = Color("2fe080")
+	var tw := create_tween()
+	tw.tween_property(_preflight_layer, "modulate:a", 0.0, 0.22).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tw.finished.connect(func() -> void:
+		if is_instance_valid(_preflight_layer):
+			_preflight_layer.visible = false
+	)
 
 var _menu_scrim: ColorRect
 var _controls_hint: Label
@@ -501,6 +599,7 @@ func build() -> void:
 	_connection_status.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_connection_status.visible = false
 	add_child(_connection_status)
+	_build_preflight_ui()
 	# Low Health Vignette
 	low_hp_vignette = ColorRect.new()
 	low_hp_vignette.set_anchors_preset(Control.PRESET_FULL_RECT)

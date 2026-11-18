@@ -155,7 +155,7 @@ func run() -> void:
 	camera_wall_shape.shape = camera_wall_box
 	camera_wall.add_child(camera_wall_shape)
 	main.world.add_child(camera_wall)
-	camera_wall.global_position = main.player.global_position + Vector3(0, 0, 0.7)
+	camera_wall.transform = Transform3D(main.player.head.global_basis, main.player.global_position + main.player.head.global_basis * Vector3(0, 0, 0.7))
 	await physics_frame
 	main.player._update_drone_chase_camera()
 	check(main.player.camera.global_position.distance_to(main.player.global_position) < 0.8,

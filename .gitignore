@@ -28,3 +28,4 @@ scripts/__pycache__/
 
 warbase-godot/client/candidate-native/
 warbase-godot/state-view-repro/.godot/
+warbase-colyseus/public/

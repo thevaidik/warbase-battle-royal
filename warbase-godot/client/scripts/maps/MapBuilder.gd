@@ -135,8 +135,8 @@ func build(map_name: String) -> Array[Vector3]:
 					# The industrial asset has a visible perimeter fence with mesh collision.
 					# Extra square barriers cut across its playable roads and buildings.
 					# Spawn jeeps on wide open 50-meter highway avenues with clear driving lines
-					_spawn_jeep(Vector3(-20.0, 0.5, 20.0), 0.0, root)
-					_spawn_jeep(Vector3(20.0, 0.5, 20.0), deg_to_rad(90.0), root)
+					_spawn_jeep(Vector3(-20.0, 0.5, 20.0), PI, root)
+					_spawn_jeep(Vector3(20.0, 0.5, 20.0), deg_to_rad(-90.0), root)
 					spawn_points = [
 						Vector3(-22.0, 1.3, -22.0),
 						Vector3(-22.0, 1.3, 0.0),
@@ -155,8 +155,8 @@ func build(map_name: String) -> Array[Vector3]:
 					extent = 130.0
 					center = Vector3(0.0, 0.0, -20.0)
 					# Spawn jeeps in wide open road lanes with >10m clearance away from props & buildings
-					_spawn_jeep(Vector3(35.0, 0.5, -20.0), 0.0, root)
-					_spawn_jeep(Vector3(-35.0, 0.5, -20.0), PI, root)
+					_spawn_jeep(Vector3(35.0, 0.5, -20.0), PI, root)
+					_spawn_jeep(Vector3(-35.0, 0.5, -20.0), 0.0, root)
 					spawn_points = [
 						Vector3(-14.0, 0.08, -8.0),
 						Vector3(18.0, 0.08, 8.0),
@@ -174,8 +174,8 @@ func build(map_name: String) -> Array[Vector3]:
 				"cosmodrome":
 					extent = 90.0
 					center = Vector3.ZERO
-					_spawn_jeep(Vector3(-30.0, 0.5, 55.0), 0.0, root)
-					_spawn_jeep(Vector3(30.0, 0.5, -55.0), PI, root)
+					_spawn_jeep(Vector3(-30.0, 0.5, 55.0), PI, root)
+					_spawn_jeep(Vector3(30.0, 0.5, -55.0), 0.0, root)
 					spawn_points = [
 						Vector3(25.0, 0.20, 45.0),
 						Vector3(40.0, 0.20, 45.0),
@@ -193,8 +193,8 @@ func build(map_name: String) -> Array[Vector3]:
 				"dam":
 					extent = 100.0
 					center = Vector3(0.0, 20.0, 20.0)
-					_spawn_jeep(Vector3(-25.0, 38.6, 0.0), 0.0, root)
-					_spawn_jeep(Vector3(25.0, 38.6, 0.0), PI, root)
+					_spawn_jeep(Vector3(-25.0, 38.6, 0.0), PI, root)
+					_spawn_jeep(Vector3(25.0, 38.6, 0.0), 0.0, root)
 					spawn_points = [
 						Vector3(-35.0, 34.25, -55.0),
 						Vector3(-20.0, 34.25, -55.0),
@@ -212,8 +212,8 @@ func build(map_name: String) -> Array[Vector3]:
 				"skyline":
 					extent = 85.0
 					center = Vector3(0.0, 20.0, 0.0)
-					_spawn_jeep(Vector3(-35.0, 0.5, 30.0), 0.0, root)
-					_spawn_jeep(Vector3(35.0, 0.5, -30.0), PI, root)
+					_spawn_jeep(Vector3(-35.0, 0.5, 30.0), PI, root)
+					_spawn_jeep(Vector3(35.0, 0.5, -30.0), 0.0, root)
 					spawn_points = [
 						Vector3(-60.0, 0.20, 50.0),
 						Vector3(-45.0, 0.20, 50.0),

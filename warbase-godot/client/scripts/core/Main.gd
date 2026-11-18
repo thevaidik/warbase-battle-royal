@@ -203,8 +203,30 @@ func _on_deploy(reservation: Dictionary = {}) -> void:
 	if _autotest:
 		print("AUTOTEST: deployed map=", GameState.selected_map, " player_at=", player.global_position)
 
+func _map_center_for(map_id: String) -> Vector3:
+	match map_id:
+		"village": return Vector3(0.0, 0.0, -20.0)
+		"dam": return Vector3(0.0, 20.0, 20.0)
+		"skyline": return Vector3(0.0, 20.0, 0.0)
+		_: return Vector3.ZERO
+
+func _align_player_to_battlefield(target_pos: Vector3) -> void:
+	if not is_instance_valid(player): return
+	var center := _map_center_for(GameState.selected_map)
+	var spawn_yaw := atan2(target_pos.x - center.x, target_pos.z - center.z)
+	player.yaw = spawn_yaw
+	player.body_yaw = spawn_yaw
+	player.body_yaw_rate = 0.0
+	player.rotation.y = spawn_yaw
+	if is_instance_valid(player.head):
+		player.head.rotation = Vector3.ZERO
+
 func _start_match(reservation: Dictionary = {}) -> void:
 	GameState.online_ready = GameState.practice_mode
+	if not GameState.practice_mode:
+		hud.show_preflight_deployment(GameState.selected_map, GameState.selected_mode, GameState.selected_drone_chassis)
+	else:
+		hud.hide_preflight_deployment(true)
 	hud.set_connection_status("Synchronizing match…" if not GameState.practice_mode else "")
 	GameState.reset_match_stats()
 	
@@ -239,7 +261,7 @@ func _start_match(reservation: Dictionary = {}) -> void:
 	var cam := player.get_node("Head/Camera3D") as Camera3D
 	var sp: Vector3 = spawns[0] if not spawns.is_empty() else Vector3(0, 0.5, 0)
 	player.global_position = sp + Vector3.UP * GameState.DRONE_SPAWN_OFFSET
-	if GameState.selected_map == "football": player.yaw = atan2(sp.x, sp.z)
+	_align_player_to_battlefield(sp)
 	
 	# Weapons system
 	weapons = WeaponSysScript.new()
@@ -425,6 +447,7 @@ func _quit_to_menu() -> void:
 	bots = null
 	mp = null
 	map_builder = null
+	hud.hide_preflight_deployment(true)
 	hud.visible = false
 	hud.set_paused(false)
 	hud.set_dead(false, 0)
@@ -640,6 +663,7 @@ func _on_state(state: Dictionary) -> void:
 			weapons.reconcile_ammo(me)
 		GameState.online_ready = true
 		hud.set_connection_status("")
+		hud.hide_preflight_deployment()
 		GameState.throwables_remaining = int(me.get("grenades", 2))
 		var remote_hp := int(me.get("health", 100))
 		# A respawn event and an older death snapshot can share a delivery batch.
@@ -765,6 +789,7 @@ func _on_conn(connected_now: bool) -> void:
 		return
 	if connected_now:
 		menu.confirm_quick_match()
+		hud.set_preflight_stage(2, "AVIONICS ARMED — SYNCHRONIZING BATTLESPACE...")
 		hud.set_connection_status("Synchronizing match…")
 		if phase != Phase.DEAD: net.send_loadout(GameState.selected_primary, GameState.selected_secondary, GameState.selected_throwable)
 		if weapons and phase != Phase.DEAD:
@@ -772,6 +797,7 @@ func _on_conn(connected_now: bool) -> void:
 	else:
 		GameState.online_ready = false
 		if is_instance_valid(weapons): weapons.clear_pending_shots()
+		hud.hide_preflight_deployment(true)
 		hud.set_connection_status("Connection interrupted. Reconnecting…")
 
 func _on_net_respawn(pos: Vector3) -> void:
@@ -808,7 +834,7 @@ func _do_respawn(pos: Vector3) -> void:
 	_redeploy_queued = false
 	_respawn_attempts = 0
 	player.respawn_at(pos)
-	if GameState.selected_map == "football": player.yaw = atan2(pos.x, pos.z)
+	_align_player_to_battlefield(pos)
 	if is_instance_valid(weapons):
 		weapons.reset_after_respawn()
 
