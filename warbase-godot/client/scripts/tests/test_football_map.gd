@@ -58,7 +58,7 @@ func run() -> void:
 	var material = meshes[0].get_active_material(0)
 	check(material.transparency == BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR, "authored railings and cut-outs retain alpha masking")
 	check(material.shading_mode == BaseMaterial3D.SHADING_MODE_PER_PIXEL, "stadium responds to room time of day")
-	check(material.albedo_texture.get_width() == 8192, "full texture resolution retained")
+	check(material.albedo_texture.get_width() == 4096, "optimized 4K texture resolution retained")
 	builder.free()
 	print("FOOTBALL MAP TEST: %d failures" % failures)
 	quit(failures)

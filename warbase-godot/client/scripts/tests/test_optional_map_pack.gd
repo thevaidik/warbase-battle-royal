@@ -17,7 +17,7 @@ func run() -> void:
 	if spawns.size() != 12: quit(1); return
 	var meshes = builder.find_child("GLBMap", true, false).find_children("*", "MeshInstance3D", true, false)
 	if meshes.size() != 2 or builder.find_child("StadiumBackFaces", true, false) == null: quit(1); return
-	if meshes[0].get_active_material(0).albedo_texture.get_width() != 8192: quit(1); return
+	if meshes[0].get_active_material(0).albedo_texture.get_width() != 4096: quit(1); return
 	builder.free()
-	print("OPTIONAL PACK TEST: PASS - excluded from startup, mounted successfully, 12 spawns, full 8K atlas")
+	print("OPTIONAL PACK TEST: PASS - excluded from startup, mounted successfully, 12 spawns, 4K atlas")
 	quit()
